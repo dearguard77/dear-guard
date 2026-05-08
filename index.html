@@ -318,6 +318,11 @@
       <div class="sec-header" style="margin-bottom:0"><h2>전체 일정</h2><span id="sch-count"></span></div>
       <button class="btn btn-primary sm" id="sch-reg-btn" onclick="openForm(null)" style="display:none">＋ 예식 등록</button>
     </div>
+    <!-- 긴급확인 필터 배너 -->
+    <div id="urgent-banner" style="display:none;background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:12px;padding:10px 16px;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:8px">
+      <span style="font-size:13px;font-weight:700;color:#DC2626">🚨 긴급확인 일정만 보기</span>
+      <button onclick="clearUrgentFilter()" style="background:#DC2626;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">필터 해제</button>
+    </div>
     <div id="schedule-list"></div>
   </div>
 <!-- UNAVAILABLE TAB -->
@@ -726,6 +731,7 @@ let formTab     = 'basic';
 let formNotes   = [];
 let formCL      = BLANK_CL();
 let dropOpen    = false;
+let urgentFilter = false;  // 긴급확인 필터 on/off
 
 // ─── DB 헬퍼 ─────────────────────────────────────────────────────────────────
 // DB row → app object 변환
@@ -984,14 +990,19 @@ function renderStats(){
   const noBalance = vs.filter(s=>!s.checklist.balance).length;
   const urgent    = vs.filter(s=>s.status==='긴급확인').length;
 
-  document.getElementById('stats-grid').innerHTML = [
-    {label:'오늘 예식',value:todayCnt,icon:'📅',color:'#3B82F6'},
-    {label:'이번달 예식',value:monthCnt,icon:'🗓',color:'#C7A96B'},
-    {label:'잔금 미완',value:noBalance,icon:'💰',color:'#F59E0B'},
-    {label:'긴급 확인',value:urgent,icon:'🚨',color:'#EF4444'},
-  ].map(s=>`<div class="stat-card"><div class="stat-icon">${s.icon}</div>
-    <div class="stat-value" style="color:${s.color}">${s.value}</div>
-    <div class="stat-label">${s.label}</div></div>`).join('');
+  const statItems = [
+    {label:'오늘 예식',  value:todayCnt, icon:'📅', color:'#3B82F6', click:''},
+    {label:'이번달 예식',value:monthCnt, icon:'🗓', color:'#C7A96B', click:''},
+    {label:'잔금 미완',  value:noBalance,icon:'💰', color:'#F59E0B', click:''},
+    {label:'긴급 확인',  value:urgent,   icon:'🚨', color:'#EF4444', click:'openUrgentFilter()'},
+  ];
+  document.getElementById('stats-grid').innerHTML = statItems.map(s=>`
+    <div class="stat-card" ${s.click ? `onclick="${s.click}" style="cursor:pointer"` : ''}>
+      <div class="stat-icon">${s.icon}</div>
+      <div class="stat-value" style="color:${s.color}">${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+      ${s.click ? `<div style="font-size:9px;color:#9CA3AF;margin-top:3px">탭하여 조회</div>` : ''}
+    </div>`).join('');
 }
 function renderToday(){
   document.getElementById('today-subtitle').textContent = `${TODAY} 기준`;
@@ -1086,12 +1097,41 @@ const byDay = day => {
       ${Object.entries(STATUS_CFG).map(([k,v])=>`<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${v.color}"></div>${k}</div>`).join('')}
     </div>`;
 }
+function openUrgentFilter(){
+  urgentFilter = true;
+  switchTab('schedules', null, document.querySelectorAll('.bnav-btn')[2]);
+  // 상단 탭 버튼도 active 처리
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('onclick')?.includes("'schedules'"));
+  });
+  renderScheduleList();
+}
 
+function clearUrgentFilter(){
+  urgentFilter = false;
+  renderScheduleList();
+}
 function renderScheduleList(){
-  const vs = visible();
-  document.getElementById('sch-count').textContent=`총 ${vs.length}건`;
+  // visible()은 기존 직원별 권한 필터 유지
+  let vs = visible();
+
+  // 긴급확인 필터 적용
+  if(urgentFilter) vs = vs.filter(s => s.status === '긴급확인');
+
+  // 필터 배너 표시/숨김
+  const banner = document.getElementById('urgent-banner');
+  if(banner) banner.style.display = urgentFilter ? 'flex' : 'none';
+
+  document.getElementById('sch-count').textContent =
+    urgentFilter ? `긴급확인 ${vs.length}건` : `총 ${vs.length}건`;
+
   const el = document.getElementById('schedule-list');
-  if(!vs.length){ el.innerHTML='<div class="empty-state">등록된 예식이 없습니다</div>'; return; }
+  if(!vs.length){
+    el.innerHTML = urgentFilter
+      ? '<div class="empty-state">🚨 긴급확인 일정이 없습니다</div>'
+      : '<div class="empty-state">등록된 예식이 없습니다</div>';
+    return;
+  }
   el.innerHTML = vs.map(s=>`
     <div class="sch-row" onclick="openDetail(${s.id})">
       <div class="sch-icon" style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).bg}">💍</div>
