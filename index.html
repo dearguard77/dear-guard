@@ -280,6 +280,10 @@
     <button class="tab-btn" onclick="switchTab('schedules',this)">📋 전체일정</button>
     <button class="tab-btn" onclick="switchTab('unavail',this)">🚫 불가일정</button>
     <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab('settle',this)">📊 정산</button>
+   <button class="tab-btn" id="nav-sheet-btn" style="display:none"
+      onclick="window.open('https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623','_blank')">
+      📋 시트
+    </button>
   </div>
   <div class="nav-right">
     <button id="reg-btn" onclick="openForm(null)" style="display:none"><span>＋</span><span>예식 등록</span></button>
@@ -1071,6 +1075,8 @@ function renderNav(){
   const navSettleBtn = document.getElementById('nav-settle-btn');
   if(bnavSettle)   bnavSettle.style.display   = isAdmin ? 'flex'  : 'none';
   if(navSettleBtn) navSettleBtn.style.display  = isAdmin ? 'block' : 'none';
+  const navSheetBtn = document.getElementById('nav-sheet-btn');
+  if(navSheetBtn)  navSheetBtn.style.display   = isAdmin ? 'block' : 'none';
 }
 
 function renderUserDrop(){
