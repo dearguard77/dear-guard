@@ -712,7 +712,19 @@ function showToast(msg){
   t.textContent=msg;t.style.display='block';
   setTimeout(()=>{t.style.display='none';},2200);
 }
-const visible = () => schedules.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+// 권한별 일정 필터 — 모든 렌더 함수가 이 함수를 통해 일정을 가져옵니다
+const ADMIN_NAMES = ['강성주', '전수연'];
+
+function visible(){
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  const filtered = isAdmin
+    ? schedules
+    : schedules.filter(s =>
+        (s.frontManager || '').includes(currentUser.name) ||
+        (s.backManager  || '').includes(currentUser.name)
+      );
+  return filtered.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+}
 
 // ─── LOGIN ───────────────────────────────────────────────────────────────────
 function initLoginScreen(){
@@ -847,7 +859,7 @@ function renderAll(){
 }
 
 function renderBanner(){
-  const todayCnt = schedules.filter(s=>s.date===TODAY).length;
+  const todayCnt = visible().filter(s=>s.date===TODAY).length;
   document.getElementById('banner-greet').textContent = `안녕하세요, ${currentUser.name} (${currentUser.role}) 👋`;
   document.getElementById('banner-count').textContent = `오늘 ${todayCnt}건의 예식이 있습니다`;
   const d=new Date(); document.getElementById('banner-date').textContent =
@@ -872,7 +884,7 @@ function renderStats(){
 }
 function renderToday(){
   document.getElementById('today-subtitle').textContent = `${TODAY} 기준`;
-  const list = schedules.filter(s=>s.date===TODAY);
+  const list = visible().filter(s=>s.date===TODAY);
   const el = document.getElementById('today-list');
   if(!list.length){ el.innerHTML='<div class="empty-state">오늘 예식이 없습니다</div>'; return; }
   el.innerHTML = list.map(s=>`
@@ -895,7 +907,7 @@ function renderToday(){
 }
 
 function renderUpcoming(){
-  const list = schedules.filter(s=>{
+  const list = visible().filter(s=>{
     const d=Math.ceil((new Date(s.date)-new Date(TODAY))/86400000);
     return d>0&&d<=7;
   }).sort((a,b)=>new Date(a.date)-new Date(b.date));
@@ -927,10 +939,11 @@ function renderCalendar(){
   const firstDay = new Date(calYear,calMonth,1).getDay();
   const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
   const days = [...Array(firstDay).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
-  const byDay = day => {
+const vs = visible(); // 권한 필터 적용된 일정
+const byDay = day => {
     if(!day) return [];
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    return schedules.filter(s=>s.date===ds);
+    return vs.filter(s=>s.date===ds);
   };
   const dayNames = ['일','월','화','수','목','금','토'];
   wrap.innerHTML = `
