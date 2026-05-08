@@ -741,39 +741,6 @@ function renderStats(){
   const urgent    = vs.filter(s=>s.status==='긴급확인').length;
   document.getElementById('stats-grid').innerHTML = [
     {label:'오늘 예식',value:todayCnt,icon:'📅',color:'#3B82F6'},
-function renderStats(){
-  const vs = visible();
-
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-
-  const todayCnt = vs.filter(s=>s.date===TODAY).length;
-
-  const monthCnt = vs.filter(s=>{
-    const d = new Date(s.date);
-    return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
-  }).length;
-
-  const noBalance = vs.filter(s=>!s.checklist.balance).length;
-  const urgent    = vs.filter(s=>s.status==='긴급확인').length;
-
-  document.getElementById('stats-grid').innerHTML = [
-    {label:'오늘 예식',value:todayCnt,icon:'📅',color:'#3B82F6'},
-    {label:'이번달 예식',value:monthCnt,icon:'🗓',color:'#C7A96B'},
-    {label:'잔금 미완',value:noBalance,icon:'💰',color:'#F59E0B'},
-    {label:'긴급 확인',value:urgent,icon:'🚨',color:'#EF4444'},
-  ].map(s=>`<div class="stat-card"><div class="stat-icon">${s.icon}</div>
-    <div class="stat-value" style="color:${s.color}">${s.value}</div>
-    <div class="stat-label">${s.label}</div></div>`).join('');
-}
-    {label:'잔금 미완',value:noBalance,icon:'💰',color:'#F59E0B'},
-    {label:'긴급 확인',value:urgent,icon:'🚨',color:'#EF4444'},
-  ].map(s=>`<div class="stat-card"><div class="stat-icon">${s.icon}</div>
-    <div class="stat-value" style="color:${s.color}">${s.value}</div>
-    <div class="stat-label">${s.label}</div></div>`).join('');
-}
-
 function renderToday(){
   document.getElementById('today-subtitle').textContent = `${TODAY} 기준`;
   const list = schedules.filter(s=>s.date===TODAY);
