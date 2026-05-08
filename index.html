@@ -705,9 +705,9 @@ function coupleName(s){
   const g = (s.groomName||'').trim();
   const b = (s.brideName||'').trim();
   if(g && b) return `${g} ♥ ${b}`;
-  if(g)      return `${g}측 예식`;
-  if(b)      return `${b}측 예식`;
-  return s.hall ? `${s.hall} 예식` : '미입력 예식';
+  if(g)      return `${g} 신랑측`;
+  if(b)      return `${b} 신부측`;
+  return s.hall ? `${s.hall}` : '미입력';
 }
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
