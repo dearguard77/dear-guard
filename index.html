@@ -14,10 +14,10 @@
   input,select,textarea{font-family:inherit}
 
   /* NAV */
-  #nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid #E8DFD0;padding:0 16px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;height:56px;gap:8px}
-  #nav .tab-wrap{display:flex;gap:4px;justify-content:center}
-  #nav .nav-right{display:flex;align-items:center;gap:8px;justify-content:flex-end}
-  #nav .brand{font-family:Georgia,serif;font-size:17px;font-weight:700;color:#C7A96B;letter-spacing:1px;flex:1}
+  #nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid #E8DFD0;padding:0 16px;display:flex;flex-wrap:nowrap;align-items:center;height:56px;gap:8px;min-height:56px;max-height:56px;overflow:visible}
+  #nav .tab-wrap{flex:1;display:flex;gap:4px;justify-content:center}
+  #nav .nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;white-space:nowrap}
+  #nav .brand{font-family:Georgia,serif;font-size:17px;font-weight:700;color:#C7A96B;letter-spacing:1px}
   .tab-btn{background:none;border:1px solid transparent;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:500;color:#6B7280;transition:all .15s}
   .tab-btn.active{background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B;font-weight:700}
   #reg-btn{background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:4px;min-width:80px;justify-content:center}
@@ -281,8 +281,8 @@
     <button class="tab-btn" onclick="switchTab('unavail',this)">🚫 불가일정</button>
     <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab('settle',this)">📊 정산</button>
   </div>
-  <button id="reg-btn" onclick="openForm(null)" style="display:none"><span>＋</span><span>예식 등록</span></button>
- <div class="nav-right">
+  <div class="nav-right">
+    <button id="reg-btn" onclick="openForm(null)" style="display:none"><span>＋</span><span>예식 등록</span></button>
     <!-- 관리자 전용 직원 전환 드롭다운 -->
     <div id="admin-user-wrap" style="display:none;position:relative">
       <button id="user-btn" onclick="toggleDrop()">
