@@ -209,6 +209,13 @@
   .uv-type-btn{flex:1;border-radius:8px;padding:9px 4px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #E5E7EB;background:#fff;color:#9CA3AF;font-family:inherit}
   .uv-type-btn.active{background:#FEF2F2;color:#DC2626;border-color:#FCA5A5}
  
+  /* SETTLEMENT TAB */
+  .settle-row{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:all .15s}
+  .settle-row:hover{border-color:#C7B89A}
+  .settle-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+  .settle-summary-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;text-align:center}
+  .paid-badge{background:#ECFDF5;color:#10B981;border:1px solid #A7F3D0;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700}
+  .unpaid-badge{background:#FEF9C3;color:#CA8A04;border:1px solid #FDE047;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700}
   /* RESPONSIVE */
   @media(max-width:600px){
     .stats-grid{grid-template-columns:repeat(2,1fr)}
@@ -257,6 +264,7 @@
     <button class="tab-btn" onclick="switchTab('calendar',this)">📅 캘린더</button>
     <button class="tab-btn" onclick="switchTab('schedules',this)">📋 전체일정</button>
     <button class="tab-btn" onclick="switchTab('unavail',this)">🚫 불가일정</button>
+    <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab('settle',this)">📊 정산</button>
   </div>
   <button id="reg-btn" onclick="openForm(null)" style="display:none"><span>＋</span><span>예식 등록</span></button>
 <div style="position:relative;flex-shrink:0;display:flex;align-items:center;gap:8px">
@@ -348,6 +356,29 @@
     <!-- 불가일정 리스트 -->
     <div id="unavail-list"></div>
   </div>
+ <!-- SETTLE TAB (관리자 전용) -->
+  <div id="tab-settle" class="tab-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div class="sec-header" style="margin-bottom:0"><h2>📊 정산 현황</h2><span>관리자 전용</span></div>
+      <select class="form-input" id="settle-month-filter" onchange="renderSettle()"
+        style="width:auto;padding:6px 12px;font-size:12px"></select>
+    </div>
+
+    <!-- 요약 카드 -->
+    <div class="settle-summary" id="settle-summary"></div>
+
+    <!-- 인건비 미지급 필터 -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer">
+        <input type="checkbox" id="settle-unpaid-only" onchange="renderSettle()"
+          style="width:15px;height:15px;accent-color:#C7A96B">
+        미지급 건만 보기
+      </label>
+    </div>
+
+    <!-- 정산 리스트 -->
+    <div id="settle-list"></div>
+  </div>
 </main>
 
 <!-- BOTTOM NAV -->
@@ -356,6 +387,7 @@
   <button class="bnav-btn" onclick="switchTab('calendar',null,this)"><span class="bnav-icon">📅</span>캘린더</button>
   <button class="bnav-btn" onclick="switchTab('schedules',null,this)"><span class="bnav-icon">📋</span>전체일정</button>
   <button class="bnav-btn" onclick="switchTab('unavail',null,this)"><span class="bnav-icon">🚫</span>불가일정</button>
+  <button class="bnav-btn" id="bnav-settle" style="display:none" onclick="switchTab('settle',null,this)"><span class="bnav-icon">📊</span>정산</button>
 </div>
 
 <!-- TOAST -->
@@ -802,6 +834,7 @@ function rowToSchedule(row){
     laborCount:   row.labor_count  || null,
     laborCost:    row.labor_cost   || null,
     netProfit:    row.net_profit   || null,
+    laborPaid:    row.labor_paid   || false,
     result:       row.result       || null,
   };
 }
@@ -830,6 +863,7 @@ function scheduleToRow(v, notes, cl){
     labor_count:   v.laborCount   || null,
     labor_cost:    v.laborCost    || null,
     net_profit:    v.netProfit    || null,
+    labor_paid:    v.laborPaid    || false,
     result:        null,
   };
 }
@@ -1003,6 +1037,13 @@ function renderNav(){
 
   if(currentUser.canEdit){ regBtn.style.display='flex'; if(schRegBtn) schRegBtn.style.display='inline-flex'; }
   else { regBtn.style.display='none'; if(schRegBtn) schRegBtn.style.display='none'; }
+
+  // 정산 탭 — 관리자만 표시
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  const bnavSettle = document.getElementById('bnav-settle');
+  const navSettleBtn = document.getElementById('nav-settle-btn');
+  if(bnavSettle)   bnavSettle.style.display   = isAdmin ? 'flex'  : 'none';
+  if(navSettleBtn) navSettleBtn.style.display  = isAdmin ? 'block' : 'none';
 }
 
 function renderUserDrop(){
@@ -1220,6 +1261,7 @@ function switchTab(id, topBtn, botBtn){
   if(id==='calendar')  renderCalendar();
   if(id==='schedules') renderScheduleList();
   if(id==='unavail')   renderUnavailAll();
+  if(id==='settle')    renderSettle();
 }
 
 function toggleDrop(){
@@ -1989,6 +2031,128 @@ async function deleteUnavail(){
   } catch(e){
     console.error('불가일정 삭제 실패:', e);
     alert('삭제에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류'));
+  }
+}
+ // ════════════════════════════════════════════════════════════
+//  📊  정산 현황 기능 (관리자 전용)
+// ════════════════════════════════════════════════════════════
+
+function initSettleMonthFilter(){
+  const sel = document.getElementById('settle-month-filter'); if(!sel) return;
+  const months = [...new Set(schedules
+    .filter(s => s.totalPrice || s.laborCost)
+    .map(s => s.date?.slice(0,7))
+    .filter(Boolean)
+  )].sort().reverse();
+
+  // 현재 달도 항상 포함
+  const thisMonth = TODAY.slice(0,7);
+  if(!months.includes(thisMonth)) months.unshift(thisMonth);
+
+  const cur = sel.value || thisMonth;
+  sel.innerHTML = months.map(m =>
+    `<option value="${m}"${m===cur?' selected':''}>${m.replace('-','년 ')}월</option>`
+  ).join('');
+  if(!sel.value) sel.value = cur;
+}
+
+function renderSettle(){
+  if(!ADMIN_NAMES.includes(currentUser.name)) return;
+
+  initSettleMonthFilter();
+
+  const sel = document.getElementById('settle-month-filter');
+  const month = sel?.value || TODAY.slice(0,7);
+  const unpaidOnly = document.getElementById('settle-unpaid-only')?.checked || false;
+
+  // 해당 월 + 정산 정보 있는 예식만
+  let list = schedules.filter(s =>
+    s.date?.slice(0,7) === month && (s.totalPrice || s.laborCost)
+  ).sort((a,b) => a.date.localeCompare(b.date));
+
+  if(unpaidOnly) list = list.filter(s => !s.laborPaid);
+
+  // ── 요약 카드 ──
+  const totalRevenue = list.reduce((sum,s) => sum + (s.totalPrice  || 0), 0);
+  const totalLabor   = list.reduce((sum,s) => sum + (s.laborCost   || 0), 0);
+  const totalNet     = list.reduce((sum,s) => sum + (s.netProfit   || 0), 0);
+  const unpaidCount  = list.filter(s => !s.laborPaid).length;
+
+  document.getElementById('settle-summary').innerHTML = `
+    <div class="settle-summary-card">
+      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">총 매출</div>
+      <div style="font-size:20px;font-weight:800;color:#111827">${totalRevenue.toLocaleString()}원</div>
+      <div style="font-size:11px;color:#9CA3AF;margin-top:4px">${list.length}건</div>
+    </div>
+    <div class="settle-summary-card">
+      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">총 인건비</div>
+      <div style="font-size:20px;font-weight:800;color:#EF4444">${totalLabor.toLocaleString()}원</div>
+      <div style="font-size:11px;color:#F59E0B;margin-top:4px;font-weight:600">미지급 ${unpaidCount}건</div>
+    </div>
+    <div class="settle-summary-card" style="background:${totalNet>=0?'#ECFDF5':'#FEF2F2'};border-color:${totalNet>=0?'#A7F3D0':'#FCA5A5'}">
+      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">순수익</div>
+      <div style="font-size:20px;font-weight:800;color:${totalNet>=0?'#10B981':'#EF4444'}">${totalNet.toLocaleString()}원</div>
+      <div style="font-size:11px;color:#9CA3AF;margin-top:4px">매출 - 인건비</div>
+    </div>`;
+
+  // ── 리스트 ──
+  const el = document.getElementById('settle-list');
+  if(!list.length){
+    el.innerHTML = '<div class="empty-state">해당 월에 정산 정보가 없습니다<br><span style="font-size:12px">예식 등록 시 💰 정산정보 탭에서 입력하세요</span></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(s => `
+    <div class="settle-row">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#111827">${esc(coupleName(s))}</div>
+          <div style="font-size:12px;color:#6B7280;margin-top:2px">${esc(s.date)} · ${esc(s.hall)} · ${esc(s.laborRegion||'-')} ${s.laborCount||0}명</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${s.laborPaid
+            ? '<span class="paid-badge">✅ 지급완료</span>'
+            : '<span class="unpaid-badge">⏳ 미지급</span>'}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:#F9FAFB;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">총금액</div>
+          <div style="font-size:13px;font-weight:800;color:#111827">${s.totalPrice ? s.totalPrice.toLocaleString()+'원' : '-'}</div>
+        </div>
+        <div style="background:#FEF2F2;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">인건비</div>
+          <div style="font-size:13px;font-weight:800;color:#EF4444">${s.laborCost ? s.laborCost.toLocaleString()+'원' : '-'}</div>
+        </div>
+        <div style="background:${(s.netProfit||0)>=0?'#ECFDF5':'#FEF2F2'};border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">순수익</div>
+          <div style="font-size:13px;font-weight:800;color:${(s.netProfit||0)>=0?'#10B981':'#EF4444'}">${s.netProfit!=null ? s.netProfit.toLocaleString()+'원' : '-'}</div>
+        </div>
+      </div>
+      <!-- 인건비 지급 체크박스 -->
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:${s.laborPaid?'#ECFDF5':'#FFFBEB'};border:1px solid ${s.laborPaid?'#A7F3D0':'#FDE68A'};border-radius:8px;padding:8px 12px">
+        <input type="checkbox" ${s.laborPaid?'checked':''} onchange="toggleLaborPaid(${s.id},this.checked)"
+          style="width:16px;height:16px;accent-color:#10B981">
+        <span style="font-size:13px;font-weight:600;color:${s.laborPaid?'#065F46':'#92400E'}">
+          ${s.laborPaid ? '인건비 지급 완료' : '인건비 미지급 — 클릭하여 지급 처리'}
+        </span>
+      </label>
+    </div>`).join('');
+}
+
+async function toggleLaborPaid(schId, checked){
+  const s = schedules.find(x => x.id === schId); if(!s) return;
+  s.laborPaid = checked;
+  renderSettle(); // UI 즉시 반영
+
+  try {
+    await sb.patch('schedules', schId, { labor_paid: checked });
+    showToast(checked ? '✅ 인건비 지급 처리 완료' : '↩️ 인건비 미지급으로 변경');
+  } catch(e){
+    console.error('인건비 지급 처리 실패:', e);
+    showToast('⚠️ 저장 실패. 다시 시도해주세요.');
+    s.laborPaid = !checked; // 롤백
+    renderSettle();
   }
 }
 // ─── START ────────────────────────────────────────────────────────────────────
