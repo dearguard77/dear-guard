@@ -302,7 +302,135 @@
       <div class="modal-title" id="fm-title">➕ 새 예식 등록</div>
       <div class="subtab-nav" style="margin-top:14px" id="fm-tabs"></div>
     </div>
-    <div class="modal-body" id="fm-body"></div>
+    <div class="modal-body" style="padding:0">
+
+      <!-- ── 섹션 1: 기본정보 (항상 DOM에 존재, show/hide만) ── -->
+      <div id="fm-sec-basic" style="padding:20px 24px">
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">신랑 이름</label>
+            <input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)">
+          </div>
+          <div class="form-field">
+            <label class="form-label">신부 이름</label>
+            <input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)">
+          </div>
+          <div class="form-field">
+            <label class="form-label">예식일 <span style="color:#EF4444">*</span></label>
+            <input class="form-input" id="f-date" type="date">
+          </div>
+          <div class="form-field">
+            <label class="form-label">예식시간 <span style="color:#EF4444">*</span></label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="form-input" id="f-time-h" style="flex:1">
+                <option value="">시</option>
+                <option>08</option><option>09</option><option>10</option>
+                <option>11</option><option>12</option><option>13</option>
+                <option>14</option><option>15</option><option>16</option>
+                <option>17</option><option>18</option><option>19</option>
+                <option>20</option><option>21</option>
+              </select>
+              <span style="color:#9CA3AF;font-weight:700;flex-shrink:0">:</span>
+              <select class="form-input" id="f-time-m" style="flex:1">
+                <option value="">분</option>
+                <option>00</option><option>10</option><option>20</option>
+                <option>30</option><option>40</option><option>50</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">도착시간</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="form-input" id="f-arr-h" style="flex:1">
+                <option value="">시</option>
+                <option>06</option><option>07</option><option>08</option>
+                <option>09</option><option>10</option><option>11</option>
+                <option>12</option><option>13</option><option>14</option>
+                <option>15</option><option>16</option><option>17</option>
+                <option>18</option><option>19</option><option>20</option>
+              </select>
+              <span style="color:#9CA3AF;font-weight:700;flex-shrink:0">:</span>
+              <select class="form-input" id="f-arr-m" style="flex:1">
+                <option value="">분</option>
+                <option>00</option><option>10</option><option>20</option>
+                <option>30</option><option>40</option><option>50</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">보증 인원</label>
+            <input class="form-input" id="f-guests" type="number" placeholder="200">
+          </div>
+          <div class="form-field span">
+            <label class="form-label">웨딩홀 (업체명) <span style="color:#EF4444">*</span></label>
+            <input class="form-input" id="f-hall" placeholder="더플라자 호텔, 롯데호텔 크리스탈볼룸">
+          </div>
+          <div class="form-field span">
+            <label class="form-label">홀 이름</label>
+            <input class="form-input" id="f-addr" placeholder="그레이스홀, 아모리스홀, 다이아몬드홀…">
+          </div>
+          <div class="form-field">
+            <label class="form-label">상품구성</label>
+            <select class="form-input" id="f-product">
+              <option>2인 1팀</option>
+              <option>4인 2팀</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">진행 상태</label>
+            <select class="form-input" id="f-status">
+              <option>계약완료</option>
+              <option>인터뷰대기</option>
+              <option>진행완료</option>
+              <option>긴급확인</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 섹션 2: 담당자 ── -->
+      <div id="fm-sec-managers" style="display:none;padding:20px 24px">
+        <div class="hint-box" style="margin-bottom:16px">💡 Front 담당자는 신랑신부 측 응대, Back 담당자는 축의금·식권 관리를 담당합니다.</div>
+        <div class="form-field" style="margin-bottom:14px">
+          <label class="form-label">Front 담당자 <span style="color:#EF4444">*</span></label>
+          <select class="form-input" id="f-front" onchange="renderManagerPreview()">
+            <option value="">— 선택 —</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin-bottom:16px">
+          <label class="form-label">Back 담당자 <span style="color:#EF4444">*</span></label>
+          <select class="form-input" id="f-back" onchange="renderManagerPreview()">
+            <option value="">— 선택 —</option>
+          </select>
+        </div>
+        <div id="manager-preview"></div>
+      </div>
+
+      <!-- ── 섹션 3: 특이사항 ── -->
+      <div id="fm-sec-notes" style="display:none;padding:20px 24px">
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:8px">빠른 추가 (프리셋)</div>
+          <div class="preset-wrap" id="fm-presets"></div>
+        </div>
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:10px">직접 입력</div>
+          <div class="note-type-row" id="fm-note-types"></div>
+          <div class="note-input-row">
+            <input class="form-input" id="note-text-inp" placeholder="특이사항 내용 입력"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomNote()}" style="flex:1">
+            <button class="btn btn-primary sm" onclick="addCustomNote()">추가</button>
+          </div>
+        </div>
+        <div id="notes-list"></div>
+      </div>
+
+      <!-- ── 섹션 4: 체크리스트 ── -->
+      <div id="fm-sec-checklist" style="display:none;padding:20px 24px">
+        <div class="hint-box" style="margin-bottom:12px">💡 현재 진행 상황에 맞게 체크하세요. 언제든 수정 가능합니다.</div>
+        <div id="fm-checklist-items"></div>
+      </div>
+
+    </div><!-- /.modal-body -->
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeForm()">취소</button>
       <div style="display:flex;gap:8px">
@@ -345,8 +473,8 @@
 // ════════════════════════════════════════════════════════════
 //  ⚙️  SUPABASE 설정 — 아래 두 값만 교체하면 됩니다
 // ════════════════════════════════════════════════════════════
-const SUPABASE_URL     = 'https://fmvomfjmkbklhaaapkbk.supabase.co/rest/v1/';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtdm9tZmpta2JrbGhhYWFwa2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNDMyNDcsImV4cCI6MjA5MzcxOTI0N30.6Qd1H_10Lc1_HoRDJYTVCADDbAc7MDH2Pq7yUXE_TUs';
+const SUPABASE_URL    = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 
 // ────────── Supabase 경량 클라이언트 ──────────
 const sb = {
@@ -491,14 +619,25 @@ function scheduleToRow(v, notes, cl){
   };
 }
 
+// ─── Supabase 설정 여부 체크 ─────────────────────────────────────────────────
+function isSupabaseConfigured(){
+  return SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co'
+      && SUPABASE_ANON_KEY !== 'YOUR_ANON_KEY_HERE'
+      && SUPABASE_URL.startsWith('https://');
+}
+
 // ─── DATA LOAD ────────────────────────────────────────────────────────────────
 async function loadSchedules(){
+  if(!isSupabaseConfigured()){
+    console.warn('Supabase 미설정 상태 — 로컬 빈 배열로 시작합니다');
+    return;
+  }
   try {
     const rows = await sb.get('schedules', '?order=date.asc,time.asc');
     schedules = rows.map(rowToSchedule);
   } catch(e){
     console.error('데이터 로드 실패:', e);
-    showToast('⚠️ 데이터 로드 실패. Supabase 설정을 확인하세요.');
+    showToast('⚠️ 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
   }
 }
 
@@ -533,6 +672,26 @@ const visible = () => schedules.slice().sort((a,b)=>new Date(a.date)-new Date(b.
 async function init(){
   renderUserDrop();
   renderNav();
+  if(!isSupabaseConfigured()){
+    // 설정 안내 배너 표시
+    document.getElementById('loading-overlay').innerHTML = `
+      <div style="max-width:420px;background:#fff;border-radius:20px;padding:32px 28px;box-shadow:0 8px 32px rgba(0,0,0,.12);text-align:center">
+        <div style="font-size:40px;margin-bottom:16px">⚙️</div>
+        <div style="font-size:18px;font-weight:800;color:#111827;margin-bottom:8px">Supabase 연결 필요</div>
+        <div style="font-size:13px;color:#6B7280;line-height:1.7;margin-bottom:20px">
+          HTML 파일 상단의 두 줄을 실제 Supabase 키로 교체하면 데이터가 저장됩니다.<br><br>
+          <code style="background:#F3F4F6;border-radius:6px;padding:8px 12px;display:block;text-align:left;font-size:11px;line-height:1.8;color:#374151">
+            const SUPABASE_URL = 'https://xxx.supabase.co';<br>
+            const SUPABASE_ANON_KEY = 'eyJ...';
+          </code>
+        </div>
+        <button onclick="document.getElementById('loading-overlay').style.display='none';renderAll()"
+          style="background:#C7A96B;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+          키 없이 미리보기로 계속
+        </button>
+      </div>`;
+    return;
+  }
   await loadSchedules();
   renderAll();
   document.getElementById('loading-overlay').style.display='none';
@@ -762,8 +921,8 @@ function openDetail(id){
         <div class="info-box"><div class="info-box-lbl">예식시간</div><div class="info-box-val">${esc(s.time)}</div></div>
         <div class="info-box"><div class="info-box-lbl">도착시간</div><div class="info-box-val">${esc(s.arrivalTime)||'-'}</div></div>
         <div class="info-box"><div class="info-box-lbl">보증인원</div><div class="info-box-val">${s.guestCount||0}명</div></div>
-        <div class="info-box span"><div class="info-box-lbl">웨딩홀</div><div class="info-box-val">${esc(s.hall)}</div></div>
-        <div class="info-box span"><div class="info-box-lbl">주소</div><div class="info-box-val">${esc(s.address)||'-'}</div></div>
+        <div class="info-box span"><div class="info-box-lbl">웨딩홀 (업체명)</div><div class="info-box-val">${esc(s.hall)}</div></div>
+        <div class="info-box span"><div class="info-box-lbl">홀 이름</div><div class="info-box-val">${esc(s.address)||'-'}</div></div>
         <div class="info-box span"><div class="info-box-lbl">상품구성</div><div class="info-box-val">${esc(s.product)}</div></div>
       </div>
     </div>
@@ -848,129 +1007,159 @@ async function deleteSch(id){
     renderAll(); showToast('🗑️ 예식이 삭제되었습니다');
   } catch(e){
     console.error('삭제 실패:', e);
-    showToast('⚠️ 삭제 실패. 다시 시도해주세요.');
+    alert('삭제에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류'));
   }
 }
 
 // ─── FORM MODAL ──────────────────────────────────────────────────────────────
-const FORM_TABS=[
-  {id:'basic',    label:'📋 기본정보'},
-  {id:'managers', label:'👥 담당자'},
-  {id:'notes',    label:'⚠️ 특이사항'},
-  {id:'checklist',label:'☑️ 체크리스트'},
+const FORM_TABS = [
+  { id:'basic',     label:'📋 기본정보' },
+  { id:'managers',  label:'👥 담당자'   },
+  { id:'notes',     label:'⚠️ 특이사항' },
+  { id:'checklist', label:'☑️ 체크리스트' },
 ];
 
 function openForm(id){
-  formId=id; formTab='basic';
-  const s=id?schedules.find(x=>x.id===id):null;
-  formNotes=s?JSON.parse(JSON.stringify(s.notes)):[];
-  formCL=s?{...BLANK_CL(),...s.checklist}:BLANK_CL();
+  formId  = id;
+  formTab = 'basic';
+  const s = id ? schedules.find(x => x.id === id) : null;
+  formNotes = s ? JSON.parse(JSON.stringify(s.notes)) : [];
+  formCL    = s ? { ...BLANK_CL(), ...s.checklist }  : BLANK_CL();
 
-  document.getElementById('fm-brand').textContent=`Dear Guard · ${s?'예식 수정':'새 예식 등록'}`;
-  document.getElementById('fm-title').textContent=s?`✏️ ${coupleName(s)}`:'➕ 새 예식 등록';
-  renderFormTabs(); renderFormBody();
-  document.getElementById('form-modal').style.display='flex';
-  document.body.style.overflow='hidden';
+  document.getElementById('fm-brand').textContent = `Dear Guard · ${s ? '예식 수정' : '새 예식 등록'}`;
+  document.getElementById('fm-title').textContent = s ? `✏️ ${coupleName(s)}` : '➕ 새 예식 등록';
+
+  // ── 기본정보 필드 값 세팅 ──
+  document.getElementById('f-groom').value   = s?.groomName   || '';
+  document.getElementById('f-bride').value   = s?.brideName   || '';
+  document.getElementById('f-date').value    = s?.date        || '';
+
+  // 예식시간 분리 세팅
+  const [th='', tm=''] = (s?.time || '').split(':');
+  document.getElementById('f-time-h').value = th ? th.padStart(2,'0') : '';
+  document.getElementById('f-time-m').value = tm ? tm.slice(0,2) : '';
+
+  // 도착시간 분리 세팅
+  const [ah='', am=''] = (s?.arrivalTime || '').split(':');
+  document.getElementById('f-arr-h').value = ah ? ah.padStart(2,'0') : '';
+  document.getElementById('f-arr-m').value = am ? am.slice(0,2) : '';
+
+  document.getElementById('f-guests').value  = s?.guestCount  || '';
+  document.getElementById('f-hall').value    = s?.hall        || '';
+  document.getElementById('f-addr').value    = s?.address     || '';
+  document.getElementById('f-product').value = s?.product     || PRODUCTS[0];
+  document.getElementById('f-status').value  = s?.status      || '계약완료';
+
+  // ── 담당자 select 옵션 재구성 ──
+  ['f-front','f-back'].forEach(fid => {
+    const sel = document.getElementById(fid);
+    sel.innerHTML = '<option value="">— 선택 —</option>'
+      + USERS.map(u => `<option>${esc(u.name)}</option>`).join('');
+    sel.value = fid === 'f-front' ? (s?.frontManager || '') : (s?.backManager || '');
+  });
+  renderManagerPreview();
+
+  // ── 특이사항 프리셋/타입 버튼 ──
+  document.getElementById('fm-presets').innerHTML = NOTE_PRESETS.map((p,i) => {
+    const c = NOTE_CFG[p.type];
+    return `<button class="preset-tag" style="background:${c.bg};color:${c.text};border-color:${c.border}"
+      onclick="addPreset(${i})">${c.icon} ${esc(p.text.slice(0,14))}…</button>`;
+  }).join('');
+  document.getElementById('fm-note-types').innerHTML = Object.entries(NOTE_CFG).map(([k,v]) =>
+    `<button class="note-type-btn" id="ntype-${k}" onclick="selectNoteType('${k}')"
+      style="background:#fff;color:#9CA3AF;border-color:#E5E7EB">${v.icon} ${v.label}</button>`
+  ).join('');
+  selectedNoteType = 'info';
+  selectNoteType('info');
+  renderNotesList();
+
+  // ── 체크리스트 ──
+  renderFormChecklist();
+
+  // ── 탭 표시 ──
+  renderFormTabs();
+  showFormSection('basic');
+
+  document.getElementById('form-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
 }
-function closeForm(){ document.getElementById('form-modal').style.display='none'; document.body.style.overflow=''; }
+
+function closeForm(){
+  document.getElementById('form-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
 
 function renderFormTabs(){
-  document.getElementById('fm-tabs').innerHTML=FORM_TABS.map(t=>`
-    <button class="subtab-btn${formTab===t.id?' active':''}" onclick="switchFormTab('${t.id}')">${t.label}</button>`).join('');
-  document.getElementById('fm-next-btn').style.display=formTab==='checklist'?'none':'inline-flex';
+  document.getElementById('fm-tabs').innerHTML = FORM_TABS.map(t =>
+    `<button class="subtab-btn${formTab === t.id ? ' active' : ''}"
+      onclick="showFormSection('${t.id}')">${t.label}</button>`
+  ).join('');
+  document.getElementById('fm-next-btn').style.display =
+    formTab === 'checklist' ? 'none' : 'inline-flex';
 }
 
-function switchFormTab(id){ formTab=id; renderFormTabs(); renderFormBody(); }
+// 섹션 show/hide — DOM 재생성 없음
+function showFormSection(id){
+  formTab = id;
+  ['basic','managers','notes','checklist'].forEach(sec => {
+    document.getElementById('fm-sec-' + sec).style.display =
+      sec === id ? 'block' : 'none';
+  });
+  renderFormTabs();
+  if(id === 'notes')     renderNotesList();
+  if(id === 'checklist') renderFormChecklist();
+}
 
 function formNextTab(){
-  const order=['basic','managers','notes','checklist'];
-  const i=order.indexOf(formTab); if(i<order.length-1) switchFormTab(order[i+1]);
+  const order = ['basic','managers','notes','checklist'];
+  const i = order.indexOf(formTab);
+  if(i < order.length - 1) showFormSection(order[i + 1]);
 }
 
+// DOM에서 직접 값을 읽음 (항상 DOM에 존재하므로 안전)
 function getFormValues(){
+  // 시간 select 조합
+  const th = document.getElementById('f-time-h')?.value || '';
+  const tm = document.getElementById('f-time-m')?.value || '';
+  const time = (th && tm !== '') ? `${th}:${tm}` : (th ? `${th}:00` : '');
+
+  const ah = document.getElementById('f-arr-h')?.value || '';
+  const am = document.getElementById('f-arr-m')?.value || '';
+  const arrivalTime = (ah && am !== '') ? `${ah}:${am}` : '';
+
   return {
-    groomName:   document.getElementById('f-groom')?.value.trim()||'',
-    brideName:   document.getElementById('f-bride')?.value.trim()||'',
-    date:        document.getElementById('f-date')?.value||'',
-    time:        document.getElementById('f-time')?.value||'',
-    arrivalTime: document.getElementById('f-arrival')?.value||'',
-    guestCount:  Number(document.getElementById('f-guests')?.value)||0,
-    hall:        document.getElementById('f-hall')?.value.trim()||'',
-    address:     document.getElementById('f-addr')?.value.trim()||'',
-    product:     document.getElementById('f-product')?.value||PRODUCTS[0],
-    status:      document.getElementById('f-status')?.value||'계약완료',
-    frontManager:document.getElementById('f-front')?.value||'',
-    backManager: document.getElementById('f-back')?.value||'',
+    groomName:    (document.getElementById('f-groom')?.value   || '').trim(),
+    brideName:    (document.getElementById('f-bride')?.value   || '').trim(),
+    date:          document.getElementById('f-date')?.value    || '',
+    time,
+    arrivalTime,
+    guestCount:   Number(document.getElementById('f-guests')?.value) || 0,
+    hall:         (document.getElementById('f-hall')?.value    || '').trim(),
+    address:      (document.getElementById('f-addr')?.value    || '').trim(),
+    product:       document.getElementById('f-product')?.value || PRODUCTS[0],
+    status:        document.getElementById('f-status')?.value  || '계약완료',
+    frontManager:  document.getElementById('f-front')?.value   || '',
+    backManager:   document.getElementById('f-back')?.value    || '',
   };
 }
 
-function renderFormBody(){
-  const s=formId?schedules.find(x=>x.id===formId):null;
-  const body=document.getElementById('fm-body');
+function renderFormChecklist(){
+  const el = document.getElementById('fm-checklist-items'); if(!el) return;
+  el.innerHTML = Object.entries(CL_LABELS).map(([k,{label,icon}]) => `
+    <label class="check-item${formCL[k] ? ' done' : ''}" style="cursor:pointer"
+      onclick="toggleFormCL(event,'${k}')">
+      <input type="checkbox" ${formCL[k] ? 'checked' : ''}
+        style="width:16px;height:16px;accent-color:#10B981"
+        onclick="event.stopPropagation()" onchange="toggleFormCL(event,'${k}')">
+      <span>${icon}</span>
+      <span style="font-size:13px;font-weight:500;color:${formCL[k]?'#065F46':'#374151'}">${label}</span>
+      ${formCL[k] ? '<span class="check-done-lbl">완료 ✓</span>' : ''}
+    </label>`).join('');
+}
 
-  if(formTab==='basic'){
-    body.innerHTML=`<div class="form-grid">
-      <div class="form-field"><label class="form-label">신랑 이름</label><input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)" value="${esc(s?.groomName||'')}"></div>
-      <div class="form-field"><label class="form-label">신부 이름</label><input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)" value="${esc(s?.brideName||'')}"></div>
-      <div class="form-field"><label class="form-label">예식일 *</label><input class="form-input" id="f-date" type="date" value="${esc(s?.date||'')}"></div>
-      <div class="form-field"><label class="form-label">예식시간 *</label><input class="form-input" id="f-time" type="time" value="${esc(s?.time||'')}"></div>
-      <div class="form-field"><label class="form-label">도착시간</label><input class="form-input" id="f-arrival" type="time" value="${esc(s?.arrivalTime||'')}"></div>
-      <div class="form-field"><label class="form-label">보증 인원</label><input class="form-input" id="f-guests" type="number" placeholder="200" value="${s?.guestCount||''}"></div>
-      <div class="form-field span"><label class="form-label">웨딩홀 *</label><input class="form-input" id="f-hall" placeholder="더플라자 호텔 그랜드볼룸" value="${esc(s?.hall||'')}"></div>
-      <div class="form-field span"><label class="form-label">주소</label><input class="form-input" id="f-addr" placeholder="서울 중구 태평로2가 23" value="${esc(s?.address||'')}"></div>
-      <div class="form-field"><label class="form-label">상품구성</label>
-        <select class="form-input" id="f-product">${PRODUCTS.map(p=>`<option${s?.product===p?' selected':''}>${esc(p)}</option>`).join('')}</select></div>
-      <div class="form-field"><label class="form-label">진행 상태</label>
-        <select class="form-input" id="f-status">${STATUS_OPTIONS.map(st=>`<option${s?.status===st?' selected':''}>${esc(st)}</option>`).join('')}</select></div>
-    </div>`;
-  } else if(formTab==='managers'){
-    const fv=s?.frontManager||''; const bv=s?.backManager||'';
-    body.innerHTML=`
-      <div class="hint-box" style="margin-bottom:16px">💡 Front 담당자는 신랑신부 측 응대, Back 담당자는 축의금·식권 관리를 담당합니다.</div>
-      <div class="form-field" style="margin-bottom:14px">
-        <label class="form-label">Front 담당자 *</label>
-        <select class="form-input" id="f-front" onchange="renderManagerPreview()">
-          <option value="">— 선택 —</option>${USERS.map(u=>`<option${fv===u.name?' selected':''}>${esc(u.name)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="form-field" style="margin-bottom:16px">
-        <label class="form-label">Back 담당자 *</label>
-        <select class="form-input" id="f-back" onchange="renderManagerPreview()">
-          <option value="">— 선택 —</option>${USERS.map(u=>`<option${bv===u.name?' selected':''}>${esc(u.name)}</option>`).join('')}
-        </select>
-      </div>
-      <div id="manager-preview"></div>`;
-    renderManagerPreview();
-  } else if(formTab==='notes'){
-    body.innerHTML=`
-      <div style="margin-bottom:14px">
-        <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:8px">빠른 추가 (프리셋)</div>
-        <div class="preset-wrap">${NOTE_PRESETS.map((p,i)=>{const c=NOTE_CFG[p.type];return `<button class="preset-tag" style="background:${c.bg};color:${c.text};border-color:${c.border}" onclick="addPreset(${i})">${c.icon} ${esc(p.text.slice(0,14))}…</button>`}).join('')}</div>
-      </div>
-      <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;margin-bottom:14px">
-        <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:10px">직접 입력</div>
-        <div class="note-type-row">
-          ${Object.entries(NOTE_CFG).map(([k,v])=>`<button class="note-type-btn" id="ntype-${k}" onclick="selectNoteType('${k}')" style="background:#fff;color:#9CA3AF;border-color:#E5E7EB">${v.icon} ${v.label}</button>`).join('')}
-        </div>
-        <div class="note-input-row">
-          <input class="form-input" id="note-text-inp" placeholder="특이사항 내용 입력" onkeydown="if(event.key==='Enter')addCustomNote()" style="flex:1">
-          <button class="btn btn-primary sm" onclick="addCustomNote()">추가</button>
-        </div>
-      </div>
-      <div id="notes-list"></div>`;
-    selectNoteType('info');
-    renderNotesList();
-  } else if(formTab==='checklist'){
-    body.innerHTML=`
-      <div class="hint-box" style="margin-bottom:12px">💡 현재 진행 상황에 맞게 체크하세요. 언제든 수정 가능합니다.</div>
-      ${Object.entries(CL_LABELS).map(([k,{label,icon}])=>`
-        <label class="check-item${formCL[k]?' done':''}" onclick="toggleFormCL('${k}')">
-          <input type="checkbox" ${formCL[k]?'checked':''} style="width:16px;height:16px;accent-color:#10B981" onchange="toggleFormCL('${k}')">
-          <span>${icon}</span>
-          <span style="font-size:13px;font-weight:500;color:${formCL[k]?'#065F46':'#374151'}">${label}</span>
-          ${formCL[k]?'<span class="check-done-lbl">완료 ✓</span>':''}
-        </label>`).join('')}`;
-  }
+function toggleFormCL(e, key){
+  formCL[key] = !formCL[key];
+  renderFormChecklist();
 }
 
 let selectedNoteType='info';
@@ -998,7 +1187,6 @@ function renderNotesList(){
       <button onclick="removeNote(${i})" style="background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:18px;line-height:1">×</button>
     </div>`}).join('');
 }
-function toggleFormCL(key){ formCL[key]=!formCL[key]; renderFormBody(); }
 function renderManagerPreview(){
   const f=document.getElementById('f-front')?.value, b=document.getElementById('f-back')?.value;
   const el=document.getElementById('manager-preview'); if(!el) return;
@@ -1010,28 +1198,32 @@ function renderManagerPreview(){
 }
 
 async function saveForm(){
-  const v=getFormValues();
-  const errs=[];
-  // 신랑/신부 이름 둘 다 없으면 웨딩홀은 필수
+  const v = getFormValues();
+  const errs = [];
   if(!v.groomName && !v.brideName && !v.hall) errs.push('신랑 또는 신부 이름, 혹은 웨딩홀');
-  if(!v.date)        errs.push('예식일');
-  if(!v.time)        errs.push('예식시간');
-  if(!v.hall)        errs.push('웨딩홀');
+  if(!v.date)         errs.push('예식일');
+  if(!v.time)         errs.push('예식시간 (시·분 모두 선택)');
+  if(!v.hall)         errs.push('웨딩홀');
   if(!v.frontManager) errs.push('Front 담당자');
   if(!v.backManager)  errs.push('Back 담당자');
-  if(errs.length){ alert('필수 항목을 입력하세요:\n'+errs.join(', ')); switchFormTab('basic'); return; }
+  if(errs.length){
+    alert('필수 항목을 입력하세요:\n' + errs.join('\n'));
+    if(!v.date || !v.time || !v.hall || (!v.groomName && !v.brideName && !v.hall))
+      showFormSection('basic');
+    else if(!v.frontManager || !v.backManager)
+      showFormSection('managers');
+    return;
+  }
 
   const row = scheduleToRow(v, formNotes, formCL);
 
   try {
     if(formId){
-      // 수정
       const updated = await sb.patch('schedules', formId, row);
       const idx = schedules.findIndex(x=>x.id===formId);
       if(idx !== -1) schedules[idx] = rowToSchedule(Array.isArray(updated)?updated[0]:updated);
       showToast('✅ 예식 정보가 수정되었습니다');
     } else {
-      // 신규 등록
       const created = await sb.post('schedules', row);
       const newRow = Array.isArray(created)?created[0]:created;
       schedules.push(rowToSchedule(newRow));
@@ -1040,7 +1232,7 @@ async function saveForm(){
     closeForm(); renderAll();
   } catch(e){
     console.error('저장 실패:', e);
-    showToast('⚠️ 저장 실패. 다시 시도해주세요.');
+    alert('저장에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류') + '\n\nSupabase URL과 API 키를 확인해주세요.');
   }
 }
 
@@ -1083,7 +1275,7 @@ async function saveResult(){
     closeResult(); renderAll(); showToast('📊 결과보고가 저장되었습니다');
   } catch(e){
     console.error('결과보고 저장 실패:', e);
-    showToast('⚠️ 저장 실패. 다시 시도해주세요.');
+    alert('결과보고 저장에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류'));
     s.checklist.report=false;
   }
 }
