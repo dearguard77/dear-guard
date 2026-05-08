@@ -801,11 +801,6 @@ function rowToSchedule(row){
     laborRegion:  row.labor_region || '대전',
     laborCount:   row.labor_count  || null,
     laborCost:    row.labor_cost   || null,
-    netProfit:    row.net_profit   || null, 
-    totalPrice:   row.total_price  || null,
-    laborRegion:  row.labor_region || '대전',
-    laborCount:   row.labor_count  || null,
-    laborCost:    row.labor_cost   || null,
     netProfit:    row.net_profit   || null,
     result:       row.result       || null,
   };
@@ -830,11 +825,6 @@ function scheduleToRow(v, notes, cl){
     status:        v.status,
     notes:         notes,
     checklist:     cl,
-    total_price:   v.totalPrice   || null,
-    labor_region:  v.laborRegion  || null,
-    labor_count:   v.laborCount   || null,
-    labor_cost:    v.laborCost    || null,
-    net_profit:    v.netProfit    || null,
     total_price:   v.totalPrice   || null,
     labor_region:  v.laborRegion  || null,
     labor_count:   v.laborCount   || null,
@@ -1466,13 +1456,6 @@ function openForm(id){
   // ── 체크리스트 ──
   renderFormChecklist();
 
- // ── 정산 정보 (관리자 전용) ──
-  FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
-  document.getElementById('f-total-price').value  = s?.totalPrice  || '';
-  document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
-  document.getElementById('f-labor-count').value  = s?.laborCount  || '';
-  calcSettlement();
- // ── 정산 정보 (관리자 전용) ──
   FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
   if(ADMIN_NAMES.includes(currentUser.name)){
     document.getElementById('f-total-price').value  = s?.totalPrice  || '';
@@ -1515,7 +1498,7 @@ function showFormSection(id){
 }
 
 function formNextTab(){
-  const order = ['basic','managers','notes','checklist'];
+  const order = FORM_TABS.map(t => t.id);
   const i = order.indexOf(formTab);
   if(i < order.length - 1) showFormSection(order[i + 1]);
 }
