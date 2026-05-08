@@ -208,6 +208,15 @@
   .unavail-pill{border-radius:3px;padding:1px 4px;font-size:8px;font-weight:700;background:#FEE2E2;color:#DC2626;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
   .uv-type-btn{flex:1;border-radius:8px;padding:9px 4px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #E5E7EB;background:#fff;color:#9CA3AF;font-family:inherit}
   .uv-type-btn.active{background:#FEF2F2;color:#DC2626;border-color:#FCA5A5}
+
+ /* STATUS FILTER */
+  .status-filter-btn{border:1.5px solid #E5E7EB;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;background:#fff;color:#6B7280;cursor:pointer;transition:all .15s;font-family:inherit}
+  .status-filter-btn:hover{border-color:#C7A96B;color:#C7A96B}
+  .status-filter-btn.active{background:#C7A96B;color:#fff;border-color:#C7A96B}
+  .status-filter-btn[data-status="계약완료"].active{background:#3B82F6;border-color:#3B82F6}
+  .status-filter-btn[data-status="인터뷰대기"].active{background:#F59E0B;border-color:#F59E0B}
+  .status-filter-btn[data-status="진행완료"].active{background:#10B981;border-color:#10B981}
+  .status-filter-btn[data-status="긴급확인"].active{background:#EF4444;border-color:#EF4444}
  
   /* SETTLEMENT TAB */
   .settle-row{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:all .15s}
