@@ -267,7 +267,10 @@
 
 <!-- NAV -->
 <nav id="nav">
-  <div class="brand">Dear Guard</div>
+  <button onclick="switchTab('home',null,document.querySelectorAll('.bnav-btn')[0])"
+    style="background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;display:flex;align-items:center">
+    <img src="logo.png" alt="Dear Guard" style="height:34px;width:auto;object-fit:contain">
+  </button>
   <div class="tab-wrap" style="display:flex;gap:4px">
     <button class="tab-btn active" onclick="switchTab('home',this)">🏠 홈</button>
     <button class="tab-btn" onclick="switchTab('calendar',this)">📅 캘린더</button>
