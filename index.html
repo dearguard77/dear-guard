@@ -826,7 +826,8 @@ let formTab     = 'basic';
 let formNotes   = [];
 let formCL      = BLANK_CL();
 let dropOpen    = false;
-let urgentFilter = false;  // 긴급확인 필터 on/off
+let urgentFilter  = false;  // 긴급확인 필터 on/off
+let statusFilter  = '';     // 단계별 필터 ('계약완료' | '인터뷰대기' | '진행완료' | '긴급확인' | '')
 
 // ─── DB 헬퍼 ─────────────────────────────────────────────────────────────────
 // DB row → app object 변환
@@ -1211,26 +1212,47 @@ const byDay = day => {
       ${Object.entries(STATUS_CFG).map(([k,v])=>`<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${v.color}"></div>${k}</div>`).join('')}
     </div>`;
 }
+ function setStatusFilter(status){
+  statusFilter  = status;
+  urgentFilter  = false; // 긴급확인 배너 필터 초기화
+
+  // 버튼 active 상태 갱신
+  document.querySelectorAll('.status-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.status === status);
+  });
+
+  renderScheduleList();
+}
+ 
 function openUrgentFilter(){
   urgentFilter = true;
+  statusFilter = '긴급확인';
   switchTab('schedules', null, document.querySelectorAll('.bnav-btn')[2]);
-  // 상단 탭 버튼도 active 처리
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.classList.toggle('active', b.getAttribute('onclick')?.includes("'schedules'"));
+  });
+  // 긴급확인 필터 버튼 active
+  document.querySelectorAll('.status-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.status === '긴급확인');
   });
   renderScheduleList();
 }
 
 function clearUrgentFilter(){
   urgentFilter = false;
+  statusFilter = '';
+  document.querySelectorAll('.status-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.status === '');
+  });
   renderScheduleList();
 }
+ 
 function renderScheduleList(){
   // visible()은 기존 직원별 권한 필터 유지
   let vs = visible();
 
-  // 긴급확인 필터 적용
-  if(urgentFilter) vs = vs.filter(s => s.status === '긴급확인');
+  // 단계별 필터 적용
+  if(statusFilter) vs = vs.filter(s => s.status === statusFilter);
 
   // 필터 배너 표시/숨김
   const banner = document.getElementById('urgent-banner');
