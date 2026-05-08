@@ -765,11 +765,11 @@ const NOTE_CFG = {
   vip:   {bg:"#FDF4FF",border:"#E9D5FF",text:"#7C3AED",icon:"★", label:"VIP"},
 };
 const NOTE_PRESETS = [
-  {type:"urgent",text:"부모님 이혼 — 양측 동선 분리 필수"},
-  {type:"urgent",text:"축의금 인계자 별도 지정"},
-  {type:"info",  text:"식권 기준: 1인 1매 / 아동 포함"},
-  {type:"info",  text:"계좌이체 하객 다수"},
-  {type:"vip",   text:"VIP 하객 응대 필요"},
+  {type:"info",  text:"레디백"},
+  {type:"info",  text:"계약 후기"},
+  {type:"info",  text:"본식 후기"},
+  {type:"vip",   text:"짝꿍 할인"},
+  {type:"vip",   text:"지인 할인"},
 ];
 const CL_LABELS = {
   contract: {label:"계약서 발송",    icon:"📄"},
@@ -2065,10 +2065,17 @@ function renderSettle(){
   const month = sel?.value || TODAY.slice(0,7);
   const unpaidOnly = document.getElementById('settle-unpaid-only')?.checked || false;
 
-  // 해당 월 + 정산 정보 있는 예식만
-  let list = schedules.filter(s =>
-    s.date?.slice(0,7) === month && (s.totalPrice || s.laborCost)
-  ).sort((a,b) => a.date.localeCompare(b.date));
+  // 해당 월 + 정산 정보 있는 예식
+  // 단, 담당자가 모두 관리자(강성주·전수연)인 경우 인건비 없으므로 제외
+  let list = schedules.filter(s => {
+    if(s.date?.slice(0,7) !== month) return false;
+    if(!(s.totalPrice || s.laborCost)) return false;
+    // 담당자 전원이 ADMIN_NAMES 안에 있으면 제외
+    const managers = [s.frontManager, s.backManager]
+      .join(',').split(',').map(m => m.trim()).filter(Boolean);
+    if(managers.length > 0 && managers.every(m => ADMIN_NAMES.includes(m))) return false;
+    return true;
+  }).sort((a,b) => a.date.localeCompare(b.date));
 
   if(unpaidOnly) list = list.filter(s => !s.laborPaid);
 
