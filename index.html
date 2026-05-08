@@ -200,6 +200,11 @@
   .login-btn{width:100%;background:#C7A96B;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit;transition:background .15s}
   .login-btn:hover{background:#B8976A}
   .login-err{font-size:12px;color:#EF4444;text-align:center;margin-top:10px;min-height:18px;font-weight:600}
+
+  /* UNAVAILABLE */
+  .unavail-pill{border-radius:3px;padding:1px 4px;font-size:8px;font-weight:700;background:#FEE2E2;color:#DC2626;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+  .uv-type-btn{flex:1;border-radius:8px;padding:9px 4px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #E5E7EB;background:#fff;color:#9CA3AF;font-family:inherit}
+  .uv-type-btn.active{background:#FEF2F2;color:#DC2626;border-color:#FCA5A5}
  
   /* RESPONSIVE */
   @media(max-width:600px){
@@ -248,6 +253,7 @@
     <button class="tab-btn active" onclick="switchTab('home',this)">🏠 홈</button>
     <button class="tab-btn" onclick="switchTab('calendar',this)">📅 캘린더</button>
     <button class="tab-btn" onclick="switchTab('schedules',this)">📋 전체일정</button>
+    <button class="tab-btn" onclick="switchTab('unavail',this)">🚫 불가일정</button>
   </div>
   <button id="reg-btn" onclick="openForm(null)" style="display:none"><span>＋</span><span>예식 등록</span></button>
 <div style="position:relative;flex-shrink:0;display:flex;align-items:center;gap:8px">
@@ -311,7 +317,29 @@
     </div>
     <div id="schedule-list"></div>
   </div>
+<!-- UNAVAILABLE TAB -->
+  <div id="tab-unavail" class="tab-panel">
 
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="sec-header" style="margin-bottom:0"><h2>🚫 불가일정</h2><span>매니저별 투입 불가 날짜</span></div>
+      <button class="btn btn-primary sm" onclick="openUnavailForm(null)">＋ 불가일정 등록</button>
+    </div>
+
+    <!-- 관리자 전용 필터 -->
+    <div id="unavail-filter-wrap" style="display:none;margin-bottom:14px">
+      <select class="form-input" id="unavail-filter" onchange="renderUnavailAll()" style="width:auto;padding:6px 12px;font-size:12px">
+        <option value="">전체 매니저 보기</option>
+      </select>
+    </div>
+
+    <!-- 불가일정 캘린더 -->
+    <div style="background:#fff;border-radius:16px;padding:20px;border:1px solid #E5E7EB;margin-bottom:16px">
+      <div id="unavail-cal-wrap"></div>
+    </div>
+
+    <!-- 불가일정 리스트 -->
+    <div id="unavail-list"></div>
+  </div>
 </main>
 
 <!-- BOTTOM NAV -->
@@ -319,6 +347,7 @@
   <button class="bnav-btn active" onclick="switchTab('home',null,this)"><span class="bnav-icon">🏠</span>홈</button>
   <button class="bnav-btn" onclick="switchTab('calendar',null,this)"><span class="bnav-icon">📅</span>캘린더</button>
   <button class="bnav-btn" onclick="switchTab('schedules',null,this)"><span class="bnav-icon">📋</span>전체일정</button>
+  <button class="bnav-btn" onclick="switchTab('unavail',null,this)"><span class="bnav-icon">🚫</span>불가일정</button>
 </div>
 
 <!-- TOAST -->
@@ -532,7 +561,54 @@
     </div>
   </div>
 </div>
+<!-- UNAVAILABLE FORM MODAL -->
+<div class="modal-overlay" id="unavail-modal" style="display:none" onclick="if(event.target===this)closeUnavailForm()">
+  <div class="modal-box sm">
+    <div class="modal-header">
+      <button class="x-btn" onclick="closeUnavailForm()">✕</button>
+      <div class="modal-brand">Dear Guard · 불가일정</div>
+      <div class="modal-title" id="uvm-title">🚫 불가일정 등록</div>
+    </div>
+    <div class="modal-body">
 
+      <!-- 매니저 선택 (관리자만 변경 가능) -->
+      <div class="form-field" style="margin-bottom:14px">
+        <label class="form-label">매니저 <span style="color:#EF4444">*</span></label>
+        <select class="form-input" id="uv-manager"></select>
+      </div>
+
+      <!-- 날짜 -->
+      <div class="form-field" style="margin-bottom:14px">
+        <label class="form-label">불가 날짜 <span style="color:#EF4444">*</span></label>
+        <input class="form-input" id="uv-date" type="date">
+      </div>
+
+      <!-- 불가 시간대 -->
+      <div class="form-field" style="margin-bottom:14px">
+        <label class="form-label">불가 시간대 <span style="color:#EF4444">*</span></label>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="uv-type-btn" data-val="all_day"   onclick="selectUvType('all_day')">종일 불가</button>
+          <button type="button" class="uv-type-btn" data-val="morning"   onclick="selectUvType('morning')">오전 불가</button>
+          <button type="button" class="uv-type-btn" data-val="afternoon" onclick="selectUvType('afternoon')">오후 불가</button>
+        </div>
+      </div>
+
+      <!-- 사유 메모 -->
+      <div class="form-field">
+        <label class="form-label">사유 메모</label>
+        <textarea class="form-input" id="uv-memo" rows="2" placeholder="출장, 개인일정, 병가 등" style="resize:vertical"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="uv-del-btn" style="display:none;color:#DC2626;border-color:#FCA5A5" onclick="deleteUnavail()">🗑️ 삭제</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-ghost" onclick="closeUnavailForm()">취소</button>
+        <button class="btn btn-primary" onclick="saveUnavail()">💾 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 // ════════════════════════════════════════════════════════════
 //  ⚙️  SUPABASE 설정 — 아래 두 값만 교체하면 됩니다
@@ -823,6 +899,7 @@ async function startApp(){
     return;
   }
   await loadSchedules();
+  await loadUnavailables();
   renderAll();
   document.getElementById('loading-overlay').style.display = 'none';
 }
@@ -1032,8 +1109,9 @@ function switchTab(id, topBtn, botBtn){
   }
   const tabs=document.querySelectorAll('.tab-btn');
   tabs.forEach(b=>{ if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active'); });
-  if(id==='calendar') renderCalendar();
+  if(id==='calendar')  renderCalendar();
   if(id==='schedules') renderScheduleList();
+  if(id==='unavail')   renderUnavailAll();
 }
 
 function toggleDrop(){
@@ -1472,7 +1550,255 @@ async function saveResult(){
     s.checklist.report=false;
   }
 }
+// ════════════════════════════════════════════════════════════
+//  🚫  불가일정 기능
+// ════════════════════════════════════════════════════════════
 
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let unavailables = [];
+let uvCalYear    = new Date().getFullYear();
+let uvCalMonth   = new Date().getMonth();
+let uvEditId     = null;
+let uvType       = '';   // 선택된 불가 시간대
+
+const UV_TYPE_LABEL = {
+  all_day:   '종일',
+  morning:   '오전',
+  afternoon: '오후',
+};
+
+// ─── DB row ↔ 앱 obj ─────────────────────────────────────────────────────────
+function rowToUnavail(row){
+  return {
+    id:              row.id,
+    managerName:     row.manager_name,
+    date:            row.date,
+    unavailableType: row.unavailable_type,
+    memo:            row.memo || '',
+    createdAt:       row.created_at,
+  };
+}
+
+// ─── LOAD ────────────────────────────────────────────────────────────────────
+async function loadUnavailables(){
+  if(!isSupabaseConfigured()) return;
+  try {
+    const rows = await sb.get('unavailable_schedules', '?order=date.asc,manager_name.asc');
+    unavailables = rows.map(rowToUnavail);
+  } catch(e){
+    console.error('불가일정 로드 실패:', e);
+  }
+}
+
+// ─── 권한별 필터 ──────────────────────────────────────────────────────────────
+function visibleUnavail(){
+  const filterName = document.getElementById('unavail-filter')?.value || '';
+  let list = ADMIN_NAMES.includes(currentUser.name)
+    ? unavailables
+    : unavailables.filter(u => u.managerName === currentUser.name);
+  if(filterName) list = list.filter(u => u.managerName === filterName);
+  return list.slice().sort((a,b) => a.date.localeCompare(b.date));
+}
+
+// ─── 전체 렌더 ───────────────────────────────────────────────────────────────
+function renderUnavailAll(){
+  // 관리자 필터 노출 여부
+  const filterWrap = document.getElementById('unavail-filter-wrap');
+  if(ADMIN_NAMES.includes(currentUser.name)){
+    filterWrap.style.display = 'block';
+    const sel = document.getElementById('unavail-filter');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">전체 매니저 보기</option>'
+      + USERS.map(u => `<option value="${esc(u.name)}"${cur===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
+  } else {
+    filterWrap.style.display = 'none';
+  }
+  renderUnavailCal();
+  renderUnavailList();
+}
+
+// ─── 캘린더 ──────────────────────────────────────────────────────────────────
+function renderUnavailCal(){
+  const wrap = document.getElementById('unavail-cal-wrap'); if(!wrap) return;
+
+  const firstDay    = new Date(uvCalYear, uvCalMonth, 1).getDay();
+  const daysInMonth = new Date(uvCalYear, uvCalMonth+1, 0).getDate();
+  const days = [...Array(firstDay).fill(null), ...Array.from({length:daysInMonth},(_,i)=>i+1)];
+  const dayNames = ['일','월','화','수','목','금','토'];
+
+  // 현재 보이는 불가일정만 (필터 적용)
+  const filterName = document.getElementById('unavail-filter')?.value || '';
+  let baseList = ADMIN_NAMES.includes(currentUser.name) ? unavailables : unavailables.filter(u=>u.managerName===currentUser.name);
+  if(filterName) baseList = baseList.filter(u=>u.managerName===filterName);
+
+  const byDay = day => {
+    if(!day) return [];
+    const ds = `${uvCalYear}-${String(uvCalMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    return baseList.filter(u => u.date === ds);
+  };
+
+  wrap.innerHTML = `
+    <div class="cal-nav">
+      <button class="btn btn-ghost sm" onclick="uvCalMove(-1)">‹ 이전</button>
+      <div class="cal-nav-title">${uvCalYear}년 ${uvCalMonth+1}월</div>
+      <button class="btn btn-ghost sm" onclick="uvCalMove(1)">다음 ›</button>
+    </div>
+    <div class="cal-grid">
+      ${dayNames.map((d,i)=>`<div class="cal-head" style="color:${i===0?'#EF4444':i===6?'#3B82F6':'#6B7280'}">${d}</div>`).join('')}
+      ${days.map((day,idx)=>{
+        if(!day) return '<div class="cal-cell"></div>';
+        const ds = `${uvCalYear}-${String(uvCalMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const isToday   = ds === TODAY;
+        const isHol     = idx%7===0, isSat = idx%7===6;
+        const dayCol    = isToday?'#C7A96B':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
+        const dayNum    = isToday ? `<span class="cal-today-circle">${day}</span>` : day;
+        const uu        = byDay(day);
+        const pills     = uu.map(u =>
+          `<span class="unavail-pill">${esc(u.managerName)} ${UV_TYPE_LABEL[u.unavailableType]}</span>`
+        ).join('');
+        return `<div class="cal-cell${isToday?' today':''}" onclick="openUnavailForm(null,'${ds}')" style="cursor:pointer">
+          <div class="cal-day" style="color:${dayCol}">${dayNum}</div>
+          ${pills}
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:#9CA3AF">날짜를 클릭하면 불가일정을 등록할 수 있습니다</div>`;
+}
+
+function uvCalMove(dir){
+  uvCalMonth += dir;
+  if(uvCalMonth < 0){ uvCalMonth=11; uvCalYear--; }
+  if(uvCalMonth > 11){ uvCalMonth=0; uvCalYear++; }
+  renderUnavailCal();
+}
+
+// ─── 리스트 ──────────────────────────────────────────────────────────────────
+function renderUnavailList(){
+  const el = document.getElementById('unavail-list'); if(!el) return;
+  const list = visibleUnavail();
+  if(!list.length){
+    el.innerHTML = '<div class="empty-state">등록된 불가일정이 없습니다</div>'; return;
+  }
+  el.innerHTML = list.map(u => `
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;
+      display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer"
+      onclick="openUnavailForm(${u.id})">
+      <div style="width:44px;height:44px;border-radius:10px;background:#FEF2F2;
+        display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🚫</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;color:#111827">${esc(u.managerName)}</div>
+        <div style="font-size:12px;color:#6B7280;margin-top:2px">
+          ${esc(u.date)} ·
+          <span style="background:#FEE2E2;color:#DC2626;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700">
+            ${UV_TYPE_LABEL[u.unavailableType]}불가
+          </span>
+        </div>
+        ${u.memo ? `<div style="font-size:11px;color:#9CA3AF;margin-top:3px">${esc(u.memo)}</div>` : ''}
+      </div>
+      <div style="font-size:11px;color:#9CA3AF;flex-shrink:0">${getDday(u.date)}</div>
+    </div>`).join('');
+}
+
+// ─── 폼 OPEN / CLOSE ─────────────────────────────────────────────────────────
+function openUnavailForm(id, presetDate){
+  uvEditId = id;
+  const uv = id ? unavailables.find(x => x.id === id) : null;
+
+  // 수정 시 권한 체크: 일반 매니저는 본인 것만
+  if(uv && !ADMIN_NAMES.includes(currentUser.name) && uv.managerName !== currentUser.name){
+    showToast('본인 불가일정만 수정할 수 있습니다');
+    return;
+  }
+
+  document.getElementById('uvm-title').textContent = uv ? '🚫 불가일정 수정' : '🚫 불가일정 등록';
+  document.getElementById('uv-del-btn').style.display = uv ? 'inline-flex' : 'none';
+
+  // 매니저 select — 관리자는 전체, 일반 매니저는 본인만
+  const manSel = document.getElementById('uv-manager');
+  if(ADMIN_NAMES.includes(currentUser.name)){
+    manSel.innerHTML = '<option value="">— 선택 —</option>'
+      + USERS.map(u => `<option value="${esc(u.name)}"${uv?.managerName===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
+    manSel.disabled = false;
+  } else {
+    manSel.innerHTML = `<option value="${esc(currentUser.name)}" selected>${esc(currentUser.name)}</option>`;
+    manSel.disabled = true;
+  }
+
+  document.getElementById('uv-date').value = uv?.date || presetDate || '';
+  document.getElementById('uv-memo').value = uv?.memo || '';
+
+  // 시간대 버튼 초기화
+  uvType = uv?.unavailableType || '';
+  document.querySelectorAll('.uv-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === uvType);
+  });
+
+  document.getElementById('unavail-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUnavailForm(){
+  document.getElementById('unavail-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function selectUvType(val){
+  uvType = val;
+  document.querySelectorAll('.uv-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === val);
+  });
+}
+
+// ─── 저장 ────────────────────────────────────────────────────────────────────
+async function saveUnavail(){
+  const managerName = document.getElementById('uv-manager').value;
+  const date        = document.getElementById('uv-date').value;
+  const memo        = document.getElementById('uv-memo').value.trim();
+
+  if(!managerName){ alert('매니저를 선택하세요');   return; }
+  if(!date)       { alert('날짜를 선택하세요');     return; }
+  if(!uvType)     { alert('불가 시간대를 선택하세요'); return; }
+
+  const row = {
+    manager_name:     managerName,
+    date,
+    unavailable_type: uvType,
+    memo:             memo || null,
+  };
+
+  try {
+    if(uvEditId){
+      const updated = await sb.patch('unavailable_schedules', uvEditId, row);
+      const idx = unavailables.findIndex(x => x.id === uvEditId);
+      if(idx !== -1) unavailables[idx] = rowToUnavail(Array.isArray(updated)?updated[0]:updated);
+      showToast('✅ 불가일정이 수정되었습니다');
+    } else {
+      const created = await sb.post('unavailable_schedules', row);
+      unavailables.push(rowToUnavail(Array.isArray(created)?created[0]:created));
+      showToast('🚫 불가일정이 등록되었습니다');
+    }
+    closeUnavailForm();
+    renderUnavailAll();
+  } catch(e){
+    console.error('불가일정 저장 실패:', e);
+    alert('저장에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류'));
+  }
+}
+
+// ─── 삭제 ────────────────────────────────────────────────────────────────────
+async function deleteUnavail(){
+  if(!uvEditId || !confirm('이 불가일정을 삭제하시겠습니까?')) return;
+  try {
+    await sb.delete('unavailable_schedules', uvEditId);
+    unavailables = unavailables.filter(x => x.id !== uvEditId);
+    closeUnavailForm();
+    renderUnavailAll();
+    showToast('🗑️ 불가일정이 삭제되었습니다');
+  } catch(e){
+    console.error('불가일정 삭제 실패:', e);
+    alert('삭제에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류'));
+  }
+}
 // ─── START ────────────────────────────────────────────────────────────────────
 init();
 </script>
