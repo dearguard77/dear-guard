@@ -802,7 +802,12 @@ function rowToSchedule(row){
     laborCount:   row.labor_count  || null,
     laborCost:    row.labor_cost   || null,
     netProfit:    row.net_profit   || null, 
-   result:       row.result       || null,
+    totalPrice:   row.total_price  || null,
+    laborRegion:  row.labor_region || '대전',
+    laborCount:   row.labor_count  || null,
+    laborCost:    row.labor_cost   || null,
+    netProfit:    row.net_profit   || null,
+    result:       row.result       || null,
   };
 }
 
@@ -825,6 +830,11 @@ function scheduleToRow(v, notes, cl){
     status:        v.status,
     notes:         notes,
     checklist:     cl,
+    total_price:   v.totalPrice   || null,
+    labor_region:  v.laborRegion  || null,
+    labor_count:   v.laborCount   || null,
+    labor_cost:    v.laborCost    || null,
+    net_profit:    v.netProfit    || null,
     total_price:   v.totalPrice   || null,
     labor_region:  v.laborRegion  || null,
     labor_count:   v.laborCount   || null,
@@ -1286,6 +1296,24 @@ function openDetail(id){
           ${s.checklist[k]?'<span class="check-done-lbl">완료 ✓</span>':''}
         </label>`).join('')}
     </div>
+    ${ADMIN_NAMES.includes(currentUser.name) && (s.totalPrice || s.laborCost) ? `
+    <div class="detail-sec">
+      <div class="detail-sec-title">💰 정산 정보 (관리자 전용)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div style="background:#F9FAFB;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">총금액</div>
+          <div style="font-size:15px;font-weight:800;color:#111827">${s.totalPrice ? s.totalPrice.toLocaleString()+'원' : '-'}</div>
+        </div>
+        <div style="background:#FEF2F2;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">${esc(s.laborRegion||'-')} ${s.laborCount||0}명</div>
+          <div style="font-size:15px;font-weight:800;color:#EF4444">${s.laborCost ? s.laborCost.toLocaleString()+'원' : '-'}</div>
+        </div>
+        <div style="background:${(s.netProfit||0)>=0?'#ECFDF5':'#FEF2F2'};border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">순수익</div>
+          <div style="font-size:15px;font-weight:800;color:${(s.netProfit||0)>=0?'#10B981':'#EF4444'}">${s.netProfit!=null ? s.netProfit.toLocaleString()+'원' : '-'}</div>
+        </div>
+      </div>
+    </div>` : ''}
     <div class="detail-sec">
       <div class="detail-sec-title">📊 결과보고</div>
       ${s.result?`
@@ -1444,6 +1472,14 @@ function openForm(id){
   document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
   document.getElementById('f-labor-count').value  = s?.laborCount  || '';
   calcSettlement();
+ // ── 정산 정보 (관리자 전용) ──
+  FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
+  if(ADMIN_NAMES.includes(currentUser.name)){
+    document.getElementById('f-total-price').value  = s?.totalPrice  || '';
+    document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
+    document.getElementById('f-labor-count').value  = s?.laborCount  || '';
+    calcSettlement();
+  }
   // ── 탭 표시 ──
   renderFormTabs();
   showFormSection('basic');
@@ -1484,6 +1520,37 @@ function formNextTab(){
   if(i < order.length - 1) showFormSection(order[i + 1]);
 }
 
+// ─── 정산 계산 함수 ───────────────────────────────────────────────────────────
+function calcLaborCost(){
+  const region = document.getElementById('f-labor-region')?.value || '대전';
+  const count  = Number(document.getElementById('f-labor-count')?.value) || 0;
+  const rate   = region === '대전외' ? 120000 : 90000;
+  return count > 0 ? rate * count : null;
+}
+
+function calcNetProfit(){
+  const total = Number(document.getElementById('f-total-price')?.value) || 0;
+  const labor = calcLaborCost() || 0;
+  return (total > 0 || labor > 0) ? total - labor : null;
+}
+
+function calcSettlement(){
+  const total = Number(document.getElementById('f-total-price')?.value) || 0;
+  const labor = calcLaborCost() || 0;
+  const net   = total - labor;
+  const prev  = document.getElementById('settlement-preview');
+  if(!prev) return;
+  if(total > 0 || labor > 0){
+    prev.style.display = 'block';
+    document.getElementById('preview-total').textContent = total.toLocaleString() + '원';
+    document.getElementById('preview-labor').textContent = labor.toLocaleString() + '원';
+    document.getElementById('preview-net').textContent   = net.toLocaleString() + '원';
+    document.getElementById('preview-net').style.color   = net >= 0 ? '#10B981' : '#EF4444';
+  } else {
+    prev.style.display = 'none';
+  }
+}
+
 // DOM에서 직접 값을 읽음 (항상 DOM에 존재하므로 안전)
 function getFormValues(){
   // 시간 select 조합
@@ -1503,6 +1570,14 @@ function getFormValues(){
   const frontManager = [f1, f2].filter(Boolean).join(', ');
   const backManager  = [b1, b2].filter(Boolean).join(', ');
 
+  // 정산 정보 (관리자 전용)
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  const totalPrice  = isAdmin ? (Number(document.getElementById('f-total-price')?.value)  || null) : undefined;
+  const laborRegion = isAdmin ? (document.getElementById('f-labor-region')?.value         || null) : undefined;
+  const laborCount  = isAdmin ? (Number(document.getElementById('f-labor-count')?.value)  || null) : undefined;
+  const laborCost   = isAdmin ? calcLaborCost()  : undefined;
+  const netProfit   = isAdmin ? calcNetProfit()  : undefined;
+
   return {
     groomName:    (document.getElementById('f-groom')?.value       || '').trim(),
     groomPhone:   (document.getElementById('f-groom-phone')?.value || '').trim(),
@@ -1518,6 +1593,11 @@ function getFormValues(){
     status:        document.getElementById('f-status')?.value  || '계약완료',
     frontManager,
     backManager,
+    totalPrice,
+    laborRegion,
+    laborCount,
+    laborCost,
+    netProfit,
   };
 }
 
