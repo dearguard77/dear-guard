@@ -555,16 +555,16 @@ const sb = {
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 const USERS = [
-  { id:1, name:"강성주", role:"대표", avatar:"대", canEdit:true,  isAdmin:true,  pw:"admin1234" },
-  { id:2, name:"전수연", role:"실장", avatar:"실", canEdit:true,  isAdmin:true,  pw:"admin1234" },
-  { id:3, name:"정선화", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"manager01" },
-  { id:4, name:"조윤성", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"manager02" },
-  { id:5, name:"목수빈", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"manager03" },
-  { id:6, name:"김지현", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"manager04" },
-  { id:7, name:"김홍주", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"manager05" },
-  { id:8, name:"양윤수", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"manager06" },
+  { id:1, name:"강성주", role:"대표", avatar:"대", canEdit:true,  isAdmin:true,  pw:"0312" },
+  { id:2, name:"전수연", role:"실장", avatar:"실", canEdit:true,  isAdmin:true,  pw:"0312" },
+  { id:3, name:"정선화", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"0001" },
+  { id:4, name:"조윤성", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"0002" },
+  { id:5, name:"목수빈", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"0003" },
+  { id:6, name:"김지현", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"0004" },
+  { id:7, name:"김홍주", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"0005" },
+  { id:8, name:"양윤수", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"0006" },
 ];
-// 비밀번호는 직원별로 위에서 자유롭게 변경하세요
+
 const PRODUCTS = ["2인 1팀","4인 2팀"];
 const STATUS_OPTIONS = ["계약완료","인터뷰대기","진행완료","긴급확인"];
 const STATUS_CFG = {
@@ -824,12 +824,16 @@ function renderNav(){
 }
 
 function renderUserDrop(){
+  if(!currentUser.isAdmin) return; // 관리자만 전환 가능
   const drop = document.getElementById('user-drop');
-  drop.innerHTML = `<div style="font-size:10px;color:#9CA3AF;padding:4px 8px 8px;font-weight:600">직원 선택</div>`
+  drop.innerHTML = `<div style="font-size:10px;color:#9CA3AF;padding:4px 8px 8px;font-weight:600">📋 조회 전환 (관리자 전용)</div>`
     + USERS.map(u=>`
     <button class="user-drop-item ${u.id===currentUser.id?'selected':''}" onclick="switchUser(${u.id})">
       <div class="avatar" style="background:${u.id===currentUser.id?'#C7A96B':'#E5E7EB'};color:${u.id===currentUser.id?'#fff':'#6B7280'}">${u.avatar}</div>
-      <div><div style="font-size:13px;font-weight:600;color:#111827">${esc(u.name)}</div><div style="font-size:10px;color:#9CA3AF">${esc(u.role)}</div></div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#111827">${esc(u.name)}</div>
+        <div style="font-size:10px;color:#9CA3AF">${esc(u.role)}${u.isAdmin?' · 관리자':''}</div>
+      </div>
     </button>`).join('');
 }
 
