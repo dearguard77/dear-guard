@@ -386,8 +386,16 @@
             <input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)">
           </div>
           <div class="form-field">
+            <label class="form-label">신랑 연락처</label>
+            <input class="form-input" id="f-groom-phone" type="tel" placeholder="010-1234-5678">
+          </div>
+          <div class="form-field">
             <label class="form-label">신부 이름</label>
             <input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)">
+          </div>
+          <div class="form-field">
+            <label class="form-label">신부 연락처</label>
+            <input class="form-input" id="f-bride-phone" type="tel" placeholder="010-5678-1234">
           </div>
           <div class="form-field">
             <label class="form-label">예식일 <span style="color:#EF4444">*</span></label>
@@ -728,6 +736,8 @@ function rowToSchedule(row){
     arrivalTime:  (row.arrival_time || '').slice(0,5),
     hall:         row.hall         || '',
     address:      row.address      || '',
+    groomPhone:   row.groom_phone  || '',
+    bridePhone:   row.bride_phone  || '',
     guestCount:   row.guest_count  || 0,
     product:      row.product      || PRODUCTS[0],
     frontManager: row.front_manager|| '',
@@ -749,6 +759,8 @@ function scheduleToRow(v, notes, cl){
     arrival_time:  v.arrivalTime  || null,
     hall:          v.hall,
     address:       v.address      || null,
+    groom_phone:   v.groomPhone   || null,
+    bride_phone:   v.bridePhone   || null,
     guest_count:   v.guestCount   || 0,
     product:       v.product,
     front_manager: v.frontManager,
@@ -1152,6 +1164,8 @@ function openDetail(id){
         <div class="info-box"><div class="info-box-lbl">예식시간</div><div class="info-box-val">${esc(s.time)}</div></div>
         <div class="info-box"><div class="info-box-lbl">도착시간</div><div class="info-box-val">${esc(s.arrivalTime)||'-'}</div></div>
         <div class="info-box"><div class="info-box-lbl">보증인원</div><div class="info-box-val">${s.guestCount||0}명</div></div>
+        <div class="info-box"><div class="info-box-lbl">신랑 연락처</div><div class="info-box-val">${s.groomPhone ? `<a href="tel:${esc(s.groomPhone)}" style="color:#C7A96B;text-decoration:none">${esc(s.groomPhone)}</a>` : '-'}</div></div>
+        <div class="info-box"><div class="info-box-lbl">신부 연락처</div><div class="info-box-val">${s.bridePhone ? `<a href="tel:${esc(s.bridePhone)}" style="color:#C7A96B;text-decoration:none">${esc(s.bridePhone)}</a>` : '-'}</div></div>
         <div class="info-box span"><div class="info-box-lbl">웨딩홀 (업체명)</div><div class="info-box-val">${esc(s.hall)}</div></div>
         <div class="info-box span"><div class="info-box-lbl">홀 이름</div><div class="info-box-val">${esc(s.address)||'-'}</div></div>
         <div class="info-box span"><div class="info-box-lbl">상품구성</div><div class="info-box-val">${esc(s.product)}</div></div>
@@ -1261,8 +1275,10 @@ function openForm(id){
   document.getElementById('fm-title').textContent = s ? `✏️ ${coupleName(s)}` : '➕ 새 예식 등록';
 
   // ── 기본정보 필드 값 세팅 ──
-  document.getElementById('f-groom').value   = s?.groomName   || '';
-  document.getElementById('f-bride').value   = s?.brideName   || '';
+  document.getElementById('f-groom').value       = s?.groomName   || '';
+  document.getElementById('f-groom-phone').value = s?.groomPhone  || '';
+  document.getElementById('f-bride').value       = s?.brideName   || '';
+  document.getElementById('f-bride-phone').value = s?.bridePhone  || '';
   document.getElementById('f-date').value    = s?.date        || '';
 
   // 예식시간 분리 세팅
@@ -1377,8 +1393,10 @@ function getFormValues(){
   const backManager  = [b1, b2].filter(Boolean).join(', ');
 
   return {
-    groomName:    (document.getElementById('f-groom')?.value   || '').trim(),
-    brideName:    (document.getElementById('f-bride')?.value   || '').trim(),
+    groomName:    (document.getElementById('f-groom')?.value       || '').trim(),
+    groomPhone:   (document.getElementById('f-groom-phone')?.value || '').trim(),
+    brideName:    (document.getElementById('f-bride')?.value       || '').trim(),
+    bridePhone:   (document.getElementById('f-bride-phone')?.value || '').trim(),
     date:          document.getElementById('f-date')?.value    || '',
     time,
     arrivalTime,
