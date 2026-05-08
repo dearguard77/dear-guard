@@ -416,7 +416,7 @@
           </div>
           <div class="form-field">
             <label class="form-label">상품구성</label>
-            <select class="form-input" id="f-product">
+            <select class="form-input" id="f-product" onchange="updateManagerFields()">
               <option>2인 1팀</option>
               <option>4인 2팀</option>
             </select>
@@ -433,21 +433,40 @@
         </div>
       </div>
 
-      <!-- ── 섹션 2: 담당자 ── -->
+<!-- ── 섹션 2: 담당자 ── -->
       <div id="fm-sec-managers" style="display:none;padding:20px 24px">
-        <div class="hint-box" style="margin-bottom:16px">💡 Front 담당자는 신랑신부 측 응대, Back 담당자는 축의금·식권 관리를 담당합니다.</div>
-        <div class="form-field" style="margin-bottom:14px">
-          <label class="form-label">Front 담당자 <span style="color:#EF4444">*</span></label>
-          <select class="form-input" id="f-front" onchange="renderManagerPreview()">
+        <div class="hint-box" style="margin-bottom:16px">💡 Front 담당자는 신랑신부 측 응대, Back 담당자는 축의금·식권 관리를 담당합니다.<br>상품구성에 따라 담당자 수가 자동으로 변경됩니다.</div>
+
+        <!-- 2인 1팀 / 4인 2팀 공통: Front 1 -->
+        <div class="form-field" style="margin-bottom:12px">
+          <label class="form-label">Front 담당자 1 <span style="color:#EF4444">*</span></label>
+          <select class="form-input" id="f-front1" onchange="renderManagerPreview()">
             <option value="">— 선택 —</option>
           </select>
         </div>
-        <div class="form-field" style="margin-bottom:16px">
-          <label class="form-label">Back 담당자 <span style="color:#EF4444">*</span></label>
-          <select class="form-input" id="f-back" onchange="renderManagerPreview()">
+        <!-- 4인 2팀 전용: Front 2 -->
+        <div class="form-field" id="front2-wrap" style="display:none;margin-bottom:12px">
+          <label class="form-label">Front 담당자 2</label>
+          <select class="form-input" id="f-front2" onchange="renderManagerPreview()">
             <option value="">— 선택 —</option>
           </select>
         </div>
+
+        <!-- 2인 1팀 / 4인 2팀 공통: Back 1 -->
+        <div class="form-field" style="margin-bottom:12px">
+          <label class="form-label">Back 담당자 1 <span style="color:#EF4444">*</span></label>
+          <select class="form-input" id="f-back1" onchange="renderManagerPreview()">
+            <option value="">— 선택 —</option>
+          </select>
+        </div>
+        <!-- 4인 2팀 전용: Back 2 -->
+        <div class="form-field" id="back2-wrap" style="display:none;margin-bottom:16px">
+          <label class="form-label">Back 담당자 2</label>
+          <select class="form-input" id="f-back2" onchange="renderManagerPreview()">
+            <option value="">— 선택 —</option>
+          </select>
+        </div>
+
         <div id="manager-preview"></div>
       </div>
 
@@ -1185,12 +1204,22 @@ function openForm(id){
   document.getElementById('f-status').value  = s?.status      || '계약완료';
 
   // ── 담당자 select 옵션 재구성 ──
-  ['f-front','f-back'].forEach(fid => {
+  // 기존 저장값에서 이름 분리 (쉼표 구분)
+  const frontParts = (s?.frontManager || '').split(',').map(n => n.trim());
+  const backParts  = (s?.backManager  || '').split(',').map(n => n.trim());
+
+  ['f-front1','f-front2','f-back1','f-back2'].forEach(fid => {
     const sel = document.getElementById(fid);
     sel.innerHTML = '<option value="">— 선택 —</option>'
       + USERS.map(u => `<option>${esc(u.name)}</option>`).join('');
-    sel.value = fid === 'f-front' ? (s?.frontManager || '') : (s?.backManager || '');
   });
+  document.getElementById('f-front1').value = frontParts[0] || '';
+  document.getElementById('f-front2').value = frontParts[1] || '';
+  document.getElementById('f-back1').value  = backParts[0]  || '';
+  document.getElementById('f-back2').value  = backParts[1]  || '';
+
+  // 상품구성에 따라 2번 담당자 필드 표시/숨김
+  updateManagerFields();
   renderManagerPreview();
 
   // ── 특이사항 프리셋/타입 버튼 ──
@@ -1261,6 +1290,14 @@ function getFormValues(){
   const am = document.getElementById('f-arr-m')?.value || '';
   const arrivalTime = (ah && am !== '') ? `${ah}:${am}` : '';
 
+  // 담당자 — 쉼표로 합치기 (빈 값 제외)
+  const f1 = (document.getElementById('f-front1')?.value || '').trim();
+  const f2 = (document.getElementById('f-front2')?.value || '').trim();
+  const b1 = (document.getElementById('f-back1')?.value  || '').trim();
+  const b2 = (document.getElementById('f-back2')?.value  || '').trim();
+  const frontManager = [f1, f2].filter(Boolean).join(', ');
+  const backManager  = [b1, b2].filter(Boolean).join(', ');
+
   return {
     groomName:    (document.getElementById('f-groom')?.value   || '').trim(),
     brideName:    (document.getElementById('f-bride')?.value   || '').trim(),
@@ -1272,8 +1309,8 @@ function getFormValues(){
     address:      (document.getElementById('f-addr')?.value    || '').trim(),
     product:       document.getElementById('f-product')?.value || PRODUCTS[0],
     status:        document.getElementById('f-status')?.value  || '계약완료',
-    frontManager:  document.getElementById('f-front')?.value   || '',
-    backManager:   document.getElementById('f-back')?.value    || '',
+    frontManager,
+    backManager,
   };
 }
 
@@ -1321,14 +1358,36 @@ function renderNotesList(){
       <button onclick="removeNote(${i})" style="background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:18px;line-height:1">×</button>
     </div>`}).join('');
 }
+// 상품구성에 따라 2번 담당자 필드 표시/숨김 전환
+function updateManagerFields(){
+  const product = document.getElementById('f-product')?.value || '';
+  const is4team = product === '4인 2팀';
+  document.getElementById('front2-wrap').style.display = is4team ? 'block' : 'none';
+  document.getElementById('back2-wrap').style.display  = is4team ? 'block' : 'none';
+  // 2인 1팀으로 전환 시 2번 필드 초기화
+  if(!is4team){
+    document.getElementById('f-front2').value = '';
+    document.getElementById('f-back2').value  = '';
+  }
+  renderManagerPreview();
+}
+
 function renderManagerPreview(){
-  const f=document.getElementById('f-front')?.value, b=document.getElementById('f-back')?.value;
-  const el=document.getElementById('manager-preview'); if(!el) return;
-  if(!f&&!b){ el.innerHTML=''; return; }
-  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    ${f?`<div class="manager-card"><div class="manager-avatar">🎤</div><div><div style="font-size:10px;color:#9CA3AF">Front</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(f)}</div></div></div>`:'<div></div>'}
-    ${b?`<div class="manager-card"><div class="manager-avatar">🎬</div><div><div style="font-size:10px;color:#9CA3AF">Back</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(b)}</div></div></div>`:'<div></div>'}
-  </div>`;
+  const f1 = document.getElementById('f-front1')?.value || '';
+  const f2 = document.getElementById('f-front2')?.value || '';
+  const b1 = document.getElementById('f-back1')?.value  || '';
+  const b2 = document.getElementById('f-back2')?.value  || '';
+  const el = document.getElementById('manager-preview'); if(!el) return;
+
+  const cards = [];
+  if(f1) cards.push(`<div class="manager-card"><div class="manager-avatar">🎤</div><div><div style="font-size:10px;color:#9CA3AF">Front 1</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(f1)}</div></div></div>`);
+  if(f2) cards.push(`<div class="manager-card"><div class="manager-avatar">🎤</div><div><div style="font-size:10px;color:#9CA3AF">Front 2</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(f2)}</div></div></div>`);
+  if(b1) cards.push(`<div class="manager-card"><div class="manager-avatar">🎬</div><div><div style="font-size:10px;color:#9CA3AF">Back 1</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(b1)}</div></div></div>`);
+  if(b2) cards.push(`<div class="manager-card"><div class="manager-avatar">🎬</div><div><div style="font-size:10px;color:#9CA3AF">Back 2</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(b2)}</div></div></div>`);
+
+  el.innerHTML = cards.length
+    ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${cards.join('')}</div>`
+    : '';
 }
 
 async function saveForm(){
