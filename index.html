@@ -316,18 +316,20 @@
 
   <!-- HOME TAB -->
   <div id="tab-home" class="tab-panel active">
-    <div class="banner">
-      <div>
-        <div id="banner-greet" style="font-size:13px;opacity:.85;margin-bottom:4px"></div>
-        <div id="banner-count" style="font-size:20px;font-weight:800"></div>
-        <div id="banner-date"  style="font-size:12px;opacity:.8;margin-top:4px"></div>
+    <!-- 배너 + 오늘 예식 통합 -->
+    <div class="banner" style="flex-direction:column;align-items:stretch;gap:0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div>
+          <div id="banner-greet" style="font-size:13px;opacity:.85;margin-bottom:4px"></div>
+          <div id="banner-date" style="font-size:12px;opacity:.8"></div>
+        </div>
+        <div class="banner-emoji" style="font-size:36px;opacity:.25;margin-top:-4px">💍</div>
       </div>
-      <div class="banner-emoji">💍</div>
+      <!-- 오늘 예식 인라인 -->
+      <div id="today-list"></div>
     </div>
     <div class="stats-grid" id="stats-grid"></div>
-    <div class="sec-header"><h2>오늘 예식</h2><span id="today-subtitle"></span></div>
-    <div id="today-list"></div>
-    <div class="sec-header" style="margin-top:24px"><h2>다가오는 일정</h2><span>D-7 이내</span></div>
+    <div class="sec-header" style="margin-top:8px"><h2>다가오는 일정</h2><span>D-7 이내</span></div>
     <div id="upcoming-list"></div>
   </div>
 
@@ -1104,10 +1106,9 @@ function renderAll(){
 }
 
 function renderBanner(){
-  const todayCnt = visible().filter(s=>s.date===TODAY).length;
   document.getElementById('banner-greet').textContent = `안녕하세요, ${currentUser.name} (${currentUser.role}) 👋`;
-  document.getElementById('banner-count').textContent = `오늘 ${todayCnt}건의 예식이 있습니다`;
-  const d=new Date(); document.getElementById('banner-date').textContent =
+  const d = new Date();
+  document.getElementById('banner-date').textContent =
     `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
 }
 
@@ -1133,27 +1134,63 @@ function renderStats(){
     </div>`).join('');
 }
 function renderToday(){
-  document.getElementById('today-subtitle').textContent = `${TODAY} 기준`;
-  const list = visible().filter(s=>s.date===TODAY);
-  const el = document.getElementById('today-list');
-  if(!list.length){ el.innerHTML='<div class="empty-state">오늘 예식이 없습니다</div>'; return; }
-  el.innerHTML = list.map(s=>`
-    <div class="today-card" onclick="openDetail(${s.id})">
-      <div class="side-bar" style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).color}"></div>
-      <div class="today-card-top">
-        <div><div class="today-card-name">💍 ${esc(coupleName(s))}</div>
-          <div class="today-card-hall">🏛 ${esc(s.hall)}</div></div>
-        ${badge(s.status)}
-      </div>
-      <div class="info-grid">
-        <div class="info-row"><span>🕐</span><span class="lbl">예식시간</span><span class="val">${esc(s.time)}</span></div>
-        <div class="info-row"><span>🚗</span><span class="lbl">도착시간</span><span class="val">${esc(s.arrivalTime)||'-'}</span></div>
-        <div class="info-row"><span>👤</span><span class="lbl">Front</span><span class="val">${esc(s.frontManager)||'-'}</span></div>
-        <div class="info-row"><span>🎬</span><span class="lbl">Back</span><span class="val">${esc(s.backManager)||'-'}</span></div>
-      </div>
-      ${s.notes.length ? (() => { const n=s.notes[0],c=NOTE_CFG[n.type]||NOTE_CFG.info; return `<div style="background:${c.bg};border:1px solid ${c.border};border-radius:8px;padding:6px 10px;font-size:12px;color:${c.text};margin-bottom:10px">${c.icon} ${esc(n.text)}${s.notes.length>1?` <span style="color:#9CA3AF">+${s.notes.length-1}개 더</span>`:''}</div>`; })() : ''}
-      ${progBar(s.checklist)}
-    </div>`).join('');
+  const list = visible().filter(s => s.date === TODAY);
+  const el   = document.getElementById('today-list');
+
+  if(!list.length){
+    // 오늘 예식 없음 — 배너 안에 안내 문구
+    el.innerHTML = `
+      <div style="margin-top:14px;background:rgba(255,255,255,.18);border-radius:10px;
+        padding:12px 16px;font-size:13px;color:rgba(255,255,255,.9);text-align:center">
+        오늘 예식이 없습니다
+      </div>`;
+    return;
+  }
+
+  // 오늘 예식 있음 — 배너 안에 카드 목록
+  el.innerHTML = `<div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">` +
+    list.map(s => `
+      <div onclick="openDetail(${s.id})"
+        style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+          border-radius:12px;padding:14px 16px;cursor:pointer;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px;
+          background:rgba(255,255,255,.6)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:2px">
+              💍 ${esc(coupleName(s))}
+            </div>
+            <div style="font-size:12px;color:rgba(255,255,255,.8)">🏛 ${esc(s.hall)}</div>
+          </div>
+          <span style="background:rgba(255,255,255,.2);color:#fff;border-radius:20px;
+            padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap">
+            ${esc(s.status)}
+          </span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:8px">
+          <div style="font-size:11px;color:rgba(255,255,255,.8)">🕐 ${esc(s.time)}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.8)">🚗 ${esc(s.arrivalTime)||'-'}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.8)">👤 ${esc(s.frontManager)||'-'}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.8)">🎬 ${esc(s.backManager)||'-'}</div>
+        </div>
+        ${s.notes.length ? (() => {
+          const n = s.notes[0], c = NOTE_CFG[n.type]||NOTE_CFG.info;
+          return `<div style="background:rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;
+            font-size:11px;color:rgba(255,255,255,.9);margin-bottom:8px">
+            ${c.icon} ${esc(n.text)}${s.notes.length>1?` <span style="opacity:.7">+${s.notes.length-1}개 더</span>`:''}
+          </div>`;
+        })() : ''}
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:4px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden">
+            <div style="height:100%;border-radius:99px;background:rgba(255,255,255,.8);
+              width:${Math.round(Object.values(s.checklist).filter(Boolean).length/Object.keys(s.checklist).length*100)}%"></div>
+          </div>
+          <span style="font-size:10px;color:rgba(255,255,255,.7)">
+            ${Object.values(s.checklist).filter(Boolean).length}/${Object.keys(s.checklist).length}
+          </span>
+        </div>
+      </div>`
+    ).join('') + `</div>`;
 }
 
 function renderUpcoming(){
