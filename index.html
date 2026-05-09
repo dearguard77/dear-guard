@@ -474,7 +474,7 @@
           <div class="form-field">
             <label class="form-label">예식시간 <span style="color:#EF4444">*</span></label>
             <div style="display:flex;gap:6px;align-items:center">
-              <select class="form-input" id="f-time-h" style="flex:1">
+              <select class="form-input" id="f-time-h" style="flex:1" onchange="autoSetArrival()">
                 <option value="">시</option>
                 <option>08</option><option>09</option><option>10</option>
                 <option>11</option><option>12</option><option>13</option>
@@ -483,7 +483,7 @@
                 <option>20</option><option>21</option>
               </select>
               <span style="color:#9CA3AF;font-weight:700;flex-shrink:0">:</span>
-              <select class="form-input" id="f-time-m" style="flex:1">
+              <select class="form-input" id="f-time-m" style="flex:1" onchange="autoSetArrival()">
                 <option value="">분</option>
                 <option>00</option><option>10</option><option>20</option>
                 <option>30</option><option>40</option><option>50</option>
@@ -491,9 +491,9 @@
             </div>
           </div>
           <div class="form-field">
-            <label class="form-label">도착시간</label>
+            <label class="form-label">도착시간 <span style="font-weight:400;color:#9CA3AF">(예식 1시간 30분 전 자동설정)</span></label>
             <div style="display:flex;gap:6px;align-items:center">
-              <select class="form-input" id="f-arr-h" style="flex:1">
+              <select class="form-input" id="f-arr-h" style="flex:1;background:#F9FAFB;color:#6B7280">
                 <option value="">시</option>
                 <option>06</option><option>07</option><option>08</option>
                 <option>09</option><option>10</option><option>11</option>
@@ -502,12 +502,13 @@
                 <option>18</option><option>19</option><option>20</option>
               </select>
               <span style="color:#9CA3AF;font-weight:700;flex-shrink:0">:</span>
-              <select class="form-input" id="f-arr-m" style="flex:1">
+              <select class="form-input" id="f-arr-m" style="flex:1;background:#F9FAFB;color:#6B7280">
                 <option value="">분</option>
                 <option>00</option><option>10</option><option>20</option>
                 <option>30</option><option>40</option><option>50</option>
               </select>
             </div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:4px">✏️ 필요 시 직접 수정 가능합니다</div>
           </div>
           <div class="form-field">
             <label class="form-label">보증 인원</label>
@@ -1698,7 +1699,35 @@ function toggleFormCL(e, key){
   formCL[key] = !formCL[key];
   renderFormChecklist();
 }
+// ─── 도착시간 자동계산 (예식시간 - 1시간 30분) ───────────────────────────────
+function autoSetArrival(){
+  const h = document.getElementById('f-time-h')?.value;
+  const m = document.getElementById('f-time-m')?.value;
+  if(!h || m === '' || m === undefined) return; // 시/분 모두 선택된 경우만 계산
 
+  const totalMin = Number(h) * 60 + Number(m) - 90; // 90분 = 1시간 30분
+  if(totalMin < 0) return; // 자정 이전이면 무시
+
+  const arrH = Math.floor(totalMin / 60);
+  const arrM = totalMin % 60;
+
+  const arrHStr = String(arrH).padStart(2,'0');
+  const arrMStr = String(arrM).padStart(2,'0');
+
+  // 도착시간 select에 값 세팅
+  const arrHSel = document.getElementById('f-arr-h');
+  const arrMSel = document.getElementById('f-arr-m');
+
+  if(arrHSel) arrHSel.value = arrHStr;
+  if(arrMSel) arrMSel.value = arrMStr;
+
+  // 분이 10 단위가 아니면 가장 가까운 10분 단위로 내림
+  // (예: 25분 → 20분, 35분 → 30분)
+  if(arrM % 10 !== 0){
+    const roundedM = Math.floor(arrM / 10) * 10;
+    if(arrMSel) arrMSel.value = String(roundedM).padStart(2,'0');
+  }
+}
 let selectedNoteType='info';
 function selectNoteType(type){
   selectedNoteType=type;
