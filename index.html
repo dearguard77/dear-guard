@@ -2166,9 +2166,9 @@ function renderUnavailCal(){
   const days = [...Array(firstDay).fill(null), ...Array.from({length:daysInMonth},(_,i)=>i+1)];
   const dayNames = ['일','월','화','수','목','금','토'];
 
-  // 현재 보이는 불가일정만 (필터 적용)
+  // 전체 매니저 불가일정 공개 조회
   const filterName = document.getElementById('unavail-filter')?.value || '';
-  let baseList = ADMIN_NAMES.includes(currentUser.name) ? unavailables : unavailables.filter(u=>u.managerName===currentUser.name);
+  let baseList = unavailables;
   if(filterName) baseList = baseList.filter(u=>u.managerName===filterName);
 
   const byDay = day => {
