@@ -227,8 +227,18 @@
   .notif-item.read{border-left:3px solid transparent}
   .notif-dot{width:8px;height:8px;border-radius:50%;background:#C7A96B;flex-shrink:0;margin-top:4px}
   .notif-dot.read{background:#E5E7EB}
-  .notif-msg{font-size:12px;color:#374151;line-height:1.5;flex:1}
+  .notif-msg{font-size:12px;color:#374151;line-height:1.5;white-space:pre-line;word-break:break-word}
   .notif-time{font-size:10px;color:#9CA3AF;margin-top:3px}
+  /* 모바일: 축약 표시 / PC: 전체 표시 */
+  @media(max-width:768px){
+    .notif-full{display:none !important}
+    .notif-compact{display:block !important}
+    #notif-drop{right:0;left:auto;width:min(300px, calc(100vw - 16px)) !important}
+  }
+  @media(min-width:769px){
+    .notif-full{display:block}
+    .notif-compact{display:none !important}
+  }
  
   /* SETTLEMENT TAB */
   .settle-row{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:all .15s}
@@ -2460,6 +2470,28 @@ function renderNotifBadge(){
 }
 
 // ─── 알림 목록 렌더 ──────────────────────────────────────────────────────────
+// 알림 메시지 파싱 — 종류 / 예식명 / 날짜 분리
+function parseNotifMessage(msg){
+  // 메시지 형식 예: "[신규 배정] 2026-05-11 13:00 메리비아포레\n김철수 ♥ 박영희\nFront 담당자로 배정되었습니다"
+  const lines  = msg.split('\n').map(l => l.trim()).filter(Boolean);
+  const first  = lines[0] || '';
+
+  // 종류 추출: [신규 배정] → "신규 배정"
+  const typeMatch = first.match(/\[([^\]]+)\]/);
+  const typeLabel = typeMatch ? typeMatch[1] : first;
+
+  // 날짜 추출: YYYY-MM-DD HH:MM 형식 찾기
+  const dateMatch = first.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})/);
+  const dateLabel = dateMatch
+    ? `${dateMatch[1].slice(5).replace('-','/')} ${dateMatch[2]}`  // MM/DD HH:MM
+    : '';
+
+  // 예식명: 두 번째 줄 (신랑♥신부 or 홀명)
+  const nameLine = lines[1] || '';
+
+  return { typeLabel, nameLine, dateLabel, full: msg };
+}
+
 function renderNotifList(){
   const el = document.getElementById('notif-list');
   if(!el) return;
@@ -2467,15 +2499,28 @@ function renderNotifList(){
     el.innerHTML = '<div style="padding:32px 16px;text-align:center;color:#9CA3AF;font-size:13px">새 알림이 없습니다</div>';
     return;
   }
-  el.innerHTML = notifications.map(n => `
+  el.innerHTML = notifications.map(n => {
+    const { typeLabel, nameLine, dateLabel } = parseNotifMessage(n.message);
+    return `
     <div class="notif-item ${n.is_read ? 'read' : 'unread'}"
       onclick="handleNotifClick(${n.id}, ${n.schedule_id || 'null'})">
       <div class="notif-dot ${n.is_read ? 'read' : ''}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="notif-msg">${esc(n.message)}</div>
+      <div style="flex:1;min-width:0;overflow:hidden">
+        <!-- PC: 전체 메시지, 모바일: 축약 표시 -->
+        <div class="notif-msg notif-full">${esc(n.message)}</div>
+        <div class="notif-compact" style="display:none">
+          <div style="font-size:11px;font-weight:700;color:#C7A96B;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            ${esc(typeLabel)}
+          </div>
+          ${nameLine ? `<div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:1px">
+            ${esc(nameLine)}
+          </div>` : ''}
+          ${dateLabel ? `<div style="font-size:11px;color:#6B7280">${esc(dateLabel)}</div>` : ''}
+        </div>
         <div class="notif-time">${formatNotifTime(n.created_at)}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ─── 시간 포맷 ───────────────────────────────────────────────────────────────
