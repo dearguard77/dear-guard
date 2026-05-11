@@ -219,6 +219,16 @@
   .status-filter-btn[data-status="인터뷰대기"].active{background:#F59E0B;border-color:#F59E0B}
   .status-filter-btn[data-status="진행완료"].active{background:#10B981;border-color:#10B981}
   .status-filter-btn[data-status="긴급확인"].active{background:#EF4444;border-color:#EF4444}
+
+  /* NOTIFICATIONS */
+  .notif-item{padding:12px 16px;border-bottom:1px solid #F9FAFB;cursor:pointer;transition:background .15s;display:flex;gap:10px;align-items:flex-start}
+  .notif-item:hover{background:#FDF8F3}
+  .notif-item.unread{background:#FFF9F0;border-left:3px solid #C7A96B}
+  .notif-item.read{border-left:3px solid transparent}
+  .notif-dot{width:8px;height:8px;border-radius:50%;background:#C7A96B;flex-shrink:0;margin-top:4px}
+  .notif-dot.read{background:#E5E7EB}
+  .notif-msg{font-size:12px;color:#374151;line-height:1.5;flex:1}
+  .notif-time{font-size:10px;color:#9CA3AF;margin-top:3px}
  
   /* SETTLEMENT TAB */
   .settle-row{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:all .15s}
@@ -290,6 +300,22 @@
     </button>
   </div>
   <div class="nav-right">
+   <!-- 🔔 알림 버튼 -->
+    <div style="position:relative;flex-shrink:0" id="notif-wrap">
+      <button id="notif-btn" onclick="toggleNotif()"
+        style="background:none;border:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;cursor:pointer">
+        🔔
+        <span id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;background:#EF4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;line-height:1">0</span>
+      </button>
+      <!-- 알림 드롭다운 -->
+      <div id="notif-drop" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:320px;max-height:420px;background:#fff;border:1px solid #E5E7EB;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:300;overflow:hidden;flex-direction:column">
+        <div style="padding:14px 16px;border-bottom:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:14px;font-weight:800;color:#111827">🔔 알림</span>
+          <button onclick="markAllRead()" style="background:none;border:none;font-size:11px;color:#C7A96B;font-weight:700;cursor:pointer">모두 읽음</button>
+        </div>
+        <div id="notif-list" style="overflow-y:auto;max-height:340px"></div>
+      </div>
+    </div>
     <button id="reg-btn" onclick="openForm(null)" style="display:none"><span>＋</span><span>예식 등록</span></button>
     <!-- 관리자 전용 직원 전환 드롭다운 -->
     <div id="admin-user-wrap" style="display:none;position:relative">
@@ -1050,6 +1076,7 @@ async function startApp(){
   }
   await loadSchedules();
   await loadUnavailables();
+  await loadNotifications();
   renderAll();
   document.getElementById('loading-overlay').style.display = 'none';
 }
@@ -1865,15 +1892,20 @@ async function saveForm(){
 
   try {
     if(formId){
+      const oldS    = schedules.find(x => x.id === formId);
       const updated = await sb.patch('schedules', formId, row);
-      const idx = schedules.findIndex(x=>x.id===formId);
-      if(idx !== -1) schedules[idx] = rowToSchedule(Array.isArray(updated)?updated[0]:updated);
+      const newS    = rowToSchedule(Array.isArray(updated)?updated[0]:updated);
+      const idx     = schedules.findIndex(x=>x.id===formId);
+      if(idx !== -1) schedules[idx] = newS;
       showToast('✅ 예식 정보가 수정되었습니다');
+      if(oldS) sendUpdateScheduleNotifs(oldS, newS).catch(()=>{});
     } else {
       const created = await sb.post('schedules', row);
-      const newRow = Array.isArray(created)?created[0]:created;
-      schedules.push(rowToSchedule(newRow));
+      const newRow  = Array.isArray(created)?created[0]:created;
+      const newS    = rowToSchedule(newRow);
+      schedules.push(newS);
       showToast('🎉 새 예식이 등록되었습니다');
+      sendNewScheduleNotifs(newS).catch(()=>{});
     }
     closeForm(); renderAll();
   } catch(e){
@@ -2301,6 +2333,230 @@ async function toggleLaborPaid(schId, checked){
     showToast('⚠️ 저장 실패. 다시 시도해주세요.');
     s.laborPaid = !checked; // 롤백
     renderSettle();
+  }
+}
+
+ // ════════════════════════════════════════════════════════════
+//  🔔  알림 기능
+// ════════════════════════════════════════════════════════════
+
+let notifications = [];
+let notifOpen     = false;
+
+// ─── 알림 로드 ───────────────────────────────────────────────────────────────
+async function loadNotifications(){
+  if(!isSupabaseConfigured()) return;
+  try {
+    const rows = await sb.get('notifications',
+      `?user_name=eq.${encodeURIComponent(currentUser.name)}&order=created_at.desc&limit=50`
+    );
+    notifications = rows;
+    renderNotifBadge();
+    renderNotifList();
+  } catch(e){
+    console.error('알림 로드 실패:', e);
+  }
+}
+
+// ─── 뱃지 렌더 ───────────────────────────────────────────────────────────────
+function renderNotifBadge(){
+  const unread = notifications.filter(n => !n.is_read).length;
+  const badge  = document.getElementById('notif-badge');
+  if(!badge) return;
+  if(unread > 0){
+    badge.textContent = unread > 9 ? '9+' : unread;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ─── 알림 목록 렌더 ──────────────────────────────────────────────────────────
+function renderNotifList(){
+  const el = document.getElementById('notif-list');
+  if(!el) return;
+  if(!notifications.length){
+    el.innerHTML = '<div style="padding:32px 16px;text-align:center;color:#9CA3AF;font-size:13px">새 알림이 없습니다</div>';
+    return;
+  }
+  el.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.is_read ? 'read' : 'unread'}"
+      onclick="handleNotifClick(${n.id}, ${n.schedule_id || 'null'})">
+      <div class="notif-dot ${n.is_read ? 'read' : ''}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="notif-msg">${esc(n.message)}</div>
+        <div class="notif-time">${formatNotifTime(n.created_at)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── 시간 포맷 ───────────────────────────────────────────────────────────────
+function formatNotifTime(iso){
+  const d    = new Date(iso);
+  const now  = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if(diff < 60)        return '방금 전';
+  if(diff < 3600)      return `${Math.floor(diff/60)}분 전`;
+  if(diff < 86400)     return `${Math.floor(diff/3600)}시간 전`;
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+// ─── 드롭다운 토글 ───────────────────────────────────────────────────────────
+function toggleNotif(){
+  notifOpen = !notifOpen;
+  const drop = document.getElementById('notif-drop');
+  if(drop) drop.style.display = notifOpen ? 'flex' : 'none';
+  if(notifOpen) loadNotifications();
+}
+
+// 드롭다운 외부 클릭 시 닫기
+document.addEventListener('click', e => {
+  if(!e.target.closest('#notif-wrap')){
+    notifOpen = false;
+    const drop = document.getElementById('notif-drop');
+    if(drop) drop.style.display = 'none';
+  }
+});
+
+// ─── 알림 클릭 → 읽음 처리 + 해당 일정 이동 ────────────────────────────────
+async function handleNotifClick(notifId, scheduleId){
+  // 읽음 처리
+  const n = notifications.find(x => x.id === notifId);
+  if(n && !n.is_read){
+    n.is_read = true;
+    renderNotifBadge();
+    renderNotifList();
+    try { await sb.patch('notifications', notifId, { is_read: true }); } catch(e){}
+  }
+  // 해당 일정 상세보기 이동
+  if(scheduleId){
+    notifOpen = false;
+    const drop = document.getElementById('notif-drop');
+    if(drop) drop.style.display = 'none';
+    const s = schedules.find(x => x.id === scheduleId);
+    if(s) openDetail(scheduleId);
+    else {
+      switchTab('schedules', null, document.querySelectorAll('.bnav-btn')[2]);
+    }
+  }
+}
+
+// ─── 모두 읽음 처리 ──────────────────────────────────────────────────────────
+async function markAllRead(){
+  const unread = notifications.filter(n => !n.is_read);
+  unread.forEach(n => n.is_read = true);
+  renderNotifBadge();
+  renderNotifList();
+  try {
+    await Promise.all(unread.map(n => sb.patch('notifications', n.id, { is_read: true })));
+  } catch(e){ console.error('모두 읽음 실패:', e); }
+}
+
+// ─── 알림 생성 헬퍼 ──────────────────────────────────────────────────────────
+async function createNotif(userName, type, message, scheduleId){
+  if(!isSupabaseConfigured()) return;
+  try {
+    await sb.post('notifications', {
+      user_name:   userName,
+      type,
+      message,
+      schedule_id: scheduleId || null,
+      is_read:     false,
+    });
+  } catch(e){ console.error('알림 생성 실패:', e); }
+}
+
+// ─── 신규 일정 등록 시 알림 생성 ─────────────────────────────────────────────
+async function sendNewScheduleNotifs(schedule){
+  const s = schedule;
+  const dateStr = `${s.date} ${s.time}`;
+  const name    = coupleName(s);
+
+  const frontManagers = (s.frontManager||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const backManagers  = (s.backManager ||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const allManagers   = [...new Set([...frontManagers, ...backManagers])];
+
+  // 담당 매니저에게 신규 배정 알림
+  for(const m of allManagers){
+    if(ADMIN_NAMES.includes(m)) continue; // 관리자는 아래에서 별도 처리
+    const role = frontManagers.includes(m) ? 'Front' : 'Back';
+    await createNotif(m, 'new_schedule',
+      `[신규 배정] ${dateStr} ${esc(s.hall)}\n${name}\n${role} 담당자로 배정되었습니다`,
+      s.id
+    );
+  }
+
+  // 관리자에게 등록 로그
+  for(const admin of ADMIN_NAMES){
+    if(admin === currentUser.name) continue; // 본인 제외
+    await createNotif(admin, 'log',
+      `[일정 등록] ${dateStr} ${esc(s.hall)} — ${name}\nFront: ${s.frontManager||'-'} / Back: ${s.backManager||'-'}`,
+      s.id
+    );
+  }
+}
+
+// ─── 일정 수정 시 알림 생성 ──────────────────────────────────────────────────
+async function sendUpdateScheduleNotifs(oldS, newS){
+  const dateStr = `${newS.date} ${newS.time}`;
+  const name    = coupleName(newS);
+
+  const oldFront = (oldS.frontManager||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const oldBack  = (oldS.backManager ||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const newFront = (newS.frontManager||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const newBack  = (newS.backManager ||'').split(',').map(m=>m.trim()).filter(Boolean);
+
+  const oldAll = [...new Set([...oldFront, ...oldBack])];
+  const newAll = [...new Set([...newFront, ...newBack])];
+
+  // 신규 배정된 매니저
+  const added   = newAll.filter(m => !oldAll.includes(m));
+  // 배정 해제된 매니저
+  const removed = oldAll.filter(m => !newAll.includes(m));
+  // 기존 유지 + 담당 역할 변경된 매니저
+  const changed = newAll.filter(m => oldAll.includes(m) && (
+    (oldFront.includes(m) !== newFront.includes(m)) ||
+    (oldBack.includes(m)  !== newBack.includes(m))
+  ));
+
+  // 신규 배정
+  for(const m of added){
+    if(ADMIN_NAMES.includes(m)) continue;
+    const role = newFront.includes(m) ? 'Front' : 'Back';
+    await createNotif(m, 'new_schedule',
+      `[신규 배정] ${dateStr} ${esc(newS.hall)}\n${name}\n${role} 담당자로 배정되었습니다`,
+      newS.id
+    );
+  }
+
+  // 배정 해제
+  for(const m of removed){
+    if(ADMIN_NAMES.includes(m)) continue;
+    await createNotif(m, 'unassigned',
+      `[배정 해제] ${dateStr} ${esc(newS.hall)}\n${name}\n담당에서 제외되었습니다`,
+      newS.id
+    );
+  }
+
+  // 역할 변경
+  for(const m of changed){
+    if(ADMIN_NAMES.includes(m)) continue;
+    const newRole = newFront.includes(m) ? 'Front' : 'Back';
+    await createNotif(m, 'role_changed',
+      `[역할 변경] ${dateStr} ${esc(newS.hall)}\n${name}\n${newRole} 담당자로 변경되었습니다`,
+      newS.id
+    );
+  }
+
+  // 관리자에게 변경 로그 (담당자 변경이 있을 때만)
+  if(added.length || removed.length || changed.length){
+    for(const admin of ADMIN_NAMES){
+      if(admin === currentUser.name) continue;
+      await createNotif(admin, 'log',
+        `[일정 수정] ${dateStr} ${esc(newS.hall)} — ${name}\nFront: ${newS.frontManager||'-'} / Back: ${newS.backManager||'-'}`,
+        newS.id
+      );
+    }
   }
 }
 // ─── START ────────────────────────────────────────────────────────────────────
