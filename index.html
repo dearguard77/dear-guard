@@ -2546,9 +2546,20 @@ function formatNotifFull(msg){
 
   return lines.map((line, i) => {
 
-    // 1번째 줄: [일정 등록] 날짜 시간 장소 → 골드 굵게
+   // 1번째 줄: [일정 등록] 날짜 시간 장소 → 골드 굵게 + 요일 삽입
     if(i === 0){
-      return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:3px;word-break:break-word;line-height:1.5">${esc(line)}</div>`;
+      const safeFirst = esc(line).replace(
+        /(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})/,
+        (_, date, time) => {
+          const day   = new Date(date).getDay();
+          const dName = DAY_NAMES[day];
+          const dCol  = day === 0 ? '#EF4444' : day === 6 ? '#3B82F6' : '';
+          return dCol
+            ? `${date} <span style="color:${dCol};font-weight:700">(${dName})</span> ${time}`
+            : `${date} <span>(${dName})</span> ${time}`;
+        }
+      );
+      return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:3px;word-break:break-word;line-height:1.5">${safeFirst}</div>`;
     }
 
     // 2번째 줄: 신청 측 → 골드 굵게 (이름 직접 표시)
