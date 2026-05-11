@@ -1237,9 +1237,13 @@ function renderAll(){
 
 function renderBanner(){
   document.getElementById('banner-greet').textContent = `안녕하세요, ${currentUser.name} (${currentUser.role}) 👋`;
-  const d = new Date();
-  document.getElementById('banner-date').textContent =
-    `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+  const d   = new Date();
+  const day = d.getDay();
+  const dayLabel = DAY_NAMES[day];
+  const dayColor = day === 0 ? '#ffcccc' : day === 6 ? '#cce0ff' : 'rgba(255,255,255,.8)';
+  const bannerDateEl = document.getElementById('banner-date');
+  bannerDateEl.innerHTML =
+    `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 <span style="color:${dayColor};font-weight:700">(${dayLabel})</span>`;
 }
 
 function renderStats(){
@@ -2519,9 +2523,17 @@ function parseNotifMessage(msg){
 
   // 날짜 추출: YYYY-MM-DD HH:MM 형식 찾기
   const dateMatch = first.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})/);
-  const dateLabel = dateMatch
-    ? `${dateMatch[1].slice(5).replace('-','/')} ${dateMatch[2]}`  // MM/DD HH:MM
-    : '';
+  const dateLabel = dateMatch ? (() => {
+    const mmdd  = dateMatch[1].slice(5).replace('-','/'); // MM/DD
+    const time  = dateMatch[2];                           // HH:MM
+    const day   = new Date(dateMatch[1]).getDay();
+    const dName = DAY_NAMES[day];
+    const dCol  = day === 0 ? '#EF4444' : day === 6 ? '#3B82F6' : '';
+    const daySpan = dCol
+      ? `<span style="color:${dCol};font-weight:700">(${dName})</span>`
+      : `(${dName})`;
+    return `${mmdd} ${daySpan} ${time}`;
+  })() : '';
 
   // 예식명: 두 번째 줄 (신랑♥신부 or 홀명)
   const nameLine = lines[1] || '';
@@ -2578,7 +2590,7 @@ function renderNotifList(){
           ${nameLine ? `<div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:1px">
             ${esc(nameLine)}
           </div>` : ''}
-          ${dateLabel ? `<div style="font-size:11px;color:#6B7280">${esc(dateLabel)}</div>` : ''}
+          ${dateLabel ? `<div style="font-size:11px;color:#6B7280">${dateLabel}</div>` : ''}
         </div>
         <div class="notif-time">${formatNotifTime(n.created_at)}</div>
       </div>
