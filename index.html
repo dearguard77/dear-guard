@@ -229,11 +229,34 @@
   .notif-dot.read{background:#E5E7EB}
   .notif-msg{font-size:12px;color:#374151;line-height:1.5;white-space:pre-line;word-break:break-word}
   .notif-time{font-size:10px;color:#9CA3AF;margin-top:3px}
+  /* 알림 드롭다운 공통 */
+  #notif-drop{
+    position:absolute;
+    top:calc(100% + 8px);
+    right:0;
+    left:auto;
+    width:360px;
+    max-height:60vh;
+    overflow-x:hidden;
+    overflow-y:auto;
+    word-break:break-word;
+  }
   /* 모바일: 축약 표시 / PC: 전체 표시 */
   @media(max-width:768px){
     .notif-full{display:none !important}
     .notif-compact{display:block !important}
-    #notif-drop{right:0;left:auto;width:min(300px, calc(100vw - 16px)) !important}
+    #notif-drop{
+      position:fixed;
+      top:64px;
+      right:8px;
+      left:auto;
+      width:calc(100vw - 16px);
+      max-width:none;
+      max-height:60vh;
+      overflow-x:hidden;
+      overflow-y:auto;
+      word-break:break-word;
+    }
   }
   @media(min-width:769px){
     .notif-full{display:block}
@@ -354,12 +377,12 @@
       </button>
       <!-- 알림 드롭다운 -->
       <div id="notif-drop"
-        style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:min(320px, calc(100vw - 24px));max-height:60vh;background:#fff;border:1px solid #E5E7EB;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:400;overflow:hidden;flex-direction:column">
-        <div style="padding:14px 16px;border-bottom:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+        style="display:none;background:#fff;border:1px solid #E5E7EB;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:400;flex-direction:column">
+        <div style="padding:14px 16px;border-bottom:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:sticky;top:0;background:#fff;z-index:1">
           <span style="font-size:14px;font-weight:800;color:#111827">🔔 알림</span>
           <button onclick="markAllRead()" style="background:none;border:none;font-size:11px;color:#C7A96B;font-weight:700;cursor:pointer">모두 읽음</button>
         </div>
-        <div id="notif-list" style="overflow-y:auto;flex:1"></div>
+        <div id="notif-list"></div>
       </div>
     </div>
 
