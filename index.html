@@ -284,6 +284,10 @@
       onclick="window.open('https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623','_blank')">
       📋 시트
     </button>
+   <button class="tab-btn" id="nav-manual-btn" style="display:none"
+      onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')">
+      📖 매뉴얼
+    </button>
   </div>
   <div class="nav-right">
     <button id="reg-btn" onclick="openForm(null)" style="display:none"><span>＋</span><span>예식 등록</span></button>
@@ -1084,8 +1088,10 @@ function renderNav(){
   if(navSettleBtn) navSettleBtn.style.display  = isAdmin ? 'block' : 'none';
   const navSheetBtn = document.getElementById('nav-sheet-btn');
   if(navSheetBtn)  navSheetBtn.style.display   = isAdmin ? 'block' : 'none';
-  const bnavManual = document.getElementById('bnav-manual');
-  if(bnavManual) bnavManual.style.display = isAdmin ? 'none' : 'flex';
+  const bnavManual   = document.getElementById('bnav-manual');
+  const navManualBtn = document.getElementById('nav-manual-btn');
+  if(bnavManual)   bnavManual.style.display   = isAdmin ? 'none'  : 'flex';
+  if(navManualBtn) navManualBtn.style.display  = isAdmin ? 'none'  : 'block';
 }
 
 function renderUserDrop(){
