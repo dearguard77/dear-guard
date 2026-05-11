@@ -2514,7 +2514,26 @@ function parseNotifMessage(msg){
 
   return { typeLabel, nameLine, dateLabel, full: msg };
 }
-
+// PC 전체 메시지 → 줄바꿈 구조로 렌더링
+function formatNotifFull(msg){
+  const lines = msg.split('\n').map(l => l.trim()).filter(Boolean);
+  return lines.map((line, i) => {
+    // 첫째 줄: [타입] 날짜 장소 — 골드 강조
+    if(i === 0){
+      return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:4px;word-break:break-word">${esc(line)}</div>`;
+    }
+    // 신청 측 줄
+    if(line.startsWith('신청 측')){
+      return `<div style="font-size:12px;color:#374151;margin-bottom:3px;word-break:break-word">${esc(line)}</div>`;
+    }
+    // Front / Back 담당자 줄
+    if(line.startsWith('Front') || line.startsWith('Back') || line.includes('Front :')){
+      return `<div style="font-size:11px;color:#6B7280;word-break:break-word">${esc(line)}</div>`;
+    }
+    // 기타 (배정/해제/역할 변경 메시지 등)
+    return `<div style="font-size:12px;color:#374151;margin-bottom:2px;word-break:break-word">${esc(line)}</div>`;
+  }).join('');
+}
 function renderNotifList(){
   const el = document.getElementById('notif-list');
   if(!el) return;
@@ -2530,7 +2549,7 @@ function renderNotifList(){
       <div class="notif-dot ${n.is_read ? 'read' : ''}"></div>
       <div style="flex:1;min-width:0;overflow:hidden">
         <!-- PC: 전체 메시지, 모바일: 축약 표시 -->
-        <div class="notif-msg notif-full">${esc(n.message)}</div>
+        <div class="notif-msg notif-full">${formatNotifFull(n.message)}</div>
         <div class="notif-compact" style="display:none">
           <div style="font-size:11px;font-weight:700;color:#C7A96B;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
             ${esc(typeLabel)}
@@ -2648,11 +2667,13 @@ async function sendNewScheduleNotifs(schedule){
     );
   }
 
-  // 관리자에게 등록 로그
+ // 관리자에게 등록 로그
+  const sideLabel = (s.groomName && s.brideName) ? '양측'
+    : s.groomName ? '신랑측' : s.brideName ? '신부측' : '-';
   for(const admin of ADMIN_NAMES){
-    if(admin === currentUser.name) continue; // 본인 제외
+    if(admin === currentUser.name) continue;
     await createNotif(admin, 'log',
-      `[일정 등록] ${dateStr} ${esc(s.hall)} — ${name}\nFront: ${s.frontManager||'-'} / Back: ${s.backManager||'-'}`,
+      `[일정 등록] ${dateStr} ${esc(s.hall)}\n신청 측 : ${sideLabel}\nFront : ${s.frontManager||'-'} / Back : ${s.backManager||'-'}`,
       s.id
     );
   }
@@ -2712,10 +2733,12 @@ async function sendUpdateScheduleNotifs(oldS, newS){
 
   // 관리자에게 변경 로그 (담당자 변경이 있을 때만)
   if(added.length || removed.length || changed.length){
+    const sideLabel2 = (newS.groomName && newS.brideName) ? '양측'
+      : newS.groomName ? '신랑측' : newS.brideName ? '신부측' : '-';
     for(const admin of ADMIN_NAMES){
       if(admin === currentUser.name) continue;
       await createNotif(admin, 'log',
-        `[일정 수정] ${dateStr} ${esc(newS.hall)} — ${name}\nFront: ${newS.frontManager||'-'} / Back: ${newS.backManager||'-'}`,
+        `[일정 수정] ${dateStr} ${esc(newS.hall)}\n신청 측 : ${sideLabel2}\nFront : ${newS.frontManager||'-'} / Back : ${newS.backManager||'-'}`,
         newS.id
       );
     }
