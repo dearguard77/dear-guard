@@ -2138,26 +2138,21 @@ async function loadUnavailables(){
 // ─── 권한별 필터 ──────────────────────────────────────────────────────────────
 function visibleUnavail(){
   const filterName = document.getElementById('unavail-filter')?.value || '';
-  let list = ADMIN_NAMES.includes(currentUser.name)
-    ? unavailables
-    : unavailables.filter(u => u.managerName === currentUser.name);
+  // 모든 계정에서 전체 불가일정 조회 가능
+  let list = unavailables;
   if(filterName) list = list.filter(u => u.managerName === filterName);
   return list.slice().sort((a,b) => a.date.localeCompare(b.date));
 }
 
 // ─── 전체 렌더 ───────────────────────────────────────────────────────────────
 function renderUnavailAll(){
-  // 관리자 필터 노출 여부
+  // 모든 계정에서 매니저 필터 표시
   const filterWrap = document.getElementById('unavail-filter-wrap');
-  if(ADMIN_NAMES.includes(currentUser.name)){
-    filterWrap.style.display = 'block';
-    const sel = document.getElementById('unavail-filter');
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">전체 매니저 보기</option>'
-      + USERS.map(u => `<option value="${esc(u.name)}"${cur===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
-  } else {
-    filterWrap.style.display = 'none';
-  }
+  filterWrap.style.display = 'block';
+  const sel = document.getElementById('unavail-filter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">전체 매니저 보기</option>'
+    + USERS.map(u => `<option value="${esc(u.name)}"${cur===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
   renderUnavailCal();
   renderUnavailList();
 }
