@@ -218,10 +218,11 @@
   .status-filter-btn{border:1.5px solid #E5E7EB;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;background:#fff;color:#6B7280;cursor:pointer;transition:all .15s;font-family:inherit}
   .status-filter-btn:hover{border-color:#C7A96B;color:#C7A96B}
   .status-filter-btn.active{background:#C7A96B;color:#fff;border-color:#C7A96B}
-  .status-filter-btn[data-status="계약완료"].active{background:#3B82F6;border-color:#3B82F6}
-  .status-filter-btn[data-status="인터뷰대기"].active{background:#F59E0B;border-color:#F59E0B}
-  .status-filter-btn[data-status="진행완료"].active{background:#10B981;border-color:#10B981}
-  .status-filter-btn[data-status="긴급확인"].active{background:#EF4444;border-color:#EF4444}
+  .status-filter-btn[data-status="계약완료"].active   {background:#6B7280;border-color:#6B7280}
+  .status-filter-btn[data-status="인터뷰대기"].active  {background:#F59E0B;border-color:#F59E0B}
+  .status-filter-btn[data-status="최종준비완료"].active{background:#3B82F6;border-color:#3B82F6}
+  .status-filter-btn[data-status="진행완료"].active   {background:#10B981;border-color:#10B981}
+  .status-filter-btn[data-status="긴급확인"].active   {background:#EF4444;border-color:#EF4444}
 
   /* NOTIFICATIONS */
   .notif-item{padding:12px 16px;border-bottom:1px solid #F9FAFB;cursor:pointer;transition:background .15s;display:flex;gap:10px;align-items:flex-start}
@@ -440,7 +441,8 @@
       <button class="status-filter-btn active" data-status="" onclick="setStatusFilter('')">전체</button>
       <button class="status-filter-btn" data-status="계약완료" onclick="setStatusFilter('계약완료')">📋 계약완료</button>
       <button class="status-filter-btn" data-status="인터뷰대기" onclick="setStatusFilter('인터뷰대기')">🎙️ 인터뷰대기</button>
-      <button class="status-filter-btn" data-status="진행완료" onclick="setStatusFilter('진행완료')">✅ 진행완료</button>
+      <button class="status-filter-btn" data-status="최종준비완료" onclick="setStatusFilter('최종준비완료')">✅ 최종준비완료</button>
+      <button class="status-filter-btn" data-status="진행완료" onclick="setStatusFilter('진행완료')">🎉 진행완료</button>
       <button class="status-filter-btn" data-status="긴급확인" onclick="setStatusFilter('긴급확인')">🚨 긴급확인</button>
     </div>
 
@@ -650,6 +652,7 @@
             <select class="form-input" id="f-status">
               <option>계약완료</option>
               <option>인터뷰대기</option>
+              <option>최종준비완료</option>
               <option>진행완료</option>
               <option>긴급확인</option>
             </select>
@@ -967,12 +970,13 @@ const USERS = [
 ];
 
 const PRODUCTS = ["2인 1팀","4인 2팀"];
-const STATUS_OPTIONS = ["계약완료","인터뷰대기","진행완료","긴급확인"];
+const STATUS_OPTIONS = ["계약완료","인터뷰대기","최종준비완료","진행완료","긴급확인"];
 const STATUS_CFG = {
-  "계약완료":   {color:"#3B82F6",bg:"#EFF6FF"},
-  "진행완료":   {color:"#10B981",bg:"#ECFDF5"},
-  "인터뷰대기": {color:"#F59E0B",bg:"#FFFBEB"},
-  "긴급확인":   {color:"#EF4444",bg:"#FEF2F2"},
+  "계약완료":    {color:"#6B7280",bg:"#F3F4F6"},
+  "인터뷰대기":  {color:"#F59E0B",bg:"#FFFBEB"},
+  "최종준비완료":{color:"#3B82F6",bg:"#EFF6FF"},
+  "진행완료":    {color:"#10B981",bg:"#ECFDF5"},
+  "긴급확인":    {color:"#EF4444",bg:"#FEF2F2"},
 };
 const NOTE_CFG = {
   urgent:{bg:"#FEF2F2",border:"#FCA5A5",text:"#DC2626",icon:"⚠️",label:"긴급"},
