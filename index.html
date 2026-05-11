@@ -2525,10 +2525,9 @@ function formatNotifFull(msg){
       return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:3px;word-break:break-word;line-height:1.5">${esc(line)}</div>`;
     }
 
-    // 2번째 줄: 신청 측 → 골드 굵게
+    // 2번째 줄: 신청 측 → 골드 굵게 (이름 직접 표시)
     if(line.startsWith('신청 측')){
-      // "신청 측 : 양측" → 신청측 값만 추출해서 표시
-      const val = line.replace('신청 측 :', '').replace('신청 측:', '').trim();
+      const val = line.replace(/^신청\s*측\s*:?\s*/, '').trim();
       return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:4px;word-break:break-word;line-height:1.5">${esc(val)}</div>`;
     }
 
@@ -2665,21 +2664,31 @@ async function sendNewScheduleNotifs(schedule){
   const backManagers  = (s.backManager ||'').split(',').map(m=>m.trim()).filter(Boolean);
   const allManagers   = [...new Set([...frontManagers, ...backManagers])];
 
-  // 담당 매니저에게 신규 배정 알림
+  // 담당 매니저에게 신규 배정 알림 (본인 포함, 중복 방지)
   for(const m of allManagers){
-    if(ADMIN_NAMES.includes(m)) continue; // 관리자는 아래에서 별도 처리
-    const role = frontManagers.includes(m) ? 'Front' : 'Back';
-    await createNotif(m, 'new_schedule',
-      `[신규 배정] ${dateStr} ${esc(s.hall)}\n${name}\n${role} 담당자로 배정되었습니다`,
-      s.id
-    );
+    const role = frontManagers.includes(m) && backManagers.includes(m) ? 'Front/Back'
+      : frontManagers.includes(m) ? 'Front' : 'Back';
+
+    if(ADMIN_NAMES.includes(m)){
+      // 관리자가 담당자로 포함된 경우 → 배정 알림
+      await createNotif(m, 'new_schedule',
+        `[신규 배정] ${dateStr} ${esc(s.hall)}\n${name}\n${role} 담당자로 배정되었습니다`,
+        s.id
+      );
+    } else {
+      // 일반 매니저 → 배정 알림
+      await createNotif(m, 'new_schedule',
+        `[신규 배정] ${dateStr} ${esc(s.hall)}\n${name}\n${role} 담당자로 배정되었습니다`,
+        s.id
+      );
+    }
   }
 
- // 관리자에게 등록 로그
+  // 관리자 중 담당자로 포함되지 않은 사람에게만 등록 로그
   const sideLabel = (s.groomName && s.brideName) ? `${s.groomName} ♥ ${s.brideName}`
     : s.groomName ? `${s.groomName} 신랑측` : s.brideName ? `${s.brideName} 신부측` : '-';
   for(const admin of ADMIN_NAMES){
-    if(admin === currentUser.name) continue;
+    if(allManagers.includes(admin)) continue; // 이미 담당자 알림 받음
     await createNotif(admin, 'log',
       `[일정 등록] ${dateStr} ${esc(s.hall)}\n신청 측 : ${sideLabel}\nFront : ${s.frontManager||'-'} / Back : ${s.backManager||'-'}`,
       s.id
@@ -2739,12 +2748,13 @@ async function sendUpdateScheduleNotifs(oldS, newS){
     );
   }
 
-  // 관리자에게 변경 로그 (담당자 변경이 있을 때만)
+  // 관리자에게 변경 로그 (담당자 변경이 있을 때만, 이미 담당자 알림 받은 경우 제외)
   if(added.length || removed.length || changed.length){
     const sideLabel2 = (newS.groomName && newS.brideName) ? `${newS.groomName} ♥ ${newS.brideName}`
-    : newS.groomName ? `${newS.groomName} 신랑측` : newS.brideName ? `${newS.brideName} 신부측` : '-';
+      : newS.groomName ? `${newS.groomName} 신랑측` : newS.brideName ? `${newS.brideName} 신부측` : '-';
     for(const admin of ADMIN_NAMES){
-      if(admin === currentUser.name) continue;
+      // 이미 added/removed/changed 로 알림 받았으면 중복 제외
+      if(added.includes(admin) || removed.includes(admin) || changed.includes(admin)) continue;
       await createNotif(admin, 'log',
         `[일정 수정] ${dateStr} ${esc(newS.hall)}\n신청 측 : ${sideLabel2}\nFront : ${newS.frontManager||'-'} / Back : ${newS.backManager||'-'}`,
         newS.id
