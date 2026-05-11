@@ -984,7 +984,11 @@ const CL_LABELS = {
   payback:  {label:"페이백 완료",    icon:"🎁"},
 };
 const BLANK_CL = ()=>({contract:false,deposit:false,interview:false,balance:false,equipment:false,report:false,payback:false});
-const TODAY = new Date().toISOString().slice(0,10);
+const TODAY = (() => {
+  const d = new Date();
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  return kst.toISOString().slice(0,10);
+})();
 
 // ─── 예식 이름 표시 헬퍼 ─────────────────────────────────────────────────────
 function coupleName(s){
