@@ -1371,13 +1371,7 @@ function renderToday(){
           <div style="font-size:11px;color:rgba(255,255,255,.8)">👤 ${esc(s.frontManager)||'-'}</div>
           <div style="font-size:11px;color:rgba(255,255,255,.8)">🎬 ${esc(s.backManager)||'-'}</div>
         </div>
-        ${s.notes.length ? (() => {
-          const n = s.notes[0], c = NOTE_CFG[n.type]||NOTE_CFG.info;
-          return `<div style="background:rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;
-            font-size:11px;color:rgba(255,255,255,.9);margin-bottom:8px">
-            ${c.icon} ${esc(n.text)}${s.notes.length>1?` <span style="opacity:.7">+${s.notes.length-1}개 더</span>`:''}
-          </div>`;
-        })() : ''}
+        ${s.handoverPerson ? `<div style="background:rgba(220,38,38,.3);border-radius:6px;padding:5px 10px;font-size:11px;color:#fff;margin-bottom:8px;font-weight:700">⚠ 인계자: ${esc(s.handoverPerson)}</div>` : ''}
         <div style="display:flex;align-items:center;gap:6px">
           <div style="flex:1;height:4px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden">
             <div style="height:100%;border-radius:99px;background:rgba(255,255,255,.8);
@@ -1408,7 +1402,6 @@ function renderUpcoming(){
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:2px">${esc(coupleName(s))}</div>
         <div style="font-size:11px;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getDateWithDay(s.date)} · ${esc(s.time)} · ${esc(s.hall)}</div>
-        ${urgent?`<div style="font-size:11px;color:#EF4444;margin-top:3px;font-weight:600">⚠️ ${esc(urgent.text.slice(0,30))}…</div>`:''}
         ${s.handoverPerson ? `<div style="font-size:11px;color:#DC2626;margin-top:3px;font-weight:700;background:#FEE2E2;border-radius:6px;padding:2px 8px;display:inline-block">⚠ 인계자: ${esc(s.handoverPerson)}</div>` : ''}
         ${s.fieldMemo?.urgent ? `<div style="font-size:11px;color:#D97706;margin-top:3px;font-weight:700;background:#FEF3C7;border-radius:6px;padding:2px 8px;display:inline-block">⚠ 현장 확인 필요</div>` : ''}
       </div>
