@@ -711,7 +711,53 @@
         </div>
         <div id="notes-list"></div>
       </div>
+<!-- ── 섹션 3-A: 현장 메모 ── -->
+      <div id="fm-sec-fieldmemo" style="display:none;padding:20px 24px">
+        <div class="hint-box" style="margin-bottom:16px;background:#EFF6FF;border-color:#BAE6FD;color:#0369A1">
+          📌 담당 매니저 전원이 볼 수 있는 현장 운영 메모입니다.
+        </div>
 
+        <!-- 체크 옵션 -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:8px">빠른 체크</div>
+          <div id="fm-field-checks" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
+        <!-- 중요 표시 -->
+        <label style="display:flex;align-items:center;gap:8px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;cursor:pointer;margin-bottom:14px">
+          <input type="checkbox" id="fm-field-urgent" style="width:16px;height:16px;accent-color:#EF4444">
+          <span style="font-size:13px;font-weight:700;color:#DC2626">⚠ 중요 표시 — 다가오는 일정에 경고 뱃지 노출</span>
+        </label>
+
+        <!-- 자유 입력 -->
+        <div class="form-field">
+          <label class="form-label">추가 현장 메모</label>
+          <textarea class="form-input" id="fm-field-text" rows="4"
+            placeholder="레디백 비밀번호 369&#10;인계자: 전유리&#10;식권 100장 전달 예정"
+            style="resize:vertical;line-height:1.7"></textarea>
+        </div>
+      </div>
+
+      <!-- ── 섹션 3-B: 관리자 메모 (관리자 전용) ── -->
+      <div id="fm-sec-adminmemo" style="display:none;padding:20px 24px">
+        <div class="hint-box" style="margin-bottom:16px;background:#FDF4FF;border-color:#E9D5FF;color:#7C3AED">
+          🔒 관리자(강성주·전수연)만 열람 가능한 내부 운영 메모입니다.
+        </div>
+
+        <!-- 체크 옵션 -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:8px">빠른 체크</div>
+          <div id="fm-admin-checks" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
+        <!-- 자유 입력 -->
+        <div class="form-field">
+          <label class="form-label">내부 운영 메모</label>
+          <textarea class="form-input" id="fm-admin-text" rows="4"
+            placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부 등"
+            style="resize:vertical;line-height:1.7"></textarea>
+        </div>
+      </div>
      <!-- ── 섹션 3.5: 정산 정보 (관리자 전용) ── -->
       <div id="fm-sec-settlement" style="display:none;padding:20px 24px">
         <div class="hint-box" style="margin-bottom:16px;background:#FDF8F3;border-color:#E8DFD0">
@@ -984,6 +1030,8 @@ function rowToSchedule(row){
     netProfit:    row.net_profit   || null,
     laborPaid:    row.labor_paid   || false,
     result:       row.result       || null,
+    fieldMemo:    row.field_memo   || {},
+    adminMemo:    row.admin_memo   || {},
   };
 }
 
@@ -1013,6 +1061,8 @@ function scheduleToRow(v, notes, cl){
     net_profit:    v.netProfit    || null,
     labor_paid:    v.laborPaid    || false,
     result:        null,
+    field_memo:    v.fieldMemo    || {},
+    admin_memo:    v.adminMemo    || {},
   };
 }
 
@@ -1347,6 +1397,7 @@ function renderUpcoming(){
         <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:2px">${esc(coupleName(s))}</div>
         <div style="font-size:11px;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getDateWithDay(s.date)} · ${esc(s.time)} · ${esc(s.hall)}</div>
         ${urgent?`<div style="font-size:11px;color:#EF4444;margin-top:3px;font-weight:600">⚠️ ${esc(urgent.text.slice(0,30))}…</div>`:''}
+        ${s.fieldMemo?.urgent?`<div style="font-size:11px;color:#DC2626;margin-top:3px;font-weight:700;background:#FEE2E2;border-radius:6px;padding:2px 8px;display:inline-block">⚠ 현장 확인 필요</div>`:''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         ${badge(s.status)}
@@ -1554,6 +1605,32 @@ function openDetail(id){
       </div>
     </div>
     ${s.notes.length?`<div class="detail-sec"><div class="detail-sec-title">⚠️ 특이사항</div>${s.notes.map(noteTag).join('')}</div>`:''}
+
+    ${(() => {
+      const fm = s.fieldMemo || {};
+      const checkedItems = FIELD_CHECKS.filter(c => fm[c.key]).map(c => `<div style="font-size:13px;color:#0369A1;padding:3px 0">✔ ${c.label}</div>`).join('');
+      const textItem = fm.text ? `<div style="font-size:13px;color:#374151;margin-top:6px;white-space:pre-wrap;line-height:1.6">${esc(fm.text)}</div>` : '';
+      if(!checkedItems && !textItem) return '';
+      return `<div class="detail-sec">
+        <div class="detail-sec-title" style="color:#0369A1">📌 현장 메모${fm.urgent?' <span style="background:#FEE2E2;color:#DC2626;border-radius:6px;padding:1px 8px;font-size:10px;font-weight:700">⚠ 중요</span>':''}</div>
+        <div style="background:#EFF6FF;border:1px solid #BAE6FD;border-radius:10px;padding:12px 14px">
+          ${checkedItems}${textItem}
+        </div>
+      </div>`;
+    })()}
+
+    ${ADMIN_NAMES.includes(currentUser.name) ? (() => {
+      const am = s.adminMemo || {};
+      const checkedItems = ADMIN_CHECKS.filter(c => am[c.key]).map(c => `<div style="font-size:13px;color:#7C3AED;padding:3px 0">✔ ${c.label}</div>`).join('');
+      const textItem = am.text ? `<div style="font-size:13px;color:#374151;margin-top:6px;white-space:pre-wrap;line-height:1.6">${esc(am.text)}</div>` : '';
+      if(!checkedItems && !textItem) return '';
+      return `<div class="detail-sec">
+        <div class="detail-sec-title" style="color:#7C3AED">🔒 관리자 메모</div>
+        <div style="background:#FDF4FF;border:1px solid #E9D5FF;border-radius:10px;padding:12px 14px">
+          ${checkedItems}${textItem}
+        </div>
+      </div>`;
+    })() : ''}
     <div class="detail-sec">
       <div class="detail-sec-title">☑️ 운영 체크리스트</div>
       ${Object.entries(CL_LABELS).map(([k,{label,icon}])=>`
@@ -1697,13 +1774,14 @@ async function deleteSch(id){
 const FORM_TABS_BASE = [
   { id:'basic',      label:'📋 기본정보' },
   { id:'managers',   label:'👥 담당자'   },
-  { id:'notes',      label:'⚠️ 특이사항' },
+  { id:'fieldmemo',  label:'📌 현장메모' },
   { id:'checklist',  label:'☑️ 체크리스트' },
 ];
 const FORM_TABS_ADMIN = [
   { id:'basic',      label:'📋 기본정보' },
   { id:'managers',   label:'👥 담당자'   },
-  { id:'notes',      label:'⚠️ 특이사항' },
+  { id:'fieldmemo',  label:'📌 현장메모' },
+  { id:'adminmemo',  label:'🔒 관리자메모' },
   { id:'settlement', label:'💰 정산정보' },
   { id:'checklist',  label:'☑️ 체크리스트' },
 ];
@@ -1779,6 +1857,15 @@ function openForm(id){
   // ── 체크리스트 ──
   renderFormChecklist();
 
+ // 현장메모 / 관리자메모 초기화
+  formFieldMemo = s?.fieldMemo ? {...s.fieldMemo} : {};
+  formAdminMemo = s?.adminMemo ? {...s.adminMemo} : {};
+  renderFieldChecks();
+  renderAdminChecks();
+  if(document.getElementById('fm-field-text'))
+    document.getElementById('fm-field-text').value = formFieldMemo.text || '';
+  if(document.getElementById('fm-admin-text'))
+    document.getElementById('fm-admin-text').value = formAdminMemo.text || '';
   FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
   if(ADMIN_NAMES.includes(currentUser.name)){
     document.getElementById('f-total-price').value  = s?.totalPrice  || '';
@@ -1811,12 +1898,14 @@ function renderFormTabs(){
 // 섹션 show/hide — DOM 재생성 없음
 function showFormSection(id){
   formTab = id;
-  ['basic','managers','notes','settlement','checklist'].forEach(sec => {
+  ['basic','managers','notes','fieldmemo','adminmemo','settlement','checklist'].forEach(sec => {
     const el = document.getElementById('fm-sec-' + sec);
     if(el) el.style.display = sec === id ? 'block' : 'none';
   });
   renderFormTabs();
   if(id === 'notes')     renderNotesList();
+  if(id === 'fieldmemo') renderFieldChecks();
+  if(id === 'adminmemo') renderAdminChecks();
   if(id === 'checklist') renderFormChecklist();
 }
 
@@ -1954,6 +2043,63 @@ function autoSetArrival(){
     if(arrMSel) arrMSel.value = String(roundedM).padStart(2,'0');
   }
 }
+ // ─── 현장메모 / 관리자메모 ────────────────────────────────────────────────────
+const FIELD_CHECKS = [
+  { key:'call_bride',    label:'통화는 신부측으로' },
+  { key:'ticket_extra',  label:'식권 추가 가능' },
+  { key:'account_guest', label:'계좌이체 하객 있음' },
+  { key:'handover',      label:'인계자 별도 지정' },
+  { key:'readybag',      label:'레디백 전달 필요' },
+];
+const ADMIN_CHECKS = [
+  { key:'review_discount',  label:'계약후기 할인' },
+  { key:'wedding_payback',  label:'본식후기 페이백' },
+  { key:'couple_discount',  label:'짝꿍할인' },
+  { key:'readybag_provide', label:'레디백 제공' },
+  { key:'extra_discount',   label:'추가 할인 적용' },
+];
+
+let formFieldMemo = {};
+let formAdminMemo = {};
+
+function renderFieldChecks(){
+  const el = document.getElementById('fm-field-checks'); if(!el) return;
+  el.innerHTML = FIELD_CHECKS.map(c => `
+    <label style="display:flex;align-items:center;gap:8px;background:#F0F9FF;border:1px solid #BAE6FD;
+      border-radius:8px;padding:8px 12px;cursor:pointer">
+      <input type="checkbox" ${formFieldMemo[c.key]?'checked':''} onchange="formFieldMemo['${c.key}']=this.checked"
+        style="width:15px;height:15px;accent-color:#0369A1">
+      <span style="font-size:13px;color:#0369A1;font-weight:600">${c.label}</span>
+    </label>`).join('');
+  const urgentEl = document.getElementById('fm-field-urgent');
+  if(urgentEl) urgentEl.checked = !!formFieldMemo.urgent;
+}
+
+function renderAdminChecks(){
+  const el = document.getElementById('fm-admin-checks'); if(!el) return;
+  el.innerHTML = ADMIN_CHECKS.map(c => `
+    <label style="display:flex;align-items:center;gap:8px;background:#FDF4FF;border:1px solid #E9D5FF;
+      border-radius:8px;padding:8px 12px;cursor:pointer">
+      <input type="checkbox" ${formAdminMemo[c.key]?'checked':''} onchange="formAdminMemo['${c.key}']=this.checked"
+        style="width:15px;height:15px;accent-color:#7C3AED">
+      <span style="font-size:13px;color:#7C3AED;font-weight:600">${c.label}</span>
+    </label>`).join('');
+}
+
+function getFieldMemo(){
+  const checks = {};
+  FIELD_CHECKS.forEach(c => { checks[c.key] = !!formFieldMemo[c.key]; });
+  checks.urgent = document.getElementById('fm-field-urgent')?.checked || false;
+  checks.text   = (document.getElementById('fm-field-text')?.value || '').trim();
+  return checks;
+}
+
+function getAdminMemo(){
+  const checks = {};
+  ADMIN_CHECKS.forEach(c => { checks[c.key] = !!formAdminMemo[c.key]; });
+  checks.text = (document.getElementById('fm-admin-text')?.value || '').trim();
+  return checks;
+}
 let selectedNoteType='info';
 function selectNoteType(type){
   selectedNoteType=type;
@@ -2029,7 +2175,9 @@ async function saveForm(){
     return;
   }
 
-  const row = scheduleToRow(v, formNotes, formCL);
+  const fieldMemo = getFieldMemo();
+  const adminMemo = ADMIN_NAMES.includes(currentUser.name) ? getAdminMemo() : (schedules.find(x=>x.id===formId)?.adminMemo || {});
+  const row = { ...scheduleToRow(v, formNotes, formCL), field_memo: fieldMemo, admin_memo: adminMemo };
 
   try {
     if(formId){
