@@ -1400,7 +1400,7 @@ function renderScheduleList(){
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
         ${badge(s.status)}
         <div style="width:80px">${progBar(s.checklist)}</div>
-        ${currentUser.canEdit?`<button class="sch-del-btn" onclick="event.stopPropagation();deleteSch(${s.id})">삭제</button>`:''}
+        ${ADMIN_NAMES.includes(currentUser.name)?`<button class="sch-del-btn" onclick="event.stopPropagation();confirmDeleteSch(${s.id})">삭제</button>`:''}
       </div>
     </div>`).join('');
 }
@@ -1607,6 +1607,7 @@ async function executeDelete(){
   }
 }
 async function deleteSch(id){
+  if(!ADMIN_NAMES.includes(currentUser.name)) return; // 관리자만 실행 가능
   if(!confirm('정말 삭제하시겠습니까?')) return;
   try {
     await sb.delete('schedules', id);
