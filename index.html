@@ -456,7 +456,30 @@
   </button>
 </div>
 
-<!-- TOAST -->
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="delete-modal" style="display:none" onclick="if(event.target===this)closeDeleteModal()">
+  <div class="modal-box sm" style="max-width:360px">
+    <div class="modal-header">
+      <div class="modal-brand">Dear Guard · 예식 삭제</div>
+      <div class="modal-title" style="color:#DC2626">⚠️ 삭제 확인</div>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 24px">
+      <div style="font-size:40px;margin-bottom:16px">🗑️</div>
+      <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:8px">정말 이 예식을 삭제하시겠습니까?</div>
+      <div style="font-size:13px;color:#6B7280;line-height:1.6">삭제 후 복구할 수 없습니다.</div>
+      <div id="delete-target-name" style="margin-top:12px;background:#FEF2F2;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:#DC2626"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">취소</button>
+      <button onclick="executeDelete()"
+        style="background:#DC2626;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer">
+        🗑️ 삭제
+      </button>
+    </div>
+  </div>
+</div>
+ 
+ <!-- TOAST -->
 <div id="toast"></div>
 
 <!-- DETAIL MODAL -->
@@ -1499,12 +1522,22 @@ function openDetail(id){
       :`<div class="empty-result">📊 결과보고 미작성</div>`}
     </div>`;
 
-  document.getElementById('dm-footer').innerHTML=canEdit?`
-    <button class="btn btn-ghost" onclick="closeDetail()">닫기</button>
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  document.getElementById('dm-footer').innerHTML = canEdit ? `
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-ghost" onclick="closeDetail()">닫기</button>
+      ${isAdmin ? `
+        <button onclick="confirmDeleteSch(${id})"
+          style="background:none;border:1px solid #FCA5A5;color:#DC2626;border-radius:8px;
+            padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer">
+          🗑️ 삭제
+        </button>` : ''}
+    </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-secondary sm" onclick="closeDetail();openResult(${id})">📊 결과 ${s.result?'수정':'입력'}</button>
       <button class="btn btn-primary sm" onclick="closeDetail();openForm(${id})">✏️ 예식 수정</button>
-    </div>`:`<button class="btn btn-ghost" onclick="closeDetail()">닫기</button>`;
+    </div>
+  ` : `<button class="btn btn-ghost" onclick="closeDetail()">닫기</button>`;
 
   document.getElementById('detail-modal').style.display='flex';
   document.body.style.overflow='hidden';
@@ -1539,7 +1572,40 @@ async function toggleCL(schId, key, checked){
     renderAll();
   }
 }
+// ─── 삭제 확인 모달 ───────────────────────────────────────────────────────────
+let deleteTargetId = null;
 
+function confirmDeleteSch(id){
+  if(!ADMIN_NAMES.includes(currentUser.name)) return; // 관리자만
+  deleteTargetId = id;
+  const s = schedules.find(x => x.id === id);
+  const nameEl = document.getElementById('delete-target-name');
+  if(nameEl && s) nameEl.textContent = `💍 ${coupleName(s)}  ·  ${s.date} ${s.time}`;
+  closeDetail();
+  document.getElementById('delete-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteModal(){
+  document.getElementById('delete-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  deleteTargetId = null;
+}
+
+async function executeDelete(){
+  if(!deleteTargetId || !ADMIN_NAMES.includes(currentUser.name)) return;
+  const id = deleteTargetId;
+  try {
+    await sb.delete('schedules', id);
+    schedules = schedules.filter(s => s.id !== id);
+    closeDeleteModal();
+    renderAll();
+    showToast('🗑️ 예식이 삭제되었습니다');
+  } catch(e){
+    console.error('삭제 실패:', e);
+    alert('삭제에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류'));
+  }
+}
 async function deleteSch(id){
   if(!confirm('정말 삭제하시겠습니까?')) return;
   try {
