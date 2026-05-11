@@ -420,6 +420,10 @@
   <button class="bnav-btn" onclick="switchTab('schedules',null,this)"><span class="bnav-icon">📋</span>전체일정</button>
   <button class="bnav-btn" onclick="switchTab('unavail',null,this)"><span class="bnav-icon">🚫</span>불가일정</button>
   <button class="bnav-btn" id="bnav-settle" style="display:none" onclick="switchTab('settle',null,this)"><span class="bnav-icon">📊</span>정산</button>
+  <button class="bnav-btn" id="bnav-manual" style="display:none"
+    onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')">
+    <span class="bnav-icon">📖</span>매뉴얼
+  </button>
 </div>
 
 <!-- TOAST -->
@@ -1080,6 +1084,8 @@ function renderNav(){
   if(navSettleBtn) navSettleBtn.style.display  = isAdmin ? 'block' : 'none';
   const navSheetBtn = document.getElementById('nav-sheet-btn');
   if(navSheetBtn)  navSheetBtn.style.display   = isAdmin ? 'block' : 'none';
+  const bnavManual = document.getElementById('bnav-manual');
+  if(bnavManual) bnavManual.style.display = isAdmin ? 'none' : 'flex';
 }
 
 function renderUserDrop(){
