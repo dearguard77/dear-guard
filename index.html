@@ -2576,23 +2576,29 @@ document.addEventListener('click', e => {
 
 // ─── 알림 클릭 → 읽음 처리 + 해당 일정 이동 ────────────────────────────────
 async function handleNotifClick(notifId, scheduleId){
-  // 읽음 처리
+  // 1. 알림창 닫기
+  notifOpen = false;
+  const drop = document.getElementById('notif-drop');
+  if(drop) drop.style.display = 'none';
+
+  // 2. 읽음 처리 (비동기 — UI 먼저 반영)
   const n = notifications.find(x => x.id === notifId);
   if(n && !n.is_read){
     n.is_read = true;
     renderNotifBadge();
     renderNotifList();
-    try { await sb.patch('notifications', notifId, { is_read: true }); } catch(e){}
+    sb.patch('notifications', notifId, { is_read: true }).catch(() => {});
   }
-  // 해당 일정 상세보기 이동
+
+  // 3. 해당 예식 상세 모달 열기
   if(scheduleId){
-    notifOpen = false;
-    const drop = document.getElementById('notif-drop');
-    if(drop) drop.style.display = 'none';
-    const s = schedules.find(x => x.id === scheduleId);
-    if(s) openDetail(scheduleId);
-    else {
+    const s = schedules.find(x => x.id === Number(scheduleId));
+    if(s){
+      openDetail(s.id);
+    } else {
+      // 스케줄이 메모리에 없으면 전체일정 탭으로 이동
       switchTab('schedules', null, document.querySelectorAll('.bnav-btn')[2]);
+      showToast('해당 예식을 찾을 수 없습니다');
     }
   }
 }
