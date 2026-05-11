@@ -750,24 +750,21 @@
           </div>
         </label>
       </div>
-      <!-- ── 섹션 3-B: 관리자 메모 (관리자 전용) ── -->
-      <div id="fm-sec-adminmemo" style="display:none;padding:20px 24px">
-        <div class="hint-box" style="margin-bottom:16px;background:#FDF4FF;border-color:#E9D5FF;color:#7C3AED">
-          🔒 관리자(강성주·전수연)만 열람 가능한 내부 운영 메모입니다.
-        </div>
-
-        <!-- 체크 옵션 -->
-        <div style="margin-bottom:14px">
-          <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:8px">빠른 체크</div>
-          <div id="fm-admin-checks" style="display:flex;flex-direction:column;gap:6px"></div>
-        </div>
-
-        <!-- 자유 입력 -->
-        <div class="form-field">
-          <label class="form-label">내부 운영 메모</label>
-          <textarea class="form-input" id="fm-admin-text" rows="4"
-            placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부 등"
-            style="resize:vertical;line-height:1.7"></textarea>
+      <!-- ── 섹션 3-B: 계약 참고 메모 (관리자 전용) ── -->
+      <div id="fm-sec-contractmemo" style="display:none;padding:20px 24px">
+        <div style="background:#FDF4FF;border:1.5px solid #E9D5FF;border-radius:12px;padding:16px 18px;margin-bottom:16px">
+          <div style="font-size:13px;font-weight:800;color:#7C3AED;margin-bottom:12px">
+            📝 계약 참고 메모
+            <span style="font-size:10px;font-weight:600;background:#E9D5FF;color:#7C3AED;border-radius:6px;padding:2px 8px;margin-left:4px">관리자 전용</span>
+          </div>
+          <!-- 할인 프리셋 체크 -->
+          <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:8px">할인 적용 항목</div>
+          <div id="fm-contract-checks" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px"></div>
+          <!-- 자유 메모 -->
+          <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:6px">내부 운영 메모</div>
+          <textarea class="form-input" id="fm-contract-text" rows="4"
+            placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부, 기타 계약 관련 내용"
+            style="resize:vertical;line-height:1.8;background:#fff;border-color:#E9D5FF;font-size:13px"></textarea>
         </div>
       </div>
      <!-- ── 섹션 3.5: 정산 정보 (관리자 전용) ── -->
