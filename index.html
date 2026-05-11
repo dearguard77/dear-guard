@@ -2517,21 +2517,29 @@ function parseNotifMessage(msg){
 // PC 전체 메시지 → 줄바꿈 구조로 렌더링
 function formatNotifFull(msg){
   const lines = msg.split('\n').map(l => l.trim()).filter(Boolean);
+
   return lines.map((line, i) => {
-    // 첫째 줄: [타입] 날짜 장소 — 골드 강조
+
+    // 1번째 줄: [일정 등록] 날짜 시간 장소 → 골드 굵게
     if(i === 0){
-      return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:4px;word-break:break-word">${esc(line)}</div>`;
+      return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:3px;word-break:break-word;line-height:1.5">${esc(line)}</div>`;
     }
-    // 신청 측 줄
+
+    // 2번째 줄: 신청 측 → 골드 굵게
     if(line.startsWith('신청 측')){
-      return `<div style="font-size:12px;color:#374151;margin-bottom:3px;word-break:break-word">${esc(line)}</div>`;
+      // "신청 측 : 양측" → 신청측 값만 추출해서 표시
+      const val = line.replace('신청 측 :', '').replace('신청 측:', '').trim();
+      return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:4px;word-break:break-word;line-height:1.5">${esc(val)}</div>`;
     }
-    // Front / Back 담당자 줄
-    if(line.startsWith('Front') || line.startsWith('Back') || line.includes('Front :')){
-      return `<div style="font-size:11px;color:#6B7280;word-break:break-word">${esc(line)}</div>`;
+
+    // 3번째 줄: Front / Back 담당자 → 연회색 작게
+    if(line.startsWith('Front') || line.includes('Front :')){
+      return `<div style="font-size:11px;color:#9CA3AF;word-break:break-word;line-height:1.5">${esc(line)}</div>`;
     }
-    // 기타 (배정/해제/역할 변경 메시지 등)
-    return `<div style="font-size:12px;color:#374151;margin-bottom:2px;word-break:break-word">${esc(line)}</div>`;
+
+    // 배정/해제/역할 변경 등 기타 줄 → 연회색 작게
+    return `<div style="font-size:11px;color:#9CA3AF;margin-bottom:2px;word-break:break-word;line-height:1.5">${esc(line)}</div>`;
+
   }).join('');
 }
 function renderNotifList(){
