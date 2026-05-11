@@ -716,25 +716,30 @@
       </div>
 <!-- ── 섹션 3-A: 현장 메모 (전체 공개) ── -->
       <div id="fm-sec-fieldmemo" style="display:none;padding:20px 24px">
+
+        <!-- 인계자 정보 (URGENT) -->
+        <div style="margin-bottom:16px">
+          <label class="form-label" style="color:#DC2626;font-size:12px;margin-bottom:6px;display:block">
+            ⚠ 인계자 정보
+            <span style="font-size:10px;color:#9CA3AF;font-weight:400;margin-left:4px">입력 시 일정 카드에 경고 표시</span>
+          </label>
+          <input class="form-input" id="fm-handover-person"
+            placeholder="예) 신부 여동생 전유리님 / 신랑 아버님 / 혼주님 직접 인계"
+            style="border-color:#FCA5A5;background:#FFF5F5;font-size:13px">
+          <div style="font-size:11px;color:#EF4444;margin-top:4px">⚠ 인계자가 있는 경우 반드시 입력해주세요</div>
+        </div>
+
+        <!-- 현장 메모 본문 -->
         <div style="background:#EFF6FF;border:1.5px solid #BAE6FD;border-radius:12px;padding:16px 18px;margin-bottom:16px">
           <div style="font-size:13px;font-weight:800;color:#0369A1;margin-bottom:10px">📌 현장 메모</div>
           <div style="font-size:11px;color:#0369A1;margin-bottom:10px;line-height:1.7;background:rgba(255,255,255,.5);border-radius:8px;padding:8px 12px">
             💡 아래 항목을 참고해서 자유롭게 입력해주세요.<br>
-            레디백 비밀번호 · 보증인원 · 소인 식권 여부 · 인계자 정보 · 식권 개수 · 답례품 여부 · 관계 설정 방식 · 주차권 안내 · 혼주 요청사항 · 기타 요청사항
+            레디백 비밀번호 · 보증인원 · 소인 식권 여부 · 식권 개수 · 답례품 여부 · 관계 설정 방식 · 주차권 안내 · 혼주 요청사항 · 기타 요청사항
           </div>
           <textarea class="form-input" id="fm-field-text" rows="6"
-            placeholder="예) 레디백 비밀번호 369&#10;인계자: 전유리 (010-1234-5678)&#10;식권 100장 전달 예정&#10;보증인원 250명&#10;소인 식권 없음&#10;혼주 요청: 포토타임 30분 연장"
+            placeholder="예) 레디백 비밀번호 369&#10;식권 100장 전달 예정&#10;보증인원 250명&#10;소인 식권 없음&#10;혼주 요청: 포토타임 30분 연장&#10;주차권 2장 준비"
             style="resize:vertical;line-height:1.8;background:#fff;border-color:#BAE6FD;font-size:13px"></textarea>
         </div>
-
-        <!-- 인계자 확인 필요 (URGENT) -->
-        <label style="display:flex;align-items:center;gap:10px;background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:10px;padding:12px 14px;cursor:pointer;margin-bottom:8px">
-          <input type="checkbox" id="fm-field-handover" style="width:16px;height:16px;accent-color:#EF4444">
-          <div>
-            <div style="font-size:13px;font-weight:700;color:#DC2626">⚠ 인계자 확인 필요</div>
-            <div style="font-size:11px;color:#9CA3AF;margin-top:2px">체크 시 일정 카드에 경고 뱃지 표시</div>
-          </div>
-        </label>
 
         <!-- 중요 표시 -->
         <label style="display:flex;align-items:center;gap:10px;background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:12px 14px;cursor:pointer">
@@ -745,24 +750,6 @@
           </div>
         </label>
       </div>
-
-      <!-- ── 섹션 3-B: 계약 참고 메모 (관리자 전용) ── -->
-      <div id="fm-sec-contractmemo" style="display:none;padding:20px 24px">
-        <div style="background:#FDF4FF;border:1.5px solid #E9D5FF;border-radius:12px;padding:16px 18px;margin-bottom:16px">
-          <div style="font-size:13px;font-weight:800;color:#7C3AED;margin-bottom:12px">📝 계약 참고 메모 <span style="font-size:10px;font-weight:600;background:#E9D5FF;color:#7C3AED;border-radius:6px;padding:2px 8px;margin-left:4px">관리자 전용</span></div>
-
-          <!-- 할인 프리셋 체크 -->
-          <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:8px">할인 적용 항목</div>
-          <div id="fm-contract-checks" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px"></div>
-
-          <!-- 자유 메모 -->
-          <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:6px">내부 운영 메모</div>
-          <textarea class="form-input" id="fm-contract-text" rows="4"
-            placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부, 기타 계약 관련 내용"
-            style="resize:vertical;line-height:1.8;background:#fff;border-color:#E9D5FF;font-size:13px"></textarea>
-        </div>
-      </div>
-
       <!-- ── 섹션 3-B: 관리자 메모 (관리자 전용) ── -->
       <div id="fm-sec-adminmemo" style="display:none;padding:20px 24px">
         <div class="hint-box" style="margin-bottom:16px;background:#FDF4FF;border-color:#E9D5FF;color:#7C3AED">
@@ -1056,8 +1043,9 @@ function rowToSchedule(row){
     netProfit:    row.net_profit   || null,
     laborPaid:    row.labor_paid   || false,
     result:       row.result       || null,
-    fieldMemo:    row.field_memo   || {},
-    adminMemo:    row.admin_memo   || {},
+    fieldMemo:      row.field_memo      || {},
+    adminMemo:      row.admin_memo      || {},
+    handoverPerson: row.handover_person || '',
   };
 }
 
@@ -1087,8 +1075,9 @@ function scheduleToRow(v, notes, cl){
     net_profit:    v.netProfit    || null,
     labor_paid:    v.laborPaid    || false,
     result:        null,
-    field_memo:    v.fieldMemo    || {},
-    admin_memo:    v.adminMemo    || {},
+    field_memo:      v.fieldMemo      || {},
+    admin_memo:      v.adminMemo      || {},
+    handover_person: v.handoverPerson || null,
   };
 }
 
@@ -1423,8 +1412,8 @@ function renderUpcoming(){
         <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:2px">${esc(coupleName(s))}</div>
         <div style="font-size:11px;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getDateWithDay(s.date)} · ${esc(s.time)} · ${esc(s.hall)}</div>
         ${urgent?`<div style="font-size:11px;color:#EF4444;margin-top:3px;font-weight:600">⚠️ ${esc(urgent.text.slice(0,30))}…</div>`:''}
-        ${s.fieldMemo?.handover ? `<div style="font-size:11px;color:#DC2626;margin-top:3px;font-weight:700;background:#FEE2E2;border-radius:6px;padding:2px 8px;display:inline-block">⚠ 인계자 확인 필요</div>` : ''}
-        ${s.fieldMemo?.urgent   ? `<div style="font-size:11px;color:#D97706;margin-top:3px;font-weight:700;background:#FEF3C7;border-radius:6px;padding:2px 8px;display:inline-block">⚠ 현장 확인 필요</div>` : ''}
+        ${s.handoverPerson ? `<div style="font-size:11px;color:#DC2626;margin-top:3px;font-weight:700;background:#FEE2E2;border-radius:6px;padding:2px 8px;display:inline-block">⚠ 인계자: ${esc(s.handoverPerson)}</div>` : ''}
+        ${s.fieldMemo?.urgent ? `<div style="font-size:11px;color:#D97706;margin-top:3px;font-weight:700;background:#FEF3C7;border-radius:6px;padding:2px 8px;display:inline-block">⚠ 현장 확인 필요</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         ${badge(s.status)}
@@ -1635,14 +1624,20 @@ function openDetail(id){
 
     ${(() => {
       const fm = s.fieldMemo || {};
-      if(!fm.text && !fm.urgent && !fm.handover) return '';
+      const hp = s.handoverPerson || '';
+      if(!hp && !fm.text && !fm.urgent) return '';
       return `<div class="detail-sec">
-        <div class="detail-sec-title" style="color:#0369A1;display:flex;align-items:center;gap:6px">
+        <div class="detail-sec-title" style="color:#0369A1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           📌 현장 메모
-          ${fm.handover ? '<span style="background:#FEE2E2;color:#DC2626;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">⚠ 인계자 확인 필요</span>' : ''}
-          ${fm.urgent   ? '<span style="background:#FEF3C7;color:#D97706;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">⚠ 현장 확인 필요</span>' : ''}
+          ${hp   ? `<span style="background:#FEE2E2;color:#DC2626;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">⚠ 인계자 있음</span>` : ''}
+          ${fm.urgent ? `<span style="background:#FEF3C7;color:#D97706;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">⚠ 현장 확인 필요</span>` : ''}
         </div>
         <div style="background:#EFF6FF;border:1.5px solid #BAE6FD;border-radius:10px;padding:14px 16px">
+          ${hp ? `
+            <div style="background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin-bottom:${fm.text?'10px':'0'}">
+              <div style="font-size:11px;font-weight:700;color:#DC2626;margin-bottom:3px">⚠ 인계자 정보</div>
+              <div style="font-size:13px;font-weight:600;color:#111827">${esc(hp)}</div>
+            </div>` : ''}
           ${fm.text ? `<div style="font-size:13px;color:#111827;white-space:pre-wrap;line-height:1.8">${esc(fm.text)}</div>` : ''}
         </div>
       </div>`;
@@ -1892,11 +1887,11 @@ function openForm(id){
   formFieldMemo    = s?.fieldMemo    ? {...s.fieldMemo}    : {};
   formContractMemo = s?.adminMemo    ? {...s.adminMemo}    : {};
   if(document.getElementById('fm-field-text'))
-    document.getElementById('fm-field-text').value    = formFieldMemo.text    || '';
+    document.getElementById('fm-field-text').value       = formFieldMemo.text || '';
   if(document.getElementById('fm-field-urgent'))
-    document.getElementById('fm-field-urgent').checked  = !!formFieldMemo.urgent;
-  if(document.getElementById('fm-field-handover'))
-    document.getElementById('fm-field-handover').checked = !!formFieldMemo.handover;
+    document.getElementById('fm-field-urgent').checked   = !!formFieldMemo.urgent;
+  if(document.getElementById('fm-handover-person'))
+    document.getElementById('fm-handover-person').value  = s?.handoverPerson || '';
   if(document.getElementById('fm-contract-text'))
     document.getElementById('fm-contract-text').value  = formContractMemo.text || '';
   renderContractChecks();
@@ -2102,10 +2097,13 @@ function renderContractChecks(){
 
 function getFieldMemo(){
   return {
-    text:     (document.getElementById('fm-field-text')?.value     || '').trim(),
-    urgent:   document.getElementById('fm-field-urgent')?.checked   || false,
-    handover: document.getElementById('fm-field-handover')?.checked || false,
+    text:   (document.getElementById('fm-field-text')?.value   || '').trim(),
+    urgent:  document.getElementById('fm-field-urgent')?.checked || false,
   };
+}
+
+function getHandoverPerson(){
+  return (document.getElementById('fm-handover-person')?.value || '').trim();
 }
 
 function getContractMemo(){
@@ -2196,11 +2194,17 @@ async function saveForm(){
     return;
   }
 
-  const fieldMemo    = getFieldMemo();
-  const contractMemo = ADMIN_NAMES.includes(currentUser.name)
+  const fieldMemo      = getFieldMemo();
+  const handoverPerson = getHandoverPerson();
+  const contractMemo   = ADMIN_NAMES.includes(currentUser.name)
     ? getContractMemo()
     : (schedules.find(x => x.id === formId)?.adminMemo || {});
-  const row = { ...scheduleToRow(v, formNotes, formCL), field_memo: fieldMemo, admin_memo: contractMemo };
+  const row = {
+    ...scheduleToRow(v, formNotes, formCL),
+    field_memo:      fieldMemo,
+    admin_memo:      contractMemo,
+    handover_person: handoverPerson || null,
+  };
 
   try {
     if(formId){
