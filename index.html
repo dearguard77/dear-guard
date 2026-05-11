@@ -207,7 +207,10 @@
   .login-err{font-size:12px;color:#EF4444;text-align:center;margin-top:10px;min-height:18px;font-weight:600}
 
   /* UNAVAILABLE */
-  .unavail-pill{border-radius:3px;padding:1px 4px;font-size:8px;font-weight:700;background:#FEE2E2;color:#DC2626;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+  .unavail-pill{border-radius:3px;padding:1px 4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+  .unavail-pill.all-day  {background:#FEE2E2;color:#DC2626}
+  .unavail-pill.morning  {background:#FEF3C7;color:#D97706}
+  .unavail-pill.afternoon{background:#DBEAFE;color:#2563EB}
   .uv-type-btn{flex:1;border-radius:8px;padding:9px 4px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #E5E7EB;background:#fff;color:#9CA3AF;font-family:inherit}
   .uv-type-btn.active{background:#FEF2F2;color:#DC2626;border-color:#FCA5A5}
 
@@ -2193,8 +2196,12 @@ function renderUnavailCal(){
         const dayCol    = isToday?'#C7A96B':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum    = isToday ? `<span class="cal-today-circle">${day}</span>` : day;
         const uu        = byDay(day);
-        const pills     = uu.map(u =>
-          `<span class="unavail-pill">${esc(u.managerName)} ${UV_TYPE_LABEL[u.unavailableType]}</span>`
+        const UV_CLASS = { all_day:'all-day', morning:'morning', afternoon:'afternoon' };
+        const UV_BADGE = { all_day:'종일', morning:'오전', afternoon:'오후' };
+        const pills = uu.map(u =>
+          `<span class="unavail-pill ${UV_CLASS[u.unavailableType]||'all-day'}">
+            [${UV_BADGE[u.unavailableType]||'종일'}] ${esc(u.managerName)}
+          </span>`
         ).join('');
         return `<div class="cal-cell${isToday?' today':''}" onclick="openUnavailForm(null,'${ds}')" style="cursor:pointer">
           <div class="cal-day" style="color:${dayCol}">${dayNum}</div>
