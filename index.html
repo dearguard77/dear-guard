@@ -2676,8 +2676,8 @@ async function sendNewScheduleNotifs(schedule){
   }
 
  // 관리자에게 등록 로그
-  const sideLabel = (s.groomName && s.brideName) ? '양측'
-    : s.groomName ? '신랑측' : s.brideName ? '신부측' : '-';
+  const sideLabel = (s.groomName && s.brideName) ? `${s.groomName} ♥ ${s.brideName}`
+    : s.groomName ? `${s.groomName} 신랑측` : s.brideName ? `${s.brideName} 신부측` : '-';
   for(const admin of ADMIN_NAMES){
     if(admin === currentUser.name) continue;
     await createNotif(admin, 'log',
@@ -2741,8 +2741,8 @@ async function sendUpdateScheduleNotifs(oldS, newS){
 
   // 관리자에게 변경 로그 (담당자 변경이 있을 때만)
   if(added.length || removed.length || changed.length){
-    const sideLabel2 = (newS.groomName && newS.brideName) ? '양측'
-      : newS.groomName ? '신랑측' : newS.brideName ? '신부측' : '-';
+    const sideLabel2 = (newS.groomName && newS.brideName) ? `${newS.groomName} ♥ ${newS.brideName}`
+    : newS.groomName ? `${newS.groomName} 신랑측` : newS.brideName ? `${newS.brideName} 신부측` : '-';
     for(const admin of ADMIN_NAMES){
       if(admin === currentUser.name) continue;
       await createNotif(admin, 'log',
