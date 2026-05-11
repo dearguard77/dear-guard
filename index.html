@@ -1617,8 +1617,7 @@ function openDetail(id){
         <div class="manager-card"><div class="manager-avatar">🎬</div><div><div style="font-size:10px;color:#9CA3AF">Back 담당자</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(s.backManager)||'-'}</div></div></div>
       </div>
     </div>
-    ${s.notes.length?`<div class="detail-sec"><div class="detail-sec-title">⚠️ 특이사항</div>${s.notes.map(noteTag).join('')}</div>`:''}
-
+    
     ${(() => {
       const fm = s.fieldMemo || {};
       const hp = s.handoverPerson || '';
