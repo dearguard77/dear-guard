@@ -1455,13 +1455,11 @@ const byDay = day => {
         const dayCol=isToday?'#C7A96B':isHoliday?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum=isToday?`<span class="cal-today-circle">${day}</span>`:day;
         const pills = ss.slice(0,2).map(s => {
-          const isBoth = s.groomName && s.brideName;
-          const icon   = isBoth ? '👥' : '👤';
-          const name   = s.brideName || s.groomName || '예식';
+          const name = (s.brideName||s.groomName||'예식');
           return `<div class="cal-event-pill"
             style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).color};cursor:pointer"
             onclick="event.stopPropagation();openDetail(${s.id})">
-            ${icon} ${esc(s.time)} ${esc(name)}
+            ${sideIcon(s)} ${esc(s.time)} ${esc(name)}
           </div>`;
         }).join('');
         const more = ss.length > 2
@@ -1539,8 +1537,8 @@ function renderScheduleList(){
     <div class="sch-row" onclick="openDetail(${s.id})">
       <div class="sch-icon" style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).bg}">💍</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;color:#111827">${esc(coupleName(s))}</div>
-        <div style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} ${esc(s.time)} · ${esc(s.hall)}</div>
+        <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:2px">${sideIcon(s)} ${esc(coupleName(s))}</div>
+        <div style="font-size:11px;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getDateWithDay(s.date)} · ${esc(s.time)} · ${esc(s.hall)}</div>
         <div style="font-size:11px;color:#9CA3AF;margin-top:2px">Front: ${esc(s.frontManager)||'-'} / Back: ${esc(s.backManager)||'-'}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
