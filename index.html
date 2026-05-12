@@ -180,7 +180,14 @@
   .btn-secondary.sm{padding:6px 14px;font-size:12px}
   .btn-ghost{background:none;color:#6B7280;border:1px solid #E5E7EB;padding:10px 20px;font-size:13px;border-radius:8px}
   .btn-ghost.sm{padding:6px 14px;font-size:12px}
-
+  /* CHECKLIST ACCORDION */
+  .cl-accordion-body{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .cl-accordion-body.open{max-height:600px}
+  .cl-accordion-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 14px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;user-select:none}
+  .cl-accordion-header:hover{background:#F3F4F6}
+  .cl-accordion-arrow{font-size:11px;color:#9CA3AF;transition:transform .2s}
+  .cl-accordion-body.open ~ * .cl-accordion-arrow,
+  .cl-accordion-header.open .cl-accordion-arrow{transform:rotate(90deg)}
   /* EMPTY STATE */
   .empty-state{background:#F9FAFB;border:1px dashed #E5E7EB;border-radius:12px;padding:32px 20px;text-align:center;color:#9CA3AF;font-size:14px}
 
@@ -1676,8 +1683,33 @@ function openDetail(id){
       </div>`;
     })() : ''}
     <div class="detail-sec">
-      <div class="detail-sec-title">☑️ 운영 체크리스트</div>
-      ${Object.entries(CL_LABELS).map(([k,{label,icon}])=>`
+      ${(()=>{
+        const total = Object.keys(CL_LABELS).length;
+        const done  = Object.keys(CL_LABELS).filter(k => s.checklist[k]).length;
+        const pct   = done === total ? '✅ 전체 완료' : `${done}/${total} 완료`;
+        const secId = 'cl-detail-body';
+        return `
+        <div class="cl-accordion-header" onclick="toggleAccordion('${secId}',this)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:.5px">☑️ 운영 체크리스트</span>
+            <span style="font-size:11px;font-weight:700;color:${done===total?'#10B981':'#F59E0B'};background:${done===total?'#ECFDF5':'#FFFBEB'};border-radius:10px;padding:1px 8px">${pct}</span>
+          </div>
+          <span class="cl-accordion-arrow">▶</span>
+        </div>
+        <div class="cl-accordion-body" id="${secId}">
+          <div style="padding-top:8px">
+            ${Object.entries(CL_LABELS).map(([k,{label,icon}])=>`
+              <label class="check-item${s.checklist[k]?' done':''}" id="cl-item-${k}" style="cursor:${canEdit?'pointer':'default'}">
+                <input type="checkbox" ${s.checklist[k]?'checked':''} ${canEdit?'':'disabled'}
+                  onchange="toggleCL(${id},'${k}',this.checked)" style="width:16px;height:16px;accent-color:#10B981">
+                <span>${icon}</span>
+                <span style="font-size:13px;font-weight:500;color:${s.checklist[k]?'#065F46':'#374151'}">${label}</span>
+                ${s.checklist[k]?'<span class="check-done-lbl">완료 ✓</span>':''}
+              </label>`).join('')}
+          </div>
+        </div>`;
+      })()}
+    </div>
         <label class="check-item${s.checklist[k]?' done':''}" id="cl-item-${k}" style="cursor:${canEdit?'pointer':'default'}">
           <input type="checkbox" ${s.checklist[k]?'checked':''} ${canEdit?'':'disabled'}
             onchange="toggleCL(${id},'${k}',this.checked)" style="width:16px;height:16px;accent-color:#10B981">
@@ -2090,19 +2122,42 @@ function getFormValues(){
 }
 
 function renderFormChecklist(){
-  const el = document.getElementById('fm-checklist-items'); if(!el) return;
-  el.innerHTML = Object.entries(CL_LABELS).map(([k,{label,icon}]) => `
-    <label class="check-item${formCL[k] ? ' done' : ''}" style="cursor:pointer"
-      onclick="toggleFormCL(event,'${k}')">
-      <input type="checkbox" ${formCL[k] ? 'checked' : ''}
-        style="width:16px;height:16px;accent-color:#10B981"
-        onclick="event.stopPropagation()" onchange="toggleFormCL(event,'${k}')">
-      <span>${icon}</span>
-      <span style="font-size:13px;font-weight:500;color:${formCL[k]?'#065F46':'#374151'}">${label}</span>
-      ${formCL[k] ? '<span class="check-done-lbl">완료 ✓</span>' : ''}
-    </label>`).join('');
-}
+  const wrap = document.getElementById('fm-checklist-items'); if(!wrap) return;
+  const total = Object.keys(CL_LABELS).length;
+  const done  = Object.keys(CL_LABELS).filter(k => formCL[k]).length;
+  const pct   = done === total ? '✅ 전체 완료' : `${done}/${total} 완료`;
+  const secId = 'cl-form-body';
+  const isOpen = document.getElementById(secId)?.classList.contains('open');
 
+  wrap.innerHTML = `
+    <div class="cl-accordion-header" onclick="toggleAccordion('${secId}',this)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;font-weight:700;color:#6B7280">☑️ 체크리스트</span>
+        <span style="font-size:11px;font-weight:700;color:${done===total?'#10B981':'#F59E0B'};background:${done===total?'#ECFDF5':'#FFFBEB'};border-radius:10px;padding:1px 8px">${pct}</span>
+      </div>
+      <span class="cl-accordion-arrow" style="${isOpen?'transform:rotate(90deg)':''}">▶</span>
+    </div>
+    <div class="cl-accordion-body${isOpen?' open':''}" id="${secId}">
+      <div style="padding-top:8px">
+        ${Object.entries(CL_LABELS).map(([k,{label,icon}]) => `
+          <label class="check-item${formCL[k] ? ' done' : ''}" style="cursor:pointer"
+            onclick="toggleFormCL(event,'${k}')">
+            <input type="checkbox" ${formCL[k] ? 'checked' : ''}
+              style="width:16px;height:16px;accent-color:#10B981"
+              onclick="event.stopPropagation()" onchange="toggleFormCL(event,'${k}')">
+            <span>${icon}</span>
+            <span style="font-size:13px;font-weight:500;color:${formCL[k]?'#065F46':'#374151'}">${label}</span>
+            ${formCL[k] ? '<span class="check-done-lbl">완료 ✓</span>' : ''}
+          </label>`).join('')}
+      </div>
+    </div>`;
+}
+function toggleAccordion(bodyId, header){
+  const body = document.getElementById(bodyId); if(!body) return;
+  const isOpen = body.classList.toggle('open');
+  const arrow = header?.querySelector('.cl-accordion-arrow');
+  if(arrow) arrow.style.transform = isOpen ? 'rotate(90deg)' : '';
+}
 function toggleFormCL(e, key){
   formCL[key] = !formCL[key];
   renderFormChecklist();
