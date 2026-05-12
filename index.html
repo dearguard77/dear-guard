@@ -990,7 +990,16 @@ const TODAY = (() => {
   return kst.toISOString().slice(0,10);
 })();
 
-// ─── 예식 이름 표시 헬퍼 ─────────────────────────────────────────────────────
+ // ─── 예식 이름 표시 헬퍼 ─────────────────────────────────────────────────────
+ // ─── 단측/양측 이모지 헬퍼 ────────────────────────────────────────────────────
+function sideIcon(s){
+  const g = (s.groomName||'').trim();
+  const b = (s.brideName||'').trim();
+  if(g && b) return '💑';
+  if(g)      return '🤵';
+  if(b)      return '👰';
+  return '💍';
+}
 function coupleName(s){
   const g = (s.groomName||'').trim();
   const b = (s.brideName||'').trim();
