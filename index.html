@@ -1682,8 +1682,14 @@ function openDetail(id){
         <div class="cl-accordion-body" id="${secId}">
           <div style="padding-top:8px">
             ${Object.entries(CL_LABELS).map(([k,{label,icon}])=>`
-              
-        </div>`;
+              <label class="check-item${s.checklist[k]?' done':''}" id="cl-item-${k}" style="cursor:${canEdit?'pointer':'default'}">
+                <input type="checkbox" ${s.checklist[k]?'checked':''} ${canEdit?'':'disabled'}
+                  onchange="toggleCL(${id},'${k}',this.checked)" style="width:16px;height:16px;accent-color:#10B981">
+                <span>${icon}</span>
+                <span style="font-size:13px;font-weight:500;color:${s.checklist[k]?'#065F46':'#374151'}">${label}</span>
+                ${s.checklist[k]?'<span class="check-done-lbl">완료 ✓</span>':''}
+              </label>`).join('')}
+          </div>`;
       })()}
     </div>
     ${ADMIN_NAMES.includes(currentUser.name) && (s.totalPrice || s.laborCost) ? `
