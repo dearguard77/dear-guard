@@ -695,6 +695,7 @@
         </div>
 
         <div id="manager-preview"></div>
+        <div id="manager-conflict-warn" style="display:none"></div>
       </div>
 
       <!-- ── 섹션 3: 특이사항 ── -->
@@ -2190,6 +2191,15 @@ function renderManagerPreview(){
   el.innerHTML = cards.length
     ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${cards.join('')}</div>`
     : '';
+
+  // 실시간 중복 체크
+  const date    = document.getElementById('f-date')?.value || '';
+  const timeH   = document.getElementById('f-time-h')?.value || '';
+  const timeM   = document.getElementById('f-time-m')?.value || '';
+  const timeStr = (timeH && timeM !== '') ? `${timeH}:${timeM}` : '';
+  const managers = [f1, f2, b1, b2].filter(Boolean);
+  const conflicts = checkManagerConflict(date, timeStr, managers, formId);
+  renderConflictWarning(conflicts);
 }
 
 async function saveForm(){
@@ -2209,7 +2219,20 @@ async function saveForm(){
       showFormSection('managers');
     return;
   }
-
+ 
+// ── 매니저 중복 배정 체크 ──
+  const allMgrs = [v.frontManager, v.backManager]
+    .join(',').split(',').map(m => m.trim()).filter(Boolean);
+  const dupConflicts = checkManagerConflict(v.date, v.time, allMgrs, formId);
+  if(dupConflicts.length > 0){
+    const detail = dupConflicts.map(c =>
+      `  · ${c.manager}님 → ${c.schedule.time} ${coupleName(c.schedule)} (점유: ${c.occupyStart}~${c.occupyEnd})`
+    ).join('\n');
+    const ok = confirm(
+      `⚠ 중복 배정된 매니저가 있습니다.\n\n${detail}\n\n그래도 저장하시겠습니까?`
+    );
+    if(!ok) return;
+  }
  // ── 충돌 체크: 선택된 담당자 중 불가일정 등록된 사람 확인 ──
   const checkDate = v.date;
   if(checkDate){
@@ -2525,6 +2548,76 @@ function selectUvType(val){
 }
 
 // ─── 저장 ────────────────────────────────────────────────────────────────────
+ // ─── 매니저 중복 배정 체크 ────────────────────────────────────────────────────
+function checkManagerConflict(date, timeStr, managers, excludeId){
+  if(!date || !timeStr || !managers.length) return [];
+
+  // 예식 점유시간 계산 (예식시간 ±90분)
+  const [h, m] = timeStr.split(':').map(Number);
+  const centerMin = h * 60 + m;
+  const startMin  = centerMin - 90; // 도착시간
+  const endMin    = centerMin + 90; // 종료시간
+
+  const conflicts = [];
+
+  for(const manager of managers){
+    const conflictSchedules = schedules.filter(s => {
+      if(s.date !== date) return false;
+      if(excludeId && s.id === excludeId) return false; // 자기 자신 제외
+      if(!s.time) return false;
+
+      const [sh, sm] = s.time.split(':').map(Number);
+      const sCenterMin = sh * 60 + sm;
+      const sStartMin  = sCenterMin - 90;
+      const sEndMin    = sCenterMin + 90;
+
+      // 시간대 겹침 여부 확인
+      if(startMin >= sEndMin || endMin <= sStartMin) return false;
+
+      // 해당 매니저가 이 예식에 배정되어 있는지 확인
+      const existManagers = [s.frontManager, s.backManager]
+        .join(',').split(',').map(n => n.trim()).filter(Boolean);
+      return existManagers.includes(manager);
+    });
+
+    for(const s of conflictSchedules){
+      const [sh, sm] = s.time.split(':').map(Number);
+      const sCenterMin = sh * 60 + sm;
+      const sStart = `${String(Math.floor((sCenterMin-90)/60)).padStart(2,'0')}:${String((sCenterMin-90)%60).padStart(2,'0')}`;
+      const sEnd   = `${String(Math.floor((sCenterMin+90)/60)).padStart(2,'0')}:${String((sCenterMin+90)%60).padStart(2,'0')}`;
+      conflicts.push({
+        manager,
+        schedule: s,
+        occupyStart: sStart,
+        occupyEnd:   sEnd,
+      });
+    }
+  }
+
+  return conflicts;
+}
+
+// warning 박스 렌더
+function renderConflictWarning(conflicts){
+  const el = document.getElementById('manager-conflict-warn');
+  if(!el) return;
+  if(!conflicts.length){ el.style.display = 'none'; el.innerHTML = ''; return; }
+
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:10px;padding:12px 14px;margin-top:12px">
+      <div style="font-size:12px;font-weight:800;color:#DC2626;margin-bottom:8px">⚠ 매니저 중복 배정 확인</div>
+      ${conflicts.map(c => `
+        <div style="font-size:12px;color:#374151;margin-bottom:6px;padding:6px 10px;background:#fff;border-radius:6px;border:1px solid #FCA5A5">
+          <span style="font-weight:700;color:#DC2626">${esc(c.manager)}님</span>은
+          같은 날짜 <span style="font-weight:700">${esc(c.schedule.time)}</span> 예식
+          (<span style="color:#6B7280">${esc(coupleName(c.schedule))}</span>)에
+          이미 배정되어 있습니다.<br>
+          <span style="font-size:11px;color:#9CA3AF">점유시간: ${esc(c.occupyStart)} ~ ${esc(c.occupyEnd)}</span>
+        </div>`).join('')}
+      <div style="font-size:11px;color:#DC2626;margin-top:4px">담당자 배정을 다시 확인해주세요.</div>
+    </div>`;
+}
 async function saveUnavail(){
   const managerName = document.getElementById('uv-manager').value;
   const date        = document.getElementById('uv-date').value;
