@@ -424,7 +424,7 @@
   <!-- CALENDAR TAB -->
   <div id="tab-calendar" class="tab-panel">
     <div style="background:#fff;border-radius:16px;padding:24px;border:1px solid #E5E7EB">
-      <div class="sec-header"><h2>월간 캘린더</h2><span>예식 일정 전체 보기</span></div>
+      <div class="sec-header"><h2>월간 캘린더</h2><span id="cal-tab-subtitle">예식 일정 전체 보기</span></div>
       <div id="calendar-wrap"></div>
     </div>
   </div>
@@ -1332,7 +1332,7 @@ function renderStats(){
   const urgent    = vs.filter(s=>s.status==='긴급확인').length;
 
   const statItems = [
-    {label:'이번달 예식',value:monthCnt, icon:'🗓', color:'#C7A96B', click:''},
+    {label:'이번달 예식',value:monthCnt, icon:'🗓', color:'#C7A96B', click:'switchTab(\'calendar\',null,document.querySelectorAll(\'.bnav-btn\')[1])'},
     {label:'잔금 미완',  value:noBalance,icon:'💰', color:'#F59E0B', click:''},
     {label:'긴급 확인',  value:urgent,   icon:'🚨', color:'#EF4444', click:'openUrgentFilter()'},
   ];
@@ -1441,10 +1441,17 @@ const byDay = day => {
     return vs.filter(s=>s.date===ds);
   };
   const dayNames = ['일','월','화','수','목','금','토'];
+  const calMonthStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const calMonthCnt = vs.filter(s => s.date?.startsWith(calMonthStr)).length;
+  const calSubEl = document.getElementById('cal-tab-subtitle');
+  if(calSubEl) calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
   wrap.innerHTML = `
     <div class="cal-nav">
       <button class="btn btn-ghost sm" onclick="calMove(-1)">‹ 이전</button>
-      <div class="cal-nav-title">${calYear}년 ${calMonth+1}월</div>
+      <div style="text-align:center">
+        <div class="cal-nav-title">${calYear}년 ${calMonth+1}월</div>
+        <div style="font-size:11px;color:#C7A96B;font-weight:700;margin-top:2px">예식 총 ${calMonthCnt}건</div>
+      </div>
       <button class="btn btn-ghost sm" onclick="calMove(1)">다음 ›</button>
     </div>
     <div class="cal-grid">
