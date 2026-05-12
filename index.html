@@ -2210,7 +2210,35 @@ async function saveForm(){
     return;
   }
 
-  const fieldMemo      = getFieldMemo();
+ // ── 충돌 체크: 선택된 담당자 중 불가일정 등록된 사람 확인 ──
+  const checkDate = v.date;
+  if(checkDate){
+    const allManagers = [v.frontManager, v.backManager]
+      .join(',').split(',').map(m => m.trim()).filter(Boolean);
+    const UV_LABEL = { all_day:'종일', morning:'오전', afternoon:'오후' };
+
+    const conflicts = allManagers.map(m => {
+      const uv = unavailables.find(u => u.managerName === m && u.date === checkDate);
+      return uv ? `  · ${m}: ${UV_LABEL[uv.unavailableType]||'불가'} 등록됨` : null;
+    }).filter(Boolean);
+
+    if(conflicts.length > 0){
+      const frontList = v.frontManager.split(',').map(m=>m.trim()).filter(Boolean);
+      const backList  = v.backManager.split(',').map(m=>m.trim()).filter(Boolean);
+      const roleDetail = allManagers.map(m => {
+        const uv = unavailables.find(u => u.managerName === m && u.date === checkDate);
+        if(!uv) return null;
+        const role = frontList.includes(m) ? 'Front' : 'Back';
+        return `  · ${m} (${role}): ${UV_LABEL[uv.unavailableType]||'불가'} 등록됨`;
+      }).filter(Boolean).join('\n');
+
+      const ok = confirm(
+        `⚠ 불가일정이 등록된 담당자가 있습니다.\n\n${roleDetail}\n\n담당자 배정을 다시 확인하시겠습니까?\n\n(확인: 그대로 저장 / 취소: 돌아가기)`
+      );
+      if(!ok) return;
+    }
+  } 
+ const fieldMemo      = getFieldMemo();
   const handoverPerson = getHandoverPerson();
   const contractMemo   = ADMIN_NAMES.includes(currentUser.name)
     ? getContractMemo()
@@ -2505,6 +2533,25 @@ async function saveUnavail(){
   if(!managerName){ alert('매니저를 선택하세요');   return; }
   if(!date)       { alert('날짜를 선택하세요');     return; }
   if(!uvType)     { alert('불가 시간대를 선택하세요'); return; }
+
+  // ── 충돌 체크: 해당 날짜에 배정된 예식이 있는지 확인 ──
+  const conflictSchedules = schedules.filter(s => {
+    if(s.date !== date) return false;
+    const managers = [s.frontManager, s.backManager]
+      .join(',').split(',').map(m => m.trim()).filter(Boolean);
+    return managers.includes(managerName);
+  });
+  if(conflictSchedules.length > 0){
+    const UV_LABEL = { all_day:'종일', morning:'오전', afternoon:'오후' };
+    const detail = conflictSchedules.map(s => {
+      const role = (s.frontManager||'').split(',').map(m=>m.trim()).includes(managerName) ? 'Front' : 'Back';
+      return `  · ${s.time} ${coupleName(s)} (${role} 담당자)`;
+    }).join('\n');
+    const ok = confirm(
+      `⚠ 해당 날짜에 이미 배정된 예식이 있습니다.\n\n${detail}\n\n그래도 ${UV_LABEL[uvType]} 불가일정을 저장하시겠습니까?`
+    );
+    if(!ok) return;
+  }
 
   const row = {
     manager_name:     managerName,
