@@ -1411,7 +1411,10 @@ function renderUpcoming(){
     const dcol=dday==='D-1'?'#DC2626':dday==='D-3'?'#D97706':'#2563EB';
     const urgent=s.notes.find(n=>n.type==='urgent');
     return `<div class="upcoming-card" onclick="openDetail(${s.id})">
-      <div class="dday-box" style="background:${dbg};color:${dcol}">${dday}</div>
+      <div class="dday-box" style="background:${dbg};color:${dcol};flex-direction:column;gap:2px">
+        <div style="font-size:16px;line-height:1">${sideIcon(s)}</div>
+        <div style="font-size:12px;font-weight:800">${dday}</div>
+      </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:2px">${esc(coupleName(s))}</div>
         <div style="font-size:11px;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getDateWithDay(s.date)} · ${esc(s.time)} · ${esc(s.hall)}</div>
@@ -1535,9 +1538,9 @@ function renderScheduleList(){
   }
   el.innerHTML = vs.map(s=>`
     <div class="sch-row" onclick="openDetail(${s.id})">
-      <div class="sch-icon" style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).bg}">💍</div>
+      <div class="sch-icon" style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).bg}">${sideIcon(s)}</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:2px">${sideIcon(s)} ${esc(coupleName(s))}</div>
+        <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:2px">${esc(coupleName(s))}</div>
         <div style="font-size:11px;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getDateWithDay(s.date)} · ${esc(s.time)} · ${esc(s.hall)}</div>
         <div style="font-size:11px;color:#9CA3AF;margin-top:2px">Front: ${esc(s.frontManager)||'-'} / Back: ${esc(s.backManager)||'-'}</div>
       </div>
@@ -1596,7 +1599,7 @@ function calMove(dir){
 function openDetail(id){
   detailId=id;
   const s=schedules.find(x=>x.id===id); if(!s) return;
-  document.getElementById('dm-title').textContent=`💍 ${coupleName(s)}`;
+  document.getElementById('dm-title').textContent=`${sideIcon(s)} ${coupleName(s)}`;
   document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>`;
 
   const canEdit=currentUser.canEdit||s.frontManager===currentUser.name||s.backManager===currentUser.name;
