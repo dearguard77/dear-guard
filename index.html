@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0030)https://dear-guard.vercel.app/ -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" type="image/png" href="icon.png">
+
+<link rel="apple-touch-icon" href="https://dear-guard.vercel.app/icon.png">
+<link rel="icon" type="image/png" href="https://dear-guard.vercel.app/icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dear Guard 디어가드</title>
 <style>
@@ -310,8 +310,7 @@
     </div>
     <div class="login-field">
       <label class="login-label">비밀번호</label>
-      <input class="login-input" id="login-pw" type="password" placeholder="비밀번호 입력"
-        onkeydown="if(event.key==='Enter') doLogin()">
+      <input class="login-input" id="login-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key===&#39;Enter&#39;) doLogin()">
     </div>
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="login-err" id="login-err"></div>
@@ -326,24 +325,21 @@
 <!-- NAV -->
 <nav id="nav">
   <!-- 좌측: 로고 -->
-  <button onclick="switchTab('home',null,document.querySelectorAll('.bnav-btn')[0])"
-    style="background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;display:flex;align-items:center">
-    <img src="logo.png" alt="Dear Guard" style="height:32px;width:auto;object-fit:contain">
+  <button onclick="switchTab(&#39;home&#39;,null,document.querySelectorAll(&#39;.bnav-btn&#39;)[0])" style="background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;display:flex;align-items:center">
+    <img src="./Dear Guard 디어가드_files/logo.png" alt="Dear Guard" style="height:32px;width:auto;object-fit:contain">
   </button>
 
   <!-- 가운데: 탭 메뉴 -->
   <div class="tab-wrap">
-    <button class="tab-btn active" onclick="switchTab('home',this)">🏠 홈</button>
-    <button class="tab-btn" onclick="switchTab('calendar',this)">📅 캘린더</button>
-    <button class="tab-btn" onclick="switchTab('schedules',this)">📋 전체일정</button>
-    <button class="tab-btn" onclick="switchTab('unavail',this)">🚫 불가일정</button>
-    <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab('settle',this)">📊 정산</button>
-    <button class="tab-btn" id="nav-sheet-btn" style="display:none"
-      onclick="window.open('https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623','_blank')">
+    <button class="tab-btn active" onclick="switchTab(&#39;home&#39;,this)">🏠 홈</button>
+    <button class="tab-btn" onclick="switchTab(&#39;calendar&#39;,this)">📅 캘린더</button>
+    <button class="tab-btn" onclick="switchTab(&#39;schedules&#39;,this)">📋 전체일정</button>
+    <button class="tab-btn" onclick="switchTab(&#39;unavail&#39;,this)">🚫 불가일정</button>
+    <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab(&#39;settle&#39;,this)">📊 정산</button>
+    <button class="tab-btn" id="nav-sheet-btn" style="display:none" onclick="window.open(&#39;https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623&#39;,&#39;_blank&#39;)">
       📋 시트
     </button>
-    <button class="tab-btn" id="nav-manual-btn" style="display:none"
-      onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')">
+    <button class="tab-btn" id="nav-manual-btn" style="display:none" onclick="window.open(&#39;https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9&#39;,&#39;_blank&#39;)">
       📖 매뉴얼
     </button>
   </div>
@@ -356,8 +352,7 @@
 
     <!-- 관리자: 드롭다운 프로필 -->
     <div id="admin-user-wrap" style="display:none;position:relative;flex-shrink:0">
-      <button id="user-btn" onclick="toggleDrop()"
-        style="display:flex;flex-direction:row;align-items:center;gap:8px;background:#FDF8F3;border:1px solid #E8DFD0;border-radius:20px;padding:5px 12px 5px 5px">
+      <button id="user-btn" onclick="toggleDrop()" style="display:flex;flex-direction:row;align-items:center;gap:8px;background:#FDF8F3;border:1px solid #E8DFD0;border-radius:20px;padding:5px 12px 5px 5px">
         <div class="avatar" id="nav-avatar">대</div>
         <div style="line-height:1.2">
           <div id="nav-name" style="font-size:12px;font-weight:700;color:#111827;line-height:1"></div>
@@ -378,17 +373,14 @@
 
     <!-- 🔔 알림 -->
     <div style="position:relative;flex-shrink:0" id="notif-wrap">
-      <button id="notif-btn" onclick="toggleNotif()"
-        style="background:none;border:none;width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:18px;position:relative;cursor:pointer;flex-shrink:0">
+      <button id="notif-btn" onclick="toggleNotif()" style="background:none;border:none;width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:18px;position:relative;cursor:pointer;flex-shrink:0">
         🔔
-        <span id="notif-badge"
-          style="display:none;position:absolute;top:1px;right:1px;background:#EF4444;color:#fff;border-radius:50%;width:15px;height:15px;font-size:9px;font-weight:800;align-items:center;justify-content:center;line-height:1">
+        <span id="notif-badge" style="display:none;position:absolute;top:1px;right:1px;background:#EF4444;color:#fff;border-radius:50%;width:15px;height:15px;font-size:9px;font-weight:800;align-items:center;justify-content:center;line-height:1">
           0
         </span>
       </button>
       <!-- 알림 드롭다운 -->
-      <div id="notif-drop"
-        style="display:none;background:#fff;border:1px solid #E5E7EB;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:400;flex-direction:column">
+      <div id="notif-drop" style="display:none;background:#fff;border:1px solid #E5E7EB;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:400;flex-direction:column">
         <div style="padding:14px 16px;border-bottom:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:sticky;top:0;background:#fff;z-index:1">
           <span style="font-size:14px;font-weight:800;color:#111827">🔔 알림</span>
           <button onclick="markAllRead()" style="background:none;border:none;font-size:11px;color:#C7A96B;font-weight:700;cursor:pointer">모두 읽음</button>
@@ -398,8 +390,7 @@
     </div>
 
     <!-- 로그아웃 -->
-    <button onclick="doLogout()"
-      style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#6B7280;flex-shrink:0;white-space:nowrap">
+    <button onclick="doLogout()" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#6B7280;flex-shrink:0;white-space:nowrap">
       로그아웃
     </button>
 
@@ -445,12 +436,12 @@
 
     <!-- 진행 단계 필터 버튼 -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="status-filter-wrap">
-      <button class="status-filter-btn active" data-status="" onclick="setStatusFilter('')">전체</button>
-      <button class="status-filter-btn" data-status="계약완료" onclick="setStatusFilter('계약완료')">📋 계약완료</button>
-      <button class="status-filter-btn" data-status="인터뷰대기" onclick="setStatusFilter('인터뷰대기')">🎙️ 인터뷰대기</button>
-      <button class="status-filter-btn" data-status="최종준비완료" onclick="setStatusFilter('최종준비완료')">✅ 최종준비완료</button>
-      <button class="status-filter-btn" data-status="진행완료" onclick="setStatusFilter('진행완료')">🎉 진행완료</button>
-      <button class="status-filter-btn" data-status="긴급확인" onclick="setStatusFilter('긴급확인')">🚨 긴급확인</button>
+      <button class="status-filter-btn active" data-status="" onclick="setStatusFilter(&#39;&#39;)">전체</button>
+      <button class="status-filter-btn" data-status="계약완료" onclick="setStatusFilter(&#39;계약완료&#39;)">📋 계약완료</button>
+      <button class="status-filter-btn" data-status="인터뷰대기" onclick="setStatusFilter(&#39;인터뷰대기&#39;)">🎙️ 인터뷰대기</button>
+      <button class="status-filter-btn" data-status="최종준비완료" onclick="setStatusFilter(&#39;최종준비완료&#39;)">✅ 최종준비완료</button>
+      <button class="status-filter-btn" data-status="진행완료" onclick="setStatusFilter(&#39;진행완료&#39;)">🎉 진행완료</button>
+      <button class="status-filter-btn" data-status="긴급확인" onclick="setStatusFilter(&#39;긴급확인&#39;)">🚨 긴급확인</button>
     </div>
 
     <!-- 긴급확인 필터 배너 (홈 탭에서 넘어올 때) -->
@@ -488,8 +479,7 @@
   <div id="tab-settle" class="tab-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
       <div class="sec-header" style="margin-bottom:0"><h2>📊 정산 현황</h2><span>관리자 전용</span></div>
-      <select class="form-input" id="settle-month-filter" onchange="renderSettle()"
-        style="width:auto;padding:6px 12px;font-size:12px"></select>
+      <select class="form-input" id="settle-month-filter" onchange="renderSettle()" style="width:auto;padding:6px 12px;font-size:12px"></select>
     </div>
 
     <!-- 요약 카드 -->
@@ -498,8 +488,7 @@
     <!-- 인건비 미지급 필터 -->
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer">
-        <input type="checkbox" id="settle-unpaid-only" onchange="renderSettle()"
-          style="width:15px;height:15px;accent-color:#C7A96B">
+        <input type="checkbox" id="settle-unpaid-only" onchange="renderSettle()" style="width:15px;height:15px;accent-color:#C7A96B">
         미지급 건만 보기
       </label>
     </div>
@@ -511,13 +500,12 @@
 
 <!-- BOTTOM NAV -->
 <div id="bottom-nav">
-  <button class="bnav-btn active" onclick="switchTab('home',null,this)"><span class="bnav-icon">🏠</span>홈</button>
-  <button class="bnav-btn" onclick="switchTab('calendar',null,this)"><span class="bnav-icon">📅</span>캘린더</button>
-  <button class="bnav-btn" onclick="switchTab('schedules',null,this)"><span class="bnav-icon">📋</span>전체일정</button>
-  <button class="bnav-btn" onclick="switchTab('unavail',null,this)"><span class="bnav-icon">🚫</span>불가일정</button>
-  <button class="bnav-btn" id="bnav-settle" style="display:none" onclick="switchTab('settle',null,this)"><span class="bnav-icon">📊</span>정산</button>
-  <button class="bnav-btn" id="bnav-manual" style="display:none"
-    onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')">
+  <button class="bnav-btn active" onclick="switchTab(&#39;home&#39;,null,this)"><span class="bnav-icon">🏠</span>홈</button>
+  <button class="bnav-btn" onclick="switchTab(&#39;calendar&#39;,null,this)"><span class="bnav-icon">📅</span>캘린더</button>
+  <button class="bnav-btn" onclick="switchTab(&#39;schedules&#39;,null,this)"><span class="bnav-icon">📋</span>전체일정</button>
+  <button class="bnav-btn" onclick="switchTab(&#39;unavail&#39;,null,this)"><span class="bnav-icon">🚫</span>불가일정</button>
+  <button class="bnav-btn" id="bnav-settle" style="display:none" onclick="switchTab(&#39;settle&#39;,null,this)"><span class="bnav-icon">📊</span>정산</button>
+  <button class="bnav-btn" id="bnav-manual" style="display:none" onclick="window.open(&#39;https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9&#39;,&#39;_blank&#39;)">
     <span class="bnav-icon">📖</span>매뉴얼
   </button>
 </div>
@@ -537,8 +525,7 @@
     </div>
     <div class="modal-footer" style="justify-content:center;gap:12px">
       <button class="btn btn-ghost" onclick="closeDeleteModal()">취소</button>
-      <button onclick="executeDelete()"
-        style="background:#DC2626;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer">
+      <button onclick="executeDelete()" style="background:#DC2626;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer">
         🗑️ 삭제
       </button>
     </div>
@@ -716,8 +703,7 @@
           <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:10px">직접 입력</div>
           <div class="note-type-row" id="fm-note-types"></div>
           <div class="note-input-row">
-            <input class="form-input" id="note-text-inp" placeholder="특이사항 내용 입력"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomNote()}" style="flex:1">
+            <input class="form-input" id="note-text-inp" placeholder="특이사항 내용 입력" onkeydown="if(event.key===&#39;Enter&#39;){event.preventDefault();addCustomNote()}" style="flex:1">
             <button class="btn btn-primary sm" onclick="addCustomNote()">추가</button>
           </div>
         </div>
@@ -732,9 +718,7 @@
             ⚠ 인계자 정보
             <span style="font-size:10px;color:#9CA3AF;font-weight:400;margin-left:4px">입력 시 일정 카드에 경고 표시</span>
           </label>
-          <input class="form-input" id="fm-handover-person"
-            placeholder="예) 신부 여동생 전유리님 / 신랑 아버님 / 혼주님 직접 인계"
-            style="border-color:#FCA5A5;background:#FFF5F5;font-size:13px">
+          <input class="form-input" id="fm-handover-person" placeholder="예) 신부 여동생 전유리님 / 신랑 아버님 / 혼주님 직접 인계" style="border-color:#FCA5A5;background:#FFF5F5;font-size:13px">
           <div style="font-size:11px;color:#EF4444;margin-top:4px">⚠ 인계자가 있는 경우 반드시 입력해주세요</div>
         </div>
 
@@ -745,9 +729,12 @@
             💡 아래 항목을 참고해서 자유롭게 입력해주세요.<br>
             레디백 비밀번호 · 보증인원 · 소인 식권 여부 · 식권 개수 · 답례품 여부 · 관계 설정 방식 · 주차권 안내 · 혼주 요청사항 · 기타 요청사항
           </div>
-          <textarea class="form-input" id="fm-field-text" rows="6"
-            placeholder="예) 레디백 비밀번호 369&#10;식권 100장 전달 예정&#10;보증인원 250명&#10;소인 식권 없음&#10;혼주 요청: 포토타임 30분 연장&#10;주차권 2장 준비"
-            style="resize:vertical;line-height:1.8;background:#fff;border-color:#BAE6FD;font-size:13px"></textarea>
+          <textarea class="form-input" id="fm-field-text" rows="6" placeholder="예) 레디백 비밀번호 369
+식권 100장 전달 예정
+보증인원 250명
+소인 식권 없음
+혼주 요청: 포토타임 30분 연장
+주차권 2장 준비" style="resize:vertical;line-height:1.8;background:#fff;border-color:#BAE6FD;font-size:13px"></textarea>
         </div>
 
         <!-- 중요 표시 -->
@@ -771,9 +758,7 @@
           <div id="fm-contract-checks" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px"></div>
           <!-- 자유 메모 -->
           <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:6px">내부 운영 메모</div>
-          <textarea class="form-input" id="fm-contract-text" rows="4"
-            placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부, 기타 계약 관련 내용"
-            style="resize:vertical;line-height:1.8;background:#fff;border-color:#E9D5FF;font-size:13px"></textarea>
+          <textarea class="form-input" id="fm-contract-text" rows="4" placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부, 기타 계약 관련 내용" style="resize:vertical;line-height:1.8;background:#fff;border-color:#E9D5FF;font-size:13px"></textarea>
         </div>
       </div>
      <!-- ── 섹션 3.5: 정산 정보 (관리자 전용) ── -->
@@ -784,8 +769,7 @@
         <div class="form-grid">
           <div class="form-field span">
             <label class="form-label">총금액 (원)</label>
-            <input class="form-input" id="f-total-price" type="number" placeholder="500000"
-              oninput="calcSettlement()">
+            <input class="form-input" id="f-total-price" type="number" placeholder="500000" oninput="calcSettlement()">
           </div>
           <div class="form-field">
             <label class="form-label">지역 구분</label>
@@ -796,8 +780,7 @@
           </div>
           <div class="form-field">
             <label class="form-label">투입 인원 수</label>
-            <input class="form-input" id="f-labor-count" type="number" placeholder="2" min="1" max="10"
-              oninput="calcSettlement()">
+            <input class="form-input" id="f-labor-count" type="number" placeholder="2" min="1" max="10" oninput="calcSettlement()">
           </div>
         </div>
         <!-- 자동 계산 결과 -->
@@ -889,9 +872,9 @@
       <div class="form-field" style="margin-bottom:14px">
         <label class="form-label">불가 시간대 <span style="color:#EF4444">*</span></label>
         <div style="display:flex;gap:8px">
-          <button type="button" class="uv-type-btn" data-val="all_day"   onclick="selectUvType('all_day')">종일 불가</button>
-          <button type="button" class="uv-type-btn" data-val="morning"   onclick="selectUvType('morning')">오전 불가</button>
-          <button type="button" class="uv-type-btn" data-val="afternoon" onclick="selectUvType('afternoon')">오후 불가</button>
+          <button type="button" class="uv-type-btn" data-val="all_day" onclick="selectUvType(&#39;all_day&#39;)">종일 불가</button>
+          <button type="button" class="uv-type-btn" data-val="morning" onclick="selectUvType(&#39;morning&#39;)">오전 불가</button>
+          <button type="button" class="uv-type-btn" data-val="afternoon" onclick="selectUvType(&#39;afternoon&#39;)">오후 불가</button>
         </div>
       </div>
 
@@ -1702,14 +1685,6 @@ function openDetail(id){
               
         </div>`;
       })()}
-    </div>
-        <label class="check-item${s.checklist[k]?' done':''}" id="cl-item-${k}" style="cursor:${canEdit?'pointer':'default'}">
-          <input type="checkbox" ${s.checklist[k]?'checked':''} ${canEdit?'':'disabled'}
-            onchange="toggleCL(${id},'${k}',this.checked)" style="width:16px;height:16px;accent-color:#10B981">
-          <span>${icon}</span>
-          <span style="font-size:13px;font-weight:500;color:${s.checklist[k]?'#065F46':'#374151'}">${label}</span>
-          ${s.checklist[k]?'<span class="check-done-lbl">완료 ✓</span>':''}
-        </label>`).join('')}
     </div>
     ${ADMIN_NAMES.includes(currentUser.name) && (s.totalPrice || s.laborCost) ? `
     <div class="detail-sec">
@@ -3384,5 +3359,6 @@ async function sendUpdateScheduleNotifs(oldS, newS){
 // ─── START ────────────────────────────────────────────────────────────────────
 init();
 </script>
-</body>
-</html>
+
+
+</body><whale-quicksearch translate="no" style="visibility: visible;"><template shadowrootmode="closed"><style></style><div class="anchor"></div><div class="quicksearch" data-version="25904bb4"></div></template></whale-quicksearch></html>
