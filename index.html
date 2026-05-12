@@ -1919,6 +1919,9 @@ function openForm(id){
     document.getElementById('f-labor-count').value  = s?.laborCount  || '';
     calcSettlement();
   }
+  // ── 매니저 권한: 기본정보/담당자 readonly 처리 ──
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  applyManagerReadonly(!isAdmin);
   // ── 탭 표시 ──
   renderFormTabs();
   showFormSection('basic');
@@ -1926,7 +1929,56 @@ function openForm(id){
   document.getElementById('form-modal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
+// ─── 매니저 권한: 기본정보/담당자 readonly 처리 ──────────────────────────────
+function applyManagerReadonly(isReadonly){
+  // 잠금 처리할 기본정보 필드 목록
+  const lockFields = [
+    'f-groom','f-groom-phone','f-bride','f-bride-phone',
+    'f-date','f-time-h','f-time-m','f-arr-h','f-arr-m',
+    'f-guests','f-hall','f-addr','f-product','f-status',
+    'f-front1','f-front2','f-back1','f-back2',
+  ];
 
+  lockFields.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(isReadonly){
+      el.disabled = true;
+      el.style.background   = '#F3F4F6';
+      el.style.color        = '#9CA3AF';
+      el.style.cursor       = 'not-allowed';
+      el.style.borderColor  = '#E5E7EB';
+    } else {
+      el.disabled = false;
+      el.style.background  = '';
+      el.style.color       = '';
+      el.style.cursor      = '';
+      el.style.borderColor = '';
+    }
+  });
+
+  // 기본정보 섹션 잠금 안내 배너
+  const basicSec = document.getElementById('fm-sec-basic');
+  const existBanner = document.getElementById('fm-readonly-banner');
+  if(existBanner) existBanner.remove();
+  if(isReadonly && basicSec){
+    const banner = document.createElement('div');
+    banner.id = 'fm-readonly-banner';
+    banner.style.cssText = 'background:#F3F4F6;border:1px solid #E5E7EB;border-radius:10px;padding:10px 14px;margin:16px 24px 0;font-size:12px;color:#6B7280;display:flex;align-items:center;gap:8px';
+    banner.innerHTML = '🔒 <span>기본정보·담당자는 관리자만 수정할 수 있습니다. <b>현장메모</b>와 <b>체크리스트</b>만 수정 가능합니다.</span>';
+    basicSec.parentNode.insertBefore(banner, basicSec);
+  }
+
+  // 담당자 미리보기 클릭 방지
+  const managerSec = document.getElementById('fm-sec-managers');
+  if(managerSec){
+    managerSec.style.opacity     = isReadonly ? '0.6' : '1';
+    managerSec.style.pointerEvents = isReadonly ? 'none' : '';
+  }
+
+  // 계약참고 탭 숨김 (매니저는 열람 불가이므로 탭 자체 제거)
+  // → FORM_TABS_ADMIN 에서 이미 관리자만 표시되므로 별도 처리 불필요
+}
 function closeForm(){
   document.getElementById('form-modal').style.display = 'none';
   document.body.style.overflow = '';
@@ -2204,20 +2256,24 @@ function renderManagerPreview(){
 
 async function saveForm(){
   const v = getFormValues();
-  const errs = [];
-  if(!v.groomName && !v.brideName && !v.hall) errs.push('신랑 또는 신부 이름, 혹은 웨딩홀');
-  if(!v.date)         errs.push('예식일');
-  if(!v.time)         errs.push('예식시간 (시·분 모두 선택)');
-  if(!v.hall)         errs.push('웨딩홀');
-  if(!v.frontManager) errs.push('Front 담당자');
-  if(!v.backManager)  errs.push('Back 담당자');
-  if(errs.length){
-    alert('필수 항목을 입력하세요:\n' + errs.join('\n'));
-    if(!v.date || !v.time || !v.hall || (!v.groomName && !v.brideName && !v.hall))
-      showFormSection('basic');
-    else if(!v.frontManager || !v.backManager)
-      showFormSection('managers');
-    return;
+  const isAdminValidate = ADMIN_NAMES.includes(currentUser.name);
+  if(isAdminValidate){
+    // 관리자만 필수 항목 검사
+    const errs = [];
+    if(!v.groomName && !v.brideName && !v.hall) errs.push('신랑 또는 신부 이름, 혹은 웨딩홀');
+    if(!v.date)         errs.push('예식일');
+    if(!v.time)         errs.push('예식시간 (시·분 모두 선택)');
+    if(!v.hall)         errs.push('웨딩홀');
+    if(!v.frontManager) errs.push('Front 담당자');
+    if(!v.backManager)  errs.push('Back 담당자');
+    if(errs.length){
+      alert('필수 항목을 입력하세요:\n' + errs.join('\n'));
+      if(!v.date || !v.time || !v.hall || (!v.groomName && !v.brideName && !v.hall))
+        showFormSection('basic');
+      else if(!v.frontManager || !v.backManager)
+        showFormSection('managers');
+      return;
+    }
   }
  
 // ── 매니저 중복 배정 체크 ──
@@ -2261,17 +2317,32 @@ async function saveForm(){
       if(!ok) return;
     }
   } 
- const fieldMemo      = getFieldMemo();
+ const isAdminSave = ADMIN_NAMES.includes(currentUser.name);
+  const fieldMemo      = getFieldMemo();
   const handoverPerson = getHandoverPerson();
-  const contractMemo   = ADMIN_NAMES.includes(currentUser.name)
+  const contractMemo   = isAdminSave
     ? getContractMemo()
     : (schedules.find(x => x.id === formId)?.adminMemo || {});
-  const row = {
-    ...scheduleToRow(v, formNotes, formCL),
-    field_memo:      fieldMemo,
-    admin_memo:      contractMemo,
-    handover_person: handoverPerson || null,
-  };
+
+  let row;
+  if(!isAdminSave && formId){
+    // 매니저: 현장메모 + 인계자 + 체크리스트만 저장 (기존 기본정보 유지)
+    const existing = schedules.find(x => x.id === formId);
+    if(!existing){ showToast('⚠ 저장할 예식을 찾을 수 없습니다'); return; }
+    row = {
+      field_memo:      fieldMemo,
+      handover_person: handoverPerson || null,
+      checklist:       formCL,
+    };
+  } else {
+    // 관리자: 전체 저장
+    row = {
+      ...scheduleToRow(v, formNotes, formCL),
+      field_memo:      fieldMemo,
+      admin_memo:      contractMemo,
+      handover_person: handoverPerson || null,
+    };
+  }
 
   try {
     if(formId){
