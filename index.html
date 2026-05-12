@@ -695,7 +695,7 @@
         </div>
 
         <div id="manager-preview"></div>
-        <div id="manager-conflict-warn" style="display:none"></div>
+        <div id="manager-conflict-warn"></div>
       </div>
 
       <!-- ── 섹션 3: 특이사항 ── -->
@@ -2250,8 +2250,48 @@ function renderManagerPreview(){
   const timeM   = document.getElementById('f-time-m')?.value || '';
   const timeStr = (timeH && timeM !== '') ? `${timeH}:${timeM}` : '';
   const managers = [f1, f2, b1, b2].filter(Boolean);
+
+  const el = document.getElementById('manager-conflict-warn');
+  if(!el){ return; }
+
+  // 날짜나 시간이 미입력이면 경고 숨김
+  if(!date || !timeStr || !managers.length){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+
   const conflicts = checkManagerConflict(date, timeStr, managers, formId);
-  renderConflictWarning(conflicts);
+
+  if(!conflicts.length){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+
+  // 경고 박스 렌더
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-top:12px">
+      <div style="font-size:12px;font-weight:800;color:#D97706;margin-bottom:8px">
+        ⚠ 매니저 중복 배정 확인
+      </div>
+      ${conflicts.map(c => `
+        <div style="background:#fff;border:1px solid #FDE68A;border-radius:8px;padding:8px 12px;margin-bottom:6px">
+          <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:4px">
+            ${esc(c.manager)}님은 같은 날짜에 이미 배정된 예식이 있습니다.
+          </div>
+          <div style="font-size:12px;color:#374151">
+            · ${esc(c.schedule.time)} ${esc(coupleName(c.schedule))}
+          </div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:2px">
+            · 점유시간: ${esc(c.occupyStart)} ~ ${esc(c.occupyEnd)}
+          </div>
+        </div>`).join('')}
+      <div style="font-size:11px;color:#D97706;margin-top:4px;font-weight:600">
+        담당자 배정을 다시 확인해주세요.
+      </div>
+    </div>`;
 }
 
 async function saveForm(){
