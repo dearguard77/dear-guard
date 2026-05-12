@@ -2712,8 +2712,8 @@ function parseNotifMessage(msg){
     return `${mmdd} ${daySpan} ${time}`;
   })() : '';
 
-  // 예식명: 두 번째 줄 (신랑♥신부 or 홀명)
-  const nameLine = lines[1] || '';
+  // 예식명: 두 번째 줄 — "신청 측 :" 접두어 제거
+  const nameLine = (lines[1] || '').replace(/^신청\s*측\s*:?\s*/, '').trim();
 
   return { typeLabel, nameLine, dateLabel, full: msg };
 }
