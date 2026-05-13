@@ -2683,7 +2683,12 @@ function renderUnavailCal(){
         const UV_CLASS = { all_day:'all-day', morning:'morning', afternoon:'afternoon' };
         const UV_BADGE = { all_day:'종일', morning:'오전', afternoon:'오후' };
         const pills = uu.map(u =>
-          `<span class="unavail-pill ${UV_CLASS[u.unavailableType]||'all-day'}">
+          `<span class="unavail-pill ${UV_CLASS[u.unavailableType]||'all-day'}"
+            onclick="event.stopPropagation();${
+              (ADMIN_NAMES.includes(currentUser.name) || u.managerName === currentUser.name)
+                ? `openUnavailForm(${u.id})`
+                : `showToast('본인 불가일정만 수정할 수 있습니다')`
+            }" style="cursor:pointer">
             [${UV_BADGE[u.unavailableType]||'종일'}] ${esc(u.managerName)}
           </span>`
         ).join('');
@@ -2735,7 +2740,14 @@ function renderUnavailList(){
         </div>
         ${u.memo ? `<div style="font-size:11px;color:#9CA3AF;margin-top:3px">${esc(u.memo)}</div>` : ''}
       </div>
-      <div style="font-size:11px;color:#9CA3AF;flex-shrink:0">${getDday(u.date)}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+        <div style="font-size:11px;color:#9CA3AF">${getDday(u.date)}</div>
+        ${(ADMIN_NAMES.includes(currentUser.name) || u.managerName === currentUser.name)
+          ? `<button onclick="event.stopPropagation();openUnavailForm(${u.id})"
+               style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#374151;cursor:pointer">✏️ 수정</button>`
+          : `<span style="font-size:10px;color:#D1D5DB">조회만 가능</span>`
+        }
+      </div>
     </div>`).join('');
 }
 
