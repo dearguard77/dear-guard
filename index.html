@@ -433,7 +433,15 @@
       <div class="sec-header" style="margin-bottom:0"><h2>전체 일정</h2><span id="sch-count"></span></div>
       <button class="btn btn-primary sm" id="sch-reg-btn" onclick="openForm(null)" style="display:none">＋ 예식 등록</button>
     </div>
-
+  <!-- 검색창 -->
+    <div style="position:relative;margin-bottom:12px">
+      <input id="sch-search" class="form-input"
+        placeholder="신랑/신부 이름 또는 웨딩홀 검색"
+        oninput="renderScheduleList()"
+        style="padding-right:36px;font-size:13px">
+      <button onclick="document.getElementById('sch-search').value='';renderScheduleList()"
+        style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#9CA3AF;font-size:16px;cursor:pointer;line-height:1">✕</button>
+    </div>
     <!-- 진행 단계 필터 버튼 -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="status-filter-wrap">
       <button class="status-filter-btn active" data-status="" onclick="setStatusFilter(&#39;&#39;)">전체</button>
@@ -1524,6 +1532,15 @@ function renderScheduleList(){
 
   // 단계별 필터 적용
   if(statusFilter) vs = vs.filter(s => s.status === statusFilter);
+ // 검색어 필터
+  const query = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
+  if(query){
+    vs = vs.filter(s =>
+      (s.groomName || '').toLowerCase().includes(query) ||
+      (s.brideName || '').toLowerCase().includes(query) ||
+      (s.hall      || '').toLowerCase().includes(query)
+    );
+  }
 
   // 필터 배너 표시/숨김
   const banner = document.getElementById('urgent-banner');
