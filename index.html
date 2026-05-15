@@ -1226,6 +1226,10 @@ async function init(){
 
 async function startApp(){
   renderNav();
+ // 브라우저 알림 권한 요청
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
   if(!isSupabaseConfigured()){
     document.getElementById('loading-overlay').innerHTML = `
       <div style="max-width:420px;background:#fff;border-radius:20px;padding:32px 28px;box-shadow:0 8px 32px rgba(0,0,0,.12);text-align:center">
@@ -1248,6 +1252,7 @@ async function startApp(){
   await loadSchedules();
   await loadUnavailables();
   await loadNotifications();
+ scheduleWeddingReminders();
   renderAll();
   document.getElementById('loading-overlay').style.display = 'none';
 }
@@ -3396,6 +3401,49 @@ async function sendUpdateScheduleNotifs(oldS, newS){
 }
 // ─── START ────────────────────────────────────────────────────────────────────
 init();
+ // ─── 본식 10분 후 사진 촬영 알림 ─────────────────────────────────────────────
+function scheduleWeddingReminders(){
+  if(Notification.permission !== 'granted') return;
+
+  const mySchedules = visible().filter(s => s.date === TODAY);
+  if(!mySchedules.length) return;
+
+  mySchedules.forEach(s => {
+    if(!s.time) return;
+    const [h, m] = s.time.split(':').map(Number);
+
+    // 예식 시작 후 10분
+    const reminderTime = new Date();
+    reminderTime.setHours(h, m + 10, 0, 0);
+
+    const now = new Date();
+    const delay = reminderTime - now;
+
+    if(delay <= 0) return; // 이미 지난 시간이면 스킵
+
+    setTimeout(() => {
+      const name = coupleName(s);
+      const notif = new Notification('📸 Dear Guard 사진 촬영 알림', {
+        body: `${name} 본식 시작 10분 경과!\n화환 및 현장사진을 찍어주세요 📷`,
+        icon: 'icon.png',
+        badge: 'icon.png',
+      });
+
+      // 알림 클릭 시 앱으로 포커스
+      notif.onclick = () => {
+        window.focus();
+        openDetail(s.id);
+        notif.close();
+      };
+
+      // 10초 후 자동 닫기
+      setTimeout(() => notif.close(), 10000);
+
+    }, delay);
+
+    console.log(`⏰ ${name} 알림 예약: ${reminderTime.toLocaleTimeString()}`);
+  });
+}
 </script>
 
 
