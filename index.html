@@ -434,16 +434,6 @@
       <button class="btn btn-primary sm" id="sch-reg-btn" onclick="openForm(null)" style="display:none">＋ 예식 등록</button>
     </div>
 
-   <!-- 검색창 -->
-    <div style="position:relative;margin-bottom:12px">
-      <input id="sch-search" class="form-input"
-        placeholder="신랑/신부 이름 또는 웨딩홀 검색"
-        oninput="renderScheduleList()"
-        style="padding-right:36px;font-size:13px">
-      <button onclick="document.getElementById('sch-search').value='';renderScheduleList()"
-        style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#9CA3AF;font-size:16px;cursor:pointer;line-height:1">✕</button>
-    </div>
-   
     <!-- 진행 단계 필터 버튼 -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="status-filter-wrap">
       <button class="status-filter-btn active" data-status="" onclick="setStatusFilter(&#39;&#39;)">전체</button>
@@ -1226,10 +1216,6 @@ async function init(){
 
 async function startApp(){
   renderNav();
- // 브라우저 알림 권한 요청
-  if('Notification' in window && Notification.permission === 'default'){
-    Notification.requestPermission();
-  }
   if(!isSupabaseConfigured()){
     document.getElementById('loading-overlay').innerHTML = `
       <div style="max-width:420px;background:#fff;border-radius:20px;padding:32px 28px;box-shadow:0 8px 32px rgba(0,0,0,.12);text-align:center">
@@ -1252,7 +1238,6 @@ async function startApp(){
   await loadSchedules();
   await loadUnavailables();
   await loadNotifications();
- scheduleWeddingReminders();
   renderAll();
   document.getElementById('loading-overlay').style.display = 'none';
 }
@@ -1471,7 +1456,7 @@ const byDay = day => {
         const isHoliday=idx%7===0;const isSat=idx%7===6;
         const dayCol=isToday?'#C7A96B':isHoliday?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum=isToday?`<span class="cal-today-circle">${day}</span>`:day;
-        const pills = ss.slice(0,3).map(s => {
+        const pills = ss.slice(0,2).map(s => {
           const name = (s.brideName||s.groomName||'예식');
           return `<div class="cal-event-pill"
             style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).color};cursor:pointer"
@@ -1479,9 +1464,9 @@ const byDay = day => {
             ${sideIcon(s)} ${esc(s.time)} ${esc(name)}
           </div>`;
         }).join('');
-        const more = ss.length > 3
+        const more = ss.length > 2
           ? `<div style="font-size:9px;color:#9CA3AF;text-align:center;cursor:pointer"
-              onclick="event.stopPropagation();openDetail(${ss[3].id})">+${ss.length-3}개 더</div>`
+              onclick="event.stopPropagation();openDetail(${ss[2].id})">+${ss.length-2}개 더</div>`
           : '';
         const clickAttr = ss.length ? `onclick="openDetail(${ss[0].id})" style="cursor:pointer"` : '';
         return `<div class="cal-cell${isToday?' today':''}${ss.length?' has-events':''}" ${clickAttr}>
@@ -1536,16 +1521,6 @@ function renderScheduleList(){
   // 단계별 필터 적용
   if(statusFilter) vs = vs.filter(s => s.status === statusFilter);
 
- // 검색어 필터
-  const query = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
-  if(query){
-    vs = vs.filter(s =>
-      (s.groomName || '').toLowerCase().includes(query) ||
-      (s.brideName || '').toLowerCase().includes(query) ||
-      (s.hall      || '').toLowerCase().includes(query)
-    );
-  }
- 
   // 필터 배너 표시/숨김
   const banner = document.getElementById('urgent-banner');
   if(banner) banner.style.display = urgentFilter ? 'flex' : 'none';
@@ -2688,12 +2663,7 @@ function renderUnavailCal(){
         const UV_CLASS = { all_day:'all-day', morning:'morning', afternoon:'afternoon' };
         const UV_BADGE = { all_day:'종일', morning:'오전', afternoon:'오후' };
         const pills = uu.map(u =>
-          `<span class="unavail-pill ${UV_CLASS[u.unavailableType]||'all-day'}"
-            onclick="event.stopPropagation();${
-              (ADMIN_NAMES.includes(currentUser.name) || u.managerName === currentUser.name)
-                ? `openUnavailForm(${u.id})`
-                : `showToast('본인 불가일정만 수정할 수 있습니다')`
-            }" style="cursor:pointer">
+          `<span class="unavail-pill ${UV_CLASS[u.unavailableType]||'all-day'}">
             [${UV_BADGE[u.unavailableType]||'종일'}] ${esc(u.managerName)}
           </span>`
         ).join('');
@@ -2745,14 +2715,7 @@ function renderUnavailList(){
         </div>
         ${u.memo ? `<div style="font-size:11px;color:#9CA3AF;margin-top:3px">${esc(u.memo)}</div>` : ''}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
-        <div style="font-size:11px;color:#9CA3AF">${getDday(u.date)}</div>
-        ${(ADMIN_NAMES.includes(currentUser.name) || u.managerName === currentUser.name)
-          ? `<button onclick="event.stopPropagation();openUnavailForm(${u.id})"
-               style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#374151;cursor:pointer">✏️ 수정</button>`
-          : `<span style="font-size:10px;color:#D1D5DB">조회만 가능</span>`
-        }
-      </div>
+      <div style="font-size:11px;color:#9CA3AF;flex-shrink:0">${getDday(u.date)}</div>
     </div>`).join('');
 }
 
@@ -3399,11 +3362,7 @@ async function sendUpdateScheduleNotifs(oldS, newS){
     }
   }
 }
-// ─── START ────────────────────────────────────────────────────────────────────
-init();
- // ─── 본식 10분 후 사진 촬영 알림 ─────────────────────────────────────────────
-function scheduleWeddingReminders(){
-  if(Notification.permission !== 'granted') return;// ─── 본식 5분 후 사진 촬영 알림 ──────────────────────────────────────────────
+// ─── 본식 5분 후 사진 촬영 알림 ──────────────────────────────────────────────
 const _reminderFired = new Set();
 
 function scheduleWeddingReminders(){
@@ -3418,7 +3377,7 @@ function scheduleWeddingReminders(){
     const reminderTime = new Date();
     reminderTime.setHours(h, m + 5, 0, 0);
     const delay = reminderTime - new Date();
-    const key = `photo_${s.id}`;
+    const key = 'photo_' + s.id;
 
     if(_reminderFired.has(key) || delay <= 0) return;
 
@@ -3429,7 +3388,7 @@ function scheduleWeddingReminders(){
 
       if(Notification.permission === 'granted'){
         const notif = new Notification('📸 현장 사진 촬영 알림', {
-          body: `${coupleName(s)} 본식 시작 5분!\n화환·현장 사진을 촬영해주세요 📷`,
+          body: coupleName(s) + ' 본식 시작 5분!\n화환·현장 사진을 촬영해주세요 📷',
           icon: 'icon.png',
         });
         notif.onclick = () => { window.focus(); openDetail(s.id); notif.close(); };
@@ -3445,45 +3404,39 @@ function showPhotoReminder(s){
 
   const popup = document.createElement('div');
   popup.id = 'photo-reminder-popup';
-  popup.style.cssText = `
-    position:fixed;bottom:90px;right:16px;left:16px;max-width:360px;margin:0 auto;
-    background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.2);
-    border:2px solid #C7A96B;z-index:3000;overflow:hidden;
-    animation:slideUpPhoto .3s ease;
-  `;
-  popup.innerHTML = `
-    <style>@keyframes slideUpPhoto{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}</style>
-    <div style="background:linear-gradient(135deg,#C7A96B,#E8C98A);padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
-      <div style="font-size:14px;font-weight:800;color:#fff">📸 현장 사진 촬영 알림</div>
-      <button onclick="document.getElementById('photo-reminder-popup').remove()"
-        style="background:rgba(255,255,255,.3);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:14px;cursor:pointer;line-height:1">✕</button>
-    </div>
-    <div style="padding:14px 16px">
-      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px">
-        ${esc(coupleName(s))} 본식 시작 5분 경과!
-      </div>
-      <div style="font-size:12px;color:#374151;line-height:2;background:#FDF8F3;border-radius:8px;padding:10px 14px;margin-bottom:12px">
-        ☑️ 화환 / 축기 사진<br>
-        ☑️ 축의대 현장 사진<br>
-        ☑️ 식권 테이블 사진<br>
-        ☑️ 전반적인 현장 분위기 사진
-      </div>
-      <div style="display:flex;gap:8px">
-        <button onclick="closeDetail();openDetail(${s.id});document.getElementById('photo-reminder-popup').remove()"
-          style="flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">
-          📋 예식 상세 보기
-        </button>
-        <button onclick="document.getElementById('photo-reminder-popup').remove()"
-          style="flex:1;background:#F3F4F6;color:#374151;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">
-          확인
-        </button>
-      </div>
-    </div>
-  `;
+  popup.style.cssText = 'position:fixed;bottom:90px;right:16px;left:16px;max-width:360px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.2);border:2px solid #C7A96B;z-index:3000;overflow:hidden;animation:slideUpPhoto .3s ease';
+
+  const name = esc(coupleName(s));
+  popup.innerHTML =
+    '<style>@keyframes slideUpPhoto{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}</style>' +
+    '<div style="background:linear-gradient(135deg,#C7A96B,#E8C98A);padding:12px 16px;display:flex;align-items:center;justify-content:space-between">' +
+      '<div style="font-size:14px;font-weight:800;color:#fff">📸 현장 사진 촬영 알림</div>' +
+      '<button onclick="document.getElementById(\'photo-reminder-popup\').remove()" style="background:rgba(255,255,255,.3);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:14px;cursor:pointer;line-height:1">✕</button>' +
+    '</div>' +
+    '<div style="padding:14px 16px">' +
+      '<div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px">' + name + ' 본식 시작 5분 경과!</div>' +
+      '<div style="font-size:12px;color:#374151;line-height:2;background:#FDF8F3;border-radius:8px;padding:10px 14px;margin-bottom:12px">' +
+        '☑️ 화환 / 축기 사진<br>' +
+        '☑️ 축의대 현장 사진<br>' +
+        '☑️ 식권 테이블 사진<br>' +
+        '☑️ 전반적인 현장 분위기 사진' +
+      '</div>' +
+      '<div style="display:flex;gap:8px">' +
+        '<button onclick="closeDetail();openDetail(' + s.id + ');document.getElementById(\'photo-reminder-popup\').remove()" style="flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">📋 예식 상세 보기</button>' +
+        '<button onclick="document.getElementById(\'photo-reminder-popup\').remove()" style="flex:1;background:#F3F4F6;color:#374151;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">확인</button>' +
+      '</div>' +
+    '</div>';
+
   document.body.appendChild(popup);
-  setTimeout(() => { const el = document.getElementById('photo-reminder-popup'); if(el) el.remove(); }, 30000);
+  setTimeout(function(){ var el = document.getElementById('photo-reminder-popup'); if(el) el.remove(); }, 30000);
 }
+
+
+// ─── START ────────────────────────────────────────────────────────────────────
+init();
 </script>
 
 
-</body><whale-quicksearch translate="no" style="visibility: visible;"><template shadowrootmode="closed"><style></style><div class="anchor"></div><div class="quicksearch" data-version="25904bb4"></div></template></whale-quicksearch></html>
+
+</body>
+</html>
