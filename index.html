@@ -1216,6 +1216,9 @@ async function init(){
 
 async function startApp(){
   renderNav();
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
   if(!isSupabaseConfigured()){
     document.getElementById('loading-overlay').innerHTML = `
       <div style="max-width:420px;background:#fff;border-radius:20px;padding:32px 28px;box-shadow:0 8px 32px rgba(0,0,0,.12);text-align:center">
@@ -1238,6 +1241,7 @@ async function startApp(){
   await loadSchedules();
   await loadUnavailables();
   await loadNotifications();
+  scheduleWeddingReminders();
   renderAll();
   document.getElementById('loading-overlay').style.display = 'none';
 }
