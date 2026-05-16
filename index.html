@@ -1056,7 +1056,10 @@ function rowToSchedule(row){
     result:       row.result       || null,
     fieldMemo:      row.field_memo      || {},
     adminMemo:      row.admin_memo      || {},
-    handoverPerson: row.handover_person || '',
+    handoverPerson:         row.handover_person          || '',
+    photoAlertDismissed:    row.photo_alert_dismissed    || false,
+    photoAlertCompleted:    row.photo_alert_completed    || false,
+    photoAlertCompletedAt:  row.photo_alert_completed_at || null,
   };
 }
 
@@ -3443,7 +3446,10 @@ function scheduleWeddingReminders(){
   console.log('[DG] scheduleWeddingReminders 시작 - 로그인:', currentUser.name);
   try {
     const mySchedules = visible().filter(function(s){
-      return s.date === TODAY && s.status !== '진행완료';
+      return s.date === TODAY
+          && s.status !== '진행완료'
+          && !s.photoAlertDismissed
+          && !s.photoAlertCompleted;
     });
     console.log('[DG] 오늘 담당 예식:', mySchedules.length, '건');
     if(!mySchedules.length) return;
@@ -3553,15 +3559,30 @@ function showPhotoReminder(s){
   document.body.appendChild(popup);
 
   // X 버튼 - 닫힘 처리 + sessionStorage 저장
+  // X 버튼 - dismissed 처리
   document.getElementById('photo-reminder-close').onclick = function(){
-    _markReminderClosed(s);
     popup.remove();
+    sb.patch('schedules', s.id, { photo_alert_dismissed: true }).then(function(){
+      var idx = schedules.findIndex(function(x){ return x.id === s.id; });
+      if(idx !== -1) schedules[idx].photoAlertDismissed = true;
+    }).catch(function(e){ console.error('[DG] dismissed 저장 실패:', e); });
   };
 
-  // 촬영 완료 버튼 - 닫힘 처리
+  // 촬영 완료 버튼 - completed 처리
   document.getElementById('photo-reminder-confirm').onclick = function(){
-    _markReminderClosed(s);
     popup.remove();
+    var now = new Date().toISOString();
+    sb.patch('schedules', s.id, {
+      photo_alert_completed: true,
+      photo_alert_completed_at: now
+    }).then(function(){
+      var idx = schedules.findIndex(function(x){ return x.id === s.id; });
+      if(idx !== -1){
+        schedules[idx].photoAlertCompleted   = true;
+        schedules[idx].photoAlertCompletedAt = now;
+      }
+      showToast('✅ 촬영 완료 처리되었습니다');
+    }).catch(function(e){ console.error('[DG] completed 저장 실패:', e); });
   };
 
   // ⛔ 자동 닫힘 제거 — X 버튼 또는 촬영완료 버튼으로만 닫힘
