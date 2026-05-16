@@ -1247,12 +1247,24 @@ async function startApp(){
       </div>`;
     return;
   }
-  await loadSchedules();
-  await loadUnavailables();
-  await loadNotifications();
-  scheduleWeddingReminders();
-  renderAll();
-  document.getElementById('loading-overlay').style.display = 'none';
+  try {
+    console.log('[DG] 데이터 로드 시작 - 계정:', currentUser.name);
+    await loadSchedules();
+    console.log('[DG] schedules 로드 완료:', schedules.length, '건');
+    await loadUnavailables();
+    console.log('[DG] unavailables 로드 완료');
+    await loadNotifications();
+    console.log('[DG] notifications 로드 완료');
+  } catch(e) {
+    console.error('[DG] 데이터 로드 실패:', e);
+  } finally {
+    console.log('[DG] renderAll 시작');
+    try { scheduleWeddingReminders(); } catch(e){ console.error('[DG] reminder 오류:', e); }
+    try { renderAll(); } catch(e){ console.error('[DG] renderAll 오류:', e); }
+    var lo = document.getElementById('loading-overlay');
+    if(lo) lo.style.display = 'none';
+    console.log('[DG] loading-overlay 숨김 완료');
+  }
 }
  
 function renderNav(){
@@ -1712,7 +1724,8 @@ function openDetail(id){
                 <span style="font-size:13px;font-weight:500;color:${s.checklist[k]?'#065F46':'#374151'}">${label}</span>
                 ${s.checklist[k]?'<span class="check-done-lbl">완료 ✓</span>':''}
               </label>`).join('')}
-          </div>`;
+          </div>
+        </div>`;
       })()}
     </div>
     ${ADMIN_NAMES.includes(currentUser.name) && (s.totalPrice || s.laborCost) ? `
@@ -3416,57 +3429,83 @@ function _markReminderClosed(s){
 }
 
 function scheduleWeddingReminders(){
-  const mySchedules = visible().filter(s =>
-    s.date === TODAY && s.status !== '진행완료'
-  );
-  if(!mySchedules.length) return;
+  console.log('[DG] scheduleWeddingReminders 시작 - 로그인:', currentUser.name);
+  try {
+    const mySchedules = visible().filter(function(s){
+      return s.date === TODAY && s.status !== '진행완료';
+    });
+    console.log('[DG] 오늘 담당 예식:', mySchedules.length, '건');
+    if(!mySchedules.length) return;
 
-  mySchedules.forEach(s => {
-    if(!s.time) return;
-    const [h, m] = s.time.split(':').map(Number);
-    const reminderTime = new Date();
-    reminderTime.setHours(h, m + 5, 0, 0);
-    const delay = reminderTime - new Date();
-    const key = 'photo_' + s.id;
+    mySchedules.forEach(function(s){
+      if(!s.time) return;
+      var timeParts = (s.time || '').split(':');
+      var h = parseInt(timeParts[0], 10) || 0;
+      var m = parseInt(timeParts[1], 10) || 0;
 
-    if(_reminderFired.has(key)) return;
+      // Safari 호환: new Date()로 현재 시각 가져와 분 단위 비교
+      var now = new Date();
+      var nowMin = now.getHours() * 60 + now.getMinutes();
+      var targetMin = h * 60 + m + 5; // 예식시간 + 5분
 
-    // 이미 닫은 팝업이면 스킵 (일정 변경 없는 경우)
-    if(_isReminderClosed(s) && delay > 0) return;
+      var delayMs = (targetMin - nowMin) * 60 * 1000 - now.getSeconds() * 1000;
+      var key = 'photo_' + s.id;
 
-    if(delay <= 0){
-      // 이미 5분 지난 경우 - 닫지 않은 팝업이면 즉시 표시
-      if(!_isReminderClosed(s)){
-        _reminderFired.add(key);
-        showPhotoReminder(s);
-        if(Notification.permission === 'granted'){
-          const notif = new Notification('📸 현장 사진 촬영 알림', {
-            body: coupleName(s) + ' 본식 시작 5분!\n화환·현장 사진을 촬영해주세요 📷',
-            icon: 'icon.png',
-          });
-          notif.onclick = () => { window.focus(); openDetail(s.id); notif.close(); };
-          setTimeout(() => notif.close(), 15000);
+      console.log('[DG] 예식:', coupleName(s), '| 예식시간:', s.time, '| 알림까지:', Math.round(delayMs/1000), '초');
+
+      if(_reminderFired.has(key)) {
+        console.log('[DG] 이미 발송됨:', key);
+        return;
+      }
+
+      // 이미 닫은 팝업이면 스킵
+      if(_isReminderClosed(s) && delayMs > 0) {
+        console.log('[DG] 이미 닫힘:', key);
+        return;
+      }
+
+      if(delayMs <= 0){
+        // 이미 5분 지난 경우 - 닫지 않은 팝업이면 즉시 표시
+        if(!_isReminderClosed(s)){
+          console.log('[DG] 즉시 팝업 표시:', coupleName(s));
+          _reminderFired.add(key);
+          try { showPhotoReminder(s); } catch(e){ console.error('[DG] showPhotoReminder 오류:', e); }
+          if(Notification && Notification.permission === 'granted'){
+            try {
+              var notif = new Notification('📸 현장 사진 촬영 알림', {
+                body: coupleName(s) + ' 본식 시작 5분! 화환·현장 사진을 촬영해주세요 📷',
+                icon: 'icon.png',
+              });
+              notif.onclick = function(){ window.focus(); openDetail(s.id); notif.close(); };
+              setTimeout(function(){ notif.close(); }, 15000);
+            } catch(e){ console.error('[DG] Notification 오류:', e); }
+          }
         }
+        return;
       }
-      return;
-    }
 
-    setTimeout(() => {
-      if(_reminderFired.has(key)) return;
-      if(_isReminderClosed(s)) return;
-      _reminderFired.add(key);
-      showPhotoReminder(s);
-
-      if(Notification.permission === 'granted'){
-        const notif = new Notification('📸 현장 사진 촬영 알림', {
-          body: coupleName(s) + ' 본식 시작 5분!\n화환·현장 사진을 촬영해주세요 📷',
-          icon: 'icon.png',
-        });
-        notif.onclick = () => { window.focus(); openDetail(s.id); notif.close(); };
-        setTimeout(() => notif.close(), 15000);
-      }
-    }, delay);
-  });
+      console.log('[DG] 팝업 예약:', coupleName(s), '→', Math.round(delayMs/1000), '초 후');
+      setTimeout(function(){
+        if(_reminderFired.has(key)) return;
+        if(_isReminderClosed(s)) return;
+        _reminderFired.add(key);
+        console.log('[DG] 팝업 발동:', coupleName(s));
+        try { showPhotoReminder(s); } catch(e){ console.error('[DG] showPhotoReminder 오류:', e); }
+        if(Notification && Notification.permission === 'granted'){
+          try {
+            var notif = new Notification('📸 현장 사진 촬영 알림', {
+              body: coupleName(s) + ' 본식 시작 5분! 화환·현장 사진을 촬영해주세요 📷',
+              icon: 'icon.png',
+            });
+            notif.onclick = function(){ window.focus(); openDetail(s.id); notif.close(); };
+            setTimeout(function(){ notif.close(); }, 15000);
+          } catch(e){ console.error('[DG] Notification 오류:', e); }
+        }
+      }, delayMs);
+    });
+  } catch(e) {
+    console.error('[DG] scheduleWeddingReminders 오류:', e);
+  }
 }
 
 function showPhotoReminder(s){
@@ -3492,8 +3531,7 @@ function showPhotoReminder(s){
         '☑️ 화환 / 축기 사진<br>' +
         '☑️ 축의대 현장 사진<br>' +
         '☑️ 식권 테이블 사진<br>' +
-        '☑️ 전반적인 현장 분위기 사진<br>' +
-        '🎥 현장 상황 영상' +
+        '☑️ 전반적인 현장 분위기 사진' +
       '</div>' +
       '<div style="display:flex;gap:8px">' +
         '<button onclick="closeDetail();openDetail(' + sid + ');document.getElementById(\'photo-reminder-popup\').remove()" style="flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">📋 예식 상세 보기</button>' +
