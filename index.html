@@ -3426,17 +3426,17 @@ const _reminderFired = new Set();
 
 // ── sessionStorage 키 생성 ──
 function _reminderKey(s){
-  return 'photo_closed_' + s.id + '_' + s.date + '_' + (s.time||'') + '_' + (s.frontManager||'') + '_' + (s.backManager||'');
+  return 'photoAlertDismissed_' + s.id + '_' + s.date;
 }
 
 // ── 팝업이 이미 닫힌 상태인지 확인 ──
 function _isReminderClosed(s){
-  try { return sessionStorage.getItem(_reminderKey(s)) === 'closed'; } catch(e){ return false; }
+  try { return localStorage.getItem(_reminderKey(s)) === 'true'; } catch(e){ return false; }
 }
 
 // ── 팝업 닫힘 처리 ──
 function _markReminderClosed(s){
-  try { sessionStorage.setItem(_reminderKey(s), 'closed'); } catch(e){}
+  try { localStorage.setItem(_reminderKey(s), 'true'); } catch(e){}
 }
 
 function scheduleWeddingReminders(){
