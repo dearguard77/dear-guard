@@ -33,7 +33,7 @@
 
     html, body {
       height: 100%;
-      background: #EDEAE4;
+      background: #DDD8D0;
       font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
     }
@@ -47,8 +47,8 @@
 
     /* ── 헤더 ── */
     .header {
-      background: rgba(255,255,255,.97);
-      border-bottom: 1px solid #E8DFD0;
+      background: rgba(250,247,242,.98);
+      border-bottom: 1px solid #D8D0C4;
       backdrop-filter: blur(12px);
       padding: 0 32px;
       height: 56px;
@@ -104,13 +104,13 @@
 
     /* ── 왼쪽 패널: 모드 선택 + 설정 ── */
     .left-panel {
-      background: #F8F5F0;
+      background: #EDE8E0;
       padding: 24px 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
       overflow-y: auto;
-      border-right: 1px solid #E8DFD0;
+      border-right: 1px solid #D8D0C4;
     }
 
     .panel-title {
@@ -286,7 +286,7 @@
 
     /* ── 오른쪽: 입력 폼 ── */
     .right-panel {
-      background: var(--cream);
+      background: #F4F0EA;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -393,10 +393,9 @@
     .amt-btn:hover { border-color: var(--gold); background: #FFF8EC; }
 
     .amt-btn.active {
-      border-color: var(--gold);
-      background: linear-gradient(135deg, #FFF8EC, #FFF0CC);
-      color: var(--gold-dk);
-      box-shadow: 0 0 0 3px rgba(184,150,74,.15);
+      box-shadow: 0 0 0 4px rgba(184,150,74,.35);
+      filter: brightness(.92);
+      border-width: 3px;
     }
 
     .amt-btn.custom {
@@ -735,15 +734,20 @@
             <label>축의금</label>
           </div>
           <div class="amount-grid">
-            <button class="amt-btn" onclick="selectAmt(50000, this)">5만</button>
-            <button class="amt-btn" onclick="selectAmt(100000, this)">10만</button>
-            <button class="amt-btn" onclick="selectAmt(150000, this)">15만</button>
-            <button class="amt-btn" onclick="selectAmt(200000, this)">20만</button>
-            <button class="amt-btn" onclick="selectAmt(300000, this)">30만</button>
-            <button class="amt-btn" onclick="selectAmt(500000, this)">50만</button>
+            <button class="amt-btn" onclick="selectAmt(50000, this)"
+              style="background:linear-gradient(135deg,#EEF4FF,#DBEAFE);border-color:#93C5FD;color:#1D4ED8">5만</button>
+            <button class="amt-btn" onclick="selectAmt(100000, this)"
+              style="background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border-color:#86EFAC;color:#166534">10만</button>
+            <button class="amt-btn" onclick="selectAmt(150000, this)"
+              style="background:linear-gradient(135deg,#FFFBEB,#FEF9C3);border-color:#FCD34D;color:#854D0E">15만</button>
+            <button class="amt-btn" onclick="selectAmt(200000, this)"
+              style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border-color:#FDBA74;color:#9A3412">20만</button>
+            <button class="amt-btn" onclick="selectAmt(300000, this)"
+              style="background:linear-gradient(135deg,#FDF4FF,#FAE8FF);border-color:#D8B4FE;color:#6B21A8">30만</button>
+            <button class="amt-btn" onclick="selectAmt(500000, this)"
+              style="background:linear-gradient(135deg,#FFF8EC,#FFF0CC);border-color:#B8964A;color:#8A6E34">50만</button>
           </div>
-          <div class="amount-grid" style="grid-template-columns:1fr 1fr;">
-            <button class="amt-btn" onclick="selectAmt(700000, this)">70만</button>
+          <div class="amount-grid" style="grid-template-columns:1fr;">
             <button class="amt-btn custom" onclick="toggleCustom(this)">✏️ 직접 입력</button>
           </div>
           <div class="custom-input-wrap" id="custom-wrap">
