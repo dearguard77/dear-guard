@@ -897,7 +897,7 @@ function resetForm() {
 }
 
 /* ─── Submit ──────────────────────────────────── */
-async function submitEntry() {
+function submitEntry() {
   const name     = document.getElementById('guest-name').value.trim();
   const relation = document.getElementById('guest-rel').value.trim();
   const memo     = document.getElementById('memo').value.trim();
@@ -920,43 +920,25 @@ async function submitEntry() {
     memo,
   };
 
-  const btn = document.getElementById('submit-btn');
-  btn.classList.add('loading');
-  btn.querySelector('span').textContent = '전송 중...';
-
-  // Send to GAS
-  let sheetOk = false;
-  if (GAS_URL) {
-    try {
-      await fetch(GAS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(entry),
-      });
-      sheetOk = true;
-    } catch (e) {
-      console.warn('GAS 전송 실패:', e);
-    }
-  }
-
-  // Local state update
+  // ✅ 즉시 UI 업데이트 (기다리지 않음)
   state.entries.unshift(entry);
   updateStats();
   updateRecentList(entry);
-
-  btn.classList.remove('loading');
-  btn.querySelector('span').textContent = '✅ 접수 완료';
-
-  const sub = sheetOk
-    ? `${entry.name} · ₩${amount.toLocaleString()} · 시트 저장 완료`
-    : `${entry.name} · ₩${amount.toLocaleString()} · (시트 URL 미설정)`;
-
-  showToast('✅', '접수 완료되었습니다', sub);
+  showToast('✅', '접수 완료되었습니다', `${entry.name} · ₩${amount.toLocaleString()}`);
   resetForm();
-
-  // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // 🔄 구글시트 전송은 백그라운드에서 (기다리지 않음)
+  if (GAS_URL) {
+    const formData = new URLSearchParams();
+    formData.append('data', JSON.stringify(entry));
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData,
+    }).catch(e => console.warn('GAS 전송 실패:', e));
+  }
 }
 </script>
 </body>
