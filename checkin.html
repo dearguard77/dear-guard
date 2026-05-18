@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dear Guard · 축의 접수</title>
+  <link rel="apple-touch-icon" href="https://dear-guard.vercel.app/icon.png">
+  <link rel="icon" type="image/png" href="https://dear-guard.vercel.app/icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,7 +47,9 @@
 
     /* ── 헤더 ── */
     .header {
-      background: var(--charcoal);
+      background: rgba(255,255,255,.97);
+      border-bottom: 1px solid #E8DFD0;
+      backdrop-filter: blur(12px);
       padding: 0 32px;
       height: 56px;
       display: flex;
@@ -63,13 +67,13 @@
       font-family: var(--font-serif);
       font-size: 20px;
       font-weight: 700;
-      color: var(--gold-lt);
+      color: var(--gold-dk);
       letter-spacing: .04em;
     }
 
     .logo-sub {
       font-size: 11px;
-      color: rgba(250,247,242,.4);
+      color: #9CA3AF;
       letter-spacing: .08em;
     }
 
@@ -79,15 +83,15 @@
     }
 
     .hstat {
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(184,150,74,.25);
+      background: #FDF8F3;
+      border: 1px solid #E8DFD0;
       border-radius: 20px;
       padding: 4px 14px;
       text-align: center;
     }
 
-    .hstat-label { font-size: 9px; color: rgba(250,247,242,.4); display: block; letter-spacing:.06em; }
-    .hstat-value { font-size: 13px; font-weight: 700; color: var(--gold-lt); display: block; }
+    .hstat-label { font-size: 9px; color: #9CA3AF; display: block; letter-spacing:.06em; }
+    .hstat-value { font-size: 13px; font-weight: 700; color: var(--gold-dk); display: block; }
 
     /* ── 메인 바디 ── */
     .body {
@@ -100,20 +104,20 @@
 
     /* ── 왼쪽 패널: 모드 선택 + 설정 ── */
     .left-panel {
-      background: var(--charcoal);
+      background: #F8F5F0;
       padding: 24px 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
       overflow-y: auto;
-      border-right: 1px solid rgba(255,255,255,.06);
+      border-right: 1px solid #E8DFD0;
     }
 
     .panel-title {
       font-size: 10px;
       font-weight: 600;
       letter-spacing: .12em;
-      color: rgba(250,247,242,.35);
+      color: #9CA3AF;
       text-transform: uppercase;
       margin-bottom: 4px;
     }
@@ -126,19 +130,20 @@
     }
 
     .mode-card {
-      background: rgba(255,255,255,.06);
-      border: 2px solid rgba(255,255,255,.08);
+      background: #FFFFFF;
+      border: 2px solid #E5E7EB;
       border-radius: var(--radius);
       padding: 20px 12px;
       text-align: center;
       cursor: pointer;
       transition: all .18s ease;
       position: relative;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
     }
 
     .mode-card:hover {
-      background: rgba(255,255,255,.10);
-      border-color: rgba(184,150,74,.4);
+      background: #FDF8F3;
+      border-color: #C7A96B;
     }
 
     .mode-card.active.groom {
@@ -167,7 +172,7 @@
     .mode-card .mc-side {
       font-size: 14px;
       font-weight: 700;
-      color: var(--cream);
+      color: var(--charcoal);
       display: block;
     }
 
@@ -188,10 +193,11 @@
 
     /* ── 현황 요약 ── */
     .summary-box {
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.08);
+      background: #FFFFFF;
+      border: 1px solid #E8DFD0;
       border-radius: var(--radius);
       padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
     }
 
     .summary-row {
@@ -199,21 +205,22 @@
       justify-content: space-between;
       align-items: center;
       padding: 5px 0;
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      border-bottom: 1px solid #F0EBE1;
     }
 
     .summary-row:last-child { border-bottom: none; }
 
-    .summary-row .sr-label { font-size: 11px; color: rgba(250,247,242,.4); }
-    .summary-row .sr-value { font-size: 13px; font-weight: 700; color: var(--cream); }
-    .summary-row .sr-value.gold { color: var(--gold-lt); }
+    .summary-row .sr-label { font-size: 11px; color: #9CA3AF; }
+    .summary-row .sr-value { font-size: 13px; font-weight: 700; color: var(--charcoal); }
+    .summary-row .sr-value.gold { color: var(--gold-dk); }
 
     /* ── 설정 박스 ── */
     .settings-box {
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(184,150,74,.2);
+      background: #FFFFFF;
+      border: 1px solid #E8DFD0;
       border-radius: var(--radius);
       padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
     }
 
     .settings-box.connected {
@@ -230,7 +237,7 @@
       font-size: 9px;
       font-weight: 600;
       letter-spacing: .08em;
-      color: rgba(250,247,242,.35);
+      color: #9CA3AF;
       display: block;
       margin-bottom: 4px;
       text-transform: uppercase;
@@ -238,19 +245,19 @@
 
     .settings-field input {
       width: 100%;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
       border-radius: 8px;
       padding: 8px 10px;
       font-size: 11px;
-      color: var(--cream);
+      color: var(--charcoal);
       font-family: monospace;
       outline: none;
       transition: border-color .15s;
     }
 
     .settings-field input:focus { border-color: var(--gold); }
-    .settings-field input::placeholder { color: rgba(250,247,242,.2); }
+    .settings-field input::placeholder { color: #D1D5DB; }
 
     .settings-save-btn {
       width: 100%;
