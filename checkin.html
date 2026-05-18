@@ -618,12 +618,20 @@
   <!-- Form Body -->
   <div class="form-body">
 
-    <!-- Google Apps Script URL 설정 -->
+    <!-- 설정 -->
     <div class="notice-box" id="url-box">
-      <strong>⚙️ Google Apps Script URL 설정</strong>
-      배포한 웹 앱 URL을 입력하면 구글시트에 자동 저장됩니다.
-      <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/..." />
-      <button class="save-url-btn" onclick="saveGasUrl()">저장</button>
+      <strong>⚙️ 행사 설정</strong>
+      한 번만 입력하면 이 기기에 저장됩니다.
+      <div style="margin-top:8px;">
+        <label style="font-size:10px;font-weight:600;letter-spacing:.05em;display:block;margin-bottom:3px;">GAS 배포 URL (한 번만 설정)</label>
+        <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/..." />
+      </div>
+      <div style="margin-top:6px;">
+        <label style="font-size:10px;font-weight:600;letter-spacing:.05em;display:block;margin-bottom:3px;">구글 시트 ID (행사마다 변경)</label>
+        <input type="text" id="sheet-id-input" placeholder="스프레드시트 URL에서 /d/ 뒤 긴 문자열" />
+        <div style="font-size:10px;color:#8A6E34;margin-top:3px;">예: docs.google.com/spreadsheets/d/<b>여기부분</b>/edit</div>
+      </div>
+      <button class="save-url-btn" onclick="saveSettings()">저장</button>
     </div>
 
     <!-- 1. 측 선택 -->
@@ -757,23 +765,29 @@ let state = {
 };
 
 /* ─── Persist GAS URL ─────────────────────────── */
-let GAS_URL = localStorage.getItem('dg_gas_url') || '';
+let GAS_URL  = localStorage.getItem('dg_gas_url')   || '';
+let SHEET_ID = localStorage.getItem('dg_sheet_id') || '';
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (GAS_URL) {
-    document.getElementById('gas-url-input').value = GAS_URL;
+  if (GAS_URL)  document.getElementById('gas-url-input').value  = GAS_URL;
+  if (SHEET_ID) document.getElementById('sheet-id-input').value = SHEET_ID;
+  if (GAS_URL && SHEET_ID) {
     document.getElementById('url-box').style.borderColor = '#6BBB80';
   }
   updateStats();
 });
 
-function saveGasUrl() {
-  const val = document.getElementById('gas-url-input').value.trim();
-  if (!val) { showToast('❌', 'URL을 입력해주세요', ''); return; }
-  GAS_URL = val;
-  localStorage.setItem('dg_gas_url', GAS_URL);
+function saveSettings() {
+  const url = document.getElementById('gas-url-input').value.trim();
+  const sid = document.getElementById('sheet-id-input').value.trim();
+  if (!url)  { showToast('❌', 'GAS URL을 입력해주세요', ''); return; }
+  if (!sid)  { showToast('❌', '시트 ID를 입력해주세요', ''); return; }
+  GAS_URL  = url;
+  SHEET_ID = sid;
+  localStorage.setItem('dg_gas_url',   GAS_URL);
+  localStorage.setItem('dg_sheet_id',  SHEET_ID);
   document.getElementById('url-box').style.borderColor = '#6BBB80';
-  showToast('✅', 'URL이 저장되었습니다', '이제 구글시트에 자동 저장됩니다');
+  showToast('✅', '설정 저장 완료!', '행사 시트에 자동 저장됩니다');
 }
 
 /* ─── Side Selection ──────────────────────────── */
@@ -927,9 +941,10 @@ function submitEntry() {
   resetForm();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // 🔄 GAS로 GET 요청 (CORS 완전 우회)
-  if (GAS_URL) {
+  // 🔄 GAS로 GET 요청 (CORS 완전 우회) + 시트 ID 포함
+  if (GAS_URL && SHEET_ID) {
     const params = new URLSearchParams({
+      sheetId:  SHEET_ID,
       time:     entry.time,
       side:     entry.side,
       name:     entry.name,
