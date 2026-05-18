@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dear Guard · 축의 접수</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Variables ─────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:   #FAF7F2;
+      --beige:   #F0E8D8;
+      --beige2:  #E8DCC8;
+      --gold:    #B8964A;
+      --gold-lt: #D4AE6A;
+      --gold-dk: #8A6E34;
+      --brown:   #5C4A30;
+      --charcoal:#2C2418;
+      --white:   #FFFFFF;
+      --red:     #C0392B;
+
+      --shadow-sm: 0 2px 8px rgba(92,74,48,.10);
+      --shadow-md: 0 4px 20px rgba(92,74,48,.15);
+      --shadow-lg: 0 8px 40px rgba(92,74,48,.20);
+
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+
+      --font-serif: 'Noto Serif KR', serif;
+      --font-sans:  'Noto Sans KR', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--cream);
+      color: var(--charcoal);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Layout ─────────────────────────────────────── */
+    .app {
+      max-width: 560px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    .header {
+      background: var(--charcoal);
+      color: var(--cream);
+      padding: 16px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .header-brand .logo {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold-lt);
+      letter-spacing: .04em;
+    }
+
+    .header-brand .subtitle {
+      font-size: 10px;
+      font-weight: 300;
+      color: rgba(250,247,242,.5);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .header-stats {
+      display: flex;
+      gap: 12px;
+    }
+
+    .stat-pill {
+      background: rgba(250,247,242,.08);
+      border: 1px solid rgba(184,150,74,.30);
+      border-radius: 20px;
+      padding: 5px 12px;
+      text-align: center;
+    }
+
+    .stat-pill .stat-label {
+      font-size: 9px;
+      color: rgba(250,247,242,.50);
+      letter-spacing: .06em;
+      display: block;
+    }
+
+    .stat-pill .stat-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold-lt);
+      display: block;
+      line-height: 1.2;
+    }
+
+    /* ── Summary Bar ─────────────────────────────────── */
+    .summary-bar {
+      background: var(--brown);
+      padding: 10px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 4px;
+      position: sticky;
+      top: 64px;
+      z-index: 40;
+    }
+
+    .sum-item {
+      text-align: center;
+    }
+
+    .sum-item .sl { font-size: 9px; color: rgba(250,247,242,.45); letter-spacing:.06em; display:block; }
+    .sum-item .sv { font-size: 12px; font-weight: 600; color: var(--cream); display:block; line-height:1.3; }
+
+    /* ── Main Form ───────────────────────────────────── */
+    .form-body {
+      flex: 1;
+      padding: 16px 16px 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ── Card ─────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      color: var(--gold-dk);
+      text-transform: uppercase;
+      padding: 12px 16px 8px;
+      border-bottom: 1px solid var(--beige);
+    }
+
+    /* ── Toggle Group ─────────────────────────────────── */
+    .toggle-group {
+      display: grid;
+      padding: 12px;
+      gap: 8px;
+    }
+
+    .toggle-group.cols-2 { grid-template-columns: 1fr 1fr; }
+
+    .toggle-btn {
+      border: 2px solid var(--beige2);
+      background: var(--cream);
+      border-radius: var(--radius-sm);
+      padding: 16px 8px;
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--brown);
+      cursor: pointer;
+      transition: all .18s ease;
+      text-align: center;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .toggle-btn .emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+    .toggle-btn .label { font-size: 15px; }
+
+    .toggle-btn:active { transform: scale(.96); }
+
+    .toggle-btn.active {
+      border-color: var(--gold);
+      background: linear-gradient(135deg, #FFF8EC 0%, #FFF3DC 100%);
+      color: var(--gold-dk);
+      box-shadow: 0 0 0 3px rgba(184,150,74,.15), var(--shadow-sm);
+    }
+
+    .toggle-btn.active::after {
+      content: '✓';
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 11px;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* ── Amount Grid ──────────────────────────────────── */
+    .amount-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .amt-btn {
+      border: 2px solid var(--beige2);
+      background: var(--cream);
+      border-radius: var(--radius-sm);
+      padding: 18px 4px;
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--brown);
+      cursor: pointer;
+      transition: all .15s ease;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .amt-btn:active { transform: scale(.93); }
+
+    .amt-btn.active {
+      border-color: var(--gold);
+      background: linear-gradient(135deg, #FFF8EC, #FFF0CC);
+      color: var(--gold-dk);
+      box-shadow: 0 0 0 3px rgba(184,150,74,.15);
+    }
+
+    .amt-btn.custom-btn {
+      font-size: 13px;
+      color: var(--charcoal);
+      border-style: dashed;
+    }
+
+    /* ── Custom Amount Input ──────────────────────────── */
+    .custom-amount-wrap {
+      padding: 0 12px 12px;
+      display: none;
+    }
+
+    .custom-amount-wrap.visible { display: block; }
+
+    .custom-amount-input {
+      width: 100%;
+      border: 2px solid var(--gold);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 22px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      color: var(--gold-dk);
+      background: #FFF8EC;
+      text-align: right;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .custom-amount-input::placeholder { color: var(--beige2); font-size: 15px; }
+
+    /* ── Text Input ───────────────────────────────────── */
+    .field-wrap {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      color: var(--gold-dk);
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      border: 2px solid var(--beige2);
+      border-radius: var(--radius-sm);
+      padding: 14px 14px;
+      font-size: 17px;
+      font-family: var(--font-sans);
+      color: var(--charcoal);
+      background: var(--cream);
+      outline: none;
+      transition: border-color .15s;
+      width: 100%;
+      -webkit-appearance: none;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--gold);
+      background: #FFFDF8;
+    }
+
+    .field textarea { resize: none; height: 72px; font-size: 15px; }
+
+    /* ── Meal Counter ─────────────────────────────────── */
+    .meal-counter {
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .meal-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--brown);
+    }
+
+    .counter-control {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 2px solid var(--beige2);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .counter-btn {
+      width: 52px;
+      height: 52px;
+      border: none;
+      background: var(--cream);
+      font-size: 24px;
+      color: var(--brown);
+      cursor: pointer;
+      transition: background .12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .counter-btn:active { background: var(--beige2); }
+
+    .counter-value {
+      min-width: 52px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--charcoal);
+      background: var(--white);
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-left: 2px solid var(--beige2);
+      border-right: 2px solid var(--beige2);
+    }
+
+    /* ── Submit Button ────────────────────────────────── */
+    .submit-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 560px;
+      padding: 12px 16px 20px;
+      background: linear-gradient(to top, var(--cream) 70%, transparent);
+      z-index: 60;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--charcoal) 0%, #3D3020 100%);
+      color: var(--gold-lt);
+      font-family: var(--font-serif);
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      transition: all .18s ease;
+      position: relative;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%);
+      opacity: 0;
+      transition: opacity .18s;
+    }
+
+    .submit-btn:active::before { opacity: 1; }
+    .submit-btn:active { transform: scale(.98); }
+
+    .submit-btn span { position: relative; z-index: 1; }
+
+    .submit-btn.loading {
+      pointer-events: none;
+      opacity: .7;
+    }
+
+    /* ── Toast ────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(.85);
+      background: var(--charcoal);
+      color: var(--cream);
+      padding: 24px 36px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .25s cubic-bezier(.34,1.56,.64,1);
+      min-width: 240px;
+      border: 1px solid rgba(184,150,74,.30);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .toast .toast-icon { font-size: 36px; display: block; margin-bottom: 8px; }
+    .toast .toast-msg { font-family: var(--font-serif); font-size: 17px; font-weight: 600; display: block; color: var(--gold-lt); }
+    .toast .toast-sub { font-size: 12px; color: rgba(250,247,242,.55); display: block; margin-top: 4px; }
+
+    /* ── Overlay (for toast backdrop) ─────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(44,36,24,.5);
+      z-index: 998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+    }
+
+    .overlay.show { opacity: 1; }
+
+    /* ── Recent List ──────────────────────────────────── */
+    .recent-section {
+      margin-top: 4px;
+    }
+
+    .recent-header {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      color: var(--gold-dk);
+      text-transform: uppercase;
+      padding: 0 4px 8px;
+    }
+
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .recent-item {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+      animation: slideIn .25s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .ri-side {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .ri-side.groom { background: #EEF4FF; color: #3B6EBB; }
+    .ri-side.bride { background: #FFF0F5; color: #BB3B6E; }
+
+    .ri-info { font-size: 13px; color: var(--charcoal); }
+    .ri-info .name { font-weight: 600; }
+    .ri-info .rel  { color: rgba(44,36,24,.45); font-size: 11px; margin-left: 4px; }
+
+    .ri-amount { font-size: 15px; font-weight: 700; color: var(--gold-dk); white-space: nowrap; }
+
+    /* ── Divider ──────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--beige);
+      margin: 2px 16px;
+    }
+
+    /* ── Sheet URL notice ─────────────────────────────── */
+    .notice-box {
+      background: #FFF8EC;
+      border: 1.5px solid var(--gold-lt);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--gold-dk);
+      line-height: 1.6;
+    }
+
+    .notice-box strong { display: block; margin-bottom: 2px; font-size: 11px; letter-spacing:.05em; }
+
+    .notice-box input {
+      border: 1px solid var(--beige2);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      width: 100%;
+      margin-top: 6px;
+      background: var(--white);
+      color: var(--charcoal);
+      outline: none;
+      font-family: monospace;
+    }
+
+    .notice-box input:focus { border-color: var(--gold); }
+
+    .save-url-btn {
+      margin-top: 6px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: var(--gold);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ── Responsive ───────────────────────────────────── */
+    @media (min-width: 560px) {
+      .header { border-radius: 0 0 var(--radius-md) var(--radius-md); }
+      .app { box-shadow: var(--shadow-lg); }
+      html { background: #EDE8E0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-brand">
+      <span class="logo">Dear Guard</span>
+      <span class="subtitle">현장 축의 접수 · Field POS</span>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill">
+        <span class="stat-label">신랑측</span>
+        <span class="stat-value" id="stat-groom">0명</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">신부측</span>
+        <span class="stat-value" id="stat-bride">0명</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Summary Bar -->
+  <div class="summary-bar">
+    <div class="sum-item">
+      <span class="sl">총 접수</span>
+      <span class="sv" id="sum-total-count">0건</span>
+    </div>
+    <div class="sum-item">
+      <span class="sl">총 금액</span>
+      <span class="sv" id="sum-total-amount">₩0</span>
+    </div>
+    <div class="sum-item">
+      <span class="sl">식권 합계</span>
+      <span class="sv" id="sum-total-meal">0장</span>
+    </div>
+  </div>
+
+  <!-- Form Body -->
+  <div class="form-body">
+
+    <!-- Google Apps Script URL 설정 -->
+    <div class="notice-box" id="url-box">
+      <strong>⚙️ Google Apps Script URL 설정</strong>
+      배포한 웹 앱 URL을 입력하면 구글시트에 자동 저장됩니다.
+      <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/..." />
+      <button class="save-url-btn" onclick="saveGasUrl()">저장</button>
+    </div>
+
+    <!-- 1. 측 선택 -->
+    <div class="card">
+      <div class="card-title">측 선택</div>
+      <div class="toggle-group cols-2">
+        <button class="toggle-btn active" id="btn-groom" onclick="selectSide('groom')">
+          <span class="emoji">🤵</span>
+          <span class="label">신랑측</span>
+        </button>
+        <button class="toggle-btn" id="btn-bride" onclick="selectSide('bride')">
+          <span class="emoji">👰</span>
+          <span class="label">신부측</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. 결제 방식 -->
+    <div class="card">
+      <div class="card-title">결제 방식</div>
+      <div class="toggle-group cols-2">
+        <button class="toggle-btn active" id="btn-cash" onclick="selectPayment('cash')">
+          <span class="emoji">💵</span>
+          <span class="label">현금</span>
+        </button>
+        <button class="toggle-btn" id="btn-transfer" onclick="selectPayment('transfer')">
+          <span class="emoji">📱</span>
+          <span class="label">계좌이체</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. 금액 선택 -->
+    <div class="card">
+      <div class="card-title">금액</div>
+      <div class="amount-grid">
+        <button class="amt-btn" onclick="selectAmount(50000)">5만</button>
+        <button class="amt-btn" onclick="selectAmount(100000)">10만</button>
+        <button class="amt-btn" onclick="selectAmount(150000)">15만</button>
+        <button class="amt-btn" onclick="selectAmount(200000)">20만</button>
+        <button class="amt-btn" onclick="selectAmount(300000)">30만</button>
+        <button class="amt-btn" onclick="selectAmount(500000)">50만</button>
+        <button class="amt-btn custom-btn" onclick="toggleCustomAmount()" style="grid-column:1/-1;">✏️ 직접 입력</button>
+      </div>
+      <div class="custom-amount-wrap" id="custom-wrap">
+        <input
+          type="number"
+          inputmode="numeric"
+          id="custom-amount"
+          class="custom-amount-input"
+          placeholder="금액을 입력하세요"
+          oninput="onCustomAmountInput()"
+        />
+      </div>
+    </div>
+
+    <!-- 4. 하객 정보 -->
+    <div class="card">
+      <div class="card-title">하객 정보</div>
+      <div class="field-wrap">
+        <div class="field">
+          <label>이름</label>
+          <input type="text" id="guest-name" placeholder="홍길동" inputmode="text" />
+        </div>
+        <div class="field">
+          <label>관계</label>
+          <input type="text" id="guest-rel" placeholder="예) 직장동료, 친구, 친척" inputmode="text" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 식권 -->
+    <div class="card">
+      <div class="card-title">식권 수량</div>
+      <div class="meal-counter">
+        <span class="meal-label">식권</span>
+        <div class="counter-control">
+          <button class="counter-btn" onclick="changeMeal(-1)">−</button>
+          <div class="counter-value" id="meal-count">2</div>
+          <button class="counter-btn" onclick="changeMeal(1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. 메모 -->
+    <div class="card">
+      <div class="card-title">메모 (선택)</div>
+      <div class="field-wrap">
+        <div class="field">
+          <textarea id="memo" placeholder="특이사항, 봉투 메모 등"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. 최근 접수 내역 -->
+    <div class="recent-section" id="recent-section" style="display:none;">
+      <div class="recent-header">최근 접수 내역</div>
+      <div class="recent-list" id="recent-list"></div>
+    </div>
+
+  </div><!-- /form-body -->
+
+  <!-- Submit Bar -->
+  <div class="submit-bar">
+    <button class="submit-btn" id="submit-btn" onclick="submitEntry()">
+      <span>✅ 접수 완료</span>
+    </button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✅</span>
+  <span class="toast-msg" id="toast-msg">접수 완료되었습니다</span>
+  <span class="toast-sub" id="toast-sub"></span>
+</div>
+
+<script>
+/* ─── State ───────────────────────────────────── */
+let state = {
+  side: 'groom',       // 'groom' | 'bride'
+  payment: 'cash',     // 'cash' | 'transfer'
+  amount: 0,
+  customVisible: false,
+  meal: 2,
+  entries: [],         // local session
+};
+
+/* ─── Persist GAS URL ─────────────────────────── */
+let GAS_URL = localStorage.getItem('dg_gas_url') || '';
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (GAS_URL) {
+    document.getElementById('gas-url-input').value = GAS_URL;
+    document.getElementById('url-box').style.borderColor = '#6BBB80';
+  }
+  updateStats();
+});
+
+function saveGasUrl() {
+  const val = document.getElementById('gas-url-input').value.trim();
+  if (!val) { showToast('❌', 'URL을 입력해주세요', ''); return; }
+  GAS_URL = val;
+  localStorage.setItem('dg_gas_url', GAS_URL);
+  document.getElementById('url-box').style.borderColor = '#6BBB80';
+  showToast('✅', 'URL이 저장되었습니다', '이제 구글시트에 자동 저장됩니다');
+}
+
+/* ─── Side Selection ──────────────────────────── */
+function selectSide(side) {
+  state.side = side;
+  document.getElementById('btn-groom').classList.toggle('active', side === 'groom');
+  document.getElementById('btn-bride').classList.toggle('active', side === 'bride');
+}
+
+/* ─── Payment Selection ───────────────────────── */
+function selectPayment(method) {
+  state.payment = method;
+  document.getElementById('btn-cash').classList.toggle('active', method === 'cash');
+  document.getElementById('btn-transfer').classList.toggle('active', method === 'transfer');
+}
+
+/* ─── Amount Selection ────────────────────────── */
+function selectAmount(value) {
+  state.amount = value;
+  state.customVisible = false;
+  document.getElementById('custom-wrap').classList.remove('visible');
+  document.getElementById('custom-amount').value = '';
+
+  document.querySelectorAll('.amt-btn').forEach(btn => btn.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function toggleCustomAmount() {
+  state.customVisible = !state.customVisible;
+  document.getElementById('custom-wrap').classList.toggle('visible', state.customVisible);
+  if (state.customVisible) {
+    document.querySelectorAll('.amt-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    setTimeout(() => document.getElementById('custom-amount').focus(), 100);
+  } else {
+    state.amount = 0;
+  }
+}
+
+function onCustomAmountInput() {
+  const val = parseInt(document.getElementById('custom-amount').value) || 0;
+  state.amount = val;
+}
+
+/* ─── Meal Counter ────────────────────────────── */
+function changeMeal(delta) {
+  state.meal = Math.max(0, state.meal + delta);
+  document.getElementById('meal-count').textContent = state.meal;
+}
+
+/* ─── Stats Update ────────────────────────────── */
+function updateStats() {
+  const groom = state.entries.filter(e => e.side === 'groom');
+  const bride  = state.entries.filter(e => e.side === 'bride');
+  const total  = state.entries;
+  const totalAmt = total.reduce((s, e) => s + e.amount, 0);
+  const totalMeal = total.reduce((s, e) => s + e.meal, 0);
+
+  document.getElementById('stat-groom').textContent = groom.length + '명';
+  document.getElementById('stat-bride').textContent = bride.length + '명';
+  document.getElementById('sum-total-count').textContent = total.length + '건';
+  document.getElementById('sum-total-amount').textContent = '₩' + totalAmt.toLocaleString();
+  document.getElementById('sum-total-meal').textContent = totalMeal + '장';
+}
+
+/* ─── Recent List ─────────────────────────────── */
+function updateRecentList(entry) {
+  const section = document.getElementById('recent-section');
+  const list    = document.getElementById('recent-list');
+  section.style.display = 'block';
+
+  const item = document.createElement('div');
+  item.className = 'recent-item';
+
+  const sideClass = entry.side === 'groom' ? 'groom' : 'bride';
+  const sideLabel = entry.side === 'groom' ? '신랑측' : '신부측';
+
+  item.innerHTML = `
+    <span class="ri-side ${sideClass}">${sideLabel}</span>
+    <div class="ri-info">
+      <span class="name">${entry.name || '(이름없음)'}</span>
+      <span class="rel">${entry.relation || ''}</span>
+    </div>
+    <span class="ri-amount">₩${entry.amount.toLocaleString()}</span>
+  `;
+
+  list.insertBefore(item, list.firstChild);
+
+  // Max 5 items
+  while (list.children.length > 5) list.removeChild(list.lastChild);
+}
+
+/* ─── Toast ───────────────────────────────────── */
+function showToast(icon, msg, sub) {
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent  = msg;
+  document.getElementById('toast-sub').textContent  = sub;
+  document.getElementById('toast').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+
+  setTimeout(() => {
+    document.getElementById('toast').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }, 2000);
+}
+
+/* ─── Reset Form ──────────────────────────────── */
+function resetForm() {
+  // Keep side & payment, reset rest
+  state.amount = 0;
+  state.meal   = 2;
+  state.customVisible = false;
+
+  document.getElementById('guest-name').value = '';
+  document.getElementById('guest-rel').value  = '';
+  document.getElementById('memo').value        = '';
+  document.getElementById('meal-count').textContent = '2';
+  document.getElementById('custom-wrap').classList.remove('visible');
+  document.getElementById('custom-amount').value = '';
+  document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active'));
+}
+
+/* ─── Submit ──────────────────────────────────── */
+async function submitEntry() {
+  const name     = document.getElementById('guest-name').value.trim();
+  const relation = document.getElementById('guest-rel').value.trim();
+  const memo     = document.getElementById('memo').value.trim();
+  const amount   = state.customVisible
+    ? (parseInt(document.getElementById('custom-amount').value) || 0)
+    : state.amount;
+
+  // Validation
+  if (!name)   { showToast('⚠️', '이름을 입력해주세요', ''); return; }
+  if (!amount) { showToast('⚠️', '금액을 선택해주세요', ''); return; }
+
+  const entry = {
+    time:     new Date().toLocaleString('ko-KR'),
+    side:     state.side,
+    name,
+    relation,
+    payment:  state.payment,
+    amount,
+    meal:     state.meal,
+    memo,
+  };
+
+  const btn = document.getElementById('submit-btn');
+  btn.classList.add('loading');
+  btn.querySelector('span').textContent = '전송 중...';
+
+  // Send to GAS
+  let sheetOk = false;
+  if (GAS_URL) {
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry),
+      });
+      sheetOk = true;
+    } catch (e) {
+      console.warn('GAS 전송 실패:', e);
+    }
+  }
+
+  // Local state update
+  state.entries.unshift(entry);
+  updateStats();
+  updateRecentList(entry);
+
+  btn.classList.remove('loading');
+  btn.querySelector('span').textContent = '✅ 접수 완료';
+
+  const sub = sheetOk
+    ? `${entry.name} · ₩${amount.toLocaleString()} · 시트 저장 완료`
+    : `${entry.name} · ₩${amount.toLocaleString()} · (시트 URL 미설정)`;
+
+  showToast('✅', '접수 완료되었습니다', sub);
+  resetForm();
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
