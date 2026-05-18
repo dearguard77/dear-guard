@@ -896,7 +896,6 @@ function resetForm() {
   document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('active'));
 }
 
-/* ─── Submit ──────────────────────────────────── */
 function submitEntry() {
   const name     = document.getElementById('guest-name').value.trim();
   const relation = document.getElementById('guest-rel').value.trim();
@@ -905,7 +904,6 @@ function submitEntry() {
     ? (parseInt(document.getElementById('custom-amount').value) || 0)
     : state.amount;
 
-  // Validation
   if (!name)   { showToast('⚠️', '이름을 입력해주세요', ''); return; }
   if (!amount) { showToast('⚠️', '금액을 선택해주세요', ''); return; }
 
@@ -920,7 +918,7 @@ function submitEntry() {
     memo,
   };
 
-  // ✅ 즉시 UI 업데이트 (기다리지 않음)
+  // ✅ 즉시 완료 처리
   state.entries.unshift(entry);
   updateStats();
   updateRecentList(entry);
@@ -928,18 +926,21 @@ function submitEntry() {
   resetForm();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // 🔄 구글시트 전송은 백그라운드에서 (기다리지 않음)
+  // 🔄 이미지 태그로 GAS GET 요청 (CORS 우회, 가장 확실한 방법)
   if (GAS_URL) {
-    const formData = new URLSearchParams();
-    formData.append('data', JSON.stringify(entry));
-
-    fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: formData,
-    }).catch(e => console.warn('GAS 전송 실패:', e));
+    const params = new URLSearchParams({
+      time:     entry.time,
+      side:     entry.side,
+      name:     entry.name,
+      relation: entry.relation,
+      payment:  entry.payment,
+      amount:   entry.amount,
+      meal:     entry.meal,
+      memo:     entry.memo,
+    });
+    const img = new Image();
+    img.src = GAS_URL + '?' + params.toString();
   }
 }
-</script>
 </body>
 </html>
