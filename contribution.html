@@ -304,7 +304,7 @@ input,select,textarea{font-family:inherit;outline:none}
             <span class="tkt-label">대인</span>
             <div class="counter">
               <button class="cnt-btn" onclick="changeTicket('adult',-1)">−</button>
-              <span class="cnt-val" id="adult-ticket-val">0</span>
+              <span class="cnt-val" id="adult-ticket-val">1</span>
               <button class="cnt-btn" onclick="changeTicket('adult',1)">＋</button>
             </div>
             <span style="font-size:11px;color:#9CA3AF;margin-left:4px">매</span>
@@ -473,7 +473,7 @@ const TODAY=(()=>{ const d=new Date(); const k=new Date(d.getTime()+9*60*60*1000
 
 let currentUser=null, currentSchedule=null, logs=[];
 let totalTickets={groom:0,bride:0};
-const st={side:'groom',payment:'cash',amount:0,relation:'',adultTicket:0,childTicket:0};
+const st={side:'groom',payment:'cash',amount:0,relation:'',adultTicket:1,childTicket:0};
 
 const fmt=n=>n>=10000?Math.round(n/10000)+'만원':n.toLocaleString()+'원';
 const fmtFull=n=>n.toLocaleString()+'원';
@@ -758,11 +758,11 @@ function changeTicket(type,delta){
   else{st.childTicket=Math.max(0,st.childTicket+delta);document.getElementById('child-ticket-val').textContent=st.childTicket;}
 }
 function resetForm(){
-  st.amount=0;st.relation='';st.adultTicket=0;st.childTicket=0;
+  st.amount=0;st.relation='';st.adultTicket=1;st.childTicket=0;
   document.getElementById('amount-input').value='';
   document.getElementById('guest-name').value='';
   document.getElementById('memo-input').value='';
-  document.getElementById('adult-ticket-val').textContent='0';
+  document.getElementById('adult-ticket-val').textContent='1';
   document.getElementById('child-ticket-val').textContent='0';
   document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));
   document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('rel-active'));
