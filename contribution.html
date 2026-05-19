@@ -272,7 +272,7 @@ input,select,textarea{font-family:inherit;outline:none}
           <button class="amt-btn" onclick="setAmount(200000)">20만</button>
           <button class="amt-btn" onclick="setAmount(300000)">30만</button>
           <button class="amt-btn" onclick="setAmount(500000)">50만</button>
-          <button class="amt-btn" onclick="setAmount(70000)">7만</button>
+          <button class="amt-btn" onclick="setAmount(1000000)">100만</button>
           <button class="amt-btn amt-custom" onclick="focusCustomAmount()">직접입력</button>
         </div>
         <div class="inp-wrap">
@@ -318,6 +318,31 @@ input,select,textarea{font-family:inherit;outline:none}
             </div>
             <span style="font-size:11px;color:#9CA3AF;margin-left:4px">매</span>
           </div>
+        </div>
+      </div>
+
+      <!-- 화환 / 축기 -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px">💐 화환 / 축기 기록</div>
+        <div id="flower-list" style="margin-bottom:7px"></div>
+        <div style="display:flex;gap:5px;margin-bottom:6px">
+          <select id="flower-side" class="form-input" style="width:90px;padding:6px 8px;font-size:12px;flex-shrink:0">
+            <option value="신랑측">신랑측</option>
+            <option value="신부측">신부측</option>
+          </select>
+          <select id="flower-type" class="form-input" style="width:80px;padding:6px 8px;font-size:12px;flex-shrink:0">
+            <option value="화환">화환</option>
+            <option value="축기">축기</option>
+          </select>
+          <input id="flower-sender" class="form-input" placeholder="보낸 분" style="flex:1;font-size:12px;padding:6px 8px">
+        </div>
+        <div style="display:flex;gap:5px">
+          <input id="flower-msg" class="form-input" placeholder="문구 (선택)" style="flex:1;font-size:12px;padding:6px 8px"
+            onkeydown="if(event.key==='Enter')addFlower()">
+          <button onclick="addFlower()"
+            style="background:#374151;color:#fff;border-radius:7px;padding:6px 11px;font-size:12px;font-weight:700;flex-shrink:0">
+            추가
+          </button>
         </div>
       </div>
 
@@ -584,6 +609,7 @@ async function selectSchedule(id){
 
     await loadLogs();
     loadOpsLogs();
+    loadFlowerLogs();
     subscribeRealtime();
   } catch(e){ showToast('⚠️ 예식 로드 실패'); }
 }
@@ -603,6 +629,80 @@ async function loadLogs(){
     logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
     renderStats(); renderRecent();
   } catch(e){ console.error('logs 로드 실패:',e); }
+}
+
+// ── 화환 / 축기 기록 (DB 기반) ──
+var flowerLogs = [];
+
+async function loadFlowerLogs(){
+  if(!currentSchedule) return;
+  try {
+    flowerLogs = await sb.get('flower_logs',
+      '?schedule_id=eq.' + currentSchedule.id + '&order=created_at.desc');
+    renderFlowerList();
+  } catch(e){ console.error('화환 로드 실패:', e); }
+}
+
+async function addFlower(){
+  var sender = document.getElementById('flower-sender').value.trim();
+  if(!sender){ showToast('⚠️ 보낸 분 이름을 입력해주세요'); return; }
+  if(!currentSchedule) return;
+
+  var now = new Date();
+  var timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  var row = {
+    schedule_id: currentSchedule.id,
+    time_str:    timeStr,
+    side:        document.getElementById('flower-side').value,
+    type:        document.getElementById('flower-type').value,
+    sender:      sender,
+    message:     document.getElementById('flower-msg').value.trim() || null,
+    created_by:  currentUser.name,
+  };
+
+  try {
+    var created = await sb.post('flower_logs', row);
+    flowerLogs.unshift(Array.isArray(created) ? created[0] : created);
+    document.getElementById('flower-sender').value = '';
+    document.getElementById('flower-msg').value    = '';
+    renderFlowerList();
+    showToast('💐 ' + row.type + ' 기록이 추가되었습니다');
+  } catch(e){ showToast('⚠️ 저장 실패: ' + e.message); }
+}
+
+async function deleteFlower(id){
+  try {
+    await fetch(sb.url('flower_logs', '?id=eq.' + id), {method:'DELETE', headers:sb.h});
+    flowerLogs = flowerLogs.filter(function(f){ return f.id !== id; });
+    renderFlowerList();
+  } catch(e){ showToast('⚠️ 삭제 실패'); }
+}
+
+function renderFlowerList(){
+  var el = document.getElementById('flower-list');
+  if(!el) return;
+  if(!flowerLogs.length){
+    el.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px 0">아직 기록이 없습니다</div>';
+    return;
+  }
+  el.innerHTML = flowerLogs.map(function(f){
+    var icon = f.type === '화환' ? '💐' : '🎏';
+    var sideColor = f.side === '신랑측' ? '#3B82F6' : '#EC4899';
+    return '<div style="display:flex;align-items:flex-start;gap:6px;padding:6px 0;border-bottom:1px solid #F0EDE8">' +
+      '<span style="font-size:14px;flex-shrink:0">' + icon + '</span>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;font-weight:700;color:#111">' + esc(f.sender) +
+          '<span style="font-size:10px;font-weight:600;color:' + sideColor + ';margin-left:5px">' + esc(f.side) + '</span>' +
+          '<span style="font-size:10px;color:#9CA3AF;margin-left:4px">' + esc(f.type) + '</span>' +
+        '</div>' +
+        (f.message ? '<div style="font-size:11px;color:#6B7280;margin-top:1px">"' + esc(f.message) + '"</div>' : '') +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">' +
+        '<span style="font-size:10px;color:#C7A96B">' + esc(f.time_str||'') + '</span>' +
+        '<button onclick="deleteFlower(' + f.id + ')" style="font-size:10px;color:#9CA3AF;background:none;border:none;cursor:pointer;padding:0">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
 // ── 현장 운영 메모 (DB 기반) ──
@@ -738,7 +838,7 @@ function setPayment(pay){
   document.getElementById('pay-transfer').className='tog-btn'+(pay==='transfer'?' tog-gray':'');
 }
 function setAmount(amt){
-  const map={50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',70000:'7만'};
+  const map={50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',1000000:'100만'};
   // 같은 버튼 재클릭 시 해제
   if(st.amount===amt){
     st.amount=0;

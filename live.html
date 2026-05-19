@@ -234,6 +234,7 @@ body{
 /* 섹션 간격 */
 .sec{margin-bottom:14px}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -380,6 +381,15 @@ body{
 
   <div class="divider"></div>
 
+  <!-- 화환 / 축기 현황 -->
+  <div class="list-hdr" style="margin-bottom:10px">
+    <div class="list-title">💐 화환 / 축기</div>
+    <div class="list-cnt" id="flower-cnt">0건</div>
+  </div>
+  <div id="flower-live-list" style="margin-bottom:4px"></div>
+
+  <div class="divider"></div>
+
   <!-- 현장 운영 메모 -->
   <div class="list-hdr">
     <div class="list-title">📋 현장 운영 메모</div>
@@ -432,11 +442,15 @@ async function init(){
     document.title=`${names} · 실시간 현황`;
 
     await loadLogs();
+    loadFlowerLive();
     document.getElementById('loading').style.display='none';
     document.getElementById('dashboard').style.display='block';
 
     subscribeRealtime();
-    setInterval(loadLogs, 30000);
+    setInterval(function(){
+      loadLogs();
+      loadFlowerLive();
+    }, 30000);
   } catch(e){
     console.error(e);
     showError();
@@ -599,17 +613,15 @@ function downloadExcel(){
   var g = (schedule.groom_name||'').trim();
   var b = (schedule.bride_name||'').trim();
   var coupleName = (g&&b) ? (g+' ♥ '+b) : (g||b||schedule.hall||'예식');
+  var date = schedule.date || new Date().toISOString().slice(0,10);
 
-  var BOM = '\uFEFF';
-  var rows = [];
+  var wb = XLSX.utils.book_new();
 
-  // 헤더
-  rows.push(['번호','접수측','결제방식','하객이름','관계','금액(원)','대인식권','소인식권','메모','접수시간','입력자']);
-
-  // 데이터
+  // ── 시트1: 접수 내역 ──
+  var data1 = [['번호','접수측','결제방식','하객이름','관계','금액(원)','대인식권','소인식권','메모','접수시간','입력자']];
   for(var i=0; i<logs.length; i++){
     var l = logs[i];
-    rows.push([
+    data1.push([
       i+1,
       l.side||'',
       l.payment_type||'',
@@ -624,53 +636,84 @@ function downloadExcel(){
     ]);
   }
 
-  // 합계
+  // 합계 행
   var totalAmt   = logs.reduce(function(s,l){return s+(l.amount||0);},0);
   var totalAdult = logs.reduce(function(s,l){return s+(l.adult_ticket||0);},0);
   var totalChild = logs.reduce(function(s,l){return s+(l.child_ticket||0);},0);
   var gL = logs.filter(function(l){return l.side==='신랑측';});
   var bL = logs.filter(function(l){return l.side==='신부측';});
 
-  rows.push([]);
-  rows.push(['합계','','','','',totalAmt,totalAdult,totalChild,'','','']);
-  rows.push([]);
-  rows.push(['[신랑측]', gL.length+'건','','','',gL.reduce(function(s,l){return s+(l.amount||0);},0),gL.reduce(function(s,l){return s+(l.adult_ticket||0);},0),gL.reduce(function(s,l){return s+(l.child_ticket||0);},0)]);
-  rows.push(['[신부측]', bL.length+'건','','','',bL.reduce(function(s,l){return s+(l.amount||0);},0),bL.reduce(function(s,l){return s+(l.adult_ticket||0);},0),bL.reduce(function(s,l){return s+(l.child_ticket||0);},0)]);
+  data1.push([]);
+  data1.push(['합계','','','','',totalAmt,totalAdult,totalChild,'','','']);
+  data1.push([]);
+  data1.push(['[신랑측]',gL.length+'건','','','',
+    gL.reduce(function(s,l){return s+(l.amount||0);},0),
+    gL.reduce(function(s,l){return s+(l.adult_ticket||0);},0),
+    gL.reduce(function(s,l){return s+(l.child_ticket||0);},0)
+  ]);
+  data1.push(['[신부측]',bL.length+'건','','','',
+    bL.reduce(function(s,l){return s+(l.amount||0);},0),
+    bL.reduce(function(s,l){return s+(l.adult_ticket||0);},0),
+    bL.reduce(function(s,l){return s+(l.child_ticket||0);},0)
+  ]);
 
-  // 운영 메모
+  var ws1 = XLSX.utils.aoa_to_sheet(data1);
+
+  // 컬럼 너비 설정
+  ws1['!cols'] = [
+    {wch:6},{wch:8},{wch:10},{wch:12},{wch:8},
+    {wch:12},{wch:8},{wch:8},{wch:20},{wch:8},{wch:8}
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws1, '접수내역');
+
+  // ── 시트2: 현장 운영 메모 ──
   if(opsLogs.length){
-    rows.push([]);
-    rows.push(['[현장 운영 메모]']);
-    rows.push(['시간','내용','작성자']);
+    var data2 = [['시간','내용','작성자']];
     for(var j=0; j<opsLogs.length; j++){
       var ol = opsLogs[j];
-      rows.push([ol.time_str||'', ol.content||'', ol.created_by||'']);
+      data2.push([ol.time_str||'', ol.content||'', ol.created_by||'']);
     }
+    var ws2 = XLSX.utils.aoa_to_sheet(data2);
+    ws2['!cols'] = [{wch:8},{wch:40},{wch:10}];
+    XLSX.utils.book_append_sheet(wb, ws2, '운영메모');
   }
-
-  // CSV 변환
-  function csvCell(v){
-    var s = String(v==null?'':v);
-    if(s.indexOf(',')>=0 || s.indexOf('"')>=0 || s.indexOf('\n')>=0){
-      return '"' + s.replace(/"/g,'""') + '"';
-    }
-    return s;
-  }
-
-  var csv = BOM + rows.map(function(row){
-    return row.map(csvCell).join(',');
-  }).join('\n');
 
   // 다운로드
-  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
-  var date = schedule.date || new Date().toISOString().slice(0,10);
-  a.href     = url;
-  a.download = '축의접수_' + coupleName + '_' + date + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
+  XLSX.writeFile(wb, '축의접수_' + coupleName + '_' + date + '.xlsx');
 }
+// ── 화환/축기 live 렌더 (DB 기반) ──
+async function loadFlowerLive(){
+  if(!schedule) return;
+  try {
+    var flowerLogs = await sb.get('flower_logs',
+      '?schedule_id=eq.' + schedule.id + '&order=created_at.desc');
+    var el  = document.getElementById('flower-live-list');
+    var cnt = document.getElementById('flower-cnt');
+    if(!el) return;
+    if(cnt) cnt.textContent = flowerLogs.length + '건';
+    if(!flowerLogs.length){
+      el.innerHTML = '<div class="empty-list" style="padding:14px">아직 화환/축기 기록이 없습니다</div>';
+      return;
+    }
+    el.innerHTML = flowerLogs.map(function(f){
+      var icon = f.type === '화환' ? '💐' : '🎏';
+      var sideColor = f.side === '신랑측' ? 'var(--blue)' : 'var(--pink)';
+      return '<div class="ops-item" style="align-items:center">' +
+        '<span style="font-size:18px;flex-shrink:0">' + icon + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;font-weight:700;color:var(--text)">' + esc(f.sender) +
+            '<span style="font-size:11px;font-weight:600;color:' + sideColor + ';margin-left:6px">' + esc(f.side) + '</span>' +
+            '<span style="font-size:11px;color:var(--text3);margin-left:4px">' + esc(f.type) + '</span>' +
+          '</div>' +
+          (f.message ? '<div style="font-size:12px;color:var(--text2);margin-top:2px">"' + esc(f.message) + '"</div>' : '') +
+        '</div>' +
+        '<span style="font-size:11px;color:var(--gold2);flex-shrink:0">' + esc(f.time_str||'') + '</span>' +
+      '</div>';
+    }).join('');
+  } catch(e){ console.error('화환 로드 실패:', e); }
+}
+
 // ── 운영 메모 렌더 ──
 function renderOpsList(){
   const el=document.getElementById('ops-list');
@@ -710,6 +753,10 @@ function subscribeRealtime(){
     ws.send(JSON.stringify({
       topic:`realtime:public:operation_logs:schedule_id=eq.${schedule.id}`,
       event:'phx_join',payload:{},ref:'2'
+    }));
+    ws.send(JSON.stringify({
+      topic:`realtime:public:flower_logs:schedule_id=eq.${schedule.id}`,
+      event:'phx_join',payload:{},ref:'3'
     }));
   };
   ws.onmessage=async(e)=>{
