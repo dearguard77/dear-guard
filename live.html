@@ -339,8 +339,8 @@ body{
 
   <div class="divider"></div>
 
-  <!-- 양측 접수 리스트 -->
-  <div class="split-list-wrap">
+  <!-- 양측 분리 리스트 (양측 데이터 있을 때) -->
+  <div class="split-list-wrap" id="split-list-wrap" style="display:none">
 
     <!-- 신랑측 -->
     <div class="split-col">
@@ -360,6 +360,14 @@ body{
       <div id="bride-log-list"></div>
     </div>
 
+  </div>
+
+  <!-- 단측 / 통합 리스트 (한쪽만 있을 때) -->
+  <div id="single-list-wrap" style="display:none">
+    <div class="list-hdr" style="margin-bottom:10px">
+      <div class="list-title" id="single-list-label">최근 접수 내역</div>
+    </div>
+    <div id="single-log-list"></div>
   </div>
 
   <div class="divider"></div>
@@ -487,57 +495,93 @@ function renderStats(){
   // list-cnt → split-summary로 대체됨
 }
 
-// ── 리스트 렌더 (양측 분리) ──
-function renderList(){
-  const gLogs = logs.filter(l=>l.side==='신랑측');
-  const bLogs = logs.filter(l=>l.side==='신부측');
-
-  // 신랑측 요약
-  const gAmt  = gLogs.reduce((s,l)=>s+(l.amount||0),0);
-  const gTkt  = gLogs.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
-  const bAmt  = bLogs.reduce((s,l)=>s+(l.amount||0),0);
-  const bTkt  = bLogs.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
-
-  const gSumEl = document.getElementById('groom-summary');
-  const bSumEl = document.getElementById('bride-summary');
-  if(gSumEl) gSumEl.innerHTML =
-    `<span>${gLogs.length}명</span> · <span>${fmtFull(gAmt)}</span> · <span>식권 ${gTkt}장</span>`;
-  if(bSumEl) bSumEl.innerHTML =
-    `<span>${bLogs.length}명</span> · <span>${fmtFull(bAmt)}</span> · <span>식권 ${bTkt}장</span>`;
-
-  renderSideList('groom-log-list', gLogs, '신랑측');
-  renderSideList('bride-log-list', bLogs, '신부측');
-
-  setTimeout(()=>{ newIds.clear(); },2500);
+// ── 리스트 렌더 (자동 모드 감지) ──
+// 모드: 'both' = 양측분리, 'single' = 단측/통합 하나로
+function detectMode(){
+  const hasGroom = logs.some(l=>l.side==='신랑측');
+  const hasBride = logs.some(l=>l.side==='신부측');
+  if(hasGroom && hasBride) return 'both';   // 양측 데이터 있음 → 분리
+  return 'single';                           // 한쪽만 or 없음 → 통합
 }
 
-function renderSideList(elId, sideLogs, sideLabel){
+function renderList(){
+  const mode  = detectMode();
+  const wrap  = document.getElementById('split-list-wrap');
+  const single = document.getElementById('single-list-wrap');
+
+  if(mode === 'both'){
+    // 양측 분리 모드
+    if(wrap)   wrap.style.display   = 'grid';
+    if(single) single.style.display = 'none';
+
+    const gLogs = logs.filter(l=>l.side==='신랑측');
+    const bLogs = logs.filter(l=>l.side==='신부측');
+    const gAmt  = gLogs.reduce((s,l)=>s+(l.amount||0),0);
+    const gTkt  = gLogs.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+    const bAmt  = bLogs.reduce((s,l)=>s+(l.amount||0),0);
+    const bTkt  = bLogs.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+
+    const gSumEl = document.getElementById('groom-summary');
+    const bSumEl = document.getElementById('bride-summary');
+    if(gSumEl) gSumEl.innerHTML = `<span>${gLogs.length}명</span> · <span>${fmtFull(gAmt)}</span> · <span>식권 ${gTkt}장</span>`;
+    if(bSumEl) bSumEl.innerHTML = `<span>${bLogs.length}명</span> · <span>${fmtFull(bAmt)}</span> · <span>식권 ${bTkt}장</span>`;
+
+    renderSideList('groom-log-list', gLogs);
+    renderSideList('bride-log-list', bLogs);
+
+  } else {
+    // 단측 / 통합 모드
+    if(wrap)   wrap.style.display   = 'none';
+    if(single) single.style.display = 'block';
+
+    const singleEl = document.getElementById('single-log-list');
+    if(!singleEl) return;
+
+    // 헤더 라벨 자동 설정
+    const hasGroom = logs.some(l=>l.side==='신랑측');
+    const label = hasGroom ? '🤵 신랑측' : logs.length ? '👰 신부측' : '';
+    const labelEl = document.getElementById('single-list-label');
+    if(labelEl && label) labelEl.textContent = label;
+
+    if(!logs.length){
+      singleEl.innerHTML='<div class="empty-list">아직 접수 내역이 없습니다</div>';
+    } else {
+      singleEl.innerHTML = logs.map(l => logItemHTML(l)).join('');
+    }
+  }
+
+  setTimeout(()=>{ newIds.clear(); }, 2500);
+}
+
+function renderSideList(elId, sideLogs){
   const el = document.getElementById(elId);
   if(!el) return;
   if(!sideLogs.length){
     el.innerHTML='<div class="empty-list" style="padding:20px 10px;font-size:12px">아직 접수 내역이 없습니다</div>';
     return;
   }
-  const isGroom = sideLabel==='신랑측';
-  el.innerHTML = sideLogs.map(l=>{
-    const isNew  = newIds.has(l.id);
-    const name   = l.guest_name||'—';
-    const rel    = l.relation ? ` · ${l.relation}` : '';
-    const pay    = l.payment_type==='계좌이체' ? '📱' : '💵';
-    const tktA   = l.adult_ticket||0;
-    const tktC   = l.child_ticket||0;
-    const tktStr = (tktA+tktC)>0 ? ` · 식권${tktA+tktC}` : '';
-    return `<div class="split-log-item${isNew?' new-item':''}">
-      <div class="split-log-body">
-        <div class="split-log-name">${esc(name)}${rel?`<span style="color:var(--text3);font-weight:400">${esc(rel)}</span>`:''}</div>
-        <div class="split-log-meta">${pay} ${l.payment_type}${tktStr}</div>
-      </div>
-      <div class="split-log-right">
-        <div class="split-log-amount">${l.amount?fmt(l.amount):'—'}</div>
-        <div class="split-log-time">${fmtTime(l.created_at)}</div>
-      </div>
-    </div>`;
-  }).join('');
+  el.innerHTML = sideLogs.map(l => logItemHTML(l)).join('');
+}
+
+function logItemHTML(l){
+  const isNew  = newIds.has(l.id);
+  const name   = l.guest_name||'—';
+  const rel    = l.relation ? ` · ${l.relation}` : '';
+  const pay    = l.payment_type==='계좌이체' ? '📱' : '💵';
+  const tktA   = l.adult_ticket||0;
+  const tktC   = l.child_ticket||0;
+  const tktStr = (tktA+tktC)>0 ? ` · 식권${tktA+tktC}` : '';
+  const sideTag = `<span style="font-size:10px;color:${l.side==='신랑측'?'var(--blue)':'var(--pink)'};font-weight:700;margin-left:4px">${l.side}</span>`;
+  return `<div class="split-log-item${isNew?' new-item':''}">
+    <div class="split-log-body">
+      <div class="split-log-name">${esc(name)}${rel?`<span style="color:var(--text3);font-weight:400">${esc(rel)}</span>`:''}${sideTag}</div>
+      <div class="split-log-meta">${pay} ${l.payment_type}${tktStr}</div>
+    </div>
+    <div class="split-log-right">
+      <div class="split-log-amount">${l.amount?fmt(l.amount):'—'}</div>
+      <div class="split-log-time">${fmtTime(l.created_at)}</div>
+    </div>
+  </div>`;
 }
 
 // ── 운영 메모 렌더 ──
