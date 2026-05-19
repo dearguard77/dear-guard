@@ -5,144 +5,162 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Dear Guard · 축의 접수</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:#F8F7F5;color:#111827;font-size:14px;min-height:100vh}
-  button{cursor:pointer;font-family:inherit;border:none;outline:none}
-  input,select,textarea{font-family:inherit;outline:none}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:#EDEDED;color:#111;font-size:13px;overflow:hidden}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none}
 
-  /* ── 로그인 ── */
-  #login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#F8F5F0,#FDF8F3);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
-  .login-box{background:#fff;border-radius:24px;padding:40px 32px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
-  .login-logo{font-family:Georgia,serif;font-size:26px;font-weight:700;color:#C7A96B;letter-spacing:2px;text-align:center;margin-bottom:4px}
-  .login-sub{font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:28px}
-  .login-field{margin-bottom:12px}
-  .login-label{font-size:11px;font-weight:700;color:#6B7280;margin-bottom:6px;display:block}
-  .login-input{width:100%;border:1.5px solid #E5E7EB;border-radius:10px;padding:11px 14px;font-size:14px;color:#111827;transition:border-color .15s}
-  .login-input:focus{border-color:#C7A96B}
-  .login-btn{width:100%;background:#C7A96B;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:background .15s}
-  .login-btn:hover{background:#B8976A}
-  .login-err{font-size:12px;color:#EF4444;text-align:center;margin-top:8px;min-height:18px;font-weight:600}
+/* ── 로그인 ── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#F8F5F0,#FDF8F3);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:18px;padding:32px 28px;width:100%;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,.1)}
+.login-logo{font-family:Georgia,serif;font-size:22px;font-weight:700;color:#C7A96B;letter-spacing:2px;text-align:center;margin-bottom:3px}
+.login-sub{font-size:11px;color:#9CA3AF;text-align:center;margin-bottom:22px}
+.login-field{margin-bottom:9px}
+.login-label{font-size:11px;font-weight:700;color:#6B7280;margin-bottom:4px;display:block}
+.login-input{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 11px;font-size:13px;color:#111;transition:border-color .15s}
+.login-input:focus{border-color:#C7A96B}
+.login-btn{width:100%;background:#C7A96B;color:#fff;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
+.login-err{font-size:11px;color:#EF4444;text-align:center;margin-top:6px;min-height:16px;font-weight:600}
 
-  /* ── 예식 선택 ── */
-  #schedule-select-screen{display:none;padding:20px;max-width:600px;margin:0 auto}
-  .screen-title{font-size:20px;font-weight:800;color:#111827;margin-bottom:4px}
-  .screen-sub{font-size:13px;color:#9CA3AF;margin-bottom:20px}
-  .schedule-card{background:#fff;border:1.5px solid #E5E7EB;border-radius:14px;padding:16px 18px;cursor:pointer;margin-bottom:10px;transition:all .15s;display:flex;align-items:center;justify-content:space-between}
-  .schedule-card:hover{border-color:#C7A96B;background:#FDF8F3;transform:translateX(2px)}
-  .schedule-card-name{font-size:15px;font-weight:700;color:#111827}
-  .schedule-card-info{font-size:12px;color:#9CA3AF;margin-top:3px}
-  .schedule-card-arrow{font-size:18px;color:#C7A96B}
-  .empty-state{text-align:center;padding:48px 20px;color:#9CA3AF;font-size:14px}
+/* ── 예식 선택 ── */
+#schedule-select-screen{display:none;max-width:600px;margin:0 auto;padding:16px;height:100vh;overflow-y:auto}
+.sch-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.sch-title{font-size:17px;font-weight:800;color:#111}
+.sch-sub{font-size:11px;color:#9CA3AF;margin-top:2px}
+.btn-sm{background:#F3F4F6;border:1px solid #E5E7EB;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:#6B7280}
+.section-label{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;text-transform:uppercase;margin:12px 0 5px}
+.sch-card{background:#fff;border:1.5px solid #E5E7EB;border-radius:10px;padding:11px 13px;cursor:pointer;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;transition:all .12s}
+.sch-card:hover,.sch-card:active{border-color:#C7A96B;background:#FDF8F3}
+.sch-card-name{font-size:13px;font-weight:700;color:#111}
+.sch-card-info{font-size:11px;color:#9CA3AF;margin-top:1px}
+.sch-card-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.status-badge{border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;white-space:nowrap}
+.today-badge{background:#FEF3C7;color:#D97706;font-size:10px;font-weight:700;border-radius:10px;padding:2px 7px}
+.empty-state{text-align:center;padding:36px 20px;color:#9CA3AF;font-size:13px}
 
-  /* ── 메인 입력기 ── */
-  #main-screen{display:none}
+/* ── 메인 레이아웃 ── */
+#main-screen{display:none;height:100vh;flex-direction:column}
 
-  /* 상단 헤더 */
-  #top-bar{background:#fff;border-bottom:1px solid #E8DFD0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-  .top-bar-left{display:flex;align-items:center;gap:10px}
-  .top-bar-logo{font-family:Georgia,serif;font-size:14px;font-weight:700;color:#C7A96B}
-  .top-bar-schedule{font-size:13px;font-weight:700;color:#111827}
-  .top-bar-right{display:flex;gap:8px;align-items:center}
-  .btn-change{background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#6B7280}
-  .btn-dashboard{background:#C7A96B;color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700}
+/* 상단바 */
+#top-bar{background:#fff;border-bottom:1px solid #DCDCDC;padding:0 12px;display:flex;align-items:center;justify-content:space-between;height:40px;flex-shrink:0}
+.top-logo{font-family:Georgia,serif;font-size:12px;font-weight:700;color:#C7A96B;letter-spacing:1px}
+.top-sch{font-size:13px;font-weight:700;color:#111;margin-left:8px}
+.top-right{display:flex;gap:5px;align-items:center}
+.topbtn{border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;line-height:1}
+.topbtn-ghost{background:#F3F4F6;border:1px solid #E0E0E0;color:#6B7280}
+.topbtn-gold{background:#C7A96B;color:#fff}
 
-  /* 메인 레이아웃 */
-  #main-content{display:grid;grid-template-columns:1fr 320px;gap:0;height:calc(100vh - 53px)}
-  @media(max-width:768px){
-    #main-content{grid-template-columns:1fr;height:auto}
-  }
+/* 2-column body */
+#main-body{display:grid;grid-template-columns:1fr 280px;flex:1;overflow:hidden}
 
-  /* 좌측: 입력 폼 */
-  #input-panel{padding:16px;overflow-y:auto;height:100%}
-  @media(max-width:768px){#input-panel{height:auto}}
+/* ── 왼쪽 입력 ── */
+#input-panel{overflow-y:auto;padding:8px;background:#EDEDED;display:flex;flex-direction:column;gap:6px}
 
-  /* 섹션 */
-  .input-section{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;border:1px solid #E5E7EB}
-  .section-label{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+.card{background:#fff;border-radius:9px;padding:9px 11px;border:1px solid #E0E0E0}
+.card-title{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.4px;margin-bottom:6px;text-transform:uppercase}
 
-  /* 토글 버튼 그룹 */
-  .toggle-group{display:grid;gap:8px}
-  .toggle-group.cols-2{grid-template-columns:1fr 1fr}
-  .toggle-group.cols-3{grid-template-columns:1fr 1fr 1fr}
-  .toggle-group.cols-5{grid-template-columns:repeat(5,1fr)}
-  .toggle-btn{border-radius:10px;padding:10px 4px;font-size:13px;font-weight:600;border:1.5px solid #E5E7EB;background:#F9FAFB;color:#6B7280;transition:all .15s;text-align:center;line-height:1.3}
-  .toggle-btn.active{background:#C7A96B;color:#fff;border-color:#C7A96B}
-  .toggle-btn.active-blue{background:#3B82F6;color:#fff;border-color:#3B82F6}
-  .toggle-btn.active-pink{background:#EC4899;color:#fff;border-color:#EC4899}
+/* 토글 */
+.tog-group{display:flex;gap:5px}
+.tog-btn{flex:1;border-radius:7px;padding:7px 4px;font-size:13px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;text-align:center;transition:all .1s;line-height:1.2}
+.tog-btn:active{transform:scale(.97)}
+.tog-blue{background:#3B82F6;color:#fff;border-color:#3B82F6}
+.tog-pink{background:#EC4899;color:#fff;border-color:#EC4899}
+.tog-dark{background:#111;color:#fff;border-color:#111}
+.tog-gray{background:#6B7280;color:#fff;border-color:#6B7280}
 
-  /* 금액 버튼 */
-  .amount-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
-  @media(max-width:480px){.amount-grid{grid-template-columns:repeat(3,1fr)}}
-  .amount-btn{border-radius:10px;padding:12px 4px;font-size:13px;font-weight:700;border:1.5px solid #E5E7EB;background:#F9FAFB;color:#374151;transition:all .15s;text-align:center}
-  .amount-btn:active{transform:scale(.96)}
-  .amount-btn.active{background:#111827;color:#fff;border-color:#111827}
-  .amount-btn.custom{background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B}
+/* 금액 버튼 */
+.amt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:6px}
+.amt-btn{border-radius:7px;padding:8px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#333;text-align:center;transition:all .1s}
+.amt-btn:active{transform:scale(.96)}
+.amt-active{background:#111;color:#fff;border-color:#111}
+.amt-custom{background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B}
 
-  /* 직접 입력 */
-  .form-input{border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 12px;font-size:15px;color:#111827;background:#fff;width:100%;transition:border-color .15s}
-  .form-input:focus{border-color:#C7A96B}
-  .form-input-wrap{position:relative}
-  .form-input-unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:#9CA3AF;font-weight:600;pointer-events:none}
+.form-input{border:1.5px solid #E0E0E0;border-radius:7px;padding:7px 10px;font-size:14px;color:#111;background:#fff;width:100%;transition:border-color .15s}
+.form-input:focus{border-color:#C7A96B}
+.inp-wrap{position:relative}
+.inp-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#9CA3AF;font-weight:600;pointer-events:none}
 
-  /* 관계 버튼 */
-  .relation-grid{display:flex;flex-wrap:wrap;gap:8px}
-  .relation-btn{border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;border:1.5px solid #E5E7EB;background:#F9FAFB;color:#6B7280;transition:all .15s}
-  .relation-btn.active{background:#374151;color:#fff;border-color:#374151}
+/* 관계 */
+.rel-group{display:flex;flex-wrap:wrap;gap:4px}
+.rel-btn{border-radius:14px;padding:4px 10px;font-size:12px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;transition:all .1s}
+.rel-active{background:#374151;color:#fff;border-color:#374151}
 
-  /* 식권 카운터 */
-  .ticket-counter{display:flex;align-items:center;gap:12px}
-  .ticket-label{font-size:13px;font-weight:600;color:#374151;min-width:60px}
-  .counter-wrap{display:flex;align-items:center;gap:8px;background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:10px;padding:4px 8px}
-  .counter-btn{width:32px;height:32px;border-radius:8px;background:#fff;border:1px solid #E5E7EB;font-size:18px;font-weight:700;color:#374151;display:flex;align-items:center;justify-content:center;transition:all .15s}
-  .counter-btn:active{background:#E5E7EB}
-  .counter-val{font-size:18px;font-weight:800;color:#111827;min-width:36px;text-align:center}
+/* 식권 */
+.ticket-row{display:flex;align-items:center;gap:8px}
+.tkt-label{font-size:12px;font-weight:600;color:#374151;width:38px;flex-shrink:0}
+.counter{display:flex;align-items:center;gap:5px;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;padding:3px 6px}
+.cnt-btn{width:26px;height:26px;border-radius:5px;background:#fff;border:1px solid #E0E0E0;font-size:15px;font-weight:700;color:#333;display:flex;align-items:center;justify-content:center;line-height:1}
+.cnt-btn:active{background:#E5E7EB}
+.cnt-val{font-size:15px;font-weight:800;color:#111;min-width:26px;text-align:center}
 
-  /* 접수 버튼 */
-  .submit-btn{width:100%;background:linear-gradient(135deg,#C7A96B,#E8C98A);color:#fff;border-radius:14px;padding:16px;font-size:17px;font-weight:800;letter-spacing:.5px;box-shadow:0 4px 20px rgba(199,169,107,.4);transition:all .2s;margin-top:4px}
-  .submit-btn:active{transform:scale(.98);box-shadow:0 2px 10px rgba(199,169,107,.3)}
+/* 식권 설정 */
+.tkt-setup-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.tkt-setup-row:last-child{margin-bottom:0}
+.tkt-setup-lbl{font-size:12px;font-weight:600;color:#374151;width:84px;flex-shrink:0}
+.tkt-setup-inp{border:1.5px solid #E0E0E0;border-radius:7px;padding:5px 8px;font-size:14px;font-weight:700;color:#111;width:72px;text-align:center;background:#fff}
+.tkt-setup-inp:focus{border-color:#C7A96B}
 
-  /* 우측: 현황 패널 */
-  #stats-panel{background:#111827;color:#fff;padding:16px;overflow-y:auto;height:100%}
-  @media(max-width:768px){#stats-panel{height:auto;border-radius:0}}
+/* 접수 버튼 */
+.submit-btn{width:100%;background:linear-gradient(135deg,#C7A96B,#E8C98A);color:#fff;border-radius:9px;padding:12px;font-size:16px;font-weight:800;letter-spacing:.3px;box-shadow:0 3px 12px rgba(199,169,107,.3);transition:all .15s;flex-shrink:0}
+.submit-btn:active{transform:scale(.98)}
 
-  .stats-title{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase}
-  .stat-card{background:rgba(255,255,255,.06);border-radius:12px;padding:14px;margin-bottom:8px}
-  .stat-card-label{font-size:10px;color:#9CA3AF;margin-bottom:4px}
-  .stat-card-value{font-size:22px;font-weight:800;color:#fff;line-height:1}
-  .stat-card-sub{font-size:10px;color:#6B7280;margin-top:3px}
-  .stat-card.gold .stat-card-value{color:#C7A96B}
+/* ── 오른쪽 현황 ── */
+#stats-panel{background:#F4F2EF;border-left:1px solid #DCDCDC;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
 
-  .side-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-  .side-card{background:rgba(255,255,255,.06);border-radius:12px;padding:12px}
-  .side-card-emoji{font-size:16px;margin-bottom:6px}
-  .side-card-label{font-size:10px;color:#9CA3AF;margin-bottom:2px}
-  .side-card-value{font-size:16px;font-weight:800;color:#fff}
+.scard{background:#fff;border-radius:9px;padding:10px 12px;border:1px solid #E8E5E1}
+.scard-title{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.4px;margin-bottom:7px;text-transform:uppercase}
+.big-num{font-size:24px;font-weight:900;color:#111;line-height:1;letter-spacing:-.5px}
+.big-num.gold{color:#C7A96B}
+.big-sub{font-size:11px;color:#9CA3AF;margin-top:3px}
 
-  /* 최근 접수 리스트 */
-  .recent-title{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:1px;margin:14px 0 10px;text-transform:uppercase}
-  .recent-item{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
-  .recent-item-left{flex:1;min-width:0}
-  .recent-item-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .recent-item-info{font-size:11px;color:#6B7280;margin-top:2px}
-  .recent-item-amount{font-size:13px;font-weight:800;color:#C7A96B;white-space:nowrap;margin-left:8px}
+.mini-grid2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.mini{background:#F9F8F6;border-radius:8px;padding:8px 10px;border:1px solid #EDE9E3}
+.mini-lbl{font-size:10px;color:#9CA3AF;margin-bottom:3px}
+.mini-val{font-size:16px;font-weight:800;color:#111}
+.mini-val.blue{color:#3B82F6}
+.mini-val.pink{color:#EC4899}
+.mini-val.gold{color:#C7A96B}
 
-  /* 토스트 */
-  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:toastUp .2s ease}
-  @keyframes toastUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* 식권 현황 테이블 */
+.tkt-stat{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #F0EDE8}
+.tkt-stat:last-child{border-bottom:none;padding-bottom:0}
+.tkt-stat-lbl{font-size:11px;color:#6B7280}
+.tkt-stat-val{font-size:12px;font-weight:700;color:#111}
+.tkt-stat-val.green{color:#10B981}
+.tkt-stat-val.orange{color:#F59E0B}
+.tkt-stat-val.red{color:#EF4444}
 
-  /* 토큰 모달 */
-  #token-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
-  .token-box{background:#fff;border-radius:20px;padding:28px 24px;max-width:380px;width:100%;text-align:center}
-  .token-title{font-size:16px;font-weight:800;color:#111827;margin-bottom:8px}
-  .token-sub{font-size:13px;color:#6B7280;margin-bottom:16px}
-  .token-url{background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:10px;padding:12px;font-size:13px;color:#374151;word-break:break-all;margin-bottom:14px;font-weight:600}
-  .token-copy-btn{background:#C7A96B;color:#fff;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;width:100%;margin-bottom:8px}
-  .token-close-btn{background:#F3F4F6;color:#6B7280;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;width:100%}
+/* 최근접수 */
+.ri{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #F0EDE8}
+.ri:last-child{border-bottom:none;padding-bottom:0}
+.ri-left{flex:1;min-width:0}
+.ri-name{font-size:12px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-info{font-size:10px;color:#9CA3AF;margin-top:1px}
+.ri-amt{font-size:12px;font-weight:800;color:#C7A96B;white-space:nowrap;margin-left:6px}
+
+/* 토스트 */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25);animation:tUp .18s ease}
+@keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* 토큰 모달 */
+#token-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.token-box{background:#fff;border-radius:14px;padding:22px;max-width:340px;width:100%;text-align:center}
+.token-title{font-size:15px;font-weight:800;color:#111;margin-bottom:5px}
+.token-sub{font-size:11px;color:#6B7280;margin-bottom:11px}
+.token-url{background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:8px;padding:9px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:11px;font-weight:600;text-align:left}
+.token-copy-btn{background:#C7A96B;color:#fff;border-radius:8px;padding:9px;font-size:13px;font-weight:700;width:100%;margin-bottom:5px}
+.token-close-btn{background:#F3F4F6;color:#6B7280;border-radius:8px;padding:9px;font-size:13px;font-weight:700;width:100%}
+
+.STATUS_계약완료{background:#F3F4F6;color:#6B7280}
+.STATUS_인터뷰대기{background:#FFFBEB;color:#D97706}
+.STATUS_최종준비완료{background:#EFF6FF;color:#3B82F6}
+.STATUS_진행완료{background:#ECFDF5;color:#10B981}
+.STATUS_긴급확인{background:#FEF2F2;color:#EF4444}
 </style>
 </head>
 <body>
 
-<!-- ── 로그인 ── -->
+<!-- 로그인 -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">Dear Guard</div>
@@ -156,190 +174,232 @@
     <div class="login-field">
       <label class="login-label">비밀번호</label>
       <input class="login-input" id="login-pw" type="password" placeholder="비밀번호 입력"
-        onkeydown="if(event.key==='Enter') doLogin()">
+        onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
-<!-- ── 예식 선택 ── -->
+<!-- 예식 선택 -->
 <div id="schedule-select-screen">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding-top:8px">
+  <div class="sch-header">
     <div>
-      <div class="screen-title">📋 예식 선택</div>
-      <div class="screen-sub">오늘 또는 진행 중인 예식을 선택하세요</div>
+      <div class="sch-title">예식 선택</div>
+      <div class="sch-sub">담당 예식을 선택하세요</div>
     </div>
-    <button onclick="doLogout()" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:#6B7280">로그아웃</button>
+    <button class="btn-sm" onclick="doLogout()">로그아웃</button>
   </div>
   <div id="schedule-list-wrap"></div>
 </div>
 
-<!-- ── 메인 입력기 ── -->
+<!-- 메인 -->
 <div id="main-screen">
-  <!-- 상단 바 -->
+  <!-- 상단바 -->
   <div id="top-bar">
-    <div class="top-bar-left">
-      <span class="top-bar-logo">DG</span>
-      <span class="top-bar-schedule" id="top-schedule-name">—</span>
+    <div style="display:flex;align-items:center;gap:4px">
+      <span class="top-logo">DG</span>
+      <span style="color:#DCDCDC">|</span>
+      <span class="top-sch" id="top-schedule-name">—</span>
     </div>
-    <div class="top-bar-right">
-      <button class="btn-change" onclick="goSelectSchedule()">예식 변경</button>
-      <button class="btn-dashboard" onclick="showDashboardLink()">📱 대시보드 링크</button>
-      <button onclick="doLogout()" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;color:#6B7280">로그아웃</button>
+    <div class="top-right">
+      <button class="topbtn topbtn-ghost" onclick="goSelectSchedule()">예식 변경</button>
+      <button class="topbtn topbtn-gold" onclick="showDashboardLink()">📱 대시보드</button>
+      <button class="topbtn topbtn-ghost" onclick="doLogout()">로그아웃</button>
     </div>
   </div>
 
-  <!-- 메인 콘텐츠 -->
-  <div id="main-content">
+  <div id="main-body">
 
-    <!-- 좌측: 입력 폼 -->
+    <!-- 왼쪽: 입력 -->
     <div id="input-panel">
 
-      <!-- 신랑/신부측 -->
-      <div class="input-section">
-        <div class="section-label">접수 측</div>
-        <div class="toggle-group cols-2">
-          <button class="toggle-btn active-blue" id="side-groom" onclick="setSide('groom')">🤵 신랑측</button>
-          <button class="toggle-btn" id="side-bride" onclick="setSide('bride')">👰 신부측</button>
+      <!-- 식권 초기 설정 -->
+      <div class="card">
+        <div class="card-title">식권 초기 설정 (예식 시작 전 입력)</div>
+        <div class="tkt-setup-row">
+          <span class="tkt-setup-lbl">🤵 신랑측 총</span>
+          <input class="tkt-setup-inp" id="groom-total-ticket" type="number" placeholder="0"
+            min="0" oninput="saveTotalTickets()">
+          <span style="font-size:11px;color:#9CA3AF">장</span>
+        </div>
+        <div class="tkt-setup-row">
+          <span class="tkt-setup-lbl">👰 신부측 총</span>
+          <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="0"
+            min="0" oninput="saveTotalTickets()">
+          <span style="font-size:11px;color:#9CA3AF">장</span>
         </div>
       </div>
 
-      <!-- 결제 수단 -->
-      <div class="input-section">
-        <div class="section-label">결제 방식</div>
-        <div class="toggle-group cols-2">
-          <button class="toggle-btn active" id="pay-cash" onclick="setPayment('cash')">💵 현금</button>
-          <button class="toggle-btn" id="pay-transfer" onclick="setPayment('transfer')">📱 계좌이체</button>
+      <!-- 접수 측 -->
+      <div class="card">
+        <div class="card-title">접수 측</div>
+        <div class="tog-group">
+          <button class="tog-btn tog-blue" id="side-groom" onclick="setSide('groom')">🤵 신랑측</button>
+          <button class="tog-btn" id="side-bride" onclick="setSide('bride')">👰 신부측</button>
+        </div>
+      </div>
+
+      <!-- 결제 방식 -->
+      <div class="card">
+        <div class="card-title">결제 방식</div>
+        <div class="tog-group">
+          <button class="tog-btn tog-dark" id="pay-cash" onclick="setPayment('cash')">💵 현금</button>
+          <button class="tog-btn" id="pay-transfer" onclick="setPayment('transfer')">📱 계좌이체</button>
         </div>
       </div>
 
       <!-- 금액 -->
-      <div class="input-section">
-        <div class="section-label">금액</div>
-        <div class="amount-grid">
-          <button class="amount-btn" onclick="setAmount(50000)">5만</button>
-          <button class="amount-btn" onclick="setAmount(100000)">10만</button>
-          <button class="amount-btn" onclick="setAmount(150000)">15만</button>
-          <button class="amount-btn" onclick="setAmount(200000)">20만</button>
-          <button class="amount-btn" onclick="setAmount(300000)">30만</button>
-          <button class="amount-btn" onclick="setAmount(500000)">50만</button>
-          <button class="amount-btn" onclick="setAmount(70000)">7만</button>
-          <button class="amount-btn custom" onclick="focusCustomAmount()">직접입력</button>
+      <div class="card">
+        <div class="card-title">금액</div>
+        <div class="amt-grid">
+          <button class="amt-btn" onclick="setAmount(50000)">5만</button>
+          <button class="amt-btn" onclick="setAmount(100000)">10만</button>
+          <button class="amt-btn" onclick="setAmount(150000)">15만</button>
+          <button class="amt-btn" onclick="setAmount(200000)">20만</button>
+          <button class="amt-btn" onclick="setAmount(300000)">30만</button>
+          <button class="amt-btn" onclick="setAmount(500000)">50만</button>
+          <button class="amt-btn" onclick="setAmount(70000)">7만</button>
+          <button class="amt-btn amt-custom" onclick="focusCustomAmount()">직접입력</button>
         </div>
-        <div class="form-input-wrap">
+        <div class="inp-wrap">
           <input class="form-input" id="amount-input" type="number" placeholder="금액 직접 입력"
-            oninput="onAmountInput()" style="padding-right:40px">
-          <span class="form-input-unit">원</span>
+            oninput="onAmountInput()" style="padding-right:30px">
+          <span class="inp-unit">원</span>
         </div>
       </div>
 
-      <!-- 하객 정보 -->
-      <div class="input-section">
-        <div class="section-label">하객 정보</div>
-        <input class="form-input" id="guest-name" placeholder="이름 (선택)" style="margin-bottom:10px">
-        <div class="relation-grid" id="relation-btns">
-          <button class="relation-btn" onclick="setRelation('친구')">친구</button>
-          <button class="relation-btn" onclick="setRelation('직장')">직장</button>
-          <button class="relation-btn" onclick="setRelation('가족')">가족</button>
-          <button class="relation-btn" onclick="setRelation('혼주')">혼주</button>
-          <button class="relation-btn" onclick="setRelation('기타')">기타</button>
+      <!-- 하객 + 관계 -->
+      <div class="card">
+        <div class="card-title">하객 정보</div>
+        <input class="form-input" id="guest-name" placeholder="이름 (선택)" style="margin-bottom:6px">
+        <div class="rel-group">
+          <button class="rel-btn" onclick="setRelation('친구')">친구</button>
+          <button class="rel-btn" onclick="setRelation('직장')">직장</button>
+          <button class="rel-btn" onclick="setRelation('가족')">가족</button>
+          <button class="rel-btn" onclick="setRelation('혼주')">혼주</button>
+          <button class="rel-btn" onclick="setRelation('기타')">기타</button>
         </div>
       </div>
 
       <!-- 식권 -->
-      <div class="input-section">
-        <div class="section-label">식권</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div class="ticket-counter">
-            <span class="ticket-label">대인</span>
-            <div class="counter-wrap">
-              <button class="counter-btn" onclick="changeTicket('adult',-1)">−</button>
-              <span class="counter-val" id="adult-ticket-val">0</span>
-              <button class="counter-btn" onclick="changeTicket('adult',1)">＋</button>
+      <div class="card">
+        <div class="card-title">식권</div>
+        <div style="display:flex;gap:16px">
+          <div class="ticket-row">
+            <span class="tkt-label">대인</span>
+            <div class="counter">
+              <button class="cnt-btn" onclick="changeTicket('adult',-1)">−</button>
+              <span class="cnt-val" id="adult-ticket-val">0</span>
+              <button class="cnt-btn" onclick="changeTicket('adult',1)">＋</button>
             </div>
-            <span style="font-size:12px;color:#9CA3AF;margin-left:4px">매</span>
+            <span style="font-size:11px;color:#9CA3AF;margin-left:4px">매</span>
           </div>
-          <div class="ticket-counter">
-            <span class="ticket-label">소인</span>
-            <div class="counter-wrap">
-              <button class="counter-btn" onclick="changeTicket('child',-1)">−</button>
-              <span class="counter-val" id="child-ticket-val">0</span>
-              <button class="counter-btn" onclick="changeTicket('child',1)">＋</button>
+          <div class="ticket-row">
+            <span class="tkt-label">소인</span>
+            <div class="counter">
+              <button class="cnt-btn" onclick="changeTicket('child',-1)">−</button>
+              <span class="cnt-val" id="child-ticket-val">0</span>
+              <button class="cnt-btn" onclick="changeTicket('child',1)">＋</button>
             </div>
-            <span style="font-size:12px;color:#9CA3AF;margin-left:4px">매</span>
+            <span style="font-size:11px;color:#9CA3AF;margin-left:4px">매</span>
           </div>
         </div>
       </div>
 
       <!-- 메모 -->
-      <div class="input-section">
-        <div class="section-label">메모 (선택)</div>
-        <textarea class="form-input" id="memo-input" rows="2" placeholder="특이사항 메모" style="resize:none;line-height:1.6"></textarea>
+      <div class="card">
+        <div class="card-title">메모 (선택)</div>
+        <textarea class="form-input" id="memo-input" rows="2"
+          placeholder="특이사항" style="resize:none;line-height:1.5;font-size:12px"></textarea>
       </div>
 
-      <!-- 접수 버튼 -->
       <button class="submit-btn" onclick="submitEntry()">✅ 접수 완료</button>
-      <div style="height:24px"></div>
+      <div style="height:8px"></div>
     </div>
 
-    <!-- 우측: 현황 패널 -->
+    <!-- 오른쪽: 현황 -->
     <div id="stats-panel">
-      <div class="stats-title">실시간 현황</div>
 
-      <div class="stat-card gold">
-        <div class="stat-card-label">총 축의금</div>
-        <div class="stat-card-value" id="stat-total-amount">0원</div>
-        <div class="stat-card-sub" id="stat-total-count">총 0건</div>
+      <!-- 총 축의금 -->
+      <div class="scard">
+        <div class="scard-title">총 축의금</div>
+        <div class="big-num gold" id="stat-total-amount">0원</div>
+        <div class="big-sub" id="stat-total-count">총 0건</div>
       </div>
 
-      <div class="side-stats">
-        <div class="side-card">
-          <div class="side-card-emoji">🤵</div>
-          <div class="side-card-label">신랑측</div>
-          <div class="side-card-value" id="stat-groom-amount">0원</div>
-          <div style="font-size:10px;color:#6B7280;margin-top:2px" id="stat-groom-count">0건</div>
+      <!-- 신랑/신부 -->
+      <div class="mini-grid2">
+        <div class="mini">
+          <div class="mini-lbl">🤵 신랑측</div>
+          <div class="mini-val blue" id="stat-groom-amount">0원</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:2px" id="stat-groom-count">0건</div>
         </div>
-        <div class="side-card">
-          <div class="side-card-emoji">👰</div>
-          <div class="side-card-label">신부측</div>
-          <div class="side-card-value" id="stat-bride-amount">0원</div>
-          <div style="font-size:10px;color:#6B7280;margin-top:2px" id="stat-bride-count">0건</div>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div class="stat-card" style="margin-bottom:0">
-          <div class="stat-card-label">대인 식권</div>
-          <div class="stat-card-value" id="stat-adult-ticket">0매</div>
-        </div>
-        <div class="stat-card" style="margin-bottom:0">
-          <div class="stat-card-label">소인 식권</div>
-          <div class="stat-card-value" id="stat-child-ticket">0매</div>
+        <div class="mini">
+          <div class="mini-lbl">👰 신부측</div>
+          <div class="mini-val pink" id="stat-bride-amount">0원</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:2px" id="stat-bride-count">0건</div>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0">
-        <div class="stat-card" style="margin-bottom:0">
-          <div class="stat-card-label">💵 현금</div>
-          <div class="stat-card-value" id="stat-cash-count">0건</div>
+      <!-- 신랑 식권 -->
+      <div class="scard">
+        <div class="scard-title">🤵 신랑측 식권</div>
+        <div class="tkt-stat">
+          <span class="tkt-stat-lbl">총 보유</span>
+          <span class="tkt-stat-val" id="g-total-tkt">미설정</span>
         </div>
-        <div class="stat-card" style="margin-bottom:0">
-          <div class="stat-card-label">📱 계좌이체</div>
-          <div class="stat-card-value" id="stat-transfer-count">0건</div>
+        <div class="tkt-stat">
+          <span class="tkt-stat-lbl">사용</span>
+          <span class="tkt-stat-val" id="g-used-tkt">0장</span>
+        </div>
+        <div class="tkt-stat">
+          <span class="tkt-stat-lbl">잔여</span>
+          <span class="tkt-stat-val green" id="g-remain-tkt">—</span>
         </div>
       </div>
 
-      <div class="recent-title">최근 접수</div>
-      <div id="recent-list"></div>
+      <!-- 신부 식권 -->
+      <div class="scard">
+        <div class="scard-title">👰 신부측 식권</div>
+        <div class="tkt-stat">
+          <span class="tkt-stat-lbl">총 보유</span>
+          <span class="tkt-stat-val" id="b-total-tkt">미설정</span>
+        </div>
+        <div class="tkt-stat">
+          <span class="tkt-stat-lbl">사용</span>
+          <span class="tkt-stat-val" id="b-used-tkt">0장</span>
+        </div>
+        <div class="tkt-stat">
+          <span class="tkt-stat-lbl">잔여</span>
+          <span class="tkt-stat-val green" id="b-remain-tkt">—</span>
+        </div>
+      </div>
+
+      <!-- 결제 방식 -->
+      <div class="mini-grid2">
+        <div class="mini">
+          <div class="mini-lbl">💵 현금</div>
+          <div class="mini-val" id="stat-cash">0건</div>
+        </div>
+        <div class="mini">
+          <div class="mini-lbl">📱 계좌이체</div>
+          <div class="mini-val" id="stat-transfer">0건</div>
+        </div>
+      </div>
+
+      <!-- 최근 접수 -->
+      <div class="scard" style="flex:1;min-height:0">
+        <div class="scard-title">최근 접수</div>
+        <div id="recent-list"></div>
+      </div>
+
     </div>
   </div>
 </div>
 
-<!-- 토스트 -->
 <div id="toast"></div>
 
-<!-- 대시보드 링크 모달 -->
 <div id="token-modal">
   <div class="token-box">
     <div class="token-title">📱 고객 대시보드 링크</div>
@@ -351,36 +411,19 @@
 </div>
 
 <script>
-// ════════════════════════════════════════════════════
-//  SUPABASE 설정
-// ════════════════════════════════════════════════════
-const SUPABASE_URL     = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
+const SUPABASE_URL      = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
+const ADMIN_NAMES       = ['강성주','전수연'];
 
 const sb = {
-  h: {'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
-  url: (t,q='') => `${SUPABASE_URL}/rest/v1/${t}${q}`,
-  async get(t,q=''){
-    const r = await fetch(sb.url(t,q),{headers:sb.h});
-    if(!r.ok) throw new Error(await r.text());
-    return r.json();
-  },
-  async post(t,body){
-    const r = await fetch(sb.url(t),{method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(body)});
-    if(!r.ok) throw new Error(await r.text());
-    return r.json();
-  },
-  async patch(t,id,body){
-    const r = await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(body)});
-    if(!r.ok) throw new Error(await r.text());
-    return r.json();
-  }
+  h:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
+  url:(t,q='')=>`${SUPABASE_URL}/rest/v1/${t}${q}`,
+  async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
+  async post(t,b){ const r=await fetch(sb.url(t),{method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
+  async patch(t,id,b){ const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 };
 
-// ════════════════════════════════════════════════════
-//  유저 / 상태
-// ════════════════════════════════════════════════════
-const USERS = [
+const USERS=[
   {id:1,name:'강성주',role:'대표',pw:'gg'},
   {id:2,name:'전수연',role:'실장',pw:'gg'},
   {id:3,name:'조윤성',role:'실장',pw:'ys'},
@@ -391,354 +434,289 @@ const USERS = [
   {id:8,name:'김홍주',role:'실장',pw:'hj'},
 ];
 
-let currentUser  = null;
-let currentSchedule = null;
-let logs = [];
+const STATUS_CFG={'계약완료':{c:'#6B7280'},'인터뷰대기':{c:'#D97706'},'최종준비완료':{c:'#3B82F6'},'진행완료':{c:'#10B981'},'긴급확인':{c:'#EF4444'}};
 
-// 입력 상태
-let state = {
-  side: 'groom',
-  payment: 'cash',
-  amount: 0,
-  relation: '',
-  adultTicket: 0,
-  childTicket: 0,
-};
+const TODAY=(()=>{ const d=new Date(); const k=new Date(d.getTime()+9*60*60*1000); return k.toISOString().slice(0,10); })();
 
-function fmt(n){ return Math.round(n/10000) + '만원'; }
-function fmtFull(n){ return n.toLocaleString() + '원'; }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let currentUser=null, currentSchedule=null, logs=[];
+let totalTickets={groom:0,bride:0};
+const st={side:'groom',payment:'cash',amount:0,relation:'',adultTicket:0,childTicket:0};
 
-// ════════════════════════════════════════════════════
-//  로그인
-// ════════════════════════════════════════════════════
+const fmt=n=>n>=10000?Math.round(n/10000)+'만원':n.toLocaleString()+'원';
+const fmtFull=n=>n.toLocaleString()+'원';
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ── 로그인 ──
 function initLogin(){
-  const sel = document.getElementById('login-name');
-  sel.innerHTML = '<option value="">— 이름을 선택하세요 —</option>'
-    + USERS.map(u=>`<option value="${u.id}">${u.name} (${u.role})</option>`).join('');
+  const sel=document.getElementById('login-name');
+  sel.innerHTML='<option value="">— 이름을 선택하세요 —</option>'+USERS.map(u=>`<option value="${u.id}">${u.name} (${u.role})</option>`).join('');
 }
-
 function doLogin(){
-  const nameVal = document.getElementById('login-name').value;
-  const pwVal   = document.getElementById('login-pw').value;
-  const errEl   = document.getElementById('login-err');
-  errEl.textContent = '';
-
-  if(!nameVal){ errEl.textContent = '이름을 선택해주세요.'; return; }
-  if(!pwVal)  { errEl.textContent = '비밀번호를 입력해주세요.'; return; }
-
-  const user = USERS.find(u => u.id === Number(nameVal));
-  if(!user || user.pw !== pwVal){
-    errEl.textContent = '비밀번호가 올바르지 않습니다.';
-    document.getElementById('login-pw').value = '';
-    return;
-  }
-
-  currentUser = user;
-  localStorage.setItem('dg_contrib_user', user.id);
-  document.getElementById('login-screen').style.display = 'none';
+  const nv=document.getElementById('login-name').value;
+  const pw=document.getElementById('login-pw').value;
+  const err=document.getElementById('login-err');
+  err.textContent='';
+  if(!nv){err.textContent='이름을 선택해주세요.';return;}
+  if(!pw){err.textContent='비밀번호를 입력해주세요.';return;}
+  const user=USERS.find(u=>u.id===Number(nv));
+  if(!user||user.pw!==pw){err.textContent='비밀번호가 올바르지 않습니다.';document.getElementById('login-pw').value='';return;}
+  currentUser=user;
+  localStorage.setItem('dg_contrib_user',user.id);
+  document.getElementById('login-screen').style.display='none';
   goSelectSchedule();
 }
+function doLogout(){ localStorage.removeItem('dg_contrib_user'); location.reload(); }
 
-function doLogout(){
-  localStorage.removeItem('dg_contrib_user');
-  location.reload();
+// ── 예식 선택 ──
+async function goSelectSchedule(){
+  currentSchedule=null;
+  document.getElementById('main-screen').style.display='none';
+  document.body.style.overflow='auto';
+  document.getElementById('schedule-select-screen').style.display='block';
+  const wrap=document.getElementById('schedule-list-wrap');
+  wrap.innerHTML='<div class="empty-state">불러오는 중...</div>';
+  try {
+    let rows=await sb.get('schedules','?order=date.asc,time.asc');
+    const isAdmin=ADMIN_NAMES.includes(currentUser.name);
+    if(!isAdmin) rows=rows.filter(s=>(s.front_manager||'').includes(currentUser.name)||(s.back_manager||'').includes(currentUser.name));
+    if(!rows.length){wrap.innerHTML='<div class="empty-state">담당 예식이 없습니다</div>';return;}
+    const todayRows=rows.filter(s=>s.date===TODAY);
+    const otherRows=rows.filter(s=>s.date!==TODAY);
+    let html='';
+    if(todayRows.length) html+='<div class="section-label">📅 오늘 예식</div>'+todayRows.map(schCard).join('');
+    if(otherRows.length) html+='<div class="section-label">다가오는 예식</div>'+otherRows.map(schCard).join('');
+    wrap.innerHTML=html;
+  } catch(e){ wrap.innerHTML=`<div class="empty-state">로드 실패: ${e.message}</div>`; }
 }
 
-// ════════════════════════════════════════════════════
-//  예식 선택
-// ════════════════════════════════════════════════════
-async function goSelectSchedule(){
-  currentSchedule = null;
-  document.getElementById('main-screen').style.display = 'none';
-  document.getElementById('schedule-select-screen').style.display = 'block';
-
-  const wrap = document.getElementById('schedule-list-wrap');
-  wrap.innerHTML = '<div class="empty-state">불러오는 중...</div>';
-
-  try {
-    const rows = await sb.get('schedules', '?order=date.asc,time.asc&status=neq.진행완료');
-    if(!rows.length){
-      wrap.innerHTML = '<div class="empty-state">예식 데이터가 없습니다</div>';
-      return;
-    }
-    wrap.innerHTML = rows.map(s => {
-      const g = (s.groom_name||'').trim();
-      const b = (s.bride_name||'').trim();
-      const name = (g && b) ? `${g} ♥ ${b}` : g ? `${g} 신랑측` : b ? `${b} 신부측` : s.hall || '미입력';
-      const info = `${s.date||''} · ${(s.time||'').slice(0,5)} · ${s.hall||''}`;
-      return `<div class="schedule-card" onclick="selectSchedule(${s.id})">
-        <div>
-          <div class="schedule-card-name">💍 ${esc(name)}</div>
-          <div class="schedule-card-info">${esc(info)}</div>
-        </div>
-        <div class="schedule-card-arrow">›</div>
-      </div>`;
-    }).join('');
-  } catch(e){
-    wrap.innerHTML = `<div class="empty-state">로드 실패: ${e.message}</div>`;
-  }
+function schCard(s){
+  const g=(s.groom_name||'').trim(),b=(s.bride_name||'').trim();
+  const name=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:s.hall||'미입력';
+  const info=`${s.date||''} · ${(s.time||'').slice(0,5)} · ${s.hall||''}`;
+  const status=s.status||'계약완료';
+  const col=(STATUS_CFG[status]||{c:'#9CA3AF'}).c;
+  const isToday=s.date===TODAY;
+  return `<div class="sch-card" onclick="selectSchedule(${s.id})">
+    <div>
+      <div class="sch-card-name">💍 ${esc(name)}</div>
+      <div class="sch-card-info">${esc(info)}</div>
+    </div>
+    <div class="sch-card-right">
+      ${isToday?'<span class="today-badge">오늘</span>':''}
+      <span class="status-badge" style="background:${col}20;color:${col}">${esc(status)}</span>
+      <span style="color:#C7A96B;font-size:15px">›</span>
+    </div>
+  </div>`;
 }
 
 async function selectSchedule(id){
   try {
-    const rows = await sb.get('schedules', `?id=eq.${id}`);
+    const rows=await sb.get('schedules',`?id=eq.${id}`);
     if(!rows.length) return;
-    currentSchedule = rows[0];
-
-    // 대시보드 토큰 없으면 생성
+    currentSchedule=rows[0];
     if(!currentSchedule.dashboard_token){
-      const token = Math.random().toString(36).slice(2,12).toUpperCase();
-      await sb.patch('schedules', id, { dashboard_token: token });
-      currentSchedule.dashboard_token = token;
+      const token=Math.random().toString(36).slice(2,12).toUpperCase();
+      await sb.patch('schedules',id,{dashboard_token:token});
+      currentSchedule.dashboard_token=token;
     }
+    const g=(currentSchedule.groom_name||'').trim(),b=(currentSchedule.bride_name||'').trim();
+    const name=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:currentSchedule.hall||'미입력';
+    document.getElementById('top-schedule-name').textContent=name;
 
-    const g = (currentSchedule.groom_name||'').trim();
-    const b = (currentSchedule.bride_name||'').trim();
-    const name = (g && b) ? `${g} ♥ ${b}` : g ? `${g} 신랑측` : b ? `${b} 신부측` : currentSchedule.hall || '미입력';
-    document.getElementById('top-schedule-name').textContent = name;
+    // 식권 설정 복원
+    const saved=JSON.parse(localStorage.getItem(`dg_tickets_${id}`)||'{}');
+    totalTickets.groom=saved.groom||0;
+    totalTickets.bride=saved.bride||0;
+    document.getElementById('groom-total-ticket').value=totalTickets.groom||'';
+    document.getElementById('bride-total-ticket').value=totalTickets.bride||'';
 
-    document.getElementById('schedule-select-screen').style.display = 'none';
-    document.getElementById('main-screen').style.display = 'block';
+    document.getElementById('schedule-select-screen').style.display='none';
+    document.getElementById('main-screen').style.display='flex';
+    document.body.style.overflow='hidden';
 
     await loadLogs();
     subscribeRealtime();
-  } catch(e){
-    showToast('⚠️ 예식 로드 실패');
-  }
+  } catch(e){ showToast('⚠️ 예식 로드 실패'); }
 }
 
-// ════════════════════════════════════════════════════
-//  데이터 로드
-// ════════════════════════════════════════════════════
+// ── 식권 설정 ──
+function saveTotalTickets(){
+  totalTickets.groom=Number(document.getElementById('groom-total-ticket').value)||0;
+  totalTickets.bride=Number(document.getElementById('bride-total-ticket').value)||0;
+  if(currentSchedule) localStorage.setItem(`dg_tickets_${currentSchedule.id}`,JSON.stringify(totalTickets));
+  renderStats();
+}
+
+// ── 데이터 로드 ──
 async function loadLogs(){
   if(!currentSchedule) return;
   try {
-    logs = await sb.get('contribution_logs', `?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
-    renderStats();
-    renderRecent();
-  } catch(e){
-    console.error('logs 로드 실패:', e);
-  }
+    logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
+    renderStats(); renderRecent();
+  } catch(e){ console.error('logs 로드 실패:',e); }
 }
 
-// ════════════════════════════════════════════════════
-//  실시간 구독
-// ════════════════════════════════════════════════════
+// ── 실시간 구독 ──
 function subscribeRealtime(){
-  const ws = new WebSocket(
-    `wss://fmvomfjmkbklhaaapkbk.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`
-  );
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      topic: `realtime:public:contribution_logs:schedule_id=eq.${currentSchedule.id}`,
-      event: 'phx_join', payload: {}, ref: '1'
-    }));
-  };
-  ws.onmessage = async (e) => {
-    const msg = JSON.parse(e.data);
-    if(msg.event === 'INSERT' || msg.event === 'UPDATE' || msg.event === 'DELETE'){
-      await loadLogs();
-    }
-  };
+  const ws=new WebSocket(`wss://fmvomfjmkbklhaaapkbk.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`);
+  ws.onopen=()=>ws.send(JSON.stringify({topic:`realtime:public:contribution_logs:schedule_id=eq.${currentSchedule.id}`,event:'phx_join',payload:{},ref:'1'}));
+  ws.onmessage=async(e)=>{ const msg=JSON.parse(e.data); if(['INSERT','UPDATE','DELETE'].includes(msg.event)) await loadLogs(); };
+  ws.onclose=()=>setTimeout(subscribeRealtime,3000);
 }
 
-// ════════════════════════════════════════════════════
-//  통계 렌더
-// ════════════════════════════════════════════════════
+// ── 통계 렌더 ──
 function renderStats(){
-  const total      = logs.reduce((s,l) => s + (l.amount||0), 0);
-  const groomLogs  = logs.filter(l => l.side === '신랑측');
-  const brideLogs  = logs.filter(l => l.side === '신부측');
-  const groomAmt   = groomLogs.reduce((s,l) => s + (l.amount||0), 0);
-  const brideAmt   = brideLogs.reduce((s,l) => s + (l.amount||0), 0);
-  const adultTkt   = logs.reduce((s,l) => s + (l.adult_ticket||0), 0);
-  const childTkt   = logs.reduce((s,l) => s + (l.child_ticket||0), 0);
-  const cashCnt    = logs.filter(l => l.payment_type === '현금').length;
-  const transCnt   = logs.filter(l => l.payment_type === '계좌이체').length;
+  const total=logs.reduce((s,l)=>s+(l.amount||0),0);
+  const gL=logs.filter(l=>l.side==='신랑측');
+  const bL=logs.filter(l=>l.side==='신부측');
+  const gAmt=gL.reduce((s,l)=>s+(l.amount||0),0);
+  const bAmt=bL.reduce((s,l)=>s+(l.amount||0),0);
+  const cashCnt=logs.filter(l=>l.payment_type==='현금').length;
+  const transCnt=logs.filter(l=>l.payment_type==='계좌이체').length;
+  const gUsed=gL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+  const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+  const gRemain=totalTickets.groom>0?totalTickets.groom-gUsed:null;
+  const bRemain=totalTickets.bride>0?totalTickets.bride-bUsed:null;
 
-  document.getElementById('stat-total-amount').textContent  = fmtFull(total);
-  document.getElementById('stat-total-count').textContent   = `총 ${logs.length}건`;
-  document.getElementById('stat-groom-amount').textContent  = fmt(groomAmt);
-  document.getElementById('stat-groom-count').textContent   = `${groomLogs.length}건`;
-  document.getElementById('stat-bride-amount').textContent  = fmt(brideAmt);
-  document.getElementById('stat-bride-count').textContent   = `${brideLogs.length}건`;
-  document.getElementById('stat-adult-ticket').textContent  = adultTkt + '매';
-  document.getElementById('stat-child-ticket').textContent  = childTkt + '매';
-  document.getElementById('stat-cash-count').textContent    = cashCnt + '건';
-  document.getElementById('stat-transfer-count').textContent = transCnt + '건';
+  document.getElementById('stat-total-amount').textContent=fmtFull(total);
+  document.getElementById('stat-total-count').textContent=`총 ${logs.length}건`;
+  document.getElementById('stat-groom-amount').textContent=fmt(gAmt);
+  document.getElementById('stat-groom-count').textContent=`${gL.length}건`;
+  document.getElementById('stat-bride-amount').textContent=fmt(bAmt);
+  document.getElementById('stat-bride-count').textContent=`${bL.length}건`;
+  document.getElementById('stat-cash').textContent=cashCnt+'건';
+  document.getElementById('stat-transfer').textContent=transCnt+'건';
+
+  // 신랑 식권
+  document.getElementById('g-total-tkt').textContent=totalTickets.groom>0?totalTickets.groom+'장':'미설정';
+  document.getElementById('g-used-tkt').textContent=gUsed+'장';
+  const gEl=document.getElementById('g-remain-tkt');
+  if(gRemain===null){gEl.textContent='—';gEl.className='tkt-stat-val';}
+  else{gEl.textContent=gRemain+'장';gEl.className='tkt-stat-val '+(gRemain<=10?'red':gRemain<=20?'orange':'green');}
+
+  // 신부 식권
+  document.getElementById('b-total-tkt').textContent=totalTickets.bride>0?totalTickets.bride+'장':'미설정';
+  document.getElementById('b-used-tkt').textContent=bUsed+'장';
+  const bEl=document.getElementById('b-remain-tkt');
+  if(bRemain===null){bEl.textContent='—';bEl.className='tkt-stat-val';}
+  else{bEl.textContent=bRemain+'장';bEl.className='tkt-stat-val '+(bRemain<=10?'red':bRemain<=20?'orange':'green');}
 }
 
 function renderRecent(){
-  const el = document.getElementById('recent-list');
-  const recent = logs.slice(0, 20);
-  if(!recent.length){
-    el.innerHTML = '<div style="font-size:12px;color:#6B7280;text-align:center;padding:20px">아직 접수 내역이 없습니다</div>';
-    return;
-  }
-  el.innerHTML = recent.map(l => {
-    const name = l.guest_name || '익명';
-    const rel  = l.relation ? ` · ${l.relation}` : '';
-    const pay  = l.payment_type === '계좌이체' ? '📱' : '💵';
-    const tkt  = (l.adult_ticket||0) + (l.child_ticket||0) > 0
-      ? ` · 식권${(l.adult_ticket||0)+(l.child_ticket||0)}` : '';
-    const side = l.side === '신랑측' ? '🤵' : '👰';
-    return `<div class="recent-item">
-      <div class="recent-item-left">
-        <div class="recent-item-name">${side} ${esc(name)}${rel}</div>
-        <div class="recent-item-info">${pay} ${l.payment_type}${tkt}</div>
+  const el=document.getElementById('recent-list');
+  const recent=logs.slice(0,20);
+  if(!recent.length){el.innerHTML='<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:14px 0">아직 접수 내역이 없습니다</div>';return;}
+  el.innerHTML=recent.map(l=>{
+    const name=l.guest_name||'익명';
+    const rel=l.relation?` · ${l.relation}`:'';
+    const pay=l.payment_type==='계좌이체'?'📱':'💵';
+    const side=l.side==='신랑측'?'🤵':'👰';
+    const tkt=(l.adult_ticket||0)+(l.child_ticket||0);
+    return `<div class="ri">
+      <div class="ri-left">
+        <div class="ri-name">${side} ${esc(name)}${esc(rel)}</div>
+        <div class="ri-info">${pay}${tkt>0?' · 식권'+tkt:''}</div>
       </div>
-      <div class="recent-item-amount">${l.amount ? fmt(l.amount) : '-'}</div>
+      <div class="ri-amt">${l.amount?fmt(l.amount):'-'}</div>
     </div>`;
   }).join('');
 }
 
-// ════════════════════════════════════════════════════
-//  입력 상태 관리
-// ════════════════════════════════════════════════════
+// ── 입력 상태 ──
 function setSide(side){
-  state.side = side;
-  document.getElementById('side-groom').className = 'toggle-btn' + (side==='groom' ? ' active-blue' : '');
-  document.getElementById('side-bride').className = 'toggle-btn' + (side==='bride' ? ' active-pink' : '');
+  st.side=side;
+  document.getElementById('side-groom').className='tog-btn'+(side==='groom'?' tog-blue':'');
+  document.getElementById('side-bride').className='tog-btn'+(side==='bride'?' tog-pink':'');
 }
-
 function setPayment(pay){
-  state.payment = pay;
-  document.getElementById('pay-cash').className     = 'toggle-btn' + (pay==='cash'     ? ' active' : '');
-  document.getElementById('pay-transfer').className = 'toggle-btn' + (pay==='transfer' ? ' active' : '');
+  st.payment=pay;
+  document.getElementById('pay-cash').className='tog-btn'+(pay==='cash'?' tog-dark':'');
+  document.getElementById('pay-transfer').className='tog-btn'+(pay==='transfer'?' tog-gray':'');
 }
-
 function setAmount(amt){
-  state.amount = amt;
-  document.getElementById('amount-input').value = amt;
-  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
-  // 해당 버튼 active
-  const map = {50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',70000:'7만'};
-  document.querySelectorAll('.amount-btn').forEach(b => {
-    if(b.textContent === map[amt]) b.classList.add('active');
-  });
+  st.amount=amt;
+  document.getElementById('amount-input').value=amt;
+  const map={50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',70000:'7만'};
+  document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));
 }
-
 function focusCustomAmount(){
-  const inp = document.getElementById('amount-input');
-  inp.focus();
-  inp.select();
-  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+  const inp=document.getElementById('amount-input');
+  inp.focus();inp.select();
+  document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
-
 function onAmountInput(){
-  state.amount = Number(document.getElementById('amount-input').value) || 0;
-  document.querySelectorAll('.amount-btn:not(.custom)').forEach(b => b.classList.remove('active'));
+  st.amount=Number(document.getElementById('amount-input').value)||0;
+  document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
-
 function setRelation(rel){
-  state.relation = rel;
-  document.querySelectorAll('.relation-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent === rel);
-  });
+  st.relation=rel;
+  document.querySelectorAll('.rel-btn').forEach(b=>b.classList.toggle('rel-active',b.textContent===rel));
 }
-
-function changeTicket(type, delta){
-  if(type === 'adult'){
-    state.adultTicket = Math.max(0, state.adultTicket + delta);
-    document.getElementById('adult-ticket-val').textContent = state.adultTicket;
-  } else {
-    state.childTicket = Math.max(0, state.childTicket + delta);
-    document.getElementById('child-ticket-val').textContent = state.childTicket;
-  }
+function changeTicket(type,delta){
+  if(type==='adult'){st.adultTicket=Math.max(0,st.adultTicket+delta);document.getElementById('adult-ticket-val').textContent=st.adultTicket;}
+  else{st.childTicket=Math.max(0,st.childTicket+delta);document.getElementById('child-ticket-val').textContent=st.childTicket;}
 }
-
 function resetForm(){
-  // 측/결제는 유지, 나머지 초기화
-  state.amount = 0;
-  state.relation = '';
-  state.adultTicket = 0;
-  state.childTicket = 0;
-  document.getElementById('amount-input').value = '';
-  document.getElementById('guest-name').value = '';
-  document.getElementById('memo-input').value = '';
-  document.getElementById('adult-ticket-val').textContent = '0';
-  document.getElementById('child-ticket-val').textContent = '0';
-  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.relation-btn').forEach(b => b.classList.remove('active'));
+  st.amount=0;st.relation='';st.adultTicket=0;st.childTicket=0;
+  document.getElementById('amount-input').value='';
+  document.getElementById('guest-name').value='';
+  document.getElementById('memo-input').value='';
+  document.getElementById('adult-ticket-val').textContent='0';
+  document.getElementById('child-ticket-val').textContent='0';
+  document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));
+  document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('rel-active'));
 }
 
-// ════════════════════════════════════════════════════
-//  접수 저장
-// ════════════════════════════════════════════════════
+// ── 접수 저장 ──
 async function submitEntry(){
-  if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
-
-  const guestName = document.getElementById('guest-name').value.trim();
-  const memo      = document.getElementById('memo-input').value.trim();
-  const amount    = Number(document.getElementById('amount-input').value) || state.amount;
-
-  const row = {
-    schedule_id:   currentSchedule.id,
-    side:          state.side === 'groom' ? '신랑측' : '신부측',
-    payment_type:  state.payment === 'cash' ? '현금' : '계좌이체',
-    guest_name:    guestName || null,
-    relation:      state.relation || null,
-    amount:        amount || null,
-    adult_ticket:  state.adultTicket || 0,
-    child_ticket:  state.childTicket || 0,
-    memo:          memo || null,
-    created_by:    currentUser.name,
+  if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
+  const amount=Number(document.getElementById('amount-input').value)||st.amount;
+  const row={
+    schedule_id:currentSchedule.id,
+    side:st.side==='groom'?'신랑측':'신부측',
+    payment_type:st.payment==='cash'?'현금':'계좌이체',
+    guest_name:document.getElementById('guest-name').value.trim()||null,
+    relation:st.relation||null,
+    amount:amount||null,
+    adult_ticket:st.adultTicket||0,
+    child_ticket:st.childTicket||0,
+    memo:document.getElementById('memo-input').value.trim()||null,
+    created_by:currentUser.name,
   };
-
   try {
-    const created = await sb.post('contribution_logs', row);
-    const newLog = Array.isArray(created) ? created[0] : created;
-    logs.unshift(newLog);
-    renderStats();
-    renderRecent();
+    const created=await sb.post('contribution_logs',row);
+    logs.unshift(Array.isArray(created)?created[0]:created);
+    renderStats();renderRecent();
     resetForm();
     showToast('✅ 접수 완료되었습니다');
-  } catch(e){
-    showToast('⚠️ 저장 실패: ' + e.message);
-    console.error(e);
-  }
+  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
 }
 
-// ════════════════════════════════════════════════════
-//  대시보드 링크
-// ════════════════════════════════════════════════════
+// ── 대시보드 링크 ──
 function showDashboardLink(){
-  if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
-  const token = currentSchedule.dashboard_token;
-  const url = `${location.origin}/live.html?t=${token}`;
-  document.getElementById('token-url-display').textContent = url;
-  document.getElementById('token-modal').style.display = 'flex';
+  if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
+  const url=`${location.origin}/live.html?t=${currentSchedule.dashboard_token}`;
+  document.getElementById('token-url-display').textContent=url;
+  document.getElementById('token-modal').style.display='flex';
 }
-
 function copyDashboardLink(){
-  const url = document.getElementById('token-url-display').textContent;
-  navigator.clipboard.writeText(url).then(() => showToast('🔗 링크가 복사되었습니다'));
+  const url=document.getElementById('token-url-display').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('🔗 링크가 복사되었습니다'));
 }
 
-// ════════════════════════════════════════════════════
-//  토스트
-// ════════════════════════════════════════════════════
 function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 2200);
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';
+  setTimeout(()=>{t.style.display='none';},2200);
 }
 
-// ════════════════════════════════════════════════════
-//  초기화
-// ════════════════════════════════════════════════════
+// ── 초기화 ──
 (function init(){
   initLogin();
-  const savedId = localStorage.getItem('dg_contrib_user');
-  if(savedId){
-    const user = USERS.find(u => u.id === Number(savedId));
-    if(user){
-      currentUser = user;
-      document.getElementById('login-screen').style.display = 'none';
-      goSelectSchedule();
-    }
+  const saved=localStorage.getItem('dg_contrib_user');
+  if(saved){
+    const user=USERS.find(u=>u.id===Number(saved));
+    if(user){currentUser=user;document.getElementById('login-screen').style.display='none';goSelectSchedule();}
   }
 })();
 </script>
