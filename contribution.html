@@ -287,7 +287,8 @@ input,select,textarea{font-family:inherit;outline:none}
           <button class="rel-btn" onclick="setRelation('친구')">친구</button>
           <button class="rel-btn" onclick="setRelation('직장')">직장</button>
           <button class="rel-btn" onclick="setRelation('가족')">가족</button>
-          <button class="rel-btn" onclick="setRelation('혼주')">혼주</button>
+          <button class="rel-btn" onclick="setRelation('부 지인')">부 지인</button>
+          <button class="rel-btn" onclick="setRelation('모 지인')">모 지인</button>
           <button class="rel-btn" onclick="setRelation('기타')">기타</button>
         </div>
       </div>
@@ -402,6 +403,24 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="scard" style="flex:1;min-height:0">
         <div class="scard-title">최근 접수</div>
         <div id="recent-list"></div>
+      </div>
+
+      <!-- 현장 운영 메모 -->
+      <div class="scard" style="flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+          <div class="scard-title" style="margin-bottom:0">📋 현장 운영 메모</div>
+          <span style="font-size:10px;color:#9CA3AF">전체 예식 공통</span>
+        </div>
+        <div id="ops-log-list" style="max-height:120px;overflow-y:auto;margin-bottom:7px"></div>
+        <div style="display:flex;gap:5px">
+          <input id="ops-log-input" class="form-input" placeholder="현장 특이사항 입력..."
+            style="font-size:12px;padding:6px 9px;flex:1"
+            onkeydown="if(event.key==='Enter')addOpsLog()">
+          <button onclick="addOpsLog()"
+            style="background:#374151;color:#fff;border-radius:7px;padding:6px 11px;font-size:12px;font-weight:700;flex-shrink:0">
+            추가
+          </button>
+        </div>
       </div>
 
     </div>
@@ -546,6 +565,7 @@ async function selectSchedule(id){
     document.body.style.overflow='hidden';
 
     await loadLogs();
+    loadOpsLogs();
     subscribeRealtime();
   } catch(e){ showToast('⚠️ 예식 로드 실패'); }
 }
@@ -565,6 +585,52 @@ async function loadLogs(){
     logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
     renderStats(); renderRecent();
   } catch(e){ console.error('logs 로드 실패:',e); }
+}
+
+// ── 현장 운영 메모 ──
+function getOpsKey(){
+  return currentSchedule ? 'dg_ops_' + currentSchedule.id : null;
+}
+
+function loadOpsLogs(){
+  const key = getOpsKey();
+  if(!key) return;
+  const logs = JSON.parse(localStorage.getItem(key) || '[]');
+  renderOpsLogs(logs);
+}
+
+function addOpsLog(){
+  const inp = document.getElementById('ops-log-input');
+  const text = inp.value.trim();
+  if(!text) return;
+
+  const key = getOpsKey();
+  if(!key) return;
+
+  const logs = JSON.parse(localStorage.getItem(key) || '[]');
+  const now = new Date();
+  const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  logs.unshift({ time: timeStr, text: text, by: currentUser.name });
+  localStorage.setItem(key, JSON.stringify(logs));
+
+  inp.value = '';
+  renderOpsLogs(logs);
+  showToast('📋 메모가 추가되었습니다');
+}
+
+function renderOpsLogs(logs){
+  const el = document.getElementById('ops-log-list');
+  if(!el) return;
+  if(!logs.length){
+    el.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 운영 메모가 없습니다</div>';
+    return;
+  }
+  el.innerHTML = logs.map(function(l){
+    return '<div style="padding:5px 0;border-bottom:1px solid #F0EDE8;display:flex;gap:6px;align-items:flex-start">' +
+      '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;margin-top:1px">' + esc(l.time) + '</span>' +
+      '<span style="font-size:11px;color:#374151;line-height:1.4;flex:1">' + esc(l.text) + '</span>' +
+    '</div>';
+  }).join('');
 }
 
 // ── 실시간 구독 ──
@@ -660,8 +726,14 @@ function onAmountInput(){
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
 function setRelation(rel){
-  st.relation=rel;
-  document.querySelectorAll('.rel-btn').forEach(b=>b.classList.toggle('rel-active',b.textContent===rel));
+  // 같은 버튼 재클릭 시 해제 (toggle)
+  if(st.relation===rel){
+    st.relation='';
+    document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('rel-active'));
+  } else {
+    st.relation=rel;
+    document.querySelectorAll('.rel-btn').forEach(b=>b.classList.toggle('rel-active',b.textContent===rel));
+  }
 }
 function changeTicket(type,delta){
   if(type==='adult'){st.adultTicket=Math.max(0,st.adultTicket+delta);document.getElementById('adult-ticket-val').textContent=st.adultTicket;}
