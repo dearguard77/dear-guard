@@ -339,15 +339,12 @@
     <button class="tab-btn" id="nav-sheet-btn" style="display:none" onclick="window.open(&#39;https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623&#39;,&#39;_blank&#39;)">
       📋 시트
     </button>
-    <button
-      class="tab-btn"
-      id="nav-checkin-btn"
-      onclick="window.open('https://dear-guard.vercel.app/checkin.html','_blank')"
-      style="background:linear-gradient(135deg,#C7A96B,#B8976A);color:#fff;border:1px solid #A8875A;font-weight:700;border-radius:8px">
-      💰 축의 접수
-    </button>
     <button class="tab-btn" id="nav-manual-btn" style="display:none" onclick="window.open(&#39;https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9&#39;,&#39;_blank&#39;)">
       📖 매뉴얼
+    </button>
+    <button class="tab-btn" onclick="window.open(&#39;/contribution.html&#39;,&#39;_blank&#39;)"
+      style="background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B;font-weight:700;border:1px solid #E8DFD0">
+      💌 축의접수
     </button>
   </div>
 
@@ -1063,10 +1060,7 @@ function rowToSchedule(row){
     result:       row.result       || null,
     fieldMemo:      row.field_memo      || {},
     adminMemo:      row.admin_memo      || {},
-    handoverPerson:         row.handover_person          || '',
-    photoAlertDismissed:    row.photo_alert_dismissed    || false,
-    photoAlertCompleted:    row.photo_alert_completed    || false,
-    photoAlertCompletedAt:  row.photo_alert_completed_at || null,
+    handoverPerson: row.handover_person || '',
   };
 }
 
@@ -3048,17 +3042,6 @@ function renderSettle(){
         <div>
           <div style="font-size:14px;font-weight:700;color:#111827">${esc(coupleName(s))}</div>
           <div style="font-size:12px;color:#6B7280;margin-top:2px">${esc(s.date)} · ${esc(s.hall)} · ${esc(s.laborRegion||'-')} ${s.laborCount||0}명</div>
-${(() => {
-  const mgrs = [...new Set(
-    [s.frontManager, s.backManager]
-      .join(',').split(',')
-      .map(m => m.trim())
-      .filter(m => m && !ADMIN_NAMES.includes(m))
-  )];
-  return mgrs.length
-    ? `<div style="font-size:11px;color:#9CA3AF;margin-top:3px">${mgrs.map(m => esc(m)).join(' · ')}</div>`
-    : '';
-})()}
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           ${s.laborPaid
@@ -3436,27 +3419,24 @@ const _reminderFired = new Set();
 
 // ── sessionStorage 키 생성 ──
 function _reminderKey(s){
-  return 'photoAlertDismissed_' + s.id + '_' + s.date;
+  return 'photo_closed_' + s.id + '_' + s.date + '_' + (s.time||'') + '_' + (s.frontManager||'') + '_' + (s.backManager||'');
 }
 
 // ── 팝업이 이미 닫힌 상태인지 확인 ──
 function _isReminderClosed(s){
-  try { return localStorage.getItem(_reminderKey(s)) === 'true'; } catch(e){ return false; }
+  try { return sessionStorage.getItem(_reminderKey(s)) === 'closed'; } catch(e){ return false; }
 }
 
 // ── 팝업 닫힘 처리 ──
 function _markReminderClosed(s){
-  try { localStorage.setItem(_reminderKey(s), 'true'); } catch(e){}
+  try { sessionStorage.setItem(_reminderKey(s), 'closed'); } catch(e){}
 }
 
 function scheduleWeddingReminders(){
   console.log('[DG] scheduleWeddingReminders 시작 - 로그인:', currentUser.name);
   try {
     const mySchedules = visible().filter(function(s){
-      return s.date === TODAY
-          && s.status !== '진행완료'
-          && !s.photoAlertDismissed
-          && !s.photoAlertCompleted;
+      return s.date === TODAY && s.status !== '진행완료';
     });
     console.log('[DG] 오늘 담당 예식:', mySchedules.length, '건');
     if(!mySchedules.length) return;
@@ -3566,30 +3546,15 @@ function showPhotoReminder(s){
   document.body.appendChild(popup);
 
   // X 버튼 - 닫힘 처리 + sessionStorage 저장
-  // X 버튼 - dismissed 처리
   document.getElementById('photo-reminder-close').onclick = function(){
+    _markReminderClosed(s);
     popup.remove();
-    sb.patch('schedules', s.id, { photo_alert_dismissed: true }).then(function(){
-      var idx = schedules.findIndex(function(x){ return x.id === s.id; });
-      if(idx !== -1) schedules[idx].photoAlertDismissed = true;
-    }).catch(function(e){ console.error('[DG] dismissed 저장 실패:', e); });
   };
 
-  // 촬영 완료 버튼 - completed 처리
+  // 촬영 완료 버튼 - 닫힘 처리
   document.getElementById('photo-reminder-confirm').onclick = function(){
+    _markReminderClosed(s);
     popup.remove();
-    var now = new Date().toISOString();
-    sb.patch('schedules', s.id, {
-      photo_alert_completed: true,
-      photo_alert_completed_at: now
-    }).then(function(){
-      var idx = schedules.findIndex(function(x){ return x.id === s.id; });
-      if(idx !== -1){
-        schedules[idx].photoAlertCompleted   = true;
-        schedules[idx].photoAlertCompletedAt = now;
-      }
-      showToast('✅ 촬영 완료 처리되었습니다');
-    }).catch(function(e){ console.error('[DG] completed 저장 실패:', e); });
   };
 
   // ⛔ 자동 닫힘 제거 — X 버튼 또는 촬영완료 버튼으로만 닫힘
