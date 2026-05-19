@@ -370,6 +370,14 @@ body{
     <div id="single-log-list"></div>
   </div>
 
+  <!-- 엑셀 다운로드 버튼 -->
+  <div style="text-align:right;margin-bottom:6px">
+    <button onclick="downloadExcel()"
+      style="background:#217346;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+      📥 엑셀 다운로드
+    </button>
+  </div>
+
   <div class="divider"></div>
 
   <!-- 현장 운영 메모 -->
@@ -584,6 +592,85 @@ function logItemHTML(l){
   </div>`;
 }
 
+// ── 엑셀 다운로드 ──
+function downloadExcel(){
+  if(!schedule) return;
+
+  var g = (schedule.groom_name||'').trim();
+  var b = (schedule.bride_name||'').trim();
+  var coupleName = (g&&b) ? (g+' ♥ '+b) : (g||b||schedule.hall||'예식');
+
+  var BOM = '\uFEFF';
+  var rows = [];
+
+  // 헤더
+  rows.push(['번호','접수측','결제방식','하객이름','관계','금액(원)','대인식권','소인식권','메모','접수시간','입력자']);
+
+  // 데이터
+  for(var i=0; i<logs.length; i++){
+    var l = logs[i];
+    rows.push([
+      i+1,
+      l.side||'',
+      l.payment_type||'',
+      l.guest_name||'',
+      l.relation||'',
+      l.amount||0,
+      l.adult_ticket||0,
+      l.child_ticket||0,
+      l.memo||'',
+      l.created_at ? fmtTime(l.created_at) : '',
+      l.created_by||''
+    ]);
+  }
+
+  // 합계
+  var totalAmt   = logs.reduce(function(s,l){return s+(l.amount||0);},0);
+  var totalAdult = logs.reduce(function(s,l){return s+(l.adult_ticket||0);},0);
+  var totalChild = logs.reduce(function(s,l){return s+(l.child_ticket||0);},0);
+  var gL = logs.filter(function(l){return l.side==='신랑측';});
+  var bL = logs.filter(function(l){return l.side==='신부측';});
+
+  rows.push([]);
+  rows.push(['합계','','','','',totalAmt,totalAdult,totalChild,'','','']);
+  rows.push([]);
+  rows.push(['[신랑측]', gL.length+'건','','','',gL.reduce(function(s,l){return s+(l.amount||0);},0),gL.reduce(function(s,l){return s+(l.adult_ticket||0);},0),gL.reduce(function(s,l){return s+(l.child_ticket||0);},0)]);
+  rows.push(['[신부측]', bL.length+'건','','','',bL.reduce(function(s,l){return s+(l.amount||0);},0),bL.reduce(function(s,l){return s+(l.adult_ticket||0);},0),bL.reduce(function(s,l){return s+(l.child_ticket||0);},0)]);
+
+  // 운영 메모
+  if(opsLogs.length){
+    rows.push([]);
+    rows.push(['[현장 운영 메모]']);
+    rows.push(['시간','내용','작성자']);
+    for(var j=0; j<opsLogs.length; j++){
+      var ol = opsLogs[j];
+      rows.push([ol.time_str||'', ol.content||'', ol.created_by||'']);
+    }
+  }
+
+  // CSV 변환
+  function csvCell(v){
+    var s = String(v==null?'':v);
+    if(s.indexOf(',')>=0 || s.indexOf('"')>=0 || s.indexOf('\n')>=0){
+      return '"' + s.replace(/"/g,'""') + '"';
+    }
+    return s;
+  }
+
+  var csv = BOM + rows.map(function(row){
+    return row.map(csvCell).join(',');
+  }).join('\n');
+
+  // 다운로드
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  var date = schedule.date || new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = '축의접수_' + coupleName + '_' + date + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
 // ── 운영 메모 렌더 ──
 function renderOpsList(){
   const el=document.getElementById('ops-list');
