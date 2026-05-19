@@ -605,35 +605,43 @@ async function loadLogs(){
   } catch(e){ console.error('logs 로드 실패:',e); }
 }
 
-// ── 현장 운영 메모 ──
-function getOpsKey(){
-  return currentSchedule ? 'dg_ops_' + currentSchedule.id : null;
+// ── 현장 운영 메모 (DB 기반) ──
+let opsLogs = [];
+
+async function loadOpsLogs(){
+  if(!currentSchedule) return;
+  try {
+    opsLogs = await sb.get('operation_logs',
+      `?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
+    renderOpsLogs(opsLogs);
+  } catch(e){ console.error('운영 메모 로드 실패:', e); }
 }
 
-function loadOpsLogs(){
-  const key = getOpsKey();
-  if(!key) return;
-  const logs = JSON.parse(localStorage.getItem(key) || '[]');
-  renderOpsLogs(logs);
-}
-
-function addOpsLog(){
+async function addOpsLog(){
   const inp = document.getElementById('ops-log-input');
   const text = inp.value.trim();
-  if(!text) return;
+  if(!text || !currentSchedule) return;
 
-  const key = getOpsKey();
-  if(!key) return;
-
-  const logs = JSON.parse(localStorage.getItem(key) || '[]');
   const now = new Date();
   const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  logs.unshift({ time: timeStr, text: text, by: currentUser.name });
-  localStorage.setItem(key, JSON.stringify(logs));
 
-  inp.value = '';
-  renderOpsLogs(logs);
-  showToast('📋 메모가 추가되었습니다');
+  const row = {
+    schedule_id: currentSchedule.id,
+    time_str:    timeStr,
+    content:     text,
+    created_by:  currentUser.name,
+  };
+
+  try {
+    const created = await sb.post('operation_logs', row);
+    opsLogs.unshift(Array.isArray(created) ? created[0] : created);
+    inp.value = '';
+    renderOpsLogs(opsLogs);
+    showToast('📋 메모가 추가되었습니다');
+  } catch(e){
+    showToast('⚠️ 메모 저장 실패: ' + e.message);
+    console.error(e);
+  }
 }
 
 function renderOpsLogs(logs){
@@ -645,8 +653,9 @@ function renderOpsLogs(logs){
   }
   el.innerHTML = logs.map(function(l){
     return '<div style="padding:5px 0;border-bottom:1px solid #F0EDE8;display:flex;gap:6px;align-items:flex-start">' +
-      '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;margin-top:1px">' + esc(l.time) + '</span>' +
-      '<span style="font-size:11px;color:#374151;line-height:1.4;flex:1">' + esc(l.text) + '</span>' +
+      '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;margin-top:1px">' + esc(l.time_str||'') + '</span>' +
+      '<span style="font-size:11px;color:#374151;line-height:1.4;flex:1">' + esc(l.content||'') + '</span>' +
+      '<span style="font-size:10px;color:#D1D5DB;white-space:nowrap;margin-top:1px">' + esc(l.created_by||'') + '</span>' +
     '</div>';
   }).join('');
 }
@@ -729,10 +738,17 @@ function setPayment(pay){
   document.getElementById('pay-transfer').className='tog-btn'+(pay==='transfer'?' tog-gray':'');
 }
 function setAmount(amt){
-  st.amount=amt;
-  document.getElementById('amount-input').value=amt;
   const map={50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',70000:'7만'};
-  document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));
+  // 같은 버튼 재클릭 시 해제
+  if(st.amount===amt){
+    st.amount=0;
+    document.getElementById('amount-input').value='';
+    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));
+  } else {
+    st.amount=amt;
+    document.getElementById('amount-input').value=amt;
+    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));
+  }
 }
 function focusCustomAmount(){
   const inp=document.getElementById('amount-input');

@@ -183,6 +183,44 @@ body{
 
 .empty-list{text-align:center;padding:32px;color:var(--text3);font-size:13px}
 
+/* 양측 분리 리스트 */
+.split-list-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0}
+@media(max-width:600px){.split-list-wrap{grid-template-columns:1fr;gap:12px}}
+
+.split-col{display:flex;flex-direction:column;gap:8px}
+
+.split-header{border-radius:12px;padding:13px 15px;margin-bottom:4px}
+.groom-header{background:linear-gradient(135deg,rgba(37,99,235,.06),rgba(37,99,235,.02));border:1.5px solid rgba(37,99,235,.15)}
+.bride-header{background:linear-gradient(135deg,rgba(219,39,119,.06),rgba(219,39,119,.02));border:1.5px solid rgba(219,39,119,.15)}
+
+.split-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:5px}
+.split-summary{font-size:12px;color:var(--text3);line-height:1.6}
+.split-summary span{font-weight:700;color:var(--text)}
+
+.split-log-item{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 11px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.split-log-body{flex:1;min-width:0}
+.split-log-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.split-log-meta{font-size:10px;color:var(--text3);margin-top:2px}
+.split-log-right{text-align:right;flex-shrink:0}
+.split-log-amount{font-size:12px;font-weight:800;color:var(--gold2)}
+.split-log-time{font-size:10px;color:var(--text3);margin-top:1px}
+
+.ops-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 13px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;margin-bottom:6px;
+}
+.ops-time{font-size:11px;font-weight:700;color:var(--gold2);white-space:nowrap;margin-top:1px;flex-shrink:0}
+.ops-text{font-size:13px;color:var(--text);line-height:1.5;flex:1}
+.ops-by{font-size:10px;color:var(--text3);white-space:nowrap;margin-top:2px;flex-shrink:0}
+
 /* ── 갱신 표시 ── */
 #upd-badge{
   position:fixed;top:14px;right:14px;
@@ -301,12 +339,37 @@ body{
 
   <div class="divider"></div>
 
-  <!-- 최근 접수 리스트 -->
-  <div class="list-hdr">
-    <div class="list-title">최근 접수 내역</div>
-    <div class="list-cnt" id="list-cnt">0건</div>
+  <!-- 양측 접수 리스트 -->
+  <div class="split-list-wrap">
+
+    <!-- 신랑측 -->
+    <div class="split-col">
+      <div class="split-header groom-header">
+        <div class="split-title">🤵 신랑측</div>
+        <div class="split-summary" id="groom-summary">0명 · 0원</div>
+      </div>
+      <div id="groom-log-list"></div>
+    </div>
+
+    <!-- 신부측 -->
+    <div class="split-col">
+      <div class="split-header bride-header">
+        <div class="split-title">👰 신부측</div>
+        <div class="split-summary" id="bride-summary">0명 · 0원</div>
+      </div>
+      <div id="bride-log-list"></div>
+    </div>
+
   </div>
-  <div id="log-list"></div>
+
+  <div class="divider"></div>
+
+  <!-- 현장 운영 메모 -->
+  <div class="list-hdr">
+    <div class="list-title">📋 현장 운영 메모</div>
+    <div class="list-cnt" id="ops-cnt">0건</div>
+  </div>
+  <div id="ops-list"></div>
 
   <div id="last-upd"></div>
 </div>
@@ -323,7 +386,7 @@ const sb = {
   async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 };
 
-let schedule=null, logs=[], newIds=new Set();
+let schedule=null, logs=[], opsLogs=[], newIds=new Set();
 
 // ── 헬퍼 ──
 function fmt(n){ return n>=10000 ? Math.round(n/10000)+'만원' : n.toLocaleString()+'원'; }
@@ -373,12 +436,17 @@ function showError(){
 async function loadLogs(){
   if(!schedule) return;
   try {
-    const newLogs=await sb.get('contribution_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`);
+    const [newLogs, newOps] = await Promise.all([
+      sb.get('contribution_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`),
+      sb.get('operation_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`)
+    ]);
     const oldIds=new Set(logs.map(l=>l.id));
     newLogs.forEach(l=>{ if(!oldIds.has(l.id)) newIds.add(l.id); });
     logs=newLogs;
+    opsLogs=newOps;
     renderStats();
     renderList();
+    renderOpsList();
     showUpdBadge();
     document.getElementById('last-upd').textContent='마지막 갱신: '+fmtTime(new Date().toISOString());
   } catch(e){ console.error('로드 실패:',e); }
@@ -419,37 +487,76 @@ function renderStats(){
   document.getElementById('list-cnt').textContent = `${logs.length}건`;
 }
 
-// ── 리스트 렌더 ──
+// ── 리스트 렌더 (양측 분리) ──
 function renderList(){
-  const el=document.getElementById('log-list');
-  if(!logs.length){
-    el.innerHTML='<div class="empty-list">아직 접수 내역이 없습니다</div>';
+  const gLogs = logs.filter(l=>l.side==='신랑측');
+  const bLogs = logs.filter(l=>l.side==='신부측');
+
+  // 신랑측 요약
+  const gAmt  = gLogs.reduce((s,l)=>s+(l.amount||0),0);
+  const gTkt  = gLogs.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+  const bAmt  = bLogs.reduce((s,l)=>s+(l.amount||0),0);
+  const bTkt  = bLogs.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+
+  const gSumEl = document.getElementById('groom-summary');
+  const bSumEl = document.getElementById('bride-summary');
+  if(gSumEl) gSumEl.innerHTML =
+    `<span>${gLogs.length}명</span> · <span>${fmtFull(gAmt)}</span> · <span>식권 ${gTkt}장</span>`;
+  if(bSumEl) bSumEl.innerHTML =
+    `<span>${bLogs.length}명</span> · <span>${fmtFull(bAmt)}</span> · <span>식권 ${bTkt}장</span>`;
+
+  renderSideList('groom-log-list', gLogs, '신랑측');
+  renderSideList('bride-log-list', bLogs, '신부측');
+
+  setTimeout(()=>{ newIds.clear(); },2500);
+}
+
+function renderSideList(elId, sideLogs, sideLabel){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  if(!sideLogs.length){
+    el.innerHTML='<div class="empty-list" style="padding:20px 10px;font-size:12px">아직 접수 내역이 없습니다</div>';
     return;
   }
-  el.innerHTML=logs.map(l=>{
-    const isGroom = l.side==='신랑측';
-    const isNew   = newIds.has(l.id);
-    const name    = l.guest_name||'—';
-    const rel     = l.relation ? ` · ${l.relation}` : '';
-    const pay     = l.payment_type==='계좌이체' ? '📱' : '💵';
-    const tktA    = l.adult_ticket||0;
-    const tktC    = l.child_ticket||0;
-    const tktStr  = (tktA+tktC)>0 ? ` · 식권 ${tktA>0?'대인'+tktA:''}${tktC>0?' 소인'+tktC:''}`.trim() : '';
-    return `<div class="log-item${isNew?' new-item':''}">
-      <div class="log-side-icon ${isGroom?'groom':'bride'}">${isGroom?'🤵':'👰'}</div>
-      <div class="log-body">
-        <div class="log-name">${esc(name)}${rel?`<span style="color:var(--text3);font-weight:400"> ${esc(rel)}</span>`:''}
-          <span style="font-size:11px;color:${isGroom?'var(--blue)':'var(--pink)'};font-weight:600;margin-left:4px">${l.side}</span>
-        </div>
-        <div class="log-meta">${pay} ${l.payment_type}${tktStr}</div>
+  const isGroom = sideLabel==='신랑측';
+  el.innerHTML = sideLogs.map(l=>{
+    const isNew  = newIds.has(l.id);
+    const name   = l.guest_name||'—';
+    const rel    = l.relation ? ` · ${l.relation}` : '';
+    const pay    = l.payment_type==='계좌이체' ? '📱' : '💵';
+    const tktA   = l.adult_ticket||0;
+    const tktC   = l.child_ticket||0;
+    const tktStr = (tktA+tktC)>0 ? ` · 식권${tktA+tktC}` : '';
+    return `<div class="split-log-item${isNew?' new-item':''}">
+      <div class="split-log-body">
+        <div class="split-log-name">${esc(name)}${rel?`<span style="color:var(--text3);font-weight:400">${esc(rel)}</span>`:''}</div>
+        <div class="split-log-meta">${pay} ${l.payment_type}${tktStr}</div>
       </div>
-      <div class="log-right">
-        <div class="log-amount">${l.amount?fmt(l.amount):'—'}</div>
-        <div class="log-time">${fmtTime(l.created_at)}</div>
+      <div class="split-log-right">
+        <div class="split-log-amount">${l.amount?fmt(l.amount):'—'}</div>
+        <div class="split-log-time">${fmtTime(l.created_at)}</div>
       </div>
     </div>`;
   }).join('');
-  setTimeout(()=>{ newIds.clear(); },2500);
+}
+
+// ── 운영 메모 렌더 ──
+function renderOpsList(){
+  const el=document.getElementById('ops-list');
+  const cntEl=document.getElementById('ops-cnt');
+  if(!el) return;
+  if(cntEl) cntEl.textContent=opsLogs.length+'건';
+  if(!opsLogs.length){
+    el.innerHTML='<div class="empty-list" style="padding:16px">아직 운영 메모가 없습니다</div>';
+    return;
+  }
+  el.innerHTML=opsLogs.map(function(l){
+    return '<div class="ops-item">' +
+      '<span class="ops-time">' + esc(l.time_str||'') + '</span>' +
+      '<span class="ops-text">'  + esc(l.content||'')  + '</span>' +
+      '<span class="ops-by">'   + esc(l.created_by||'') + '</span>' +
+    '</div>';
+  }).join('');
 }
 
 // ── 업데이트 뱃지 ──
@@ -464,10 +571,16 @@ function subscribeRealtime(){
   const ws=new WebSocket(
     `wss://fmvomfjmkbklhaaapkbk.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`
   );
-  ws.onopen=()=>ws.send(JSON.stringify({
-    topic:`realtime:public:contribution_logs:schedule_id=eq.${schedule.id}`,
-    event:'phx_join',payload:{},ref:'1'
-  }));
+  ws.onopen=()=>{
+    ws.send(JSON.stringify({
+      topic:`realtime:public:contribution_logs:schedule_id=eq.${schedule.id}`,
+      event:'phx_join',payload:{},ref:'1'
+    }));
+    ws.send(JSON.stringify({
+      topic:`realtime:public:operation_logs:schedule_id=eq.${schedule.id}`,
+      event:'phx_join',payload:{},ref:'2'
+    }));
+  };
   ws.onmessage=async(e)=>{
     const msg=JSON.parse(e.data);
     if(['INSERT','UPDATE','DELETE'].includes(msg.event)) await loadLogs();
