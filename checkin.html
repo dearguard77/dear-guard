@@ -786,6 +786,19 @@
 
       </div><!-- /form-area -->
 
+      <!-- 특이사항 메모 -->
+      <div class="memo-area">
+        <div class="memo-header">
+          <span class="memo-title">📝 현장 특이사항</span>
+          <span class="memo-count" id="memo-count">0건</span>
+        </div>
+        <div class="memo-input-row">
+          <input type="text" id="memo-input" class="memo-input" placeholder="특이사항 입력 후 Enter 또는 추가 버튼" onkeydown="if(event.key==='Enter') addMemo()" />
+          <button class="memo-add-btn" onclick="addMemo()">추가</button>
+        </div>
+        <div class="memo-list" id="memo-list"></div>
+      </div>
+
       <!-- 접수 버튼 -->
       <div class="submit-area">
         <button class="submit-btn" onclick="submitEntry()">✅ 접수 완료</button>
@@ -805,6 +818,59 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/* ── 현장 특이사항 메모 ── */
+const memos = []; // { time, text }
+
+function addMemo() {
+  const inp = document.getElementById('memo-input');
+  const text = inp.value.trim();
+  if (!text) return;
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  memos.push({ time: timeStr, text });
+  inp.value = '';
+  renderMemos();
+
+  // GAS에도 전송
+  sendMemoToSheet(timeStr, text);
+}
+
+function removeMemo(i) {
+  memos.splice(i, 1);
+  renderMemos();
+}
+
+function renderMemos() {
+  const list = document.getElementById('memo-list');
+  const count = document.getElementById('memo-count');
+  if (!list) return;
+  count.textContent = memos.length + '건';
+  if (!memos.length) {
+    list.innerHTML = '<div style="font-size:12px;color:#9CA3AF;padding:6px 4px">아직 입력된 특이사항이 없습니다</div>';
+    return;
+  }
+  list.innerHTML = memos.map((m, i) => `
+    <div class="memo-item">
+      <span class="memo-item-time">${m.time}</span>
+      <span class="memo-item-text">${m.text}</span>
+      <button class="memo-item-del" onclick="removeMemo(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function sendMemoToSheet(time, text) {
+  if (!GAS_URL || !SHEET_ID) return;
+  const params = new URLSearchParams({
+    sheetId: SHEET_ID,
+    type:    'memo',
+    time,
+    text,
+  });
+  const img = new Image();
+  img.src = GAS_URL + '?' + params.toString();
+}
+
 /* ── State ── */
 const S = {
   side: 'groom',
@@ -823,6 +889,7 @@ let SHEET_ID = localStorage.getItem('dg_sheet_id') || '';
 window.addEventListener('DOMContentLoaded', () => {
   if (GAS_URL)  document.getElementById('gas-url').value  = GAS_URL;
   if (SHEET_ID) document.getElementById('sheet-id').value = SHEET_ID;
+  renderMemos();
   if (GAS_URL && SHEET_ID) document.getElementById('settings-box').classList.add('connected');
   updateStats();
 });
