@@ -47,8 +47,8 @@ input,select,textarea{font-family:inherit;outline:none}
 #main-screen{display:none;height:100vh;flex-direction:column}
 
 /* 상단바 */
-#top-bar{background:#fff;border-bottom:1px solid #DCDCDC;padding:0;display:flex;align-items:center;height:40px;flex-shrink:0}
-#top-bar-inner{max-width:1280px;width:100%;margin:0 auto;padding:0 12px;display:flex;align-items:center;justify-content:space-between;height:100%}
+#top-bar{background:#fff;border-bottom:1px solid #DCDCDC;padding:0;display:flex;align-items:center;height:52px;flex-shrink:0}
+#top-bar-inner{max-width:1280px;width:100%;margin:0 auto;padding:0 14px;display:flex;align-items:center;justify-content:space-between;height:100%}
 .top-logo{font-family:Georgia,serif;font-size:12px;font-weight:700;color:#C7A96B;letter-spacing:1px}
 .top-sch{font-size:13px;font-weight:700;color:#111;margin-left:8px}
 .top-right{display:flex;gap:5px;align-items:center}
@@ -205,10 +205,13 @@ input,select,textarea{font-family:inherit;outline:none}
   <!-- 상단바 -->
   <div id="top-bar">
   <div id="top-bar-inner">
-    <div style="display:flex;align-items:center;gap:4px">
+    <div style="display:flex;align-items:center;gap:10px">
       <span class="top-logo">DG</span>
-      <span style="color:#DCDCDC">|</span>
-      <span class="top-sch" id="top-schedule-name">—</span>
+      <span style="color:#E0E0E0">|</span>
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <span class="top-sch" id="top-schedule-name" style="font-size:14px;font-weight:800;color:#111;line-height:1.2">—</span>
+        <span id="top-schedule-info" style="font-size:11px;color:#9CA3AF;line-height:1.2">—</span>
+      </div>
     </div>
     <div class="top-right">
       <button class="topbtn topbtn-ghost" onclick="goSelectSchedule()">예식 변경</button>
@@ -552,6 +555,21 @@ async function selectSchedule(id){
     const g=(currentSchedule.groom_name||'').trim(),b=(currentSchedule.bride_name||'').trim();
     const name=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:currentSchedule.hall||'미입력';
     document.getElementById('top-schedule-name').textContent=name;
+
+    // 날짜/요일/시간/장소 서브텍스트
+    const DAYS=['일','월','화','수','목','금','토'];
+    const dateStr = currentSchedule.date||'';
+    const timeStr = (currentSchedule.time||'').slice(0,5);
+    const hall    = currentSchedule.hall||'';
+    let infoStr   = '';
+    if(dateStr){
+      const d = new Date(dateStr+'T00:00:00');
+      const dayName = DAYS[d.getDay()];
+      infoStr = dateStr + ' (' + dayName + ')';
+      if(timeStr) infoStr += ' ' + timeStr;
+      if(hall)    infoStr += ' · ' + hall;
+    }
+    document.getElementById('top-schedule-info').textContent = infoStr;
 
     // 식권 설정 복원
     const saved=JSON.parse(localStorage.getItem(`dg_tickets_${id}`)||'{}');
