@@ -457,6 +457,42 @@ input,select,textarea{font-family:inherit;outline:none}
     <div id="center-panel">
     <div id="input-panel">
 
+      <!-- ⚡ 실시간 식권 현황 -->
+      <div id="tkt-status-card" style="background:#fff;border-radius:9px;border:1px solid #E0E0E0;padding:7px 10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <!-- 신랑측 -->
+          <div>
+            <div style="font-size:9px;font-weight:700;color:#2563EB;letter-spacing:.3px;margin-bottom:4px">🤵 신랑측 식권</div>
+            <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:2px">
+              <span style="font-size:9px;color:#9CA3AF">총</span>
+              <span style="font-size:12px;font-weight:700;color:#374151" id="tks-g-total">—</span>
+              <span id="tks-g-extra-wrap" style="display:none;font-size:9px;color:#059669;font-weight:600" id="tks-g-extra"></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="font-size:9px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-g-used">0</span></div>
+              <div style="font-size:9px;color:#9CA3AF">잔여
+                <span id="tks-g-remain" style="font-size:15px;font-weight:900;line-height:1">—</span>
+              </div>
+            </div>
+          </div>
+          <!-- 신부측 -->
+          <div style="border-left:1px solid #F0EDE8;padding-left:8px">
+            <div style="font-size:9px;font-weight:700;color:#DB2777;letter-spacing:.3px;margin-bottom:4px">👰 신부측 식권</div>
+            <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:2px">
+              <span style="font-size:9px;color:#9CA3AF">총</span>
+              <span style="font-size:12px;font-weight:700;color:#374151" id="tks-b-total">—</span>
+              <span id="tks-b-extra-wrap" style="display:none;font-size:9px;color:#059669;font-weight:600" id="tks-b-extra"></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="font-size:9px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-b-used">0</span></div>
+              <div style="font-size:9px;color:#9CA3AF">잔여
+                <span id="tks-b-remain" style="font-size:15px;font-weight:900;line-height:1">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 식권 설정: 초기 | 추가발급 가로 배치 -->
       <div class="card" style="padding:7px 10px">
         <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0;align-items:start">
@@ -1394,6 +1430,87 @@ function renderStats(){
   }
   var bExtraEl=document.getElementById('b-extra-tkt');
   if(bExtraEl) bExtraEl.textContent = bExtra>0?'+'+bExtra+'장':'—';
+
+  // ⚡ 상단 실시간 식권 현황 카드 업데이트
+  updateTktStatusCard({
+    gTotal:gTotal, gUsed:gUsed, gRemain:gRemain, gExtra:gExtra,
+    bTotal:bTotal, bUsed:bUsed, bRemain:bRemain, bExtra:bExtra
+  });
+}
+
+function updateTktStatusCard(d){
+  function setEl(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; }
+  function setStyle(id, style, val){ var el=document.getElementById(id); if(el) el.style[style]=val; }
+
+  // 신랑측
+  setEl('tks-g-total', d.gTotal!==null ? d.gTotal+'장' : '미설정');
+  setEl('tks-g-used',  d.gUsed+'장');
+  // 추가발급
+  var gEw = document.getElementById('tks-g-extra-wrap');
+  var gEt = document.getElementById('tks-g-extra');
+  if(gEw && gEt){
+    if(d.gExtra>0){ gEw.style.display='inline'; gEt.textContent='(+추가'+d.gExtra+'장)'; }
+    else gEw.style.display='none';
+  }
+  // 잔여 (위험구간 강조)
+  var gREl = document.getElementById('tks-g-remain');
+  if(gREl){
+    if(d.gRemain===null){ gREl.textContent='—'; gREl.style.color='#9CA3AF'; gREl.style.animation=''; }
+    else {
+      gREl.textContent = d.gRemain+'장';
+      if(d.gRemain<=5){
+        gREl.style.color='#DC2626';
+        gREl.style.animation='blink 0.7s ease-in-out infinite';
+        gREl.style.fontSize='17px';
+      } else if(d.gRemain<=10){
+        gREl.style.color='#DC2626';
+        gREl.style.animation='';
+        gREl.style.fontSize='16px';
+      } else if(d.gRemain<=20){
+        gREl.style.color='#D97706';
+        gREl.style.animation='';
+        gREl.style.fontSize='15px';
+      } else {
+        gREl.style.color='#059669';
+        gREl.style.animation='';
+        gREl.style.fontSize='15px';
+      }
+    }
+  }
+
+  // 신부측
+  setEl('tks-b-total', d.bTotal!==null ? d.bTotal+'장' : '미설정');
+  setEl('tks-b-used',  d.bUsed+'장');
+  var bEw = document.getElementById('tks-b-extra-wrap');
+  var bEt = document.getElementById('tks-b-extra');
+  if(bEw && bEt){
+    if(d.bExtra>0){ bEw.style.display='inline'; bEt.textContent='(+추가'+d.bExtra+'장)'; }
+    else bEw.style.display='none';
+  }
+  var bREl = document.getElementById('tks-b-remain');
+  if(bREl){
+    if(d.bRemain===null){ bREl.textContent='—'; bREl.style.color='#9CA3AF'; bREl.style.animation=''; }
+    else {
+      bREl.textContent = d.bRemain+'장';
+      if(d.bRemain<=5){
+        bREl.style.color='#DC2626';
+        bREl.style.animation='blink 0.7s ease-in-out infinite';
+        bREl.style.fontSize='17px';
+      } else if(d.bRemain<=10){
+        bREl.style.color='#DC2626';
+        bREl.style.animation='';
+        bREl.style.fontSize='16px';
+      } else if(d.bRemain<=20){
+        bREl.style.color='#D97706';
+        bREl.style.animation='';
+        bREl.style.fontSize='15px';
+      } else {
+        bREl.style.color='#059669';
+        bREl.style.animation='';
+        bREl.style.fontSize='15px';
+      }
+    }
+  }
 }
 
 function renderRecent(){
