@@ -151,7 +151,7 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 .tc-name{width:140px;flex-shrink:0;padding:7px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#111;font-size:13px}
 .tc-rel{width:80px;flex-shrink:0;padding:7px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6B7280;font-size:12px}
 .tc-amt{width:80px;flex-shrink:0;padding:7px 8px;text-align:right;font-weight:800;color:var(--gold2);font-size:13px}
-.tc-tkt{width:48px;flex-shrink:0;padding:7px 6px;text-align:center;color:#6B7280;font-size:11px}
+.tc-tkt{width:90px;flex-shrink:0;padding:5px 6px;color:#6B7280;font-size:11px}
 .tc-pay{width:76px;flex-shrink:0;padding:7px 6px;color:#6B7280;font-size:11px}
 .tc-time{width:46px;flex-shrink:0;padding:7px 6px;text-align:right;color:#9CA3AF;font-size:11px}
 .th-sort{cursor:pointer;user-select:none}
@@ -644,7 +644,7 @@ function renderTable(){
       '<div class="tc-name" style="display:flex;flex-direction:column;justify-content:center;padding-top:4px;padding-bottom:4px">'+nameHtml+'</div>' +
       '<div class="tc-rel">'+esc(relText||'—')+'</div>' +
       '<div class="tc-amt">'+(l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>')+'</div>' +
-      '<div class="tc-tkt" style="display:flex;flex-direction:column;gap:2px">'+tktHtml+'</div>' +
+      '<div class="tc-tkt" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:2px;align-items:center">'+tktHtml+'</div>' +
       '<div class="tc-pay"><span style="background:'+payColor+'18;color:'+payColor+';border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+payText+'</span></div>' +
       '<div class="tc-time">'+time+'</div>' +
     '</div>';

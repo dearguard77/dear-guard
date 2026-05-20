@@ -60,7 +60,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 2-column body */
 #main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
-#main-body{display:grid;grid-template-columns:260px 1fr 280px;height:100%;max-width:1600px;margin:0 auto;width:100%}
+#main-body{display:grid;grid-template-columns:220px minmax(0,580px) 1fr;height:100%;width:100%}
 
 /* ── 인계 정보 패널 ── */
 #handover-panel{overflow:hidden;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
@@ -1458,24 +1458,27 @@ function renderFullList(){
   var isAdmin  = ADMIN_NAMES.includes(currentUser.name);
 
   function buildItem(l, num){
-    var side   = l.side==='신랑측'?'🤵':'👰';
     var pay    = l.payment_type==='계좌이체'?'📱':'💵';
     var name   = esc(l.guest_name||'—');
-    var rel    = l.relation?' <span style="color:#9CA3AF;font-weight:400">'+esc(l.relation)+'</span>':'';
-    var tkt    = (l.adult_ticket||0)+(l.child_ticket||0);
-    var tktStr = tkt>0?' <span style="color:#6B7280">🎫'+tkt+'</span>':'';
+    var rel    = l.relation?' <span style="color:#9CA3AF;font-weight:400;font-size:10px">'+esc(l.relation)+'</span>':'';
+    var adultT = l.adult_ticket||0;
+    var childT = l.child_ticket||0;
+    var tktStr = '';
+    if(adultT>0) tktStr += '<span style="background:#FEF3C7;color:#D97706;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700">대'+adultT+'</span>';
+    if(childT>0) tktStr += '<span style="background:#EDE9FE;color:#7C3AED;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px">소'+childT+'</span>';
     var time   = l.created_at?fmtTime(l.created_at):'';
-    var memo   = l.memo?'<span style="color:#9CA3AF"> · '+esc(l.memo)+'</span>':'';
-    var canEdit= isAdmin || l.created_by===currentUser.name;
+    var memo   = l.memo?'<div style="font-size:10px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px">'+esc(l.memo)+'</div>':'';
+    var payBadge = '<span style="background:'+(l.payment_type==='계좌이체'?'#7C3AED18;color:#7C3AED':'#05966918;color:#059669')+';border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700">'+(l.payment_type==='계좌이체'?'계좌':'현금')+'</span>';
+    var canEdit = isAdmin || l.created_by===currentUser.name;
 
     return '<div class="log-full-item">' +
       '<div class="log-full-row1">' +
         '<span class="log-num">#'+num+'</span>' +
-        '<span class="log-name-main">'+name+rel+'</span>' +
+        '<div style="flex:1;min-width:0"><div class="log-name-main">'+name+rel+'</div>'+memo+'</div>' +
         '<span class="log-amt-cell">'+(l.amount?fmt(l.amount):'—')+'</span>' +
       '</div>' +
       '<div class="log-full-row2">' +
-        '<span style="font-size:10px;color:#9CA3AF">'+pay+' '+l.payment_type+tktStr+memo+'</span>' +
+        payBadge+(tktStr?' '+tktStr:'') +
         '<span style="flex:1"></span>' +
         '<span class="log-time">'+time+'</span>' +
         (canEdit
