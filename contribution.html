@@ -59,8 +59,8 @@ input,select,textarea{font-family:inherit;outline:none}
 .topbtn-gold{background:#C7A96B;color:#fff}
 
 /* 2-column body */
-#main-body-outer{flex:1;overflow:hidden;background:#EDEDED;display:flex;flex-direction:column}
-#main-body{display:grid;grid-template-columns:1.5fr 2fr 1.5fr 0.8fr;flex:1;min-height:0;width:100%}
+#main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
+#main-body{display:grid;grid-template-columns:260px 1fr 300px;height:100%;max-width:1600px;margin:0 auto;width:100%}
 
 /* ── 인계 정보 패널 ── */
 #handover-panel{overflow-y:auto;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
@@ -77,7 +77,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .ho-save-indicator{font-size:10px;color:#10B981;text-align:right;height:14px;margin-top:2px}
 
 /* ── 중앙 패널 (입력 + 리스트) ── */
-#center-panel{display:flex;flex-direction:column;overflow:hidden;height:100%}
+#center-panel{display:flex;flex-direction:column;overflow:hidden;height:100%;border-left:1px solid #DCDCDC;border-right:1px solid #DCDCDC}
 
 /* ── 장부 리스트 패널 ── */
 #list-panel{overflow:hidden;display:flex;flex-direction:column;height:100%;background:#F8F7F5;border-left:1px solid #DCDCDC;border-right:1px solid #DCDCDC}
@@ -104,7 +104,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .ledger-btn{border:none;border-radius:3px;padding:1px 5px;font-size:9px;cursor:pointer;font-weight:600;flex-shrink:0}
 .ledger-edit{background:#EFF6FF;color:#2563EB}
 .ledger-del{background:#FEF2F2;color:#DC2626}
-#input-panel{overflow-y:auto;padding:8px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+#input-panel{overflow-y:auto;padding:8px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px;flex-shrink:0;max-height:60vh}
 #split-list-panel{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0}
 #split-list-panel.single{grid-template-columns:1fr}
 .split-list-col{overflow:hidden;display:flex;flex-direction:column;border-top:2px solid #E0E0E0}
@@ -277,6 +277,16 @@ input,select,textarea{font-family:inherit;outline:none}
 .tkt-extra-item:last-child{border-bottom:none}
 
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+/* split-list-panel */
+#split-list-panel{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;flex:1;min-height:0}
+#split-list-panel.single{grid-template-columns:1fr}
+.split-list-col{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #E0E0E0}
+.split-list-col:last-child{border-right:none}
+.split-col-hdr{padding:6px 10px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.split-col-hdr.groom-col>.split-col-hdr,.groom-col .split-col-hdr{background:#F0F7FF}
+.split-col-hdr-title{font-size:11px;font-weight:800;color:#374151;display:flex;align-items:center;gap:5px}
+.split-col-hdr-sum{font-size:10px;color:#9CA3AF}
+.split-col-body{overflow-y:auto;flex:1}
 </style>
 </head>
 <body>
@@ -593,34 +603,31 @@ input,select,textarea{font-family:inherit;outline:none}
 
     </div>
     </div><!-- /input-panel -->
-    </div><!-- /center-panel -->
 
-    <!-- 장부 리스트 패널 (별도 컬럼) -->
-    <div id="list-panel">
-      <div class="list-panel-hdr">
-        <span class="list-panel-title">📋 접수 장부</span>
-        <div style="display:flex;gap:4px;align-items:center">
-          <span id="list-total-badge" style="font-size:10px;color:#9CA3AF">0건</span>
-          <input id="log-search-all" style="border:1px solid #E0E0E0;border-radius:6px;padding:2px 7px;font-size:10px;width:72px;outline:none;background:#fff" placeholder="🔍 이름" oninput="renderFullList()">
-        </div>
-      </div>
-      <div class="list-col-wrap" id="list-col-wrap">
-        <div class="list-col" id="groom-list-col">
-          <div class="list-col-hdr groom">
-            <span style="font-size:11px;font-weight:800;color:#2563EB">🤵 신랑</span>
-            <span style="font-size:10px;color:#93C5FD" id="groom-list-sum">0건</span>
+    <!-- 신랑/신부 분리 접수 리스트 -->
+    <div id="split-list-panel">
+      <div class="split-list-col groom-col" id="groom-list-col">
+        <div class="split-col-hdr">
+          <div class="split-col-hdr-title">
+            🤵 신랑측
+            <input id="log-search-groom" style="border:1px solid #E0E0E0;border-radius:6px;padding:2px 6px;font-size:10px;width:80px;outline:none" placeholder="이름검색" oninput="renderFullList()">
           </div>
-          <div class="list-col-body" id="groom-full-list"></div>
+          <span class="split-col-hdr-sum" id="groom-list-sum">0건 · 0원</span>
         </div>
-        <div class="list-col" id="bride-list-col">
-          <div class="list-col-hdr bride">
-            <span style="font-size:11px;font-weight:800;color:#DB2777">👰 신부</span>
-            <span style="font-size:10px;color:#F9A8D4" id="bride-list-sum">0건</span>
-          </div>
-          <div class="list-col-body" id="bride-full-list"></div>
-        </div>
+        <div class="split-col-body" id="groom-full-list"></div>
       </div>
-    </div>
+      <div class="split-list-col bride-col" id="bride-list-col">
+        <div class="split-col-hdr">
+          <div class="split-col-hdr-title">
+            👰 신부측
+            <input id="log-search-bride" style="border:1px solid #E0E0E0;border-radius:6px;padding:2px 6px;font-size:10px;width:80px;outline:none" placeholder="이름검색" oninput="renderFullList()">
+          </div>
+          <span class="split-col-hdr-sum" id="bride-list-sum">0건 · 0원</span>
+        </div>
+        <div class="split-col-body" id="bride-full-list"></div>
+      </div>
+    </div><!-- /split-list-panel -->
+    </div><!-- /center-panel -->
 
     <!-- 오른쪽: 현황 -->
     <div id="stats-panel">
@@ -1479,67 +1486,56 @@ function setFilter(f){
 
 function renderFullList(){
   var isAdmin = ADMIN_NAMES.includes(currentUser.name);
-  var search  = ((document.getElementById('log-search-all')||{}).value||'').trim().toLowerCase();
+  var searchG = ((document.getElementById('log-search-groom')||{}).value||'').trim().toLowerCase();
+  var searchB = ((document.getElementById('log-search-bride')||{}).value||'').trim().toLowerCase();
+  var totalLen = logs.length;
 
-  var gLogs = logs.filter(function(l){ return l.side==='신랑측'; });
-  var bLogs = logs.filter(function(l){ return l.side==='신부측'; });
-
-  // 검색 필터
-  function applySearch(arr){
-    if(!search) return arr;
+  function applySearch(arr, q){
+    if(!q) return arr;
     return arr.filter(function(l){
-      return (l.guest_name||'').toLowerCase().includes(search) ||
-             (l.relation||'').toLowerCase().includes(search);
+      return (l.guest_name||'').toLowerCase().includes(q)||(l.relation||'').toLowerCase().includes(q);
     });
   }
-  var gFiltered = applySearch(gLogs);
-  var bFiltered = applySearch(bLogs);
+
+  var gLogs = applySearch(logs.filter(function(l){return l.side==='신랑측';}), searchG);
+  var bLogs = applySearch(logs.filter(function(l){return l.side==='신부측';}), searchB);
+  var hasG  = logs.some(function(l){return l.side==='신랑측';});
+  var hasB  = logs.some(function(l){return l.side==='신부측';});
 
   // 단측/양측 레이아웃
-  var wrap = document.getElementById('list-col-wrap');
-  var gCol = document.getElementById('groom-list-col');
-  var bCol = document.getElementById('bride-list-col');
-  var hasG = gLogs.length > 0;
-  var hasB = bLogs.length > 0;
-
-  var mainBody = document.getElementById('main-body');
-  if(hasG && hasB){
-    if(wrap) wrap.className = 'list-col-wrap';
-    if(gCol) gCol.style.display = 'flex';
-    if(bCol) bCol.style.display = 'flex';
-    // 양측: list 컬럼 2fr로 확장
-    if(mainBody) mainBody.style.gridTemplateColumns = '1.5fr 2fr 2fr 0.8fr';
-  } else if(hasG){
-    if(wrap) wrap.className = 'list-col-wrap single';
-    if(gCol) gCol.style.display = 'flex';
-    if(bCol) bCol.style.display = 'none';
-  } else if(hasB){
-    if(wrap) wrap.className = 'list-col-wrap single';
-    if(gCol) gCol.style.display = 'none';
-    if(bCol) bCol.style.display = 'flex';
-    if(mainBody) mainBody.style.gridTemplateColumns = '1.5fr 2fr 1.5fr 0.8fr';
-  } else {
-    if(wrap) wrap.className = 'list-col-wrap single';
-    if(gCol) gCol.style.display = 'flex';
-    if(bCol) bCol.style.display = 'none';
-    if(mainBody) mainBody.style.gridTemplateColumns = '1.5fr 2fr 1.5fr 0.8fr';
+  var panel = document.getElementById('split-list-panel');
+  var gCol  = document.getElementById('groom-list-col');
+  var bCol  = document.getElementById('bride-list-col');
+  if(panel){
+    if(hasG && hasB){
+      panel.style.gridTemplateColumns='1fr 1fr';
+      if(gCol) gCol.style.display='flex';
+      if(bCol) bCol.style.display='flex';
+    } else if(hasG){
+      panel.style.gridTemplateColumns='1fr';
+      if(gCol) gCol.style.display='flex';
+      if(bCol) bCol.style.display='none';
+    } else if(hasB){
+      panel.style.gridTemplateColumns='1fr';
+      if(gCol) gCol.style.display='none';
+      if(bCol) bCol.style.display='flex';
+    } else {
+      panel.style.gridTemplateColumns='1fr';
+      if(gCol) gCol.style.display='flex';
+      if(bCol) bCol.style.display='none';
+    }
   }
 
-  // 배지
-  var badge = document.getElementById('list-total-badge');
-  if(badge) badge.textContent = logs.length+'건';
+  var gAmt = gLogs.reduce(function(s,l){return s+(l.amount||0);},0);
+  var bAmt = bLogs.reduce(function(s,l){return s+(l.amount||0);},0);
+  var gSumEl=document.getElementById('groom-list-sum');
+  var bSumEl=document.getElementById('bride-list-sum');
+  if(gSumEl) gSumEl.textContent=gLogs.length+'건 · '+fmt(gAmt);
+  if(bSumEl) bSumEl.textContent=bLogs.length+'건 · '+fmt(bAmt);
 
-  var gAmt = gFiltered.reduce(function(s,l){return s+(l.amount||0);},0);
-  var bAmt = bFiltered.reduce(function(s,l){return s+(l.amount||0);},0);
-  var gSumEl = document.getElementById('groom-list-sum');
-  var bSumEl = document.getElementById('bride-list-sum');
-  if(gSumEl) gSumEl.textContent = gFiltered.length+'건 · '+fmt(gAmt);
-  if(bSumEl) bSumEl.textContent = bFiltered.length+'건 · '+fmt(bAmt);
-
-  renderLedgerCol('groom-full-list', gFiltered, isAdmin);
-  renderLedgerCol('bride-full-list', bFiltered, isAdmin);
+  renderLedgerCol('groom-full-list', gLogs, totalLen, isAdmin);
+  renderLedgerCol('bride-full-list', bLogs, totalLen, isAdmin);
 }
-
 function renderLedgerCol(elId, sideLogs, isAdmin){
   var el = document.getElementById(elId);
   if(!el) return;
