@@ -158,6 +158,69 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 .th-sort:hover{color:var(--text)}
 .th-sort.asc::after{content:' ↑';color:var(--gold2)}
 .th-sort.desc::after{content:' ↓';color:var(--gold2)}
+
+/* ── 모바일 완전 재설계 ── */
+@media(max-width:768px){
+  html,body{height:auto;overflow:auto}
+  #app{height:auto;overflow:visible}
+  #hdr{padding:8px 12px}
+  .hdr-names{font-size:15px}
+  #summary-bar{gap:5px}
+  #body{display:block;height:auto;overflow:visible}
+  #left-panel{display:none} /* 모바일: 좌측 패널 숨김 */
+  #right-panel{display:none}
+  #center-panel{max-width:100%;border-radius:0}
+  /* 모바일: 테이블 → 카드형 리스트 */
+  .tbl-header-row{display:none} /* 헤더 숨김 */
+  .tbl-row{
+    display:block !important;
+    padding:10px 14px;
+    border-bottom:1px solid #EEEAE4;
+    border-radius:0;
+  }
+  .tc-num,.tc-side,.tc-name,.tc-rel,.tc-amt,.tc-tkt,.tc-pay,.tc-time{
+    display:inline;width:auto;padding:0;
+  }
+  .tbl-row .mobile-row1{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;
+  }
+  .tbl-row .mobile-row2{
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  }
+}
+
+/* ── 식권 뱃지 ── */
+.tkt-adult-badge{
+  display:inline-flex;align-items:center;gap:2px;
+  background:#FEF3C7;color:#D97706;
+  border-radius:4px;padding:1px 5px;
+  font-size:10px;font-weight:700;
+}
+.tkt-child-badge{
+  display:inline-flex;align-items:center;gap:2px;
+  background:#EDE9FE;color:#7C3AED;
+  border-radius:4px;padding:1px 5px;
+  font-size:10px;font-weight:700;
+}
+
+/* ── 식권 위험 강조 ── */
+.tkt-warn{color:#D97706 !important;font-weight:800 !important}
+.tkt-danger{color:#DC2626 !important;font-weight:800 !important;animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── 메모 텍스트 ── */
+.log-memo{font-size:10px;color:#9CA3AF;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── 컨트리뷰션 식권 강조 ── */
+.tkt-stat-block{background:#F9F8F6;border-radius:8px;padding:8px 10px;margin-bottom:6px}
+.tkt-stat-block-title{font-size:10px;font-weight:700;color:#6B7280;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.tkt-stat-big{font-size:18px;font-weight:900;line-height:1;margin-bottom:2px}
+.tkt-stat-row{display:flex;justify-content:space-between;font-size:11px;margin-top:3px}
+.tkt-stat-lbl{color:#9CA3AF}
+.tkt-stat-val{font-weight:700;color:#111}
+.tkt-stat-val.ok{color:#059669}
+.tkt-stat-val.warn{color:#D97706}
+.tkt-stat-val.danger{color:#DC2626;animation:blink 1s ease-in-out infinite}
 </style>
 </head>
 <body>
@@ -365,6 +428,7 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 <script>
 
 
+
 const SUPABASE_URL      = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 
@@ -561,16 +625,26 @@ function renderTable(){
     var tkt    = (l.adult_ticket||0)+(l.child_ticket||0);
     var time   = l.created_at?fmtTime(l.created_at):'';
     var isNew  = newIds.has(l.id);
-    var relText = l.relation||'';
-    var payText = l.payment_type==='계좌이체'?'계좌':'현금';
+    var relText  = l.relation||'';
+    var payText  = l.payment_type==='계좌이체'?'계좌':'현금';
     var payColor = l.payment_type==='계좌이체'?'#7C3AED':'#059669';
+    var adultTkt = l.adult_ticket||0;
+    var childTkt = l.child_ticket||0;
+    var tktHtml  = '';
+    if(adultTkt>0) tktHtml += '<span class="tkt-adult-badge">대인'+adultTkt+'</span>';
+    if(childTkt>0) tktHtml += '<span class="tkt-child-badge" style="margin-left:2px">소인'+childTkt+'</span>';
+    if(!tktHtml)   tktHtml = '<span style="color:#D1D5DB">—</span>';
+    var memoHtml = l.memo ? '<div class="log-memo">'+esc(l.memo)+'</div>' : '';
+    var nameHtml = '<div>'+esc(l.guest_name||'—')+'</div>'+memoHtml;
+
     return '<div class="tbl-row'+(isNew?' new-item':'')+'">' +
+      // PC 테이블 셀
       '<div class="tc-num">#'+num+'</div>' +
       '<div class="tc-side">'+buildSideLabel(l.side)+'</div>' +
-      '<div class="tc-name">'+esc(l.guest_name||'—')+'</div>' +
+      '<div class="tc-name" style="display:flex;flex-direction:column;justify-content:center;padding-top:4px;padding-bottom:4px">'+nameHtml+'</div>' +
       '<div class="tc-rel">'+esc(relText||'—')+'</div>' +
       '<div class="tc-amt">'+(l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>')+'</div>' +
-      '<div class="tc-tkt">'+(tkt>0?'<span style="background:#FEF3C7;color:#D97706;border-radius:4px;padding:1px 5px;font-weight:700">🎫'+tkt+'</span>':'<span style="color:#D1D5DB">—</span>')+'</div>' +
+      '<div class="tc-tkt" style="display:flex;flex-direction:column;gap:2px">'+tktHtml+'</div>' +
       '<div class="tc-pay"><span style="background:'+payColor+'18;color:'+payColor+';border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+payText+'</span></div>' +
       '<div class="tc-time">'+time+'</div>' +
     '</div>';
@@ -743,6 +817,7 @@ style.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}t
 document.head.appendChild(style);
 
 init();
+
 
 
 

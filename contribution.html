@@ -249,6 +249,8 @@ input,select,textarea{font-family:inherit;outline:none}
 .tkt-toolbar-btn{height:30px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
 .tkt-extra-item{display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px}
 .tkt-extra-item:last-child{border-bottom:none}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 </style>
 </head>
 <body>
@@ -642,8 +644,54 @@ input,select,textarea{font-family:inherit;outline:none}
             </div>
           </div>
         </div>
-        <span id="g-total-tkt" style="display:none"></span>
-        <span id="b-total-tkt" style="display:none"></span>
+      </div>
+
+      <!-- 신랑 식권 강조 카드 -->
+      <div class="scard" style="padding:9px 12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:10px;font-weight:700;color:#9CA3AF">🤵 신랑측 식권</span>
+          <span style="font-size:10px;color:#9CA3AF" id="g-total-tkt">미설정</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">사용</div>
+            <div style="font-size:16px;font-weight:800;color:#111" id="g-used-tkt">0</div>
+          </div>
+          <div style="width:1px;background:#F0EDE8;height:32px"></div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">추가발급</div>
+            <div style="font-size:16px;font-weight:800;color:#059669" id="g-extra-tkt">—</div>
+          </div>
+          <div style="width:1px;background:#F0EDE8;height:32px"></div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">잔여</div>
+            <div style="font-size:22px;font-weight:900;line-height:1" id="g-remain-tkt">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 신부 식권 강조 카드 -->
+      <div class="scard" style="padding:9px 12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:10px;font-weight:700;color:#9CA3AF">👰 신부측 식권</span>
+          <span style="font-size:10px;color:#9CA3AF" id="b-total-tkt">미설정</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">사용</div>
+            <div style="font-size:16px;font-weight:800;color:#111" id="b-used-tkt">0</div>
+          </div>
+          <div style="width:1px;background:#F0EDE8;height:32px"></div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">추가발급</div>
+            <div style="font-size:16px;font-weight:800;color:#059669" id="b-extra-tkt">—</div>
+          </div>
+          <div style="width:1px;background:#F0EDE8;height:32px"></div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">잔여</div>
+            <div style="font-size:22px;font-weight:900;line-height:1" id="b-remain-tkt">—</div>
+          </div>
+        </div>
       </div>
 
       <!-- 결제 방식 -->
@@ -1278,16 +1326,37 @@ function renderStats(){
     ?(totalTickets.groom+'장'+(gExtra>0?' +추가'+gExtra:'')):'미설정';
   document.getElementById('g-used-tkt').textContent=gUsed+'장';
   const gEl=document.getElementById('g-remain-tkt');
-  if(gRemain===null){gEl.textContent='—';gEl.className='tkt-stat-val';}
-  else{gEl.textContent=gRemain+'장';gEl.className='tkt-stat-val '+(gRemain<=10?'red':gRemain<=20?'orange':'green');}
+  if(gRemain===null){
+    if(gEl){gEl.textContent='—';gEl.style.color='#9CA3AF';gEl.style.animation='';}
+  } else {
+    if(gEl){
+      gEl.textContent=gRemain;
+      if(gRemain<=10){gEl.style.color='#DC2626';gEl.style.animation='blink 1s ease-in-out infinite';}
+      else if(gRemain<=20){gEl.style.color='#D97706';gEl.style.animation='';}
+      else{gEl.style.color='#059669';gEl.style.animation='';}
+    }
+  }
+  // 추가발급 표시
+  var gExtraEl=document.getElementById('g-extra-tkt');
+  if(gExtraEl) gExtraEl.textContent = gExtra>0?'+'+gExtra+'장':'—';
 
   // 신부 식권
   document.getElementById('b-total-tkt').textContent=bTotal!==null
     ?(totalTickets.bride+'장'+(bExtra>0?' +추가'+bExtra:'')):'미설정';
   document.getElementById('b-used-tkt').textContent=bUsed+'장';
   const bEl=document.getElementById('b-remain-tkt');
-  if(bRemain===null){bEl.textContent='—';bEl.className='tkt-stat-val';}
-  else{bEl.textContent=bRemain+'장';bEl.className='tkt-stat-val '+(bRemain<=10?'red':bRemain<=20?'orange':'green');}
+  if(bRemain===null){
+    if(bEl){bEl.textContent='—';bEl.style.color='#9CA3AF';bEl.style.animation='';}
+  } else {
+    if(bEl){
+      bEl.textContent=bRemain;
+      if(bRemain<=10){bEl.style.color='#DC2626';bEl.style.animation='blink 1s ease-in-out infinite';}
+      else if(bRemain<=20){bEl.style.color='#D97706';bEl.style.animation='';}
+      else{bEl.style.color='#059669';bEl.style.animation='';}
+    }
+  }
+  var bExtraEl=document.getElementById('b-extra-tkt');
+  if(bExtraEl) bExtraEl.textContent = bExtra>0?'+'+bExtra+'장':'—';
 }
 
 function renderRecent(){
