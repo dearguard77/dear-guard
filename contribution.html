@@ -327,15 +327,6 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 답례 템플릿 고정 -->
-      <div class="ho-section">
-        <div class="ho-section-title">💌 하객 답례인사</div>
-        <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
-          target="_blank" class="ho-link-btn">
-          💌 답례인사 템플릿 보기
-        </a>
-      </div>
-
       <div class="ho-save-indicator" id="ho-save-indicator"></div>
 
       <!-- 화환 / 축기 -->
@@ -377,20 +368,33 @@ input,select,textarea{font-family:inherit;outline:none}
     <!-- 축의 입력기 -->
     <div id="input-panel">
 
-      <!-- 식권 초기 설정 -->
+      <!-- 식권 초기 설정 + 추가 발급 -->
       <div class="card">
-        <div class="card-title">식권 초기 설정 (예식 시작 전 입력)</div>
-        <div class="tkt-setup-row">
-          <span class="tkt-setup-lbl">🤵 신랑측 총</span>
-          <input class="tkt-setup-inp" id="groom-total-ticket" type="number" placeholder="0"
-            min="0" oninput="saveTotalTickets()">
-          <span style="font-size:11px;color:#9CA3AF">장</span>
+        <div class="card-title" style="margin-bottom:7px">식권 설정</div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px">
+          <div class="tkt-setup-row">
+            <span class="tkt-setup-lbl">🤵 신랑측 초기</span>
+            <input class="tkt-setup-inp" id="groom-total-ticket" type="number" placeholder="0" min="0" oninput="saveTotalTickets()">
+            <span style="font-size:11px;color:#9CA3AF">장</span>
+          </div>
+          <div class="tkt-setup-row">
+            <span class="tkt-setup-lbl">👰 신부측 초기</span>
+            <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="0" min="0" oninput="saveTotalTickets()">
+            <span style="font-size:11px;color:#9CA3AF">장</span>
+          </div>
         </div>
-        <div class="tkt-setup-row">
-          <span class="tkt-setup-lbl">👰 신부측 총</span>
-          <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="0"
-            min="0" oninput="saveTotalTickets()">
-          <span style="font-size:11px;color:#9CA3AF">장</span>
+        <div style="border-top:1px dashed #E0E0E0;padding-top:7px">
+          <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.4px;margin-bottom:5px">➕ 추가 발급</div>
+          <div style="display:flex;gap:4px;margin-bottom:5px">
+            <select id="add-ticket-side" class="tkt-setup-inp" style="width:76px;flex-shrink:0;font-size:11px;padding:4px 5px">
+              <option value="신랑측">🤵 신랑</option>
+              <option value="신부측">👰 신부</option>
+            </select>
+            <input id="add-ticket-amount" class="tkt-setup-inp" type="number" placeholder="장수" min="1" style="width:56px;flex-shrink:0;font-size:12px;text-align:center" onkeydown="if(event.key==='Enter')addTicketExtra()">
+            <input id="add-ticket-memo" class="tkt-setup-inp" placeholder="메모(예약실 수령 등)" style="flex:1;font-size:11px;padding:4px 6px" onkeydown="if(event.key==='Enter')addTicketExtra()">
+            <button onclick="addTicketExtra()" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+          </div>
+          <div id="ticket-extra-list" style="max-height:72px;overflow-y:auto"></div>
         </div>
       </div>
 
@@ -810,11 +814,83 @@ async function selectSchedule(id){
     document.body.style.overflow='hidden';
 
     await loadLogs();
+    await loadTicketExtras();
     loadOpsLogs();
     loadFlowerLogs();
     loadHandover();
     subscribeRealtime();
   } catch(e){ showToast('⚠️ 예식 로드 실패'); }
+}
+
+// ── 추가 식권 발급 ──
+var ticketExtras = [];  // {id, side, amount, memo, time, by}
+
+async function loadTicketExtras(){
+  if(!currentSchedule) return;
+  try {
+    ticketExtras = await sb.get('ticket_additions',
+      '?schedule_id=eq.'+currentSchedule.id+'&order=created_at.asc');
+    renderTicketExtraList();
+    renderStats();
+  } catch(e){ console.error('추가 식권 로드 실패:', e); }
+}
+
+async function addTicketExtra(){
+  var amount = parseInt(document.getElementById('add-ticket-amount').value)||0;
+  if(!amount || amount < 1){ showToast('⚠️ 추가 수량을 입력해주세요'); return; }
+  if(!currentSchedule) return;
+
+  var now = new Date();
+  var timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  var row = {
+    schedule_id: currentSchedule.id,
+    side:        document.getElementById('add-ticket-side').value,
+    amount:      amount,
+    memo:        document.getElementById('add-ticket-memo').value.trim()||null,
+    created_by:  currentUser.name,
+  };
+  try {
+    var created = await sb.post('ticket_additions', row);
+    ticketExtras.push(Array.isArray(created)?created[0]:created);
+    document.getElementById('add-ticket-amount').value = '';
+    document.getElementById('add-ticket-memo').value   = '';
+    renderTicketExtraList();
+    renderStats();
+    showToast('✅ 추가 식권 '+amount+'장 등록됨');
+  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
+}
+
+async function deleteTicketExtra(id){
+  if(!confirm('추가 식권 기록을 삭제하시겠습니까?')) return;
+  try {
+    await fetch(sb.url('ticket_additions','?id=eq.'+id),{method:'DELETE',headers:sb.h});
+    ticketExtras = ticketExtras.filter(function(x){ return x.id!==id; });
+    renderTicketExtraList();
+    renderStats();
+  } catch(e){ showToast('⚠️ 삭제 실패'); }
+}
+
+function renderTicketExtraList(){
+  var el = document.getElementById('ticket-extra-list');
+  if(!el) return;
+  if(!ticketExtras.length){
+    el.innerHTML = '<div style="font-size:10px;color:#9CA3AF;padding:4px 0">추가 발급 내역 없음</div>';
+    return;
+  }
+  el.innerHTML = ticketExtras.map(function(t){
+    var icon = t.side==='신랑측'?'🤵':'👰';
+    var time = t.created_at ? (function(){
+      var d=new Date(t.created_at);
+      return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    })() : '';
+    return '<div style="display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px">' +
+      '<span>'+icon+'</span>' +
+      '<span style="font-weight:700;color:#374151">+'+t.amount+'장</span>' +
+      (t.memo?'<span style="color:#9CA3AF;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t.memo)+'</span>':'<span style="flex:1"></span>') +
+      '<span style="color:#C7A96B">'+time+'</span>' +
+      '<button onclick="deleteTicketExtra('+t.id+')" style="background:none;border:none;color:#9CA3AF;cursor:pointer;font-size:10px;padding:0;flex-shrink:0">✕</button>' +
+    '</div>';
+  }).join('');
 }
 
 // ── 식권 설정 ──
@@ -1026,8 +1102,13 @@ function renderStats(){
   const transCnt=logs.filter(l=>l.payment_type==='계좌이체').length;
   const gUsed=gL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
   const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
-  const gRemain=totalTickets.groom>0?totalTickets.groom-gUsed:null;
-  const bRemain=totalTickets.bride>0?totalTickets.bride-bUsed:null;
+  // 추가 발급 포함 계산
+  const gExtra=ticketExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
+  const bExtra=ticketExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+  const gTotal=totalTickets.groom>0?totalTickets.groom+gExtra:null;
+  const bTotal=totalTickets.bride>0?totalTickets.bride+bExtra:null;
+  const gRemain=gTotal!==null?gTotal-gUsed:null;
+  const bRemain=bTotal!==null?bTotal-bUsed:null;
 
   document.getElementById('stat-total-amount').textContent=fmtFull(total);
   document.getElementById('stat-total-count').textContent=`총 ${logs.length}건`;
@@ -1039,14 +1120,16 @@ function renderStats(){
   document.getElementById('stat-transfer').textContent=transCnt+'건';
 
   // 신랑 식권
-  document.getElementById('g-total-tkt').textContent=totalTickets.groom>0?totalTickets.groom+'장':'미설정';
+  document.getElementById('g-total-tkt').textContent=gTotal!==null
+    ?(totalTickets.groom+'장'+(gExtra>0?' +추가'+gExtra:'')):'미설정';
   document.getElementById('g-used-tkt').textContent=gUsed+'장';
   const gEl=document.getElementById('g-remain-tkt');
   if(gRemain===null){gEl.textContent='—';gEl.className='tkt-stat-val';}
   else{gEl.textContent=gRemain+'장';gEl.className='tkt-stat-val '+(gRemain<=10?'red':gRemain<=20?'orange':'green');}
 
   // 신부 식권
-  document.getElementById('b-total-tkt').textContent=totalTickets.bride>0?totalTickets.bride+'장':'미설정';
+  document.getElementById('b-total-tkt').textContent=bTotal!==null
+    ?(totalTickets.bride+'장'+(bExtra>0?' +추가'+bExtra:'')):'미설정';
   document.getElementById('b-used-tkt').textContent=bUsed+'장';
   const bEl=document.getElementById('b-remain-tkt');
   if(bRemain===null){bEl.textContent='—';bEl.className='tkt-stat-val';}
