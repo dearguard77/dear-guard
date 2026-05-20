@@ -75,10 +75,10 @@ input,select,textarea{font-family:inherit;outline:none}
 .ho-save-indicator{font-size:10px;color:#10B981;text-align:right;height:14px;margin-top:2px}
 
 /* ── 왼쪽 입력 ── */
-#input-panel{overflow-y:auto;padding:10px 12px;background:#EDEDED;display:flex;flex-direction:column;gap:6px}
+#input-panel{overflow-y:auto;padding:8px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px}
 
-.card{background:#fff;border-radius:9px;padding:10px 13px;border:1px solid #E0E0E0;max-width:680px}
-.card-title{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.4px;margin-bottom:6px;text-transform:uppercase}
+.card{background:#fff;border-radius:9px;padding:9px 12px;border:1px solid #E0E0E0}
+.card-title{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.4px;margin-bottom:5px;text-transform:uppercase}
 
 /* 토글 */
 .tog-group{display:flex;gap:5px}
@@ -91,7 +91,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 금액 버튼 */
 .amt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:7px}
-.amt-btn{border-radius:7px;padding:10px 4px;font-size:14px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#333;text-align:center;transition:all .1s}
+.amt-btn{border-radius:7px;padding:8px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#333;text-align:center;transition:all .1s}
 .amt-btn:active{transform:scale(.96)}
 .amt-active{background:#111;color:#fff;border-color:#111}
 .amt-custom{background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B}
@@ -103,7 +103,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 관계 */
 .rel-group{display:flex;flex-wrap:wrap;gap:4px}
-.rel-btn{border-radius:14px;padding:4px 10px;font-size:12px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;transition:all .1s}
+.rel-btn{border-radius:12px;padding:3px 8px;font-size:11px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;transition:all .1s}
 .rel-active{background:#374151;color:#fff;border-color:#374151}
 
 /* 식권 */
@@ -122,7 +122,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .tkt-setup-inp:focus{border-color:#C7A96B}
 
 /* 접수 버튼 */
-.submit-btn{width:100%;max-width:680px;background:linear-gradient(135deg,#C7A96B,#E8C98A);color:#fff;border-radius:9px;padding:13px;font-size:16px;font-weight:800;letter-spacing:.3px;box-shadow:0 3px 12px rgba(199,169,107,.3);transition:all .15s;flex-shrink:0}
+.submit-btn{width:100%;background:linear-gradient(135deg,#C7A96B,#E8C98A);color:#fff;border-radius:9px;padding:12px;font-size:15px;font-weight:800;letter-spacing:.3px;box-shadow:0 3px 12px rgba(199,169,107,.3);transition:all .15s;flex-shrink:0;border:none;cursor:pointer}
 .submit-btn:active{transform:scale(.98)}
 
 /* ── 오른쪽 현황 ── */
@@ -370,58 +370,28 @@ input,select,textarea{font-family:inherit;outline:none}
     <!-- 축의 입력기 -->
     <div id="input-panel">
 
-      <!-- 식권 초기 설정 + 추가 발급 -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:7px">식권 설정</div>
-        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px">
-          <div class="tkt-setup-row">
-            <span class="tkt-setup-lbl">🤵 신랑측 초기</span>
-            <input class="tkt-setup-inp" id="groom-total-ticket" type="number" placeholder="0" min="0" oninput="saveTotalTickets()">
-            <span style="font-size:11px;color:#9CA3AF">장</span>
-          </div>
-          <div class="tkt-setup-row">
-            <span class="tkt-setup-lbl">👰 신부측 초기</span>
-            <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="0" min="0" oninput="saveTotalTickets()">
-            <span style="font-size:11px;color:#9CA3AF">장</span>
+      <!-- 줄1: 측 + 결제 (2열) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+        <div class="card" style="padding:8px 10px">
+          <div class="card-title" style="margin-bottom:5px">접수 측</div>
+          <div class="tog-group">
+            <button class="tog-btn tog-blue" id="side-groom" onclick="setSide('groom')">🤵 신랑측</button>
+            <button class="tog-btn" id="side-bride" onclick="setSide('bride')">👰 신부측</button>
           </div>
         </div>
-        <div style="border-top:1px dashed #E0E0E0;padding-top:7px">
-          <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.4px;margin-bottom:5px">➕ 추가 발급</div>
-          <div style="display:flex;gap:4px;margin-bottom:5px">
-            <select id="add-ticket-side" class="tkt-setup-inp" style="width:76px;flex-shrink:0;font-size:11px;padding:4px 5px">
-              <option value="신랑측">🤵 신랑</option>
-              <option value="신부측">👰 신부</option>
-            </select>
-            <input id="add-ticket-amount" class="tkt-setup-inp" type="number" placeholder="장수" min="1" style="width:56px;flex-shrink:0;font-size:12px;text-align:center" onkeydown="if(event.key==='Enter')addTicketExtra()">
-            <input id="add-ticket-memo" class="tkt-setup-inp" placeholder="메모(예약실 수령 등)" style="flex:1;font-size:11px;padding:4px 6px" onkeydown="if(event.key==='Enter')addTicketExtra()">
-            <button onclick="addTicketExtra()" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+        <div class="card" style="padding:8px 10px">
+          <div class="card-title" style="margin-bottom:5px">결제 방식</div>
+          <div class="tog-group">
+            <button class="tog-btn tog-dark" id="pay-cash" onclick="setPayment('cash')">💵 현금</button>
+            <button class="tog-btn" id="pay-transfer" onclick="setPayment('transfer')">📱 계좌이체</button>
           </div>
-          <div id="ticket-extra-list" style="max-height:72px;overflow-y:auto"></div>
         </div>
       </div>
 
-      <!-- 접수 측 -->
-      <div class="card">
-        <div class="card-title">접수 측</div>
-        <div class="tog-group">
-          <button class="tog-btn tog-blue" id="side-groom" onclick="setSide('groom')">🤵 신랑측</button>
-          <button class="tog-btn" id="side-bride" onclick="setSide('bride')">👰 신부측</button>
-        </div>
-      </div>
-
-      <!-- 결제 방식 -->
-      <div class="card">
-        <div class="card-title">결제 방식</div>
-        <div class="tog-group">
-          <button class="tog-btn tog-dark" id="pay-cash" onclick="setPayment('cash')">💵 현금</button>
-          <button class="tog-btn" id="pay-transfer" onclick="setPayment('transfer')">📱 계좌이체</button>
-        </div>
-      </div>
-
-      <!-- 금액 -->
-      <div class="card">
-        <div class="card-title">금액</div>
-        <div class="amt-grid">
+      <!-- 줄2: 금액 (compact 4+4 grid) -->
+      <div class="card" style="padding:8px 10px">
+        <div class="card-title" style="margin-bottom:5px">금액</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:5px">
           <button class="amt-btn" onclick="setAmount(50000)">5만</button>
           <button class="amt-btn" onclick="setAmount(100000)">10만</button>
           <button class="amt-btn" onclick="setAmount(150000)">15만</button>
@@ -429,63 +399,64 @@ input,select,textarea{font-family:inherit;outline:none}
           <button class="amt-btn" onclick="setAmount(300000)">30만</button>
           <button class="amt-btn" onclick="setAmount(500000)">50만</button>
           <button class="amt-btn" onclick="setAmount(1000000)">100만</button>
-          <button class="amt-btn amt-custom" onclick="focusCustomAmount()">직접입력</button>
+          <button class="amt-btn amt-custom" onclick="focusCustomAmount()">직접</button>
         </div>
         <div class="inp-wrap">
-          <input class="form-input" id="amount-input" type="number" placeholder="금액 직접 입력"
-            oninput="onAmountInput()" style="padding-right:30px">
+          <input class="form-input" id="amount-input" type="number" placeholder="직접 입력"
+            oninput="onAmountInput()" style="padding-right:28px;font-size:13px;padding-top:6px;padding-bottom:6px">
           <span class="inp-unit">원</span>
         </div>
       </div>
 
-      <!-- 하객 + 관계 -->
-      <div class="card">
-        <div class="card-title">하객 정보</div>
-        <input class="form-input" id="guest-name" placeholder="이름 (선택)" style="margin-bottom:6px">
-        <div class="rel-group">
-          <button class="rel-btn" onclick="setRelation('친구')">친구</button>
-          <button class="rel-btn" onclick="setRelation('직장')">직장</button>
-          <button class="rel-btn" onclick="setRelation('가족')">가족</button>
-          <button class="rel-btn" onclick="setRelation('부 지인')">부 지인</button>
-          <button class="rel-btn" onclick="setRelation('모 지인')">모 지인</button>
-          <button class="rel-btn" onclick="setRelation('기타')">기타</button>
+      <!-- 줄3: 하객 + 관계 + 식권 (한 카드) -->
+      <div class="card" style="padding:8px 10px">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start">
+          <div>
+            <div class="card-title" style="margin-bottom:4px">하객</div>
+            <input class="form-input" id="guest-name" placeholder="이름 (선택)"
+              style="font-size:12px;padding:5px 8px;margin-bottom:5px">
+            <div class="rel-group">
+              <button class="rel-btn" onclick="setRelation('친구')">친구</button>
+              <button class="rel-btn" onclick="setRelation('직장')">직장</button>
+              <button class="rel-btn" onclick="setRelation('가족')">가족</button>
+              <button class="rel-btn" onclick="setRelation('부 지인')">부지인</button>
+              <button class="rel-btn" onclick="setRelation('모 지인')">모지인</button>
+              <button class="rel-btn" onclick="setRelation('기타')">기타</button>
+            </div>
+          </div>
+          <div>
+            <div class="card-title" style="margin-bottom:4px">식권</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;align-items:center;gap:4px">
+                <span style="font-size:11px;color:#6B7280;width:24px">대인</span>
+                <div class="counter" style="padding:2px 5px">
+                  <button class="cnt-btn" style="width:22px;height:22px" onclick="changeTicket('adult',-1)">−</button>
+                  <span class="cnt-val" id="adult-ticket-val" style="font-size:14px;min-width:22px">1</span>
+                  <button class="cnt-btn" style="width:22px;height:22px" onclick="changeTicket('adult',1)">＋</button>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px">
+                <span style="font-size:11px;color:#6B7280;width:24px">소인</span>
+                <div class="counter" style="padding:2px 5px">
+                  <button class="cnt-btn" style="width:22px;height:22px" onclick="changeTicket('child',-1)">−</button>
+                  <span class="cnt-val" id="child-ticket-val" style="font-size:14px;min-width:22px">0</span>
+                  <button class="cnt-btn" style="width:22px;height:22px" onclick="changeTicket('child',1)">＋</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 식권 -->
-      <div class="card">
-        <div class="card-title">식권</div>
-        <div style="display:flex;gap:16px">
-          <div class="ticket-row">
-            <span class="tkt-label">대인</span>
-            <div class="counter">
-              <button class="cnt-btn" onclick="changeTicket('adult',-1)">−</button>
-              <span class="cnt-val" id="adult-ticket-val">1</span>
-              <button class="cnt-btn" onclick="changeTicket('adult',1)">＋</button>
-            </div>
-            <span style="font-size:11px;color:#9CA3AF;margin-left:4px">매</span>
-          </div>
-          <div class="ticket-row">
-            <span class="tkt-label">소인</span>
-            <div class="counter">
-              <button class="cnt-btn" onclick="changeTicket('child',-1)">−</button>
-              <span class="cnt-val" id="child-ticket-val">0</span>
-              <button class="cnt-btn" onclick="changeTicket('child',1)">＋</button>
-            </div>
-            <span style="font-size:11px;color:#9CA3AF;margin-left:4px">매</span>
-          </div>
-        </div>
+      <!-- 줄4: 메모 (한 줄) -->
+      <div class="card" style="padding:7px 10px">
+        <input class="form-input" id="memo-input" placeholder="📝 메모 (선택)"
+          style="font-size:12px;padding:5px 8px">
       </div>
 
-      <!-- 메모 -->
-      <div class="card">
-        <div class="card-title">메모 (선택)</div>
-        <textarea class="form-input" id="memo-input" rows="2"
-          placeholder="특이사항" style="resize:none;line-height:1.5;font-size:12px"></textarea>
-      </div>
-
+      <!-- 접수 완료 버튼 -->
       <button class="submit-btn" onclick="submitEntry()">✅ 접수 완료</button>
-      <div style="height:8px"></div>
+
     </div>
 
     <!-- 전체 접수 리스트 -->
