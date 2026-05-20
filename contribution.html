@@ -1414,11 +1414,20 @@ async function saveEdit(){
 async function deleteLog(id){
   if(!confirm('해당 접수 내역을 삭제하시겠습니까?')) return;
   try {
-    await fetch(sb.url('contribution_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h});
+    const r = await fetch(sb.url('contribution_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h});
+    if(!r.ok){
+      const errText = await r.text();
+      console.error('[DG] 삭제 실패 응답:', r.status, errText);
+      showToast('⚠️ 삭제 실패 ('+r.status+'): '+errText.slice(0,60));
+      return;
+    }
     logs = logs.filter(function(x){ return x.id!==id; });
     renderStats(); renderRecent(); renderFullList();
     showToast('🗑️ 삭제되었습니다');
-  } catch(e){ showToast('⚠️ 삭제 실패'); }
+  } catch(e){
+    console.error('[DG] 삭제 오류:', e);
+    showToast('⚠️ 삭제 실패: '+e.message);
+  }
 }
 
 // ── 접수 저장 ──
