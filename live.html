@@ -4,22 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dear Guard · 실시간 현황</title>
-
-<!-- Favicon / 앱 아이콘 -->
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dear Guard">
 <meta name="theme-color" content="#F5F3F0">
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F5F3F0;
+  --bg:#F0EDE8;
   --bg2:#FFFFFF;
   --bg3:#F9F7F4;
-  --border:rgba(0,0,0,.08);
+  --border:#E5E0D8;
   --gold:#B8933A;
   --gold2:#C7A96B;
   --text:#111827;
@@ -28,426 +25,316 @@
   --blue:#2563EB;
   --pink:#DB2777;
   --green:#059669;
-  --red:#DC2626;
 }
-html,body{height:100%}
-body{
-  font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
-  background:var(--bg);color:var(--text);font-size:14px;
-  min-height:100vh;
-}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
 
-/* ── 로딩 ── */
-#loading{
-  position:fixed;inset:0;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:100;gap:14px;
-}
-.spinner{
-  width:36px;height:36px;
-  border:2.5px solid rgba(199,169,107,.25);
-  border-top-color:var(--gold);
-  border-radius:50%;animation:spin .8s linear infinite;
-}
+/* ── 로딩/에러 ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:12px}
+.spinner{width:32px;height:32px;border:2.5px solid rgba(199,169,107,.2);border-top-color:var(--gold2);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-logo{font-family:Georgia,serif;font-size:20px;font-weight:700;color:var(--gold2);letter-spacing:2px}
-.loading-sub{font-size:12px;color:var(--text3)}
-
-/* ── 에러 ── */
-#error-screen{
-  display:none;position:fixed;inset:0;background:var(--bg);
-  align-items:center;justify-content:center;flex-direction:column;
-  gap:10px;text-align:center;padding:24px;
-}
-#error-screen h2{font-size:18px;font-weight:800;color:var(--text)}
+.loading-logo{font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--gold2);letter-spacing:2px}
+#error-screen{display:none;position:fixed;inset:0;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:24px}
+#error-screen h2{font-size:18px;font-weight:800}
 #error-screen p{font-size:13px;color:var(--text3);line-height:1.6}
 
-/* ── 메인 ── */
-#dashboard{display:none;max-width:860px;margin:0 auto;padding:20px 16px 48px}
+/* ── 전체 레이아웃 ── */
+#dashboard{display:none;height:100vh;flex-direction:column;overflow:hidden}
 
-/* 헤더 */
-.hdr{text-align:center;margin-bottom:24px;padding-top:4px;position:relative}
-.hdr-brand{
-  font-family:Georgia,serif;font-size:11px;font-weight:700;
-  color:var(--gold2);letter-spacing:3px;margin-bottom:10px;opacity:.9;
-}
-.hdr-names{font-size:26px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:5px;line-height:1.2}
-.hdr-info{font-size:12px;color:var(--text3);margin-bottom:10px}
-.live-pill{
-  display:inline-flex;align-items:center;gap:5px;
-  background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);
-  border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:#059669;
-}
-.live-dot{width:6px;height:6px;border-radius:50%;background:#059669;animation:pulse 1.5s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+/* 상단 헤더바 */
+#hdr-bar{background:#fff;border-bottom:1px solid var(--border);padding:0 16px;height:48px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-brand{font-family:Georgia,serif;font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8}
+.hdr-names{font-size:15px;font-weight:900;color:var(--text);margin:0 12px}
+.hdr-info{font-size:11px;color:var(--text3)}
+.live-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--green)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* 구분선 */
-.divider{height:1px;background:#E5E7EB;margin:18px 0}
+/* ── 메인 그리드 ── */
+#main-grid{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 320px;grid-template-rows:auto 1fr;gap:10px;padding:10px}
 
-/* ── 총합 히어로 카드 ── */
-.hero{
-  background:linear-gradient(135deg,#FDF8F0,#FFF5E4);
-  border:1.5px solid #E8D5B0;
-  border-radius:18px;padding:22px 24px;text-align:center;margin-bottom:14px;
-  position:relative;overflow:hidden;
-}
-.hero::before{
-  content:'';position:absolute;top:-60px;right:-60px;
-  width:160px;height:160px;
-  background:radial-gradient(circle,rgba(199,169,107,.15),transparent 65%);
-  border-radius:50%;pointer-events:none;
-}
-.hero-lbl{font-size:11px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
-.hero-val{font-size:40px;font-weight:900;color:var(--gold);letter-spacing:-1px;line-height:1}
-.hero-sub{font-size:12px;color:var(--text3);margin-top:6px}
+/* 좌측 상단: 통계 */
+#stats-top{grid-column:1;grid-row:1;display:flex;flex-direction:column;gap:8px}
 
-/* ── 그리드 ── */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-@media(max-width:500px){
-  .g4{grid-template-columns:repeat(2,1fr)}
-  .g3{grid-template-columns:repeat(2,1fr)}
-}
+/* 좌측 하단: 접수 리스트 */
+#list-area{grid-column:1;grid-row:2;overflow:hidden;display:flex;flex-direction:column;gap:8px}
+
+/* 우측: 사이드바 */
+#sidebar{grid-column:2;grid-row:1/3;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
 
 /* ── 카드 ── */
-.card{
-  background:#fff;border:1.5px solid #E5E7EB;
-  border-radius:14px;padding:16px;
-  box-shadow:0 1px 4px rgba(0,0,0,.04);
-}
-.card.blue-tint{border-color:rgba(37,99,235,.12);background:rgba(37,99,235,.03)}
-.card.pink-tint{border-color:rgba(219,39,119,.12);background:rgba(219,39,119,.03)}
-.card-lbl{font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:12px 14px}
+.card-lbl{font-size:10px;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
 .card-val{font-size:22px;font-weight:900;color:var(--text);line-height:1}
-.card-val.gold{color:var(--gold)}
-.card-val.blue{color:var(--blue)}
-.card-val.pink{color:var(--pink)}
-.card-val.green{color:var(--green)}
-.card-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.card-sub{font-size:10px;color:var(--text3);margin-top:3px}
 
-/* ── 측별 섹션 ── */
-.side-wrap{margin-bottom:14px}
-.side-header{
-  display:flex;align-items:center;gap:10px;margin-bottom:12px;
-  padding-bottom:10px;border-bottom:1px solid #E5E7EB;
-}
-.side-emoji{font-size:20px}
-.side-name{font-size:15px;font-weight:800;color:var(--text)}
-.side-total{margin-left:auto;font-size:20px;font-weight:900}
-.side-total.blue{color:var(--blue)}
-.side-total.pink{color:var(--pink)}
+/* 총계 카드 행 */
+#totals-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px}
+.total-hero{background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border:1.5px solid #E8D5B0;border-radius:11px;padding:12px 16px}
+.total-hero .card-lbl{color:#A07830}
+.total-hero .card-val{font-size:28px;color:var(--gold);letter-spacing:-.5px}
 
-.side-card{background:#fff;border:1.5px solid #E5E7EB;border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+/* 측별 카드 */
+#sides-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.side-card{border-radius:11px;padding:12px 14px}
+.side-card.groom{background:#EFF6FF;border:1.5px solid #BFDBFE}
+.side-card.bride{background:#FDF2F8;border:1.5px solid #FBCFE8}
+.side-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.side-card-title{font-size:13px;font-weight:800}
+.side-card-amount{font-size:18px;font-weight:900}
+.side-card-amount.blue{color:var(--blue)}
+.side-card-amount.pink{color:var(--pink)}
+.side-mini-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.side-mini{background:rgba(255,255,255,.7);border-radius:7px;padding:6px 8px;text-align:center}
+.side-mini-lbl{font-size:9px;color:var(--text3);margin-bottom:2px}
+.side-mini-val{font-size:14px;font-weight:800;color:var(--text)}
 
-.sub-stat{text-align:center}
-.sub-stat-lbl{font-size:10px;color:var(--text3);margin-bottom:4px}
-.sub-stat-val{font-size:18px;font-weight:800;color:var(--text)}
+/* 접수 리스트 */
+#list-area .card{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-shrink:0}
+.list-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase}
+.split-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;overflow:hidden;min-height:0}
+.split-col{overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.split-col-header{font-size:11px;font-weight:700;padding:5px 8px;border-radius:7px;margin-bottom:4px;flex-shrink:0}
+.split-col-header.groom{background:#EFF6FF;color:var(--blue)}
+.split-col-header.bride{background:#FDF2F8;color:var(--pink)}
 
-/* ── 미니 통계 ── */
-.mini-card{background:#fff;border:1.5px solid #E5E7EB;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.mini-lbl{font-size:10px;color:var(--text3);letter-spacing:.4px;margin-bottom:4px}
-.mini-val{font-size:18px;font-weight:800;color:var(--text)}
+.log-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
+.log-row.new-item{border-color:rgba(199,169,107,.4);animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.log-name{font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log-rel{font-size:10px;color:var(--text3);margin-left:4px;font-weight:400}
+.log-pay{font-size:10px;color:var(--text3)}
+.log-amt{font-size:12px;font-weight:800;color:var(--gold2);white-space:nowrap}
+.log-time{font-size:10px;color:var(--text3);white-space:nowrap;margin-left:4px}
 
-/* ── 접수 리스트 ── */
-.list-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.list-title{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
-.list-cnt{font-size:11px;color:var(--text3)}
+/* 단측 리스트 */
+#single-wrap{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
 
-.log-item{
-  display:flex;align-items:center;gap:11px;
-  padding:11px 13px;
-  background:#fff;border:1px solid #E5E7EB;
-  border-radius:11px;margin-bottom:7px;
-  transition:border-color .2s;
-  box-shadow:0 1px 3px rgba(0,0,0,.04);
-}
-.log-item.new-item{border-color:rgba(199,169,107,.35);animation:fadeIn .4s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+/* 사이드바 카드들 */
+.sb-card{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:11px 13px}
+.sb-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+.sb-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #F0EDE8;font-size:12px}
+.sb-row:last-child{border-bottom:none;padding-bottom:0}
+.sb-lbl{color:var(--text2)}
+.sb-val{font-weight:700;color:var(--text)}
+.sb-val.green{color:var(--green)}
+.sb-val.orange{color:#D97706}
+.sb-val.red{color:#DC2626}
 
-.log-side-icon{
-  width:30px;height:30px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;flex-shrink:0;
-}
-.log-side-icon.groom{background:rgba(37,99,235,.08)}
-.log-side-icon.bride{background:rgba(219,39,119,.08)}
+/* 화환/메모 아이템 */
+.flower-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:1px solid #F0EDE8;font-size:11px}
+.flower-item:last-child{border-bottom:none}
+.ops-item{padding:5px 0;border-bottom:1px solid #F0EDE8;font-size:11px}
+.ops-item:last-child{border-bottom:none}
 
-.log-body{flex:1;min-width:0}
-.log-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.log-meta{font-size:11px;color:var(--text3);margin-top:2px}
-
-.log-right{text-align:right;flex-shrink:0}
-.log-amount{font-size:13px;font-weight:800;color:var(--gold)}
-.log-time{font-size:10px;color:var(--text3);margin-top:2px}
-
-.empty-list{text-align:center;padding:32px;color:var(--text3);font-size:13px}
-
-/* 양측 분리 리스트 */
-.split-list-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0}
-@media(max-width:600px){.split-list-wrap{grid-template-columns:1fr;gap:12px}}
-
-.split-col{display:flex;flex-direction:column;gap:8px}
-
-.split-header{border-radius:12px;padding:13px 15px;margin-bottom:4px}
-.groom-header{background:linear-gradient(135deg,rgba(37,99,235,.06),rgba(37,99,235,.02));border:1.5px solid rgba(37,99,235,.15)}
-.bride-header{background:linear-gradient(135deg,rgba(219,39,119,.06),rgba(219,39,119,.02));border:1.5px solid rgba(219,39,119,.15)}
-
-.split-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:5px}
-.split-summary{font-size:12px;color:var(--text3);line-height:1.6}
-.split-summary span{font-weight:700;color:var(--text)}
-
-.split-log-item{
-  display:flex;align-items:center;gap:9px;
-  padding:9px 11px;
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:10px;
-  box-shadow:0 1px 3px rgba(0,0,0,.04);
-}
-.split-log-body{flex:1;min-width:0}
-.split-log-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.split-log-meta{font-size:10px;color:var(--text3);margin-top:2px}
-.split-log-right{text-align:right;flex-shrink:0}
-.split-log-amount{font-size:12px;font-weight:800;color:var(--gold2)}
-.split-log-time{font-size:10px;color:var(--text3);margin-top:1px}
-
-.ops-item{
-  display:flex;align-items:flex-start;gap:10px;
-  padding:10px 13px;
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:10px;margin-bottom:6px;
-}
-.ops-time{font-size:11px;font-weight:700;color:var(--gold2);white-space:nowrap;margin-top:1px;flex-shrink:0}
-.ops-text{font-size:13px;color:var(--text);line-height:1.5;flex:1}
-.ops-by{font-size:10px;color:var(--text3);white-space:nowrap;margin-top:2px;flex-shrink:0}
-
-/* ── 갱신 표시 ── */
-#upd-badge{
-  position:fixed;top:14px;right:14px;
-  background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.25);
-  border-radius:20px;padding:5px 11px;
-  font-size:11px;font-weight:700;color:#059669;
-  display:none;z-index:50;
-}
-#last-upd{text-align:center;font-size:11px;color:var(--text3);margin-top:20px;opacity:.6}
-
-/* 섹션 간격 */
-.sec{margin-bottom:14px}
+/* 인계 정보 */
+.ho-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.ho-item{background:var(--bg3);border-radius:7px;padding:7px 9px}
+.ho-item-lbl{font-size:10px;color:var(--text3);margin-bottom:3px}
+.ho-item-val{font-size:12px;font-weight:700;color:var(--text);line-height:1.4;word-break:break-all}
+.ho-pw{font-size:20px;font-weight:900;color:var(--gold2);letter-spacing:4px;text-align:center;padding:8px;background:var(--bg3);border-radius:7px;margin-bottom:6px}
+.ho-link{display:block;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;margin-bottom:5px;text-align:center}
+.ho-template-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border:1.5px solid #E8D5B0;border-radius:8px;padding:9px;text-decoration:none;color:var(--gold2);font-size:12px;font-weight:700;margin-top:4px}
 
 /* 스크롤바 */
-::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25)}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}
+
+/* 엑셀 버튼 */
+.excel-btn{background:#217346;color:#fff;border:none;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer}
+
+/* 갱신 뱃지 */
+#upd-badge{position:fixed;top:12px;right:12px;background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.25);border-radius:16px;padding:4px 10px;font-size:10px;font-weight:700;color:var(--green);display:none;z-index:50}
+
+/* 빈 상태 */
+.empty{text-align:center;padding:20px;color:var(--text3);font-size:12px}
+
+@media(max-width:900px){
+  html,body{overflow:auto}
+  #dashboard{height:auto;overflow:auto}
+  #main-grid{grid-template-columns:1fr;grid-template-rows:auto;overflow:auto}
+  #list-area{overflow:visible}
+  #sidebar{grid-column:1;grid-row:auto}
+  #totals-row{grid-template-columns:1fr 1fr;gap:6px}
+  .split-wrap{grid-template-columns:1fr}
+}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
 <div id="loading">
   <div class="loading-logo">Dear Guard</div>
   <div class="spinner"></div>
-  <div class="loading-sub">실시간 현황을 불러오는 중...</div>
 </div>
 
 <div id="error-screen">
   <h2>⚠️ 링크를 확인해주세요</h2>
-  <p>유효하지 않은 대시보드 링크입니다.<br>담당 매니저에게 올바른 링크를 요청해주세요.</p>
+  <p>담당 매니저에게 올바른 링크를 요청해주세요.</p>
 </div>
 
 <div id="dashboard">
 
-  <!-- 헤더 -->
-  <div class="hdr">
-    <div class="hdr-brand">DEAR GUARD</div>
-    <div class="hdr-names" id="hdr-names">—</div>
-    <div class="hdr-info" id="hdr-info">—</div>
-    <div><span class="live-pill"><span class="live-dot"></span>실시간 업데이트</span></div>
-  </div>
-
-  <!-- 총 축의금 히어로 -->
-  <div class="hero sec">
-    <div class="hero-lbl">총 축의금</div>
-    <div class="hero-val" id="total-amount">0원</div>
-    <div class="hero-sub" id="total-count">총 0건 접수</div>
-  </div>
-
-  <!-- 전체 통계 4개 -->
-  <div class="g4 sec">
-    <div class="mini-card">
-      <div class="mini-lbl">총 인원</div>
-      <div class="mini-val" id="total-cnt">0<span style="font-size:12px;font-weight:400;color:var(--text3)">건</span></div>
+  <!-- 상단 헤더바 -->
+  <div id="hdr-bar">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="hdr-brand">DEAR GUARD</span>
+      <span style="color:#E0E0E0">|</span>
+      <span class="hdr-names" id="hdr-names">—</span>
+      <span class="hdr-info" id="hdr-info">—</span>
     </div>
-    <div class="mini-card">
-      <div class="mini-lbl">대인 식권</div>
-      <div class="mini-val" id="total-adult">0<span style="font-size:12px;font-weight:400;color:var(--text3)">매</span></div>
-    </div>
-    <div class="mini-card">
-      <div class="mini-lbl">소인 식권</div>
-      <div class="mini-val" id="total-child">0<span style="font-size:12px;font-weight:400;color:var(--text3)">매</span></div>
-    </div>
-    <div class="mini-card">
-      <div class="mini-lbl">계좌이체</div>
-      <div class="mini-val" id="transfer-cnt">0<span style="font-size:12px;font-weight:400;color:var(--text3)">건</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="live-pill"><span class="live-dot"></span>실시간</span>
+      <button class="excel-btn" onclick="downloadExcel()">📥 엑셀</button>
+      <span id="last-upd" style="font-size:10px;color:var(--text3)"></span>
     </div>
   </div>
 
-  <div class="divider"></div>
+  <!-- 메인 그리드 -->
+  <div id="main-grid">
 
-  <!-- 신랑측 -->
-  <div class="sec">
-    <div class="side-card">
-      <div class="side-header">
-        <span class="side-emoji">🤵</span>
-        <span class="side-name">신랑측</span>
-        <span class="side-total blue" id="groom-total">0원</span>
-      </div>
-      <div class="g3">
-        <div class="sub-stat">
-          <div class="sub-stat-lbl">접수 인원</div>
-          <div class="sub-stat-val" id="groom-cnt">0</div>
+    <!-- 좌측 상단: 통계 -->
+    <div id="stats-top">
+      <!-- 총계 행 -->
+      <div id="totals-row">
+        <div class="total-hero">
+          <div class="card-lbl">총 축의금</div>
+          <div class="card-val" id="total-amount">0원</div>
+          <div class="card-sub" id="total-count">0건 접수</div>
         </div>
-        <div class="sub-stat">
-          <div class="sub-stat-lbl">대인 식권</div>
-          <div class="sub-stat-val" id="groom-adult">0</div>
+        <div class="card">
+          <div class="card-lbl">총 인원</div>
+          <div class="card-val" id="total-cnt">0</div>
+          <div class="card-sub">건</div>
         </div>
-        <div class="sub-stat">
-          <div class="sub-stat-lbl">소인 식권</div>
-          <div class="sub-stat-val" id="groom-child">0</div>
+        <div class="card">
+          <div class="card-lbl">대인 식권</div>
+          <div class="card-val" id="total-adult">0</div>
+          <div class="card-sub">매</div>
+        </div>
+        <div class="card">
+          <div class="card-lbl">소인 식권</div>
+          <div class="card-val" id="total-child">0</div>
+          <div class="card-sub">매</div>
+        </div>
+        <div class="card">
+          <div class="card-lbl">계좌이체</div>
+          <div class="card-val" id="transfer-cnt">0</div>
+          <div class="card-sub">건</div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- 신부측 -->
-  <div class="sec">
-    <div class="side-card" style="border-color:rgba(244,114,182,.12)">
-      <div class="side-header">
-        <span class="side-emoji">👰</span>
-        <span class="side-name">신부측</span>
-        <span class="side-total pink" id="bride-total">0원</span>
-      </div>
-      <div class="g3">
-        <div class="sub-stat">
-          <div class="sub-stat-lbl">접수 인원</div>
-          <div class="sub-stat-val" id="bride-cnt">0</div>
+      <!-- 신랑/신부 -->
+      <div id="sides-row">
+        <div class="side-card groom">
+          <div class="side-card-header">
+            <span class="side-card-title">🤵 신랑측</span>
+            <span class="side-card-amount blue" id="groom-total">0원</span>
+          </div>
+          <div class="side-mini-row">
+            <div class="side-mini"><div class="side-mini-lbl">인원</div><div class="side-mini-val" id="groom-cnt">0</div></div>
+            <div class="side-mini"><div class="side-mini-lbl">대인식권</div><div class="side-mini-val" id="groom-adult">0</div></div>
+            <div class="side-mini"><div class="side-mini-lbl">소인식권</div><div class="side-mini-val" id="groom-child">0</div></div>
+          </div>
         </div>
-        <div class="sub-stat">
-          <div class="sub-stat-lbl">대인 식권</div>
-          <div class="sub-stat-val" id="bride-adult">0</div>
-        </div>
-        <div class="sub-stat">
-          <div class="sub-stat-lbl">소인 식권</div>
-          <div class="sub-stat-val" id="bride-child">0</div>
+        <div class="side-card bride">
+          <div class="side-card-header">
+            <span class="side-card-title">👰 신부측</span>
+            <span class="side-card-amount pink" id="bride-total">0원</span>
+          </div>
+          <div class="side-mini-row">
+            <div class="side-mini"><div class="side-mini-lbl">인원</div><div class="side-mini-val" id="bride-cnt">0</div></div>
+            <div class="side-mini"><div class="side-mini-lbl">대인식권</div><div class="side-mini-val" id="bride-adult">0</div></div>
+            <div class="side-mini"><div class="side-mini-lbl">소인식권</div><div class="side-mini-val" id="bride-child">0</div></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-
-  <!-- 화환 / 축기 현황 -->
-  <div class="list-hdr" style="margin-bottom:10px">
-    <div class="list-title">💐 화환 / 축기</div>
-    <div class="list-cnt" id="flower-cnt">0건</div>
-  </div>
-  <div id="flower-live-list" style="margin-bottom:4px;max-height:200px;overflow-y:auto"></div>
-
-  <div class="divider"></div>
-
-  <!-- 현장 운영 메모 -->
-  <div class="list-hdr">
-    <div class="list-title">📋 현장 운영 메모</div>
-    <div class="list-cnt" id="ops-cnt">0건</div>
-  </div>
-  <div id="ops-list" style="max-height:160px;overflow-y:auto"></div>
-
-  <div class="divider"></div>
-
-  <!-- 엑셀 다운로드 버튼 -->
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-    <div class="list-title">📋 접수 내역</div>
-    <button onclick="downloadExcel()"
-      style="background:#217346;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px">
-      📥 엑셀 다운로드
-    </button>
-  </div>
-
-  <!-- 양측 분리 리스트 (양측 데이터 있을 때) -->
-  <div class="split-list-wrap" id="split-list-wrap" style="display:none">
-    <div class="split-col">
-      <div class="split-header groom-header">
-        <div class="split-title">🤵 신랑측</div>
-        <div class="split-summary" id="groom-summary">0명 · 0원</div>
-      </div>
-      <div id="groom-log-list" style="max-height:420px;overflow-y:auto;padding-right:4px"></div>
-    </div>
-    <div class="split-col">
-      <div class="split-header bride-header">
-        <div class="split-title">👰 신부측</div>
-        <div class="split-summary" id="bride-summary">0명 · 0원</div>
-      </div>
-      <div id="bride-log-list" style="max-height:420px;overflow-y:auto;padding-right:4px"></div>
-    </div>
-  </div>
-
-  <!-- 단측 / 통합 리스트 (한쪽만 있을 때) -->
-  <div id="single-list-wrap" style="display:none">
-    <div class="list-hdr" style="margin-bottom:10px">
-      <div class="list-title" id="single-list-label">최근 접수 내역</div>
-    </div>
-    <div id="single-log-list" style="max-height:500px;overflow-y:auto;padding-right:4px"></div>
-  </div>
-
-  <div class="divider"></div>
-
-  <!-- 인계 정보 카드 -->
-  <div id="handover-card" style="display:none">
-    <div class="list-hdr" style="margin-bottom:12px">
-      <div class="list-title">📦 인계 정보</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div class="mini-card" id="hc-items-wrap" style="display:none">
-        <div class="mini-lbl">인계 물품</div>
-        <div id="hc-items" style="font-size:13px;color:var(--text);white-space:pre-line;line-height:1.6;margin-top:4px"></div>
-      </div>
-      <div class="mini-card" id="hc-person-wrap" style="display:none">
-        <div class="mini-lbl">인계자</div>
-        <div id="hc-person" style="font-size:13px;color:var(--text);margin-top:4px;line-height:1.8"></div>
+    <!-- 좌측 하단: 접수 리스트 -->
+    <div id="list-area">
+      <div class="card" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0">
+        <div class="list-header">
+          <div class="list-title">📋 접수 내역</div>
+          <div style="font-size:11px;color:var(--text3)" id="list-cnt-label">0건</div>
+        </div>
+        <!-- 양측 분리 -->
+        <div class="split-wrap" id="split-list-wrap" style="display:none">
+          <div>
+            <div class="split-col-header groom">🤵 신랑측 &nbsp;<span id="groom-summary" style="font-weight:400"></span></div>
+            <div class="split-col" id="groom-log-list"></div>
+          </div>
+          <div>
+            <div class="split-col-header bride">👰 신부측 &nbsp;<span id="bride-summary" style="font-weight:400"></span></div>
+            <div class="split-col" id="bride-log-list"></div>
+          </div>
+        </div>
+        <!-- 단측 -->
+        <div id="single-list-wrap" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+          <div class="split-col-header groom" id="single-list-label" style="margin-bottom:6px;flex-shrink:0"></div>
+          <div id="single-log-list" class="split-col" style="flex:1;overflow-y:auto"></div>
+        </div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-      <div class="mini-card" id="hc-pw-wrap" style="display:none">
-        <div class="mini-lbl">🔒 설정 비밀번호</div>
-        <div id="hc-password" style="font-size:22px;font-weight:900;color:var(--gold2);letter-spacing:4px;margin-top:4px"></div>
+
+    <!-- 우측 사이드바 -->
+    <div id="sidebar">
+
+      <!-- 화환/축기 -->
+      <div class="sb-card">
+        <div class="sb-title">💐 화환 / 축기 &nbsp;<span id="flower-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
+        <div id="flower-live-list"><div class="empty">기록 없음</div></div>
       </div>
-      <div class="mini-card" id="hc-r1-wrap" style="display:none">
-        <div class="mini-lbl">📹 접수응대캠</div>
-        <a id="hc-replay1" href="#" target="_blank"
-          style="font-size:12px;font-weight:700;color:var(--blue);text-decoration:none;display:block;margin-top:6px;word-break:break-all">
-          다시보기 →
+
+      <!-- 운영 메모 -->
+      <div class="sb-card">
+        <div class="sb-title">📋 운영 메모 &nbsp;<span id="ops-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
+        <div id="ops-list" style="max-height:140px;overflow-y:auto"><div class="empty">메모 없음</div></div>
+      </div>
+
+      <!-- 인계 정보 -->
+      <div class="sb-card" id="handover-card" style="display:none">
+        <div class="sb-title">📦 인계 정보</div>
+        <div id="hc-items-wrap" style="display:none;margin-bottom:7px">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">인계 물품</div>
+          <div id="hc-items" style="font-size:12px;color:var(--text);white-space:pre-line;line-height:1.6;background:var(--bg3);border-radius:6px;padding:7px 9px"></div>
+        </div>
+        <div id="hc-person-wrap" style="display:none;margin-bottom:7px">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">인계자</div>
+          <div id="hc-person" style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:7px 9px;line-height:1.8"></div>
+        </div>
+        <div id="hc-pw-wrap" style="display:none;margin-bottom:7px">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">🔒 레디백 비밀번호</div>
+          <div id="hc-password" class="ho-pw"></div>
+        </div>
+        <div id="hc-r1-wrap" style="display:none">
+          <a id="hc-replay1" href="#" target="_blank" class="ho-link">📹 접수응대캠 다시보기</a>
+        </div>
+        <div id="hc-r2-wrap" style="display:none">
+          <a id="hc-replay2" href="#" target="_blank" class="ho-link">📹 계수기록캠 다시보기</a>
+        </div>
+        <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
+          target="_blank" class="ho-template-btn">
+          💌 하객 답례인사 템플릿
         </a>
       </div>
-      <div class="mini-card" id="hc-r2-wrap" style="display:none">
-        <div class="mini-lbl">📹 계수기록캠</div>
-        <a id="hc-replay2" href="#" target="_blank"
-          style="font-size:12px;font-weight:700;color:var(--blue);text-decoration:none;display:block;margin-top:6px;word-break:break-all">
-          다시보기 →
-        </a>
-      </div>
-    </div>
-    <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
-      target="_blank"
-      style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border:1.5px solid #E8D5B0;border-radius:12px;padding:14px;text-decoration:none;color:var(--gold2);font-size:14px;font-weight:700">
-      💌 하객 답례인사 템플릿 보기
-    </a>
-  </div>
 
-  <div id="last-upd"></div>
+      <!-- 답례 템플릿 (인계 정보 없을 때도 항상 표시) -->
+      <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
+        target="_blank" id="template-btn-standalone"
+        style="display:flex;align-items:center;justify-content:center;gap:6px;background:#FDF8F0;border:1.5px solid #E8D5B0;border-radius:11px;padding:11px;text-decoration:none;color:var(--gold2);font-size:13px;font-weight:700">
+        💌 하객 답례인사 템플릿
+      </a>
+
+    </div>
+  </div>
 </div>
 
 <div id="upd-badge">✓ 업데이트</div>
 
 <script>
+
 const SUPABASE_URL      = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 
@@ -560,7 +447,8 @@ function renderStats(){
   document.getElementById('bride-adult').textContent = bAdult;
   document.getElementById('bride-child').textContent = bChild;
 
-  // list-cnt → split-summary로 대체됨
+  var lcEl = document.getElementById('list-cnt-label');
+  if(lcEl) lcEl.textContent = logs.length + '건';
 }
 
 // ── 리스트 렌더 (자동 모드 감지) ──
@@ -640,7 +528,7 @@ function logItemHTML(l){
   const tktC   = l.child_ticket||0;
   const tktStr = (tktA+tktC)>0 ? ` · 식권${tktA+tktC}` : '';
   const sideTag = `<span style="font-size:10px;color:${l.side==='신랑측'?'var(--blue)':'var(--pink)'};font-weight:700;margin-left:4px">${l.side}</span>`;
-  return `<div class="split-log-item${isNew?' new-item':''}">
+  return `<div class="log-row${isNew?' new-item':''}">
     <div class="split-log-body">
       <div class="split-log-name">${esc(name)}${rel?`<span style="color:var(--text3);font-weight:400">${esc(rel)}</span>`:''}${sideTag}</div>
       <div class="split-log-meta">${pay} ${l.payment_type}${tktStr}</div>
@@ -795,6 +683,9 @@ function renderHandover(){
     document.getElementById('hc-r2-wrap').style.display='block';
     document.getElementById('hc-replay2').href=s.replay_link_2;
   }
+  // 인계 정보 있으면 standalone 템플릿 버튼 숨김 (handover-card 안에 있음)
+  var standalone = document.getElementById('template-btn-standalone');
+  if(standalone) standalone.style.display = hasAny ? 'none' : 'flex';
 }
 
 // ── 운영 메모 렌더 ──
@@ -850,6 +741,7 @@ function subscribeRealtime(){
 }
 
 init();
+
 </script>
 </body>
 </html>
