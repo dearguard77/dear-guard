@@ -39,10 +39,10 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 #error-screen p{font-size:13px;color:var(--text3);line-height:1.6}
 
 /* 전체 레이아웃 */
-#app{display:none;min-height:100vh;display:none;flex-direction:column}
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden}
 
 /* 상단 헤더 */
-#hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;flex-shrink:0}
+#hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 12px;flex-shrink:0}
 .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .hdr-brand{font-family:Georgia,serif;font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8}
 .hdr-names{font-size:18px;font-weight:900;color:var(--text)}
@@ -53,16 +53,16 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 
 /* 총계 바 */
 #summary-bar{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;flex-wrap:nowrap}
-.sum-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;flex-shrink:0;text-align:center;min-width:80px}
+.sum-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;flex-shrink:0;text-align:center;min-width:72px}
 .sum-card.hero{background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border-color:#E8D5B0;min-width:120px}
 .sum-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
 .sum-val{font-size:16px;font-weight:900;color:var(--text);line-height:1}
-.sum-val.gold{color:var(--gold2);font-size:20px}
+.sum-val.gold{color:var(--gold2);font-size:18px}
 .sum-val.blue{color:var(--blue)}
 .sum-val.pink{color:var(--pink)}
 
 /* 메인 바디 */
-#body{flex:1;display:grid;grid-template-columns:220px 1fr 200px;gap:0;overflow:hidden;height:calc(100vh - 130px)}
+#body{flex:1;display:grid;grid-template-columns:200px 1fr 0px;gap:0;overflow:hidden;min-height:0}
 @media(max-width:900px){
   #body{grid-template-columns:1fr;height:auto;overflow:visible}
 }
@@ -139,6 +139,27 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 
 /* 엑셀 버튼 */
 .excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer}
+
+/* 테이블 */
+.th{padding:5px 6px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.3px;text-transform:uppercase;cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.th:hover{color:var(--text);background:rgba(0,0,0,.03)}
+.sort-icon{font-size:9px;color:var(--text3)}
+.sort-asc .sort-icon::after{content:'↑';color:var(--gold2)}
+.sort-desc .sort-icon::after{content:'↓';color:var(--gold2)}
+.sort-asc .sort-icon,.sort-desc .sort-icon{display:none}
+.sort-asc::after{content:' ↑';color:var(--gold2);font-size:10px}
+.sort-desc::after{content:' ↓';color:var(--gold2);font-size:10px}
+.tbl-row{display:grid;grid-template-columns:36px 48px 90px 1fr 70px 50px 60px 70px;gap:0;border-bottom:1px solid #F5F3F0;align-items:center;font-size:11px;transition:background .1s}
+.tbl-row:hover{background:rgba(0,0,0,.02)}
+.tbl-row.new-item{animation:fadeIn .3s ease;background:rgba(199,169,107,.06)}
+.td{padding:5px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-num{color:var(--gold2);font-weight:700;font-size:10px}
+.td-name{font-weight:700;color:var(--text)}
+.td-rel{color:var(--text3);font-size:10px}
+.td-amt{font-weight:800;color:var(--gold2)}
+.td-tkt{color:#6B7280;font-size:10px}
+.td-pay{font-size:10px;color:var(--text3)}
+.td-time{font-size:10px;color:var(--text3)}
 </style>
 </head>
 <body>
@@ -167,39 +188,46 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
         <button class="excel-btn" onclick="downloadExcel()">📥 엑셀</button>
       </div>
     </div>
-    <!-- 총계 바 -->
-    <div id="summary-bar">
-      <div class="sum-card hero">
+    <!-- 핵심 요약 -->
+    <div id="summary-bar" style="display:flex;gap:6px;align-items:stretch;overflow-x:auto">
+      <!-- 총 축의금 크게 -->
+      <div style="background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border:1.5px solid #E8D5B0;border-radius:10px;padding:6px 16px;flex-shrink:0;min-width:150px;display:flex;flex-direction:column;justify-content:center">
         <div class="sum-lbl">총 축의금</div>
-        <div class="sum-val gold" id="total-amount">0원</div>
+        <div style="font-size:22px;font-weight:900;color:var(--gold2);line-height:1" id="total-amount">0원</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px" id="total-cnt-sub">총 0건</div>
       </div>
-      <div class="sum-card">
-        <div class="sum-lbl">총 건수</div>
-        <div class="sum-val" id="total-cnt">0</div>
-      </div>
-      <div class="sum-card">
+      <!-- 신랑측 -->
+      <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:10px;padding:6px 14px;flex-shrink:0;min-width:110px;display:flex;flex-direction:column;justify-content:center">
         <div class="sum-lbl">🤵 신랑측</div>
-        <div class="sum-val blue" id="groom-total">0원</div>
+        <div style="font-size:18px;font-weight:900;color:var(--blue);line-height:1" id="groom-total">0원</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px" id="groom-cnt-sub">0건</div>
       </div>
-      <div class="sum-card">
+      <!-- 신부측 -->
+      <div style="background:#FDF2F8;border:1.5px solid #FBCFE8;border-radius:10px;padding:6px 14px;flex-shrink:0;min-width:110px;display:flex;flex-direction:column;justify-content:center">
         <div class="sum-lbl">👰 신부측</div>
-        <div class="sum-val pink" id="bride-total">0원</div>
+        <div style="font-size:18px;font-weight:900;color:var(--pink);line-height:1" id="bride-total">0원</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px" id="bride-cnt-sub">0건</div>
       </div>
-      <div class="sum-card">
-        <div class="sum-lbl">대인 식권</div>
-        <div class="sum-val" id="total-adult">0</div>
+      <!-- 구분 -->
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <div class="sum-card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="sum-lbl">대인식권</div>
+          <div class="sum-val" id="total-adult">0매</div>
+        </div>
+        <div class="sum-card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="sum-lbl">소인식권</div>
+          <div class="sum-val" id="total-child">0매</div>
+        </div>
       </div>
-      <div class="sum-card">
-        <div class="sum-lbl">소인 식권</div>
-        <div class="sum-val" id="total-child">0</div>
-      </div>
-      <div class="sum-card">
-        <div class="sum-lbl">현금</div>
-        <div class="sum-val" id="cash-cnt">0</div>
-      </div>
-      <div class="sum-card">
-        <div class="sum-lbl">계좌이체</div>
-        <div class="sum-val" id="transfer-cnt">0</div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <div class="sum-card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="sum-lbl">💵 현금</div>
+          <div class="sum-val" id="cash-cnt">0건</div>
+        </div>
+        <div class="sum-card" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="sum-lbl">📱 계좌이체</div>
+          <div class="sum-val" id="transfer-cnt">0건</div>
+        </div>
       </div>
     </div>
   </div>
@@ -255,34 +283,49 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 
     </div>
 
-    <!-- 중앙: 접수 리스트 (메인) -->
+    <!-- 중앙: 테이블형 접수 내역 -->
     <div id="center-panel">
-      <div class="center-hdr">
+      <!-- 컨트롤 바 -->
+      <div class="center-hdr" style="gap:8px;flex-wrap:wrap">
         <div class="center-hdr-title">📋 실시간 접수 내역</div>
-        <span id="last-upd" style="font-size:10px;color:var(--text3)"></span>
-      </div>
-      <div id="split-wrap">
-        <!-- 신랑측 -->
-        <div class="side-col" id="groom-col">
-          <div class="side-col-hdr groom">
-            <span class="side-col-title">🤵 신랑측</span>
-            <span class="side-col-sum" id="groom-sum">0건 · 0원</span>
-          </div>
-          <div class="side-col-body" id="groom-list"></div>
+        <div style="display:flex;gap:5px;align-items:center;flex:1;min-width:0;flex-wrap:wrap">
+          <!-- 측 필터 -->
+          <select id="tbl-filter-side" onchange="renderTable()" style="border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-size:11px;background:var(--bg2);color:var(--text);cursor:pointer">
+            <option value="">전체</option>
+            <option value="신랑측">🤵 신랑측</option>
+            <option value="신부측">👰 신부측</option>
+          </select>
+          <!-- 결제 필터 -->
+          <select id="tbl-filter-pay" onchange="renderTable()" style="border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-size:11px;background:var(--bg2);color:var(--text);cursor:pointer">
+            <option value="">전체</option>
+            <option value="현금">💵 현금</option>
+            <option value="계좌이체">📱 계좌이체</option>
+          </select>
+          <!-- 이름 검색 -->
+          <input id="tbl-search" placeholder="🔍 이름 검색" oninput="renderTable()"
+            style="border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;width:100px;background:var(--bg2);color:var(--text);outline:none">
         </div>
-        <!-- 신부측 -->
-        <div class="side-col" id="bride-col">
-          <div class="side-col-hdr bride">
-            <span class="side-col-title">👰 신부측</span>
-            <span class="side-col-sum" id="bride-sum">0건 · 0원</span>
-          </div>
-          <div class="side-col-body" id="bride-list"></div>
-        </div>
+        <span id="last-upd" style="font-size:10px;color:var(--text3);white-space:nowrap"></span>
       </div>
+
+      <!-- 테이블 헤더 -->
+      <div id="tbl-header" style="display:grid;grid-template-columns:36px 48px 90px 1fr 70px 50px 60px 70px;gap:0;background:var(--bg3);border-bottom:2px solid var(--border);flex-shrink:0">
+        <div class="th" onclick="sortTable('num')" id="th-num">번호 <span class="sort-icon">↕</span></div>
+        <div class="th">측</div>
+        <div class="th" onclick="sortTable('name')" id="th-name">이름 <span class="sort-icon">↕</span></div>
+        <div class="th" onclick="sortTable('rel')" id="th-rel">관계</div>
+        <div class="th" onclick="sortTable('amount')" id="th-amount">금액 <span class="sort-icon">↕</span></div>
+        <div class="th" onclick="sortTable('ticket')" id="th-ticket">식권 <span class="sort-icon">↕</span></div>
+        <div class="th">결제</div>
+        <div class="th" onclick="sortTable('time')" id="th-time">시간 <span class="sort-icon">↕</span></div>
+      </div>
+
+      <!-- 테이블 바디 -->
+      <div id="tbl-body" style="overflow-y:auto;flex:1;min-height:0"></div>
     </div>
 
     <!-- 우측: compact 현황 -->
-    <div id="right-panel">
+    <div id="right-panel" style="display:none">
 
       <!-- 신랑 식권 -->
       <div class="pcard">
@@ -319,6 +362,7 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 
 
 <script>
+
 const SUPABASE_URL      = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 
@@ -408,13 +452,17 @@ function renderStats(){
   const bUsed    = bL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
 
   document.getElementById('total-amount').textContent = fmtFull(total);
-  document.getElementById('total-cnt').textContent    = logs.length;
+  document.getElementById('total-cnt') && (document.getElementById('total-cnt').textContent = logs.length);
+  document.getElementById('total-cnt-sub') && (document.getElementById('total-cnt-sub').textContent = '총 '+logs.length+'건');
+  document.getElementById('groom-cnt-sub') && (document.getElementById('groom-cnt-sub').textContent = gL.length+'건');
+  document.getElementById('bride-cnt-sub') && (document.getElementById('bride-cnt-sub').textContent = bL.length+'건');
+  document.getElementById('total-adult') && (document.getElementById('total-adult').textContent = adultTot+'매');
+  document.getElementById('total-child') && (document.getElementById('total-child').textContent = childTot+'매');
+  document.getElementById('cash-cnt') && (document.getElementById('cash-cnt').textContent = cashCnt+'건');
+  document.getElementById('transfer-cnt') && (document.getElementById('transfer-cnt').textContent = transCnt+'건');
   document.getElementById('groom-total').textContent  = fmt(gAmt);
   document.getElementById('bride-total').textContent  = fmt(bAmt);
-  document.getElementById('total-adult').textContent  = adultTot;
-  document.getElementById('total-child').textContent  = childTot;
-  document.getElementById('cash-cnt').textContent     = cashCnt+'건';
-  document.getElementById('transfer-cnt').textContent = transCnt+'건';
+  // 위에서 이미 처리됨
   document.getElementById('groom-cnt').textContent    = gL.length+'명';
   document.getElementById('groom-adult').textContent  = gAdult+'매';
   document.getElementById('groom-child').textContent  = gChild+'매';
@@ -432,66 +480,91 @@ function renderStats(){
   });
 }
 
-function renderList(){
-  const wrap = document.getElementById('split-wrap');
-  const gLogs = logs.filter(l=>l.side==='신랑측');
-  const bLogs = logs.filter(l=>l.side==='신부측');
-  const hasG  = gLogs.length > 0;
-  const hasB  = bLogs.length > 0;
-  const gCol  = document.getElementById('groom-col');
-  const bCol  = document.getElementById('bride-col');
+// 정렬 상태
+var _sortKey = 'num';
+var _sortDir = 'desc'; // desc = 최신순
 
-  // 단측/양측 자동 전환
-  if(hasG && !hasB){
-    wrap.className=''; wrap.style.gridTemplateColumns='1fr';
-    if(gCol) gCol.style.display='flex'; if(bCol) bCol.style.display='none';
-  } else if(hasB && !hasG){
-    wrap.className=''; wrap.style.gridTemplateColumns='1fr';
-    if(gCol) gCol.style.display='none'; if(bCol) bCol.style.display='flex';
+function sortTable(key){
+  if(_sortKey === key){
+    _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
   } else {
-    wrap.style.gridTemplateColumns='1fr 1fr';
-    if(gCol) gCol.style.display='flex'; if(bCol) bCol.style.display='flex';
+    _sortKey = key;
+    _sortDir = key === 'num' ? 'desc' : 'asc';
+  }
+  // 헤더 표시 업데이트
+  ['num','name','rel','amount','ticket','time'].forEach(function(k){
+    var el = document.getElementById('th-'+k);
+    if(!el) return;
+    el.className = 'th' + (_sortKey===k ? (' sort-'+_sortDir) : '');
+  });
+  renderTable();
+}
+
+function renderTable(){
+  var el = document.getElementById('tbl-body');
+  if(!el) return;
+
+  var filterSide = (document.getElementById('tbl-filter-side')||{}).value||'';
+  var filterPay  = (document.getElementById('tbl-filter-pay')||{}).value||'';
+  var search     = ((document.getElementById('tbl-search')||{}).value||'').trim().toLowerCase();
+
+  var filtered = logs.filter(function(l){
+    if(filterSide && l.side !== filterSide) return false;
+    if(filterPay  && l.payment_type !== filterPay) return false;
+    if(search){
+      var name = (l.guest_name||'').toLowerCase();
+      var rel  = (l.relation||'').toLowerCase();
+      if(!name.includes(search) && !rel.includes(search)) return false;
+    }
+    return true;
+  });
+
+  // 정렬
+  var totalLen = logs.length;
+  filtered.sort(function(a, b){
+    var va, vb;
+    if(_sortKey === 'num')    { va = logs.indexOf(a); vb = logs.indexOf(b); }
+    else if(_sortKey === 'name')   { va = (a.guest_name||''); vb = (b.guest_name||''); }
+    else if(_sortKey === 'rel')    { va = (a.relation||''); vb = (b.relation||''); }
+    else if(_sortKey === 'amount') { va = (a.amount||0); vb = (b.amount||0); }
+    else if(_sortKey === 'ticket') { va = (a.adult_ticket||0)+(a.child_ticket||0); vb = (b.adult_ticket||0)+(b.child_ticket||0); }
+    else if(_sortKey === 'time')   { va = (a.created_at||''); vb = (b.created_at||''); }
+    else { va = 0; vb = 0; }
+    if(va < vb) return _sortDir==='asc' ? -1 : 1;
+    if(va > vb) return _sortDir==='asc' ? 1 : -1;
+    return 0;
+  });
+
+  if(!filtered.length){
+    el.innerHTML = '<div class="li-empty">접수 내역이 없습니다</div>';
+    return;
   }
 
-  const totalLen = logs.length;
-  function buildItem(l){
-    const num   = totalLen - logs.indexOf(l);
-    const pay   = l.payment_type==='계좌이체'?'📱':'💵';
-    const name  = esc(l.guest_name||'—');
-    const rel   = l.relation?` <span style="color:var(--text3);font-weight:400">${esc(l.relation)}</span>`:'';
-    const tkt   = (l.adult_ticket||0)+(l.child_ticket||0);
-    const tktS  = tkt>0?` <span style="color:#6B7280">🎫${tkt}</span>`:'';
-    const memo  = l.memo?` <span style="color:var(--text3)">· ${esc(l.memo)}</span>`:'';
-    const time  = l.created_at?fmtTime(l.created_at):'';
-    const isNew = newIds.has(l.id);
-    return `<div class="log-item${isNew?' new-item':''}">
-      <div class="log-item-r1">
-        <span class="li-num">#${num}</span>
-        <span class="li-name">${name}${rel}</span>
-        <span class="li-amt">${l.amount?fmt(l.amount):'—'}</span>
-      </div>
-      <div class="log-item-r2">
-        <span class="li-meta">${pay} ${l.payment_type}${tktS}${memo}</span>
-        <span class="li-time">${time}</span>
-      </div>
-    </div>`;
-  }
+  el.innerHTML = filtered.map(function(l){
+    var num    = totalLen - logs.indexOf(l);
+    var side   = l.side==='신랑측'?'🤵':'👰';
+    var pay    = l.payment_type==='계좌이체'?'📱':'💵';
+    var tkt    = (l.adult_ticket||0)+(l.child_ticket||0);
+    var time   = l.created_at?fmtTime(l.created_at):'';
+    var isNew  = newIds.has(l.id);
+    return '<div class="tbl-row'+(isNew?' new-item':'')+'">' +
+      '<div class="td td-num">#'+num+'</div>' +
+      '<div class="td" style="font-size:14px">'+side+'</div>' +
+      '<div class="td td-name">'+esc(l.guest_name||'—')+'</div>' +
+      '<div class="td td-rel">'+esc(l.relation||'—')+'</div>' +
+      '<div class="td td-amt">'+(l.amount?fmt(l.amount):'—')+'</div>' +
+      '<div class="td td-tkt">'+(tkt>0?'🎫'+tkt:'—')+'</div>' +
+      '<div class="td td-pay">'+pay+' '+l.payment_type+'</div>' +
+      '<div class="td td-time">'+time+'</div>' +
+    '</div>';
+  }).join('');
 
-  // 신랑측
-  const gAmt = gLogs.reduce((s,l)=>s+(l.amount||0),0);
-  const gSumEl = document.getElementById('groom-sum');
-  if(gSumEl) gSumEl.textContent = gLogs.length+'건 · '+fmtFull(gAmt);
-  const gEl = document.getElementById('groom-list');
-  if(gEl) gEl.innerHTML = gLogs.length ? gLogs.map(buildItem).join('') : '<div class="li-empty">접수 내역 없음</div>';
+  setTimeout(function(){ newIds.clear(); }, 2500);
+}
 
-  // 신부측
-  const bAmt = bLogs.reduce((s,l)=>s+(l.amount||0),0);
-  const bSumEl = document.getElementById('bride-sum');
-  if(bSumEl) bSumEl.textContent = bLogs.length+'건 · '+fmtFull(bAmt);
-  const bEl = document.getElementById('bride-list');
-  if(bEl) bEl.innerHTML = bLogs.length ? bLogs.map(buildItem).join('') : '<div class="li-empty">접수 내역 없음</div>';
-
-  setTimeout(()=>{ newIds.clear(); }, 2500);
+// renderList는 renderTable 호출
+function renderList(){
+  renderTable();
 }
 
 function renderOpsList(){
@@ -616,6 +689,7 @@ style.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}t
 document.head.appendChild(style);
 
 init();
+
 
 </script>
 </body>
