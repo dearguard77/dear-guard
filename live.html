@@ -383,7 +383,7 @@ async function init(){
     setInterval(function(){
       loadLogs();
       loadFlowerLive();
-    }, 30000);
+    }, 5000);
   } catch(e){
     console.error(e);
     showError();
@@ -734,8 +734,14 @@ function subscribeRealtime(){
     }));
   };
   ws.onmessage=async(e)=>{
-    const msg=JSON.parse(e.data);
-    if(['INSERT','UPDATE','DELETE'].includes(msg.event)) await loadLogs();
+    try {
+      const msg=JSON.parse(e.data);
+      if(['INSERT','UPDATE','DELETE'].includes(msg.event)){
+        console.log('[DG] realtime:', msg.event);
+        await loadLogs();
+        await loadFlowerLive();
+      }
+    } catch(err){ console.warn('[DG] ws parse error', err); }
   };
   ws.onclose=()=>setTimeout(subscribeRealtime,3000);
 }
