@@ -62,7 +62,7 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 .sum-val.pink{color:var(--pink)}
 
 /* 메인 바디 */
-#body{flex:1;display:grid;grid-template-columns:200px 1fr 0px;gap:0;overflow:hidden;min-height:0}
+#body{flex:1;display:grid;grid-template-columns:200px minmax(0,780px) 1fr;gap:0;overflow:hidden;min-height:0}
 @media(max-width:900px){
   #body{grid-template-columns:1fr;height:auto;overflow:visible}
 }
@@ -71,7 +71,7 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 #left-panel{overflow-y:auto;padding:8px;background:#F5F3EF;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
 
 /* 중앙 접수 리스트 */
-#center-panel{overflow:hidden;display:flex;flex-direction:column;background:var(--bg2)}
+#center-panel{overflow:hidden;display:flex;flex-direction:column;background:var(--bg2);max-width:780px}
 .center-hdr{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg2)}
 .center-hdr-title{font-size:12px;font-weight:800;color:var(--text)}
 #split-wrap{flex:1;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;min-height:0}
@@ -141,19 +141,19 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 .excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer}
 
 /* 테이블 - 단순 flex 구조 */
-.tbl-header-row,.tbl-row{display:flex;align-items:center;border-bottom:1px solid #F0EDE8;font-size:11px}
-.tbl-header-row{background:var(--bg3);border-bottom:2px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);position:sticky;top:0;z-index:1}
-.tbl-row:hover{background:rgba(0,0,0,.02)}
-.tbl-row.new-item{background:rgba(199,169,107,.06);animation:fadeIn .3s ease}
-/* 컬럼 너비 */
-.tc-num{width:34px;flex-shrink:0;padding:5px 4px;text-align:center}
-.tc-side{width:44px;flex-shrink:0;padding:5px 4px;text-align:center}
-.tc-name{flex:1;min-width:80px;padding:5px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--text)}
-.tc-rel{width:72px;flex-shrink:0;padding:5px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
-.tc-amt{width:72px;flex-shrink:0;padding:5px 6px;text-align:right;font-weight:800;color:var(--gold2)}
-.tc-tkt{width:40px;flex-shrink:0;padding:5px 4px;text-align:center;color:#6B7280}
-.tc-pay{width:72px;flex-shrink:0;padding:5px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text3)}
-.tc-time{width:44px;flex-shrink:0;padding:5px 4px;text-align:right;color:var(--text3)}
+.tbl-header-row,.tbl-row{display:flex;align-items:center;border-bottom:1px solid #EEEAE4;font-size:12px}
+.tbl-header-row{background:#F5F3EF;border-bottom:2px solid #E0DAD0;font-size:11px;font-weight:700;color:#6B7280;position:sticky;top:0;z-index:1}
+.tbl-row:hover{background:rgba(199,169,107,.04)}
+.tbl-row.new-item{background:rgba(199,169,107,.08);animation:fadeIn .3s ease}
+/* 컬럼: # | 이름 | 관계 | 금액 | 식권 | 결제 | 시간 */
+.tc-num{width:38px;flex-shrink:0;padding:7px 6px;text-align:center;color:var(--gold2);font-size:11px;font-weight:700}
+.tc-side{width:40px;flex-shrink:0;padding:7px 4px;text-align:center}
+.tc-name{width:140px;flex-shrink:0;padding:7px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#111;font-size:13px}
+.tc-rel{width:80px;flex-shrink:0;padding:7px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6B7280;font-size:12px}
+.tc-amt{width:80px;flex-shrink:0;padding:7px 8px;text-align:right;font-weight:800;color:var(--gold2);font-size:13px}
+.tc-tkt{width:48px;flex-shrink:0;padding:7px 6px;text-align:center;color:#6B7280;font-size:11px}
+.tc-pay{width:76px;flex-shrink:0;padding:7px 6px;color:#6B7280;font-size:11px}
+.tc-time{width:46px;flex-shrink:0;padding:7px 6px;text-align:right;color:#9CA3AF;font-size:11px}
 .th-sort{cursor:pointer;user-select:none}
 .th-sort:hover{color:var(--text)}
 .th-sort.asc::after{content:' ↑';color:var(--gold2)}
@@ -561,15 +561,18 @@ function renderTable(){
     var tkt    = (l.adult_ticket||0)+(l.child_ticket||0);
     var time   = l.created_at?fmtTime(l.created_at):'';
     var isNew  = newIds.has(l.id);
+    var relText = l.relation||'';
+    var payText = l.payment_type==='계좌이체'?'계좌':'현금';
+    var payColor = l.payment_type==='계좌이체'?'#7C3AED':'#059669';
     return '<div class="tbl-row'+(isNew?' new-item':'')+'">' +
-      '<div class="tc-num" style="color:var(--gold2);font-weight:700;font-size:10px">#'+num+'</div>' +
+      '<div class="tc-num">#'+num+'</div>' +
       '<div class="tc-side">'+buildSideLabel(l.side)+'</div>' +
       '<div class="tc-name">'+esc(l.guest_name||'—')+'</div>' +
-      '<div class="tc-rel" style="font-size:11px;color:var(--text2)">'+esc(l.relation||'—')+'</div>' +
+      '<div class="tc-rel">'+esc(relText||'—')+'</div>' +
       '<div class="tc-amt">'+(l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>')+'</div>' +
-      '<div class="tc-tkt" style="font-size:11px">'+(tkt>0?'🎫'+tkt:'—')+'</div>' +
-      '<div class="tc-pay" style="font-size:11px">'+pay+' '+l.payment_type+'</div>' +
-      '<div class="tc-time" style="font-size:10px">'+time+'</div>' +
+      '<div class="tc-tkt">'+(tkt>0?'<span style="background:#FEF3C7;color:#D97706;border-radius:4px;padding:1px 5px;font-weight:700">🎫'+tkt+'</span>':'<span style="color:#D1D5DB">—</span>')+'</div>' +
+      '<div class="tc-pay"><span style="background:'+payColor+'18;color:'+payColor+';border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+payText+'</span></div>' +
+      '<div class="tc-time">'+time+'</div>' +
     '</div>';
   }).join('');
 
