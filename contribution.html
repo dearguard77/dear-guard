@@ -798,17 +798,52 @@ function schCard(s){
   const status=s.status||'계약완료';
   const col=(STATUS_CFG[status]||{c:'#9CA3AF'}).c;
   const isToday=s.date===TODAY;
-  return `<div class="sch-card" onclick="selectSchedule(${s.id})">
-    <div>
+  const mode=s.wedding_mode||'양측';
+  const modeColor={'단측':'#D97706','양측':'#2563EB','양측통합':'#059669'}[mode]||'#9CA3AF';
+  return `<div class="sch-card">
+    <div style="flex:1;min-width:0">
       <div class="sch-card-name">💍 ${esc(name)}</div>
       <div class="sch-card-info">${esc(info)}</div>
+      <!-- 모드 선택 -->
+      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
+        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
+        ${['단측','양측','양측통합'].map(m=>`
+          <button onclick="event.stopPropagation();setWeddingMode(${s.id},this,'${m}')"
+            data-mode="${m}"
+            style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid ${mode===m?modeColor:'#E0E0E0'};background:${mode===m?modeColor+'20':'#F5F5F5'};color:${mode===m?modeColor:'#6B7280'};cursor:pointer;transition:all .1s">
+            ${m==='단측'?'🤵 단측':m==='양측'?'🤵👰 양측':'🤝 양측통합'}
+          </button>`).join('')}
+      </div>
     </div>
-    <div class="sch-card-right">
+    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
       ${isToday?'<span class="today-badge">오늘</span>':''}
       <span class="status-badge" style="background:${col}20;color:${col}">${esc(status)}</span>
-      <span style="color:#C7A96B;font-size:15px">›</span>
+      <button onclick="selectSchedule(${s.id})"
+        style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">
+        선택 →
+      </button>
     </div>
   </div>`;
+}
+
+async function setWeddingMode(scheduleId, btn, mode){
+  try {
+    await sb.patch('schedules', scheduleId, {wedding_mode: mode});
+    // 버튼 스타일 즉시 업데이트
+    const modeColor={'단측':'#D97706','양측':'#2563EB','양측통합':'#059669'}[mode]||'#9CA3AF';
+    const card = btn.closest('.sch-card');
+    if(card){
+      card.querySelectorAll('[data-mode]').forEach(function(b){
+        const m = b.getAttribute('data-mode');
+        const mc = {'단측':'#D97706','양측':'#2563EB','양측통합':'#059669'}[m]||'#9CA3AF';
+        const isActive = m === mode;
+        b.style.border = '1.5px solid '+(isActive?mc:'#E0E0E0');
+        b.style.background = isActive?mc+'20':'#F5F5F5';
+        b.style.color = isActive?mc:'#6B7280';
+      });
+    }
+    showToast('✅ 모드: '+mode+' 설정됨');
+  } catch(e){ showToast('⚠️ 모드 저장 실패'); }
 }
 
 async function selectSchedule(id){

@@ -181,7 +181,10 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
       <div>
         <div class="hdr-brand">DEAR GUARD</div>
         <div class="hdr-names" id="hdr-names">—</div>
-        <div class="hdr-info" id="hdr-info">—</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:1px">
+          <div class="hdr-info" id="hdr-info">—</div>
+          <span id="mode-badge" style="font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;border:1px solid #E0E0E0;color:#9CA3AF;background:#F5F5F5"></span>
+        </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         <span class="live-pill"><span class="live-dot"></span>실시간</span>
@@ -197,13 +200,13 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
         <div style="font-size:10px;color:var(--text3);margin-top:2px" id="total-cnt-sub">총 0건</div>
       </div>
       <!-- 신랑측 -->
-      <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:10px;padding:6px 14px;flex-shrink:0;min-width:110px;display:flex;flex-direction:column;justify-content:center">
+      <div id="groom-sum-card" style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:10px;padding:6px 14px;flex-shrink:0;min-width:110px;display:flex;flex-direction:column;justify-content:center">
         <div class="sum-lbl">🤵 신랑측</div>
         <div style="font-size:18px;font-weight:900;color:var(--blue);line-height:1" id="groom-total">0원</div>
         <div style="font-size:10px;color:var(--text3);margin-top:2px" id="groom-cnt-sub">0건</div>
       </div>
       <!-- 신부측 -->
-      <div style="background:#FDF2F8;border:1.5px solid #FBCFE8;border-radius:10px;padding:6px 14px;flex-shrink:0;min-width:110px;display:flex;flex-direction:column;justify-content:center">
+      <div id="bride-sum-card" style="background:#FDF2F8;border:1.5px solid #FBCFE8;border-radius:10px;padding:6px 14px;flex-shrink:0;min-width:110px;display:flex;flex-direction:column;justify-content:center">
         <div class="sum-lbl">👰 신부측</div>
         <div style="font-size:18px;font-weight:900;color:var(--pink);line-height:1" id="bride-total">0원</div>
         <div style="font-size:10px;color:var(--text3);margin-top:2px" id="bride-cnt-sub">0건</div>
@@ -311,7 +314,7 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
       <!-- 테이블 헤더 -->
       <div id="tbl-header" style="display:grid;grid-template-columns:36px 48px 90px 1fr 70px 50px 60px 70px;gap:0;background:var(--bg3);border-bottom:2px solid var(--border);flex-shrink:0">
         <div class="th" onclick="sortTable('num')" id="th-num">번호 <span class="sort-icon">↕</span></div>
-        <div class="th">측</div>
+        <div class="th" id="th-side">측</div>
         <div class="th" onclick="sortTable('name')" id="th-name">이름 <span class="sort-icon">↕</span></div>
         <div class="th" onclick="sortTable('rel')" id="th-rel">관계</div>
         <div class="th" onclick="sortTable('amount')" id="th-amount">금액 <span class="sort-icon">↕</span></div>
@@ -363,6 +366,7 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 
 <script>
 
+
 const SUPABASE_URL      = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 
@@ -397,6 +401,7 @@ async function init(){
     await loadLogs();
     loadFlowerLive();
     renderHandover();
+    applyWeddingMode();
 
     document.getElementById('loading').style.display='none';
     document.getElementById('app').style.display='flex';
@@ -429,6 +434,7 @@ async function loadLogs(){
     renderStats();
     renderList();
     renderOpsList();
+    applyWeddingMode();
     showUpdBadge();
     document.getElementById('last-upd').textContent='갱신: '+fmtTime(new Date().toISOString());
   } catch(e){ console.error('로드 실패:',e); }
@@ -478,6 +484,24 @@ function renderStats(){
     var el=document.getElementById(id);
     if(el && el.textContent==='—') el.textContent='—';
   });
+}
+
+// 모드별 측 라벨 생성
+function buildSideLabel(side){
+  if(!schedule) return side;
+  var mode = schedule.wedding_mode || '양측';
+  if(mode === '양측통합'){
+    // 양측통합: 신랑/신부 구분 없이 측만 표시
+    return '<span style="font-size:10px;color:#6B7280;font-weight:600">'+(side==='신랑측'?'신랑':'신부')+'</span>';
+  } else if(mode === '단측'){
+    // 단측: 측 표시 없음
+    return '—';
+  } else {
+    // 양측: 이모지 + 텍스트
+    return side==='신랑측'
+      ? '<span style="font-size:11px;font-weight:700;color:#2563EB">신랑</span>'
+      : '<span style="font-size:11px;font-weight:700;color:#DB2777">신부</span>';
+  }
 }
 
 // 정렬 상태
@@ -549,7 +573,7 @@ function renderTable(){
     var isNew  = newIds.has(l.id);
     return '<div class="tbl-row'+(isNew?' new-item':'')+'">' +
       '<div class="td td-num">#'+num+'</div>' +
-      '<div class="td" style="font-size:14px">'+side+'</div>' +
+      '<div class="td">'+buildSideLabel(l.side)+'</div>' +
       '<div class="td td-name">'+esc(l.guest_name||'—')+'</div>' +
       '<div class="td td-rel">'+esc(l.relation||'—')+'</div>' +
       '<div class="td td-amt">'+(l.amount?fmt(l.amount):'—')+'</div>' +
@@ -609,6 +633,44 @@ function renderHandover(){
   show('hc-pw-wrap','hc-password',s.handoff_password);
   if(s.replay_link_1){ document.getElementById('hc-r1-wrap').style.display='block'; document.getElementById('hc-replay1').href=s.replay_link_1; }
   if(s.replay_link_2){ document.getElementById('hc-r2-wrap').style.display='block'; document.getElementById('hc-replay2').href=s.replay_link_2; }
+}
+
+function applyWeddingMode(){
+  if(!schedule) return;
+  var mode = schedule.wedding_mode || '양측';
+
+  // 상단 신랑/신부 측 카드 표시 조정
+  var groomCard = document.getElementById('groom-total')?.parentElement;
+  var brideCard = document.getElementById('bride-total')?.parentElement;
+
+  // 모드별 헤더 라벨 변경
+  var modeEl = document.getElementById('mode-badge');
+  if(modeEl){
+    var modeLabel = {'단측':'🤵 단측 진행','양측':'🤵👰 양측 진행','양측통합':'🤝 양측통합 진행'}[mode]||mode;
+    var modeColor = {'단측':'#D97706','양측':'#2563EB','양측통합':'#059669'}[mode]||'#9CA3AF';
+    modeEl.textContent = modeLabel;
+    modeEl.style.color = modeColor;
+    modeEl.style.background = modeColor+'15';
+    modeEl.style.borderColor = modeColor+'40';
+  }
+
+  // 테이블 헤더 측 컬럼 표시
+  var thSide = document.getElementById('th-side');
+  if(thSide){
+    if(mode==='단측') thSide.style.display='none';
+    else thSide.style.display='';
+  }
+
+  // 요약바 측 카드 조정
+  var groomSumCard = document.getElementById('groom-sum-card');
+  var brideSumCard = document.getElementById('bride-sum-card');
+  if(mode==='단측'){
+    if(groomSumCard) groomSumCard.style.display='none';
+    if(brideSumCard) brideSumCard.style.display='none';
+  } else {
+    if(groomSumCard) groomSumCard.style.display='';
+    if(brideSumCard) brideSumCard.style.display='';
+  }
 }
 
 async function loadFlowerLive(){
@@ -689,6 +751,7 @@ style.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}t
 document.head.appendChild(style);
 
 init();
+
 
 
 </script>
