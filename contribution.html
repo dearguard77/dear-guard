@@ -180,16 +180,18 @@ input,select,textarea{font-family:inherit;outline:none}
 .STATUS_긴급확인{background:#FEF2F2;color:#EF4444}
 
 /* 전체 접수 리스트 */
-.log-full-item{display:grid;grid-template-columns:20px 14px 1fr auto auto auto;align-items:center;gap:4px;padding:4px 6px;border-bottom:1px solid #F0EDE8;font-size:11px;min-width:0}
-.log-full-item:hover{background:#F5F5F5}
-.log-num{font-size:10px;color:#9CA3AF;text-align:right}
-.log-side{font-size:12px}
-.log-name-wrap{min-width:0}
-.log-name-main{font-size:11px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.log-name-sub{font-size:10px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.log-amt-cell{font-size:11px;font-weight:800;color:#C7A96B;white-space:nowrap;text-align:right}
-.log-btn-edit{background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:600;white-space:nowrap}
-.log-btn-del{background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:600}
+.log-full-item{display:flex;flex-direction:column;padding:5px 8px;border-bottom:1px solid #F0EDE8;cursor:default;transition:background .1s}
+.log-full-item:hover{background:#F9F8F6}
+.log-full-row1{display:flex;align-items:center;gap:4px;min-width:0}
+.log-full-row2{display:flex;align-items:center;gap:4px;margin-top:2px;padding-left:22px}
+.log-num{font-size:9px;color:#C7A96B;font-weight:700;min-width:22px;flex-shrink:0}
+.log-side{font-size:12px;flex-shrink:0}
+.log-name-main{font-size:12px;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.log-amt-cell{font-size:12px;font-weight:800;color:#C7A96B;white-space:nowrap;flex-shrink:0}
+.log-meta{font-size:10px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.log-time{font-size:10px;color:#9CA3AF;white-space:nowrap;flex-shrink:0}
+.log-btn-edit{background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;font-weight:700;flex-shrink:0}
+.log-btn-del{background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;font-weight:700;flex-shrink:0}
 .filter-bar{display:flex;gap:4px;flex-shrink:0}
 .filter-btn{border-radius:14px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer;transition:all .1s;white-space:nowrap}
 .filter-btn.on{background:#374151;color:#fff;border-color:#374151}
@@ -569,19 +571,13 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 최근 접수 (flex grow) -->
-      <div class="scard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
-        <div class="scard-title" style="flex-shrink:0;margin-bottom:5px">최근 접수</div>
-        <div id="recent-list" style="overflow-y:auto;flex:1;min-height:0"></div>
-      </div>
-
       <!-- 운영 메모 -->
-      <div class="scard" style="flex-shrink:0">
+      <div class="scard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
           <div class="scard-title" style="margin-bottom:0">📋 운영 메모</div>
           <span style="font-size:10px;color:#9CA3AF">전체 공통</span>
         </div>
-        <div id="ops-log-list" style="max-height:90px;overflow-y:auto;margin-bottom:5px"></div>
+        <div id="ops-log-list" style="overflow-y:auto;flex:1;min-height:0;margin-bottom:5px"></div>
         <div style="display:flex;gap:4px">
           <input id="ops-log-input" class="form-input" placeholder="특이사항..."
             style="font-size:11px;padding:5px 8px;flex:1"
@@ -1138,6 +1134,7 @@ function renderStats(){
 
 function renderRecent(){
   const el=document.getElementById('recent-list');
+  if(!el) return;
   const recent=logs.slice(0,30);
   if(!recent.length){
     el.innerHTML='<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:12px 0">아직 접수 내역이 없습니다</div>';
@@ -1234,8 +1231,7 @@ function renderFullList(){
   var badge = document.getElementById('log-total-badge');
   if(!el) return;
 
-  var query = (document.getElementById('log-search')||{}).value||'';
-  query = query.trim().toLowerCase();
+  var query = ((document.getElementById('log-search')||{}).value||'').trim().toLowerCase();
 
   var filtered = logs.filter(function(l){
     if(_logFilter==='groom' && l.side!=='신랑측') return false;
@@ -1257,35 +1253,38 @@ function renderFullList(){
     return;
   }
 
-  // 전체 logs 기준 넘버링 (최신순이므로 역순)
   var totalLen = logs.length;
-  el.innerHTML = filtered.map(function(l, i){
-    var num     = totalLen - logs.indexOf(l); // 접수 순번
-    var side    = l.side==='신랑측'?'🤵':'👰';
-    var pay     = l.payment_type==='계좌이체'?'📱':'💵';
-    var name    = l.guest_name||'—';
-    var rel     = l.relation?' · '+l.relation:'';
-    var tkt     = (l.adult_ticket||0)+(l.child_ticket||0);
-    var tktStr  = tkt>0?' 🎫'+tkt:'';
-    var memo    = l.memo?' | '+l.memo:'';
-    var time    = l.created_at ? fmtTime(l.created_at) : '';
-    var isAdmin = ADMIN_NAMES.includes(currentUser.name);
-    var canEdit = isAdmin || l.created_by === currentUser.name;
+  el.innerHTML = filtered.map(function(l){
+    var num    = totalLen - logs.indexOf(l);
+    var side   = l.side==='신랑측'?'🤵':'👰';
+    var pay    = l.payment_type==='계좌이체'?'📱':'💵';
+    var name   = esc(l.guest_name||'—');
+    var rel    = l.relation?' <span style="color:#9CA3AF;font-weight:400">'+esc(l.relation)+'</span>':'';
+    var tkt    = (l.adult_ticket||0)+(l.child_ticket||0);
+    var tktStr = tkt>0?' <span style="color:#6B7280">🎫'+tkt+'</span>':'';
+    var time   = l.created_at?fmtTime(l.created_at):'';
+    var memo   = l.memo?'<span style="color:#9CA3AF"> · '+esc(l.memo)+'</span>':'';
+    var isAdmin= ADMIN_NAMES.includes(currentUser.name);
+    var canEdit= isAdmin || l.created_by===currentUser.name;
 
     return '<div class="log-full-item">' +
-      '<span class="log-num">#'+num+'</span>' +
-      '<span class="log-side">'+side+'</span>' +
-      '<div class="log-name-wrap">' +
-        '<div class="log-name-main">'+esc(name)+esc(rel)+'</div>' +
-        '<div class="log-name-sub">'+pay+' '+l.payment_type+tktStr+esc(memo)+'</div>' +
+      // 줄 1: 번호 + 측 + 이름+관계 + 금액
+      '<div class="log-full-row1">' +
+        '<span class="log-num">#'+num+'</span>' +
+        '<span class="log-side">'+side+'</span>' +
+        '<span class="log-name-main">'+name+rel+'</span>' +
+        '<span class="log-amt-cell">'+(l.amount?fmt(l.amount):'—')+'</span>' +
       '</div>' +
-      '<span class="log-amt-cell">'+(l.amount?fmt(l.amount):'-')+'</span>' +
-      '<span style="font-size:10px;color:#9CA3AF;white-space:nowrap">'+time+'</span>' +
-      (canEdit
-        ? '<button class="log-btn-edit" onclick="openEditModal('+l.id+')">수정</button>' +
-          '<button class="log-btn-del"  onclick="deleteLog('+l.id+')">삭제</button>'
-        : '<span style="font-size:10px;color:#E5E7EB">—</span><span></span>'
-      ) +
+      // 줄 2: 결제방식 + 식권 + 메모 + 시간 + 버튼
+      '<div class="log-full-row2">' +
+        '<span style="font-size:10px;color:#9CA3AF">'+pay+' '+l.payment_type+tktStr+memo+'</span>' +
+        '<span style="flex:1"></span>' +
+        '<span class="log-time">'+time+'</span>' +
+        (canEdit
+          ? ' <button class="log-btn-edit" onclick="openEditModal('+l.id+')">수정</button>' +
+            ' <button class="log-btn-del"  onclick="deleteLog('+l.id+')">삭제</button>'
+          : '') +
+      '</div>' +
     '</div>';
   }).join('');
 }
