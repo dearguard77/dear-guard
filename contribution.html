@@ -746,9 +746,11 @@ async function selectSchedule(id){
     if(!rows.length) return;
     currentSchedule=rows[0];
     if(!currentSchedule.dashboard_token){
-      const token=Math.random().toString(36).slice(2,12).toUpperCase();
-      await sb.patch('schedules',id,{dashboard_token:token});
-      currentSchedule.dashboard_token=token;
+      try {
+        const token=Math.random().toString(36).slice(2,12).toUpperCase();
+        await sb.patch('schedules',id,{dashboard_token:token});
+        currentSchedule.dashboard_token=token;
+      } catch(e){ console.warn('[DG] 토큰 생성 실패:', e); }
     }
     const g=(currentSchedule.groom_name||'').trim(),b=(currentSchedule.bride_name||'').trim();
     const name=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:currentSchedule.hall||'미입력';
@@ -784,9 +786,9 @@ async function selectSchedule(id){
     await loadTicketExtras();
     loadOpsLogs();
     loadFlowerLogs();
-    loadHandover();
+    try { loadHandover(); } catch(e){ console.warn('[DG] 인계 정보 로드 실패:', e); }
     subscribeRealtime();
-  } catch(e){ showToast('⚠️ 예식 로드 실패'); }
+  } catch(e){ console.error('[DG] 예식 로드 실패:', e); showToast('⚠️ 예식 로드 실패: '+e.message); }
 }
 
 // ── 추가 식권 발급 ──
@@ -960,15 +962,17 @@ var _hoSaveTimer = null;
 
 function loadHandover(){
   if(!currentSchedule) return;
-  var s = currentSchedule;
-  var set = function(id, val){ var el=document.getElementById(id); if(el&&val) el.value=val; };
-  set('ho-items',    s.handoff_items);
-  set('ho-relation', s.handoff_relation);
-  set('ho-name',     s.handoff_person);
-  set('ho-phone',    s.handoff_phone);
-  set('ho-password', s.handoff_password);
-  set('ho-replay1',  s.replay_link_1);
-  set('ho-replay2',  s.replay_link_2);
+  try {
+    var s = currentSchedule;
+    var set = function(id, val){ var el=document.getElementById(id); if(el&&val) el.value=val; };
+    set('ho-items',    s.handoff_items);
+    set('ho-relation', s.handoff_relation);
+    set('ho-name',     s.handoff_person);
+    set('ho-phone',    s.handoff_phone);
+    set('ho-password', s.handoff_password);
+    set('ho-replay1',  s.replay_link_1);
+    set('ho-replay2',  s.replay_link_2);
+  } catch(e){ console.warn('[DG] loadHandover 오류:', e); }
 }
 
 function saveHandover(){
