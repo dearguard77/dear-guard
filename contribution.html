@@ -60,7 +60,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 2-column body */
 #main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
-#main-body{display:grid;grid-template-columns:260px 1fr 300px;height:100%;max-width:1600px;margin:0 auto;width:100%}
+#main-body{display:grid;grid-template-columns:300px minmax(0,360px) 1fr;height:100%;max-width:1600px;margin:0 auto;width:100%}
 
 /* ── 인계 정보 패널 ── */
 #handover-panel{overflow-y:auto;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
@@ -104,7 +104,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .ledger-btn{border:none;border-radius:3px;padding:1px 5px;font-size:9px;cursor:pointer;font-weight:600;flex-shrink:0}
 .ledger-edit{background:#EFF6FF;color:#2563EB}
 .ledger-del{background:#FEF2F2;color:#DC2626}
-#input-panel{overflow-y:auto;padding:8px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px;flex-shrink:0;max-height:60vh}
+#input-panel{overflow-y:auto;padding:8px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
 #split-list-panel{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0}
 #split-list-panel.single{grid-template-columns:1fr}
 .split-list-col{overflow:hidden;display:flex;flex-direction:column;border-top:2px solid #E0E0E0}
@@ -137,7 +137,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 토글 */
 .tog-group{display:flex;gap:5px}
-.tog-btn{flex:1;border-radius:7px;padding:8px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;text-align:center;transition:all .1s;line-height:1.2;max-width:260px}
+.tog-btn{flex:1;border-radius:7px;padding:8px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;text-align:center;transition:all .1s;line-height:1.2;max-width:360px}
 .tog-btn:active{transform:scale(.97)}
 .tog-blue{background:#3B82F6;color:#fff;border-color:#3B82F6}
 .tog-pink{background:#EC4899;color:#fff;border-color:#EC4899}
