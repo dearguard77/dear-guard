@@ -59,11 +59,11 @@ input,select,textarea{font-family:inherit;outline:none}
 .topbtn-gold{background:#C7A96B;color:#fff}
 
 /* 2-column body */
-#main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
-#main-body{display:grid;grid-template-columns:200px minmax(380px,460px) minmax(0,1fr) 240px;height:100%;width:100%}
+#main-body-outer{flex:1;overflow:hidden;background:#EDEDED;display:flex;flex-direction:column}
+#main-body{display:grid;grid-template-columns:1.5fr 2fr 1.5fr 0.8fr;flex:1;min-height:0;width:100%}
 
 /* ── 인계 정보 패널 ── */
-#handover-panel{overflow:hidden;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
+#handover-panel{overflow-y:auto;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
 
 .ho-section{background:#fff;border-radius:9px;padding:10px 12px;border:1px solid #E0E0E0;flex-shrink:0}
 .ho-section-title{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;text-transform:uppercase;margin-bottom:7px}
@@ -1502,10 +1502,13 @@ function renderFullList(){
   var hasG = gLogs.length > 0;
   var hasB = bLogs.length > 0;
 
+  var mainBody = document.getElementById('main-body');
   if(hasG && hasB){
     if(wrap) wrap.className = 'list-col-wrap';
     if(gCol) gCol.style.display = 'flex';
     if(bCol) bCol.style.display = 'flex';
+    // 양측: list 컬럼 2fr로 확장
+    if(mainBody) mainBody.style.gridTemplateColumns = '1.5fr 2fr 2fr 0.8fr';
   } else if(hasG){
     if(wrap) wrap.className = 'list-col-wrap single';
     if(gCol) gCol.style.display = 'flex';
@@ -1514,10 +1517,12 @@ function renderFullList(){
     if(wrap) wrap.className = 'list-col-wrap single';
     if(gCol) gCol.style.display = 'none';
     if(bCol) bCol.style.display = 'flex';
+    if(mainBody) mainBody.style.gridTemplateColumns = '1.5fr 2fr 1.5fr 0.8fr';
   } else {
     if(wrap) wrap.className = 'list-col-wrap single';
     if(gCol) gCol.style.display = 'flex';
     if(bCol) bCol.style.display = 'none';
+    if(mainBody) mainBody.style.gridTemplateColumns = '1.5fr 2fr 1.5fr 0.8fr';
   }
 
   // 배지
