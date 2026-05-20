@@ -141,7 +141,7 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 .excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer}
 
 /* 테이블 */
-.th{padding:5px 6px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.3px;text-transform:uppercase;cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.th{padding:5px 7px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.3px;text-transform:uppercase;cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .th:hover{color:var(--text);background:rgba(0,0,0,.03)}
 .sort-icon{font-size:9px;color:var(--text3)}
 .sort-asc .sort-icon::after{content:'↑';color:var(--gold2)}
@@ -149,13 +149,13 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 .sort-asc .sort-icon,.sort-desc .sort-icon{display:none}
 .sort-asc::after{content:' ↑';color:var(--gold2);font-size:10px}
 .sort-desc::after{content:' ↓';color:var(--gold2);font-size:10px}
-.tbl-row{display:grid;grid-template-columns:36px 48px 90px 1fr 70px 50px 60px 70px;gap:0;border-bottom:1px solid #F5F3F0;align-items:center;font-size:11px;transition:background .1s}
+.tbl-row{display:grid;grid-template-columns:32px 36px 1fr 80px 72px 44px 80px 52px;gap:0;border-bottom:1px solid #F5F3F0;align-items:center;font-size:11px;transition:background .1s}
 .tbl-row:hover{background:rgba(0,0,0,.02)}
 .tbl-row.new-item{animation:fadeIn .3s ease;background:rgba(199,169,107,.06)}
-.td{padding:5px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td{padding:5px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .td-num{color:var(--gold2);font-weight:700;font-size:10px}
-.td-name{font-weight:700;color:var(--text)}
-.td-rel{color:var(--text3);font-size:10px}
+.td-name{font-weight:700;color:var(--text);min-width:0}
+.td-rel{color:var(--text2);font-size:11px}
 .td-amt{font-weight:800;color:var(--gold2)}
 .td-tkt{color:#6B7280;font-size:10px}
 .td-pay{font-size:10px;color:var(--text3)}
@@ -312,15 +312,15 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
       </div>
 
       <!-- 테이블 헤더 -->
-      <div id="tbl-header" style="display:grid;grid-template-columns:36px 48px 90px 1fr 70px 50px 60px 70px;gap:0;background:var(--bg3);border-bottom:2px solid var(--border);flex-shrink:0">
-        <div class="th" onclick="sortTable('num')" id="th-num">번호 <span class="sort-icon">↕</span></div>
+      <div id="tbl-header" style="display:grid;grid-template-columns:32px 36px 1fr 80px 72px 44px 80px 52px;gap:0;background:var(--bg3);border-bottom:2px solid var(--border);flex-shrink:0">
+        <div class="th" onclick="sortTable('num')" id="th-num" title="접수번호 정렬">#</div>
         <div class="th" id="th-side">측</div>
-        <div class="th" onclick="sortTable('name')" id="th-name">이름 <span class="sort-icon">↕</span></div>
-        <div class="th" onclick="sortTable('rel')" id="th-rel">관계</div>
-        <div class="th" onclick="sortTable('amount')" id="th-amount">금액 <span class="sort-icon">↕</span></div>
-        <div class="th" onclick="sortTable('ticket')" id="th-ticket">식권 <span class="sort-icon">↕</span></div>
-        <div class="th">결제</div>
-        <div class="th" onclick="sortTable('time')" id="th-time">시간 <span class="sort-icon">↕</span></div>
+        <div class="th" onclick="sortTable('name')" id="th-name">이름 ↕</div>
+        <div class="th" onclick="sortTable('rel')" id="th-rel">관계 ↕</div>
+        <div class="th" onclick="sortTable('amount')" id="th-amount">금액 ↕</div>
+        <div class="th" onclick="sortTable('ticket')" id="th-ticket">식권 ↕</div>
+        <div class="th">결제수단</div>
+        <div class="th" onclick="sortTable('time')" id="th-time">시간 ↕</div>
       </div>
 
       <!-- 테이블 바디 -->
@@ -490,18 +490,9 @@ function renderStats(){
 function buildSideLabel(side){
   if(!schedule) return side;
   var mode = schedule.wedding_mode || '양측';
-  if(mode === '양측통합'){
-    // 양측통합: 신랑/신부 구분 없이 측만 표시
-    return '<span style="font-size:10px;color:#6B7280;font-weight:600">'+(side==='신랑측'?'신랑':'신부')+'</span>';
-  } else if(mode === '단측'){
-    // 단측: 측 표시 없음
-    return '—';
-  } else {
-    // 양측: 이모지 + 텍스트
-    return side==='신랑측'
-      ? '<span style="font-size:11px;font-weight:700;color:#2563EB">신랑</span>'
-      : '<span style="font-size:11px;font-weight:700;color:#DB2777">신부</span>';
-  }
+  if(mode === '단측') return '—';
+  var isG = side==='신랑측';
+  return '<span style="font-size:10px;font-weight:800;color:'+(isG?'#2563EB':'#DB2777')+';background:'+(isG?'#EFF6FF':'#FDF2F8')+';border-radius:4px;padding:1px 5px">'+(isG?'신랑':'신부')+'</span>';
 }
 
 // 정렬 상태
@@ -576,9 +567,9 @@ function renderTable(){
       '<div class="td">'+buildSideLabel(l.side)+'</div>' +
       '<div class="td td-name">'+esc(l.guest_name||'—')+'</div>' +
       '<div class="td td-rel">'+esc(l.relation||'—')+'</div>' +
-      '<div class="td td-amt">'+(l.amount?fmt(l.amount):'—')+'</div>' +
+      '<div class="td td-amt">'+(l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>')+'</div>' +
       '<div class="td td-tkt">'+(tkt>0?'🎫'+tkt:'—')+'</div>' +
-      '<div class="td td-pay">'+pay+' '+l.payment_type+'</div>' +
+      '<div class="td td-pay">'+pay+'<span style="font-size:10px;color:var(--text2);margin-left:2px">'+l.payment_type+'</span>'+'</div>' +
       '<div class="td td-time">'+time+'</div>' +
     '</div>';
   }).join('');
