@@ -33,6 +33,8 @@ input,select,textarea{font-family:inherit;outline:none}
 .sch-title{font-size:17px;font-weight:800;color:#111}
 .sch-sub{font-size:11px;color:#9CA3AF;margin-top:2px}
 .btn-sm{background:#F3F4F6;border:1px solid #E5E7EB;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:#6B7280}
+.sch-tab-btn{border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer;transition:all .15s}
+.sch-tab-active{background:#111;color:#fff;border-color:#111}
 .section-label{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;text-transform:uppercase;margin:12px 0 5px}
 .sch-card{background:#fff;border:1.5px solid #E5E7EB;border-radius:10px;padding:11px 13px;cursor:pointer;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;transition:all .12s}
 .sch-card:hover,.sch-card:active{border-color:#C7A96B;background:#FDF8F3}
@@ -237,6 +239,16 @@ input,select,textarea{font-family:inherit;outline:none}
 .edit-btns{display:flex;gap:7px;margin-top:14px}
 .edit-save{flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
 .edit-cancel{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-width:72px}
+
+#guest-name{font-size:15px!important;padding:9px 12px!important;border:2px solid #E0E0E0!important;border-radius:8px!important;background:#FAFAFA!important;transition:all .2s!important;font-weight:600!important}
+#guest-name:focus{border-color:#C7A96B!important;background:#fff!important;box-shadow:0 0 0 3px rgba(199,169,107,.12)!important;outline:none!important}
+#guest-name::placeholder{color:#C0B8AE;font-weight:400;font-size:13px}
+.tkt-toolbar{display:flex;align-items:center;gap:4px}
+.tkt-toolbar select,.tkt-toolbar input{height:30px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;background:#fff;color:#111;padding:0 7px}
+.tkt-toolbar select:focus,.tkt-toolbar input:focus{border-color:#C7A96B;outline:none}
+.tkt-toolbar-btn{height:30px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
+.tkt-extra-item{display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px}
+.tkt-extra-item:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -270,6 +282,15 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="sch-sub">담당 예식을 선택하세요</div>
     </div>
     <button class="btn-sm" onclick="doLogout()">로그아웃</button>
+  </div>
+  <!-- 탭 -->
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <button id="sch-tab-upcoming" class="sch-tab-btn sch-tab-active" onclick="setSchTab('upcoming')">
+      📅 진행 예정
+    </button>
+    <button id="sch-tab-done" class="sch-tab-btn" onclick="setSchTab('done')">
+      ✅ 진행완료
+    </button>
   </div>
   <div id="schedule-list-wrap"></div>
 </div>
@@ -398,37 +419,37 @@ input,select,textarea{font-family:inherit;outline:none}
     <div id="center-panel">
     <div id="input-panel">
 
-      <!-- 식권 초기 설정 + 추가 발급 -->
-      <div class="card" style="padding:8px 10px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <div class="card-title" style="margin-bottom:0">식권 설정</div>
-          <div style="display:flex;align-items:center;gap:5px;flex:1">
-            <span style="font-size:11px;color:#6B7280">🤵</span>
-            <input class="tkt-setup-inp" id="groom-total-ticket" type="number" placeholder="신랑 초기"
-              min="0" oninput="saveTotalTickets()" style="width:72px">
-            <span style="font-size:10px;color:#9CA3AF">장</span>
-            <span style="font-size:11px;color:#6B7280;margin-left:4px">👰</span>
-            <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="신부 초기"
-              min="0" oninput="saveTotalTickets()" style="width:72px">
-            <span style="font-size:10px;color:#9CA3AF">장</span>
-          </div>
+      <!-- 식권 설정 -->
+      <div class="card" style="padding:7px 10px">
+        <!-- 초기 설정 한 줄 -->
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <span style="font-size:10px;font-weight:700;color:#9CA3AF;white-space:nowrap">식권 초기</span>
+          <span style="font-size:11px;color:#6B7280">🤵</span>
+          <input class="tkt-setup-inp" id="groom-total-ticket" type="number" placeholder="신랑" min="0"
+            oninput="saveTotalTickets()" style="width:56px;height:26px;font-size:11px;padding:0 6px;text-align:center">
+          <span style="font-size:10px;color:#9CA3AF">장</span>
+          <span style="font-size:11px;color:#6B7280">👰</span>
+          <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="신부" min="0"
+            oninput="saveTotalTickets()" style="width:56px;height:26px;font-size:11px;padding:0 6px;text-align:center">
+          <span style="font-size:10px;color:#9CA3AF">장</span>
         </div>
-        <div style="border-top:1px dashed #E0E0E0;padding-top:6px">
-          <div style="display:flex;gap:4px">
-            <select id="add-ticket-side" class="tkt-setup-inp" style="width:72px;flex-shrink:0;font-size:11px;padding:3px 5px">
+        <!-- 추가 발급 toolbar -->
+        <div style="border-top:1px dashed #E5E7EB;padding-top:6px">
+          <div class="tkt-toolbar">
+            <span style="font-size:10px;font-weight:700;color:#9CA3AF;white-space:nowrap;margin-right:2px">➕추가</span>
+            <select id="add-ticket-side" class="tkt-toolbar" style="width:66px;flex-shrink:0">
               <option value="신랑측">🤵 신랑</option>
               <option value="신부측">👰 신부</option>
             </select>
-            <input id="add-ticket-amount" class="tkt-setup-inp" type="number" placeholder="장수" min="1"
-              style="width:52px;flex-shrink:0;font-size:12px;text-align:center"
+            <input id="add-ticket-amount" type="number" placeholder="장수" min="1"
+              style="width:48px;height:30px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 4px"
               onkeydown="if(event.key==='Enter')addTicketExtra()">
-            <input id="add-ticket-memo" class="tkt-setup-inp" placeholder="추가발급 메모"
-              style="flex:1;font-size:11px;padding:3px 6px"
+            <input id="add-ticket-memo" placeholder="메모(예: 예약실 수령)"
+              style="flex:1;height:30px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 7px;min-width:0"
               onkeydown="if(event.key==='Enter')addTicketExtra()">
-            <button onclick="addTicketExtra()"
-              style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">+추가</button>
+            <button onclick="addTicketExtra()" class="tkt-toolbar-btn">추가</button>
           </div>
-          <div id="ticket-extra-list" style="max-height:60px;overflow-y:auto;margin-top:4px"></div>
+          <div id="ticket-extra-list" style="max-height:54px;overflow-y:auto;margin-top:4px"></div>
         </div>
       </div>
 
@@ -452,7 +473,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
       <!-- 줄2: 금액 (compact 4+4 grid) -->
       <div class="card" style="padding:8px 10px">
-        <div class="card-title" style="margin-bottom:5px">금액</div>
+        <div class="card-title" style="margin-bottom:5px">2️⃣ 금액</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:5px">
           <button class="amt-btn" onclick="setAmount(50000)">5만</button>
           <button class="amt-btn" onclick="setAmount(100000)">10만</button>
@@ -474,9 +495,9 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="card" style="padding:8px 10px">
         <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start">
           <div>
-            <div class="card-title" style="margin-bottom:4px">하객</div>
-            <input class="form-input" id="guest-name" placeholder="이름 (선택)"
-              style="font-size:12px;padding:5px 8px;margin-bottom:5px">
+            <div class="card-title" style="margin-bottom:5px">1️⃣ 하객 이름</div>
+            <input class="form-input" id="guest-name" placeholder="이름 입력 (선택)"
+              style="margin-bottom:6px">
             <div class="rel-group">
               <button class="rel-btn" onclick="setRelation('친구')">친구</button>
               <button class="rel-btn" onclick="setRelation('직장')">직장</button>
@@ -517,7 +538,7 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <!-- 접수 완료 버튼 -->
-      <button class="submit-btn" onclick="submitEntry()">✅ 접수 완료</button>
+      <button class="submit-btn" onclick="submitEntry()" style="font-size:17px;padding:14px;letter-spacing:1px">✅ 접수 완료</button>
 
     </div><!-- /input-panel -->
 
@@ -770,6 +791,43 @@ function doLogin(){
 function doLogout(){ localStorage.removeItem('dg_contrib_user'); location.reload(); }
 
 // ── 예식 선택 ──
+var _schTab = 'upcoming'; // 'upcoming' | 'done'
+
+function setSchTab(tab){
+  _schTab = tab;
+  document.getElementById('sch-tab-upcoming').className = 'sch-tab-btn' + (tab==='upcoming'?' sch-tab-active':'');
+  document.getElementById('sch-tab-done').className    = 'sch-tab-btn' + (tab==='done'?' sch-tab-active':'');
+  renderSchList();
+}
+
+var _allSchRows = [];
+
+function renderSchList(){
+  const wrap = document.getElementById('schedule-list-wrap');
+  const rows = _schTab === 'done'
+    ? _allSchRows.filter(s => s.status === '진행완료')
+    : _allSchRows.filter(s => s.status !== '진행완료');
+
+  if(!rows.length){
+    wrap.innerHTML = '<div class="empty-state">' + (_schTab==='done'?'진행완료 예식이 없습니다':'담당 예식이 없습니다') + '</div>';
+    return;
+  }
+
+  const todayRows   = rows.filter(s => s.date === TODAY);
+  const upcomRows   = rows.filter(s => s.date > TODAY);
+  const pastRows    = rows.filter(s => s.date < TODAY);
+
+  let html = '';
+  if(_schTab === 'upcoming'){
+    if(todayRows.length)  html += '<div class="section-label">📅 오늘 예식</div>' + todayRows.map(schCard).join('');
+    if(upcomRows.length)  html += '<div class="section-label">다가오는 예식</div>' + upcomRows.map(schCard).join('');
+    if(pastRows.length)   html += '<div class="section-label" style="color:#9CA3AF">지난 예식</div>' + pastRows.map(schCard).join('');
+  } else {
+    html = rows.map(schCard).join('');
+  }
+  wrap.innerHTML = html;
+}
+
 async function goSelectSchedule(){
   currentSchedule=null;
   document.getElementById('main-screen').style.display='none';
@@ -781,13 +839,9 @@ async function goSelectSchedule(){
     let rows=await sb.get('schedules','?order=date.asc,time.asc');
     const isAdmin=ADMIN_NAMES.includes(currentUser.name);
     if(!isAdmin) rows=rows.filter(s=>(s.front_manager||'').includes(currentUser.name)||(s.back_manager||'').includes(currentUser.name));
+    _allSchRows = rows;
     if(!rows.length){wrap.innerHTML='<div class="empty-state">담당 예식이 없습니다</div>';return;}
-    const todayRows=rows.filter(s=>s.date===TODAY);
-    const otherRows=rows.filter(s=>s.date!==TODAY);
-    let html='';
-    if(todayRows.length) html+='<div class="section-label">📅 오늘 예식</div>'+todayRows.map(schCard).join('');
-    if(otherRows.length) html+='<div class="section-label">다가오는 예식</div>'+otherRows.map(schCard).join('');
-    wrap.innerHTML=html;
+    renderSchList();
   } catch(e){ wrap.innerHTML=`<div class="empty-state">로드 실패: ${e.message}</div>`; }
 }
 
@@ -951,21 +1005,18 @@ function renderTicketExtraList(){
   var el = document.getElementById('ticket-extra-list');
   if(!el) return;
   if(!ticketExtras.length){
-    el.innerHTML = '<div style="font-size:10px;color:#9CA3AF;padding:4px 0">추가 발급 내역 없음</div>';
+    el.innerHTML = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">추가 발급 내역 없음</div>';
     return;
   }
   el.innerHTML = ticketExtras.map(function(t){
     var icon = t.side==='신랑측'?'🤵':'👰';
-    var time = t.created_at ? (function(){
-      var d=new Date(t.created_at);
-      return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    })() : '';
-    return '<div style="display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px">' +
+    var time = t.created_at?(function(){ var d=new Date(t.created_at); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); })():'';
+    return '<div class="tkt-extra-item">' +
       '<span>'+icon+'</span>' +
-      '<span style="font-weight:700;color:#374151">+'+t.amount+'장</span>' +
+      '<span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>' +
       (t.memo?'<span style="color:#9CA3AF;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t.memo)+'</span>':'<span style="flex:1"></span>') +
-      '<span style="color:#C7A96B">'+time+'</span>' +
-      '<button onclick="deleteTicketExtra('+t.id+')" style="background:none;border:none;color:#9CA3AF;cursor:pointer;font-size:10px;padding:0;flex-shrink:0">✕</button>' +
+      '<span style="color:#C7A96B;flex-shrink:0">'+time+'</span>' +
+      '<button onclick="deleteTicketExtra('+t.id+')" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1">✕</button>' +
     '</div>';
   }).join('');
 }
