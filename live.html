@@ -140,26 +140,24 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
 /* 엑셀 버튼 */
 .excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer}
 
-/* 테이블 */
-.th{padding:5px 7px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.3px;text-transform:uppercase;cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.th:hover{color:var(--text);background:rgba(0,0,0,.03)}
-.sort-icon{font-size:9px;color:var(--text3)}
-.sort-asc .sort-icon::after{content:'↑';color:var(--gold2)}
-.sort-desc .sort-icon::after{content:'↓';color:var(--gold2)}
-.sort-asc .sort-icon,.sort-desc .sort-icon{display:none}
-.sort-asc::after{content:' ↑';color:var(--gold2);font-size:10px}
-.sort-desc::after{content:' ↓';color:var(--gold2);font-size:10px}
-.tbl-row{display:grid;grid-template-columns:32px 36px 1fr 80px 72px 44px 80px 52px;gap:0;border-bottom:1px solid #F5F3F0;align-items:center;font-size:11px;transition:background .1s}
+/* 테이블 - 단순 flex 구조 */
+.tbl-header-row,.tbl-row{display:flex;align-items:center;border-bottom:1px solid #F0EDE8;font-size:11px}
+.tbl-header-row{background:var(--bg3);border-bottom:2px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);position:sticky;top:0;z-index:1}
 .tbl-row:hover{background:rgba(0,0,0,.02)}
-.tbl-row.new-item{animation:fadeIn .3s ease;background:rgba(199,169,107,.06)}
-.td{padding:5px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.td-num{color:var(--gold2);font-weight:700;font-size:10px}
-.td-name{font-weight:700;color:var(--text);min-width:0}
-.td-rel{color:var(--text2);font-size:11px}
-.td-amt{font-weight:800;color:var(--gold2)}
-.td-tkt{color:#6B7280;font-size:10px}
-.td-pay{font-size:10px;color:var(--text3)}
-.td-time{font-size:10px;color:var(--text3)}
+.tbl-row.new-item{background:rgba(199,169,107,.06);animation:fadeIn .3s ease}
+/* 컬럼 너비 */
+.tc-num{width:34px;flex-shrink:0;padding:5px 4px;text-align:center}
+.tc-side{width:44px;flex-shrink:0;padding:5px 4px;text-align:center}
+.tc-name{flex:1;min-width:80px;padding:5px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--text)}
+.tc-rel{width:72px;flex-shrink:0;padding:5px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
+.tc-amt{width:72px;flex-shrink:0;padding:5px 6px;text-align:right;font-weight:800;color:var(--gold2)}
+.tc-tkt{width:40px;flex-shrink:0;padding:5px 4px;text-align:center;color:#6B7280}
+.tc-pay{width:72px;flex-shrink:0;padding:5px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text3)}
+.tc-time{width:44px;flex-shrink:0;padding:5px 4px;text-align:right;color:var(--text3)}
+.th-sort{cursor:pointer;user-select:none}
+.th-sort:hover{color:var(--text)}
+.th-sort.asc::after{content:' ↑';color:var(--gold2)}
+.th-sort.desc::after{content:' ↓';color:var(--gold2)}
 </style>
 </head>
 <body>
@@ -312,15 +310,15 @@ html,body{height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Ma
       </div>
 
       <!-- 테이블 헤더 -->
-      <div id="tbl-header" style="display:grid;grid-template-columns:32px 36px 1fr 80px 72px 44px 80px 52px;gap:0;background:var(--bg3);border-bottom:2px solid var(--border);flex-shrink:0">
-        <div class="th" onclick="sortTable('num')" id="th-num" title="접수번호 정렬">#</div>
-        <div class="th" id="th-side">측</div>
-        <div class="th" onclick="sortTable('name')" id="th-name">이름 ↕</div>
-        <div class="th" onclick="sortTable('rel')" id="th-rel">관계 ↕</div>
-        <div class="th" onclick="sortTable('amount')" id="th-amount">금액 ↕</div>
-        <div class="th" onclick="sortTable('ticket')" id="th-ticket">식권 ↕</div>
-        <div class="th">결제수단</div>
-        <div class="th" onclick="sortTable('time')" id="th-time">시간 ↕</div>
+      <div class="tbl-header-row" id="tbl-header" style="flex-shrink:0">
+        <div class="tc-num th-sort" onclick="sortTable('num')" id="th-num">#</div>
+        <div class="tc-side" id="th-side">측</div>
+        <div class="tc-name th-sort" onclick="sortTable('name')" id="th-name">이름</div>
+        <div class="tc-rel th-sort" onclick="sortTable('rel')" id="th-rel">관계</div>
+        <div class="tc-amt th-sort" onclick="sortTable('amount')" id="th-amount">금액</div>
+        <div class="tc-tkt th-sort" onclick="sortTable('ticket')" id="th-ticket">식권</div>
+        <div class="tc-pay">결제</div>
+        <div class="tc-time th-sort" onclick="sortTable('time')" id="th-time">시간</div>
       </div>
 
       <!-- 테이블 바디 -->
@@ -506,11 +504,12 @@ function sortTable(key){
     _sortKey = key;
     _sortDir = key === 'num' ? 'desc' : 'asc';
   }
-  // 헤더 표시 업데이트
+  // 헤더 강조
   ['num','name','rel','amount','ticket','time'].forEach(function(k){
     var el = document.getElementById('th-'+k);
     if(!el) return;
-    el.className = 'th' + (_sortKey===k ? (' sort-'+_sortDir) : '');
+    el.className = el.className.replace(/ asc| desc/g,'');
+    if(_sortKey===k) el.className += ' '+_sortDir;
   });
   renderTable();
 }
@@ -563,14 +562,14 @@ function renderTable(){
     var time   = l.created_at?fmtTime(l.created_at):'';
     var isNew  = newIds.has(l.id);
     return '<div class="tbl-row'+(isNew?' new-item':'')+'">' +
-      '<div class="td td-num">#'+num+'</div>' +
-      '<div class="td">'+buildSideLabel(l.side)+'</div>' +
-      '<div class="td td-name">'+esc(l.guest_name||'—')+'</div>' +
-      '<div class="td td-rel">'+esc(l.relation||'—')+'</div>' +
-      '<div class="td td-amt">'+(l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>')+'</div>' +
-      '<div class="td td-tkt">'+(tkt>0?'🎫'+tkt:'—')+'</div>' +
-      '<div class="td td-pay">'+pay+'<span style="font-size:10px;color:var(--text2);margin-left:2px">'+l.payment_type+'</span>'+'</div>' +
-      '<div class="td td-time">'+time+'</div>' +
+      '<div class="tc-num" style="color:var(--gold2);font-weight:700;font-size:10px">#'+num+'</div>' +
+      '<div class="tc-side">'+buildSideLabel(l.side)+'</div>' +
+      '<div class="tc-name">'+esc(l.guest_name||'—')+'</div>' +
+      '<div class="tc-rel" style="font-size:11px;color:var(--text2)">'+esc(l.relation||'—')+'</div>' +
+      '<div class="tc-amt">'+(l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>')+'</div>' +
+      '<div class="tc-tkt" style="font-size:11px">'+(tkt>0?'🎫'+tkt:'—')+'</div>' +
+      '<div class="tc-pay" style="font-size:11px">'+pay+' '+l.payment_type+'</div>' +
+      '<div class="tc-time" style="font-size:10px">'+time+'</div>' +
     '</div>';
   }).join('');
 
@@ -646,11 +645,10 @@ function applyWeddingMode(){
   }
 
   // 테이블 헤더 측 컬럼 표시
-  var thSide = document.getElementById('th-side');
-  if(thSide){
-    if(mode==='단측') thSide.style.display='none';
-    else thSide.style.display='';
-  }
+  // 측 컬럼 표시 (단측이면 숨김)
+  document.querySelectorAll('#th-side,.tc-side').forEach(function(el){
+    el.style.display = (mode==='단측') ? 'none' : '';
+  });
 
   // 요약바 측 카드 조정
   var groomSumCard = document.getElementById('groom-sum-card');
