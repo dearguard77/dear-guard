@@ -449,26 +449,26 @@ input,select,textarea{font-family:inherit;outline:none}
           <div style="padding-left:10px">
             <div style="font-size:10px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">추가 발급</div>
             <div style="display:flex;flex-direction:column;gap:4px">
-              <div style="display:flex;align-items:center;gap:4px">
+              <!-- 줄1: 측 + 수량 + 추가버튼 -->
+              <div style="display:flex;align-items:center;gap:3px">
                 <select id="add-ticket-side"
-                  style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:60px">
-                  <option value="신랑측">🤵 신랑</option>
-                  <option value="신부측">👰 신부</option>
+                  style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:10px;padding:0 3px;background:#fff;flex-shrink:0;width:54px">
+                  <option value="신랑측">🤵신랑</option>
+                  <option value="신부측">👰신부</option>
                 </select>
-                <input id="add-ticket-amount" type="number" placeholder="장수" min="1"
-                  style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 4px;width:44px;flex-shrink:0"
+                <input id="add-ticket-amount" type="number" placeholder="수량" min="1"
+                  style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;flex:1;min-width:0"
                   onkeydown="if(event.key==='Enter')addTicketExtra()">
                 <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:4px">
-                <input id="add-ticket-memo" placeholder="메모 (예약실 수령...)"
-                  style="flex:1;height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 7px;min-width:0"
-                  onkeydown="if(event.key==='Enter')addTicketExtra()">
                 <button onclick="addTicketExtra()"
-                  style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">
+                  style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">
                   추가
                 </button>
               </div>
+              <!-- 줄2: 메모 -->
+              <input id="add-ticket-memo" placeholder="메모 (예약실 수령...)"
+                style="width:100%;height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 7px;box-sizing:border-box"
+                onkeydown="if(event.key==='Enter')addTicketExtra()">
             </div>
             <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;margin-top:3px"></div>
           </div>
