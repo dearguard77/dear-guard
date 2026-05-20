@@ -58,7 +58,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 2-column body */
 #main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
-#main-body{display:grid;grid-template-columns:280px 1fr 320px;height:100%;max-width:1600px;margin:0 auto;width:100%}
+#main-body{display:grid;grid-template-columns:260px 340px 1fr 300px;height:100%;max-width:1800px;margin:0 auto;width:100%}
 
 /* ── 인계 정보 패널 ── */
 #handover-panel{overflow:hidden;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
@@ -126,6 +126,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .submit-btn:active{transform:scale(.98)}
 
 /* ── 오른쪽 현황 ── */
+#log-panel{overflow:hidden;padding:8px;background:#FAFAFA;border-left:1px solid #DCDCDC;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px;height:100%}
 #stats-panel{background:#F4F2EF;border-left:1px solid #DCDCDC;overflow:hidden;padding:8px;display:flex;flex-direction:column;gap:5px;height:100%}
 
 .scard{background:#fff;border-radius:8px;padding:8px 11px;border:1px solid #E8E5E1;flex-shrink:0}
@@ -177,6 +178,36 @@ input,select,textarea{font-family:inherit;outline:none}
 .STATUS_최종준비완료{background:#EFF6FF;color:#3B82F6}
 .STATUS_진행완료{background:#ECFDF5;color:#10B981}
 .STATUS_긴급확인{background:#FEF2F2;color:#EF4444}
+
+/* 전체 접수 리스트 */
+.log-full-item{display:grid;grid-template-columns:20px 14px 1fr auto auto auto;align-items:center;gap:4px;padding:4px 6px;border-bottom:1px solid #F0EDE8;font-size:11px;min-width:0}
+.log-full-item:hover{background:#F5F5F5}
+.log-num{font-size:10px;color:#9CA3AF;text-align:right}
+.log-side{font-size:12px}
+.log-name-wrap{min-width:0}
+.log-name-main{font-size:11px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log-name-sub{font-size:10px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log-amt-cell{font-size:11px;font-weight:800;color:#C7A96B;white-space:nowrap;text-align:right}
+.log-btn-edit{background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:600;white-space:nowrap}
+.log-btn-del{background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:600}
+.filter-bar{display:flex;gap:4px;flex-shrink:0}
+.filter-btn{border-radius:14px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer;transition:all .1s;white-space:nowrap}
+.filter-btn.on{background:#374151;color:#fff;border-color:#374151}
+.search-input{flex:1;border:1.5px solid #E0E0E0;border-radius:7px;padding:4px 8px;font-size:11px;color:#111;background:#fff;min-width:0}
+.search-input:focus{border-color:#C7A96B;outline:none}
+
+/* 수정 모달 */
+#edit-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px}
+.edit-box{background:#fff;border-radius:14px;padding:22px 20px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.edit-box h3{font-size:14px;font-weight:800;color:#111;margin-bottom:14px}
+.edit-row{margin-bottom:9px}
+.edit-lbl{font-size:10px;font-weight:700;color:#6B7280;margin-bottom:3px}
+.edit-inp{width:100%;border:1.5px solid #E0E0E0;border-radius:7px;padding:7px 9px;font-size:13px;color:#111;background:#fff;transition:border-color .15s}
+.edit-inp:focus{border-color:#C7A96B;outline:none}
+.edit-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.edit-btns{display:flex;gap:7px;margin-top:14px}
+.edit-save{flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
+.edit-cancel{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-width:72px}
 </style>
 </head>
 <body>
@@ -451,6 +482,27 @@ input,select,textarea{font-family:inherit;outline:none}
       <div style="height:8px"></div>
     </div>
 
+    <!-- 전체 접수 리스트 -->
+    <div id="log-panel">
+      <div style="font-size:11px;font-weight:800;color:#374151;padding:2px 0 6px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+        <span>전체 접수 내역</span>
+        <span id="log-total-badge" style="font-size:10px;color:#9CA3AF;font-weight:600">0건</span>
+      </div>
+      <!-- 검색 + 필터 -->
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <input id="log-search" class="search-input" placeholder="🔍 이름 검색..." oninput="renderFullList()">
+        <div class="filter-bar">
+          <button class="filter-btn on" id="f-all"    onclick="setFilter('all')">전체</button>
+          <button class="filter-btn"   id="f-groom"  onclick="setFilter('groom')">신랑측</button>
+          <button class="filter-btn"   id="f-bride"  onclick="setFilter('bride')">신부측</button>
+          <button class="filter-btn"   id="f-cash"   onclick="setFilter('cash')">현금</button>
+          <button class="filter-btn"   id="f-trans"  onclick="setFilter('trans')">계좌</button>
+        </div>
+      </div>
+      <!-- 리스트 -->
+      <div id="full-log-list" style="overflow-y:auto;flex:1;min-height:0"></div>
+    </div>
+
     <!-- 오른쪽: 현황 -->
     <div id="stats-panel">
 
@@ -543,6 +595,70 @@ input,select,textarea{font-family:inherit;outline:none}
 </div>
 
 <div id="toast"></div>
+
+<!-- 수정 모달 -->
+<div id="edit-modal">
+  <div class="edit-box">
+    <h3>✏️ 접수 내역 수정</h3>
+    <input type="hidden" id="edit-id">
+    <div class="edit-grid2">
+      <div class="edit-row">
+        <div class="edit-lbl">접수 측</div>
+        <select id="edit-side" class="edit-inp" style="padding:6px 8px">
+          <option value="신랑측">🤵 신랑측</option>
+          <option value="신부측">👰 신부측</option>
+        </select>
+      </div>
+      <div class="edit-row">
+        <div class="edit-lbl">결제 방식</div>
+        <select id="edit-payment" class="edit-inp" style="padding:6px 8px">
+          <option value="현금">💵 현금</option>
+          <option value="계좌이체">📱 계좌이체</option>
+        </select>
+      </div>
+    </div>
+    <div class="edit-row">
+      <div class="edit-lbl">하객 이름</div>
+      <input id="edit-name" class="edit-inp" placeholder="이름 (선택)">
+    </div>
+    <div class="edit-grid2">
+      <div class="edit-row">
+        <div class="edit-lbl">관계</div>
+        <select id="edit-relation" class="edit-inp" style="padding:6px 8px">
+          <option value="">선택 안함</option>
+          <option value="친구">친구</option>
+          <option value="직장">직장</option>
+          <option value="가족">가족</option>
+          <option value="부 지인">부 지인</option>
+          <option value="모 지인">모 지인</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div class="edit-row">
+        <div class="edit-lbl">금액 (원)</div>
+        <input id="edit-amount" class="edit-inp" type="number" placeholder="0">
+      </div>
+    </div>
+    <div class="edit-grid2">
+      <div class="edit-row">
+        <div class="edit-lbl">대인 식권</div>
+        <input id="edit-adult" class="edit-inp" type="number" placeholder="0" min="0">
+      </div>
+      <div class="edit-row">
+        <div class="edit-lbl">소인 식권</div>
+        <input id="edit-child" class="edit-inp" type="number" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="edit-row">
+      <div class="edit-lbl">메모</div>
+      <input id="edit-memo" class="edit-inp" placeholder="메모 (선택)">
+    </div>
+    <div class="edit-btns">
+      <button class="edit-cancel" onclick="closeEditModal()">취소</button>
+      <button class="edit-save" onclick="saveEdit()">💾 저장</button>
+    </div>
+  </div>
+</div>
 
 <div id="token-modal">
   <div class="token-box">
@@ -714,7 +830,7 @@ async function loadLogs(){
   if(!currentSchedule) return;
   try {
     logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
-    renderStats(); renderRecent();
+    renderStats(); renderRecent(); renderFullList();
   } catch(e){ console.error('logs 로드 실패:',e); }
 }
 
@@ -1018,6 +1134,136 @@ function resetForm(){
   document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('rel-active'));
 }
 
+// ── 전체 접수 리스트 ──
+var _logFilter = 'all';
+
+function setFilter(f){
+  _logFilter = f;
+  ['all','groom','bride','cash','trans'].forEach(function(k){
+    var el = document.getElementById('f-'+k);
+    if(el) el.classList.toggle('on', k===f);
+  });
+  renderFullList();
+}
+
+function renderFullList(){
+  var el = document.getElementById('full-log-list');
+  var badge = document.getElementById('log-total-badge');
+  if(!el) return;
+
+  var query = (document.getElementById('log-search')||{}).value||'';
+  query = query.trim().toLowerCase();
+
+  var filtered = logs.filter(function(l){
+    if(_logFilter==='groom' && l.side!=='신랑측') return false;
+    if(_logFilter==='bride' && l.side!=='신부측') return false;
+    if(_logFilter==='cash'  && l.payment_type!=='현금') return false;
+    if(_logFilter==='trans' && l.payment_type!=='계좌이체') return false;
+    if(query){
+      var name = (l.guest_name||'').toLowerCase();
+      var rel  = (l.relation||'').toLowerCase();
+      if(!name.includes(query) && !rel.includes(query)) return false;
+    }
+    return true;
+  });
+
+  if(badge) badge.textContent = filtered.length+'건';
+
+  if(!filtered.length){
+    el.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:#9CA3AF">접수 내역이 없습니다</div>';
+    return;
+  }
+
+  // 전체 logs 기준 넘버링 (최신순이므로 역순)
+  var totalLen = logs.length;
+  el.innerHTML = filtered.map(function(l, i){
+    var num     = totalLen - logs.indexOf(l); // 접수 순번
+    var side    = l.side==='신랑측'?'🤵':'👰';
+    var pay     = l.payment_type==='계좌이체'?'📱':'💵';
+    var name    = l.guest_name||'—';
+    var rel     = l.relation?' · '+l.relation:'';
+    var tkt     = (l.adult_ticket||0)+(l.child_ticket||0);
+    var tktStr  = tkt>0?' 🎫'+tkt:'';
+    var memo    = l.memo?' | '+l.memo:'';
+    var time    = l.created_at ? fmtTime(l.created_at) : '';
+    var isAdmin = ADMIN_NAMES.includes(currentUser.name);
+    var canEdit = isAdmin || l.created_by === currentUser.name;
+
+    return '<div class="log-full-item">' +
+      '<span class="log-num">#'+num+'</span>' +
+      '<span class="log-side">'+side+'</span>' +
+      '<div class="log-name-wrap">' +
+        '<div class="log-name-main">'+esc(name)+esc(rel)+'</div>' +
+        '<div class="log-name-sub">'+pay+' '+l.payment_type+tktStr+esc(memo)+'</div>' +
+      '</div>' +
+      '<span class="log-amt-cell">'+(l.amount?fmt(l.amount):'-')+'</span>' +
+      '<span style="font-size:10px;color:#9CA3AF;white-space:nowrap">'+time+'</span>' +
+      (canEdit
+        ? '<button class="log-btn-edit" onclick="openEditModal('+l.id+')">수정</button>' +
+          '<button class="log-btn-del"  onclick="deleteLog('+l.id+')">삭제</button>'
+        : '<span style="font-size:10px;color:#E5E7EB">—</span><span></span>'
+      ) +
+    '</div>';
+  }).join('');
+}
+
+function fmtTime(iso){
+  var d = new Date(iso);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+// ── 수정 모달 ──
+function openEditModal(id){
+  var l = logs.find(function(x){ return x.id===id; });
+  if(!l) return;
+  document.getElementById('edit-id').value      = id;
+  document.getElementById('edit-side').value    = l.side||'신랑측';
+  document.getElementById('edit-payment').value = l.payment_type||'현금';
+  document.getElementById('edit-name').value    = l.guest_name||'';
+  document.getElementById('edit-relation').value= l.relation||'';
+  document.getElementById('edit-amount').value  = l.amount||'';
+  document.getElementById('edit-adult').value   = l.adult_ticket||0;
+  document.getElementById('edit-child').value   = l.child_ticket||0;
+  document.getElementById('edit-memo').value    = l.memo||'';
+  document.getElementById('edit-modal').style.display='flex';
+}
+
+function closeEditModal(){
+  document.getElementById('edit-modal').style.display='none';
+}
+
+async function saveEdit(){
+  var id = Number(document.getElementById('edit-id').value);
+  var body = {
+    side:         document.getElementById('edit-side').value,
+    payment_type: document.getElementById('edit-payment').value,
+    guest_name:   document.getElementById('edit-name').value.trim()||null,
+    relation:     document.getElementById('edit-relation').value||null,
+    amount:       Number(document.getElementById('edit-amount').value)||null,
+    adult_ticket: Number(document.getElementById('edit-adult').value)||0,
+    child_ticket: Number(document.getElementById('edit-child').value)||0,
+    memo:         document.getElementById('edit-memo').value.trim()||null,
+  };
+  try {
+    await sb.patch('contribution_logs', id, body);
+    var idx = logs.findIndex(function(x){ return x.id===id; });
+    if(idx!==-1) Object.assign(logs[idx], body);
+    closeEditModal();
+    renderStats(); renderRecent(); renderFullList();
+    showToast('✅ 수정되었습니다');
+  } catch(e){ showToast('⚠️ 수정 실패: '+e.message); }
+}
+
+async function deleteLog(id){
+  if(!confirm('해당 접수 내역을 삭제하시겠습니까?')) return;
+  try {
+    await fetch(sb.url('contribution_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h});
+    logs = logs.filter(function(x){ return x.id!==id; });
+    renderStats(); renderRecent(); renderFullList();
+    showToast('🗑️ 삭제되었습니다');
+  } catch(e){ showToast('⚠️ 삭제 실패'); }
+}
+
 // ── 접수 저장 ──
 async function submitEntry(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
@@ -1037,7 +1283,7 @@ async function submitEntry(){
   try {
     const created=await sb.post('contribution_logs',row);
     logs.unshift(Array.isArray(created)?created[0]:created);
-    renderStats();renderRecent();
+    renderStats();renderRecent();renderFullList();
     resetForm();
     showToast('✅ 접수 완료되었습니다');
   } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
@@ -1062,6 +1308,10 @@ function showToast(msg){
 }
 
 // ── 초기화 ──
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeEditModal();
+});
+
 (function init(){
   initLogin();
   const saved=localStorage.getItem('dg_contrib_user');
