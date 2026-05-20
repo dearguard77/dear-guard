@@ -233,6 +233,12 @@ body{
 
 /* 섹션 간격 */
 .sec{margin-bottom:14px}
+
+/* 스크롤바 */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -338,55 +344,13 @@ body{
     </div>
   </div>
 
-  <div class="divider"></div>
-
-  <!-- 양측 분리 리스트 (양측 데이터 있을 때) -->
-  <div class="split-list-wrap" id="split-list-wrap" style="display:none">
-
-    <!-- 신랑측 -->
-    <div class="split-col">
-      <div class="split-header groom-header">
-        <div class="split-title">🤵 신랑측</div>
-        <div class="split-summary" id="groom-summary">0명 · 0원</div>
-      </div>
-      <div id="groom-log-list"></div>
-    </div>
-
-    <!-- 신부측 -->
-    <div class="split-col">
-      <div class="split-header bride-header">
-        <div class="split-title">👰 신부측</div>
-        <div class="split-summary" id="bride-summary">0명 · 0원</div>
-      </div>
-      <div id="bride-log-list"></div>
-    </div>
-
-  </div>
-
-  <!-- 단측 / 통합 리스트 (한쪽만 있을 때) -->
-  <div id="single-list-wrap" style="display:none">
-    <div class="list-hdr" style="margin-bottom:10px">
-      <div class="list-title" id="single-list-label">최근 접수 내역</div>
-    </div>
-    <div id="single-log-list"></div>
-  </div>
-
-  <!-- 엑셀 다운로드 버튼 -->
-  <div style="text-align:right;margin-bottom:6px">
-    <button onclick="downloadExcel()"
-      style="background:#217346;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-      📥 엑셀 다운로드
-    </button>
-  </div>
-
-  <div class="divider"></div>
 
   <!-- 화환 / 축기 현황 -->
   <div class="list-hdr" style="margin-bottom:10px">
     <div class="list-title">💐 화환 / 축기</div>
     <div class="list-cnt" id="flower-cnt">0건</div>
   </div>
-  <div id="flower-live-list" style="margin-bottom:4px"></div>
+  <div id="flower-live-list" style="margin-bottom:4px;max-height:200px;overflow-y:auto"></div>
 
   <div class="divider"></div>
 
@@ -395,7 +359,88 @@ body{
     <div class="list-title">📋 현장 운영 메모</div>
     <div class="list-cnt" id="ops-cnt">0건</div>
   </div>
-  <div id="ops-list"></div>
+  <div id="ops-list" style="max-height:160px;overflow-y:auto"></div>
+
+  <div class="divider"></div>
+
+  <!-- 엑셀 다운로드 버튼 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div class="list-title">📋 접수 내역</div>
+    <button onclick="downloadExcel()"
+      style="background:#217346;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px">
+      📥 엑셀 다운로드
+    </button>
+  </div>
+
+  <!-- 양측 분리 리스트 (양측 데이터 있을 때) -->
+  <div class="split-list-wrap" id="split-list-wrap" style="display:none">
+    <div class="split-col">
+      <div class="split-header groom-header">
+        <div class="split-title">🤵 신랑측</div>
+        <div class="split-summary" id="groom-summary">0명 · 0원</div>
+      </div>
+      <div id="groom-log-list" style="max-height:420px;overflow-y:auto;padding-right:4px"></div>
+    </div>
+    <div class="split-col">
+      <div class="split-header bride-header">
+        <div class="split-title">👰 신부측</div>
+        <div class="split-summary" id="bride-summary">0명 · 0원</div>
+      </div>
+      <div id="bride-log-list" style="max-height:420px;overflow-y:auto;padding-right:4px"></div>
+    </div>
+  </div>
+
+  <!-- 단측 / 통합 리스트 (한쪽만 있을 때) -->
+  <div id="single-list-wrap" style="display:none">
+    <div class="list-hdr" style="margin-bottom:10px">
+      <div class="list-title" id="single-list-label">최근 접수 내역</div>
+    </div>
+    <div id="single-log-list" style="max-height:500px;overflow-y:auto;padding-right:4px"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 인계 정보 카드 -->
+  <div id="handover-card" style="display:none">
+    <div class="list-hdr" style="margin-bottom:12px">
+      <div class="list-title">📦 인계 정보</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="mini-card" id="hc-items-wrap" style="display:none">
+        <div class="mini-lbl">인계 물품</div>
+        <div id="hc-items" style="font-size:13px;color:var(--text);white-space:pre-line;line-height:1.6;margin-top:4px"></div>
+      </div>
+      <div class="mini-card" id="hc-person-wrap" style="display:none">
+        <div class="mini-lbl">인계자</div>
+        <div id="hc-person" style="font-size:13px;color:var(--text);margin-top:4px;line-height:1.8"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="mini-card" id="hc-pw-wrap" style="display:none">
+        <div class="mini-lbl">🔒 설정 비밀번호</div>
+        <div id="hc-password" style="font-size:22px;font-weight:900;color:var(--gold2);letter-spacing:4px;margin-top:4px"></div>
+      </div>
+      <div class="mini-card" id="hc-r1-wrap" style="display:none">
+        <div class="mini-lbl">📹 접수응대캠</div>
+        <a id="hc-replay1" href="#" target="_blank"
+          style="font-size:12px;font-weight:700;color:var(--blue);text-decoration:none;display:block;margin-top:6px;word-break:break-all">
+          다시보기 →
+        </a>
+      </div>
+      <div class="mini-card" id="hc-r2-wrap" style="display:none">
+        <div class="mini-lbl">📹 계수기록캠</div>
+        <a id="hc-replay2" href="#" target="_blank"
+          style="font-size:12px;font-weight:700;color:var(--blue);text-decoration:none;display:block;margin-top:6px;word-break:break-all">
+          다시보기 →
+        </a>
+      </div>
+    </div>
+    <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
+      target="_blank"
+      style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border:1.5px solid #E8D5B0;border-radius:12px;padding:14px;text-decoration:none;color:var(--gold2);font-size:14px;font-weight:700">
+      💌 하객 답례인사 템플릿 보기
+    </a>
+  </div>
 
   <div id="last-upd"></div>
 </div>
@@ -443,6 +488,7 @@ async function init(){
 
     await loadLogs();
     loadFlowerLive();
+    renderHandover();
     document.getElementById('loading').style.display='none';
     document.getElementById('dashboard').style.display='block';
 
@@ -712,6 +758,43 @@ async function loadFlowerLive(){
       '</div>';
     }).join('');
   } catch(e){ console.error('화환 로드 실패:', e); }
+}
+
+// ── 인계 정보 렌더 ──
+function renderHandover(){
+  if(!schedule) return;
+  var s = schedule;
+  var hasAny = s.handoff_items||s.handoff_person||s.handoff_password||s.replay_link_1||s.replay_link_2;
+  var card = document.getElementById('handover-card');
+  if(!card) return;
+  if(!hasAny){ card.style.display='none'; return; }
+  card.style.display='block';
+
+  function show(wrapId, elId, val, isHtml){
+    var wrap = document.getElementById(wrapId);
+    var el   = document.getElementById(elId);
+    if(!wrap||!el) return;
+    if(val){ wrap.style.display='block'; if(isHtml) el.innerHTML=val; else el.textContent=val; }
+    else     wrap.style.display='none';
+  }
+
+  show('hc-items-wrap',  'hc-items',    s.handoff_items);
+  if(s.handoff_person||s.handoff_relation||s.handoff_phone){
+    document.getElementById('hc-person-wrap').style.display='block';
+    document.getElementById('hc-person').innerHTML =
+      (s.handoff_relation?'<span style="font-size:11px;color:var(--text3)">'+esc(s.handoff_relation)+'</span><br>':'') +
+      (s.handoff_person?'<strong>'+esc(s.handoff_person)+'</strong><br>':'') +
+      (s.handoff_phone?'<a href="tel:'+esc(s.handoff_phone)+'" style="color:var(--blue);text-decoration:none">'+esc(s.handoff_phone)+'</a>':'');
+  }
+  show('hc-pw-wrap',     'hc-password', s.handoff_password);
+  if(s.replay_link_1){
+    document.getElementById('hc-r1-wrap').style.display='block';
+    document.getElementById('hc-replay1').href=s.replay_link_1;
+  }
+  if(s.replay_link_2){
+    document.getElementById('hc-r2-wrap').style.display='block';
+    document.getElementById('hc-replay2').href=s.replay_link_2;
+  }
 }
 
 // ── 운영 메모 렌더 ──

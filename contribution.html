@@ -58,7 +58,21 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 2-column body */
 #main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
-#main-body{display:grid;grid-template-columns:1fr 320px;height:100%;max-width:1280px;margin:0 auto;width:100%}
+#main-body{display:grid;grid-template-columns:240px 1fr 300px;height:100%;max-width:1440px;margin:0 auto;width:100%}
+
+/* ── 인계 정보 패널 ── */
+#handover-panel{overflow-y:auto;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
+
+.ho-section{background:#fff;border-radius:9px;padding:10px 12px;border:1px solid #E0E0E0}
+.ho-section-title{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;text-transform:uppercase;margin-bottom:7px}
+.ho-label{font-size:10px;font-weight:700;color:#6B7280;margin-bottom:3px}
+.ho-input{width:100%;border:1.5px solid #E0E0E0;border-radius:6px;padding:5px 8px;font-size:12px;color:#111;background:#fff;transition:border-color .15s}
+.ho-input:focus{border-color:#C7A96B;outline:none}
+.ho-textarea{width:100%;border:1.5px solid #E0E0E0;border-radius:6px;padding:5px 8px;font-size:12px;color:#111;background:#fff;resize:none;line-height:1.5;transition:border-color .15s}
+.ho-textarea:focus{border-color:#C7A96B;outline:none}
+.ho-link-btn{display:block;width:100%;background:#FDF8F3;border:1.5px solid #E8DFD0;border-radius:7px;padding:8px 10px;font-size:12px;font-weight:700;color:#C7A96B;text-decoration:none;text-align:center;transition:all .15s}
+.ho-link-btn:hover{background:#F5EDD8}
+.ho-save-indicator{font-size:10px;color:#10B981;text-align:right;height:14px;margin-top:2px}
 
 /* ── 왼쪽 입력 ── */
 #input-panel{overflow-y:auto;padding:10px 12px;background:#EDEDED;display:flex;flex-direction:column;gap:6px}
@@ -224,7 +238,77 @@ input,select,textarea{font-family:inherit;outline:none}
   <div id="main-body-outer">
   <div id="main-body">
 
-    <!-- 왼쪽: 입력 -->
+    <!-- 인계 정보 패널 -->
+    <div id="handover-panel">
+      <div style="font-size:11px;font-weight:800;color:#C7A96B;letter-spacing:1px;padding:4px 0 8px;text-align:center;border-bottom:1px solid #E8E5E1;margin-bottom:4px">
+        📦 인계 정보
+      </div>
+
+      <!-- 인계 물품 -->
+      <div class="ho-section">
+        <div class="ho-section-title">인계 물품</div>
+        <textarea id="ho-items" class="ho-textarea" rows="4"
+          placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권&#10;· 포토부스 앨범"
+          oninput="saveHandover()"></textarea>
+      </div>
+
+      <!-- 인계자 -->
+      <div class="ho-section">
+        <div class="ho-section-title">인계자 정보</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div>
+            <div class="ho-label">관계</div>
+            <input id="ho-relation" class="ho-input" placeholder="예: 신랑 아버지" oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">성함</div>
+            <input id="ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">연락처</div>
+            <input id="ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()">
+          </div>
+        </div>
+      </div>
+
+      <!-- 비밀번호 -->
+      <div class="ho-section">
+        <div class="ho-section-title">🔒 설정 비밀번호</div>
+        <div class="ho-label">레디백 비번</div>
+        <input id="ho-password" class="ho-input"
+          placeholder="예: 1234"
+          style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
+          oninput="saveHandover()">
+      </div>
+
+      <!-- 다시보기 링크 -->
+      <div class="ho-section">
+        <div class="ho-section-title">📹 다시보기 링크</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div>
+            <div class="ho-label">접수응대캠</div>
+            <input id="ho-replay1" class="ho-input" placeholder="https://..." oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">계수기록캠</div>
+            <input id="ho-replay2" class="ho-input" placeholder="https://..." oninput="saveHandover()">
+          </div>
+        </div>
+      </div>
+
+      <!-- 답례 템플릿 고정 -->
+      <div class="ho-section">
+        <div class="ho-section-title">💌 하객 답례인사</div>
+        <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
+          target="_blank" class="ho-link-btn">
+          💌 답례인사 템플릿 보기
+        </a>
+      </div>
+
+      <div class="ho-save-indicator" id="ho-save-indicator"></div>
+    </div>
+
+    <!-- 축의 입력기 -->
     <div id="input-panel">
 
       <!-- 식권 초기 설정 -->
@@ -610,6 +694,7 @@ async function selectSchedule(id){
     await loadLogs();
     loadOpsLogs();
     loadFlowerLogs();
+    loadHandover();
     subscribeRealtime();
   } catch(e){ showToast('⚠️ 예식 로드 실패'); }
 }
@@ -703,6 +788,47 @@ function renderFlowerList(){
       '</div>' +
     '</div>';
   }).join('');
+}
+
+// ── 인계 정보 (DB 기반) ──
+var _hoSaveTimer = null;
+
+function loadHandover(){
+  if(!currentSchedule) return;
+  var s = currentSchedule;
+  var set = function(id, val){ var el=document.getElementById(id); if(el&&val) el.value=val; };
+  set('ho-items',    s.handoff_items);
+  set('ho-relation', s.handoff_relation);
+  set('ho-name',     s.handoff_person);
+  set('ho-phone',    s.handoff_phone);
+  set('ho-password', s.handoff_password);
+  set('ho-replay1',  s.replay_link_1);
+  set('ho-replay2',  s.replay_link_2);
+}
+
+function saveHandover(){
+  if(!currentSchedule) return;
+  // 디바운스 - 입력 멈추고 800ms 후 저장
+  clearTimeout(_hoSaveTimer);
+  _hoSaveTimer = setTimeout(function(){
+    var body = {
+      handoff_items:    document.getElementById('ho-items').value    || null,
+      handoff_relation: document.getElementById('ho-relation').value  || null,
+      handoff_person:   document.getElementById('ho-name').value      || null,
+      handoff_phone:    document.getElementById('ho-phone').value     || null,
+      handoff_password: document.getElementById('ho-password').value  || null,
+      replay_link_1:    document.getElementById('ho-replay1').value   || null,
+      replay_link_2:    document.getElementById('ho-replay2').value   || null,
+    };
+    sb.patch('schedules', currentSchedule.id, body)
+      .then(function(){
+        // currentSchedule 동기화
+        Object.assign(currentSchedule, body);
+        var ind = document.getElementById('ho-save-indicator');
+        if(ind){ ind.textContent='✓ 저장됨'; setTimeout(function(){ ind.textContent=''; },2000); }
+      })
+      .catch(function(e){ console.error('인계 저장 실패:', e); });
+  }, 800);
 }
 
 // ── 현장 운영 메모 (DB 기반) ──
