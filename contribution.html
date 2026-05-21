@@ -48,7 +48,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .empty-state{text-align:center;padding:36px 20px;color:#9CA3AF;font-size:13px}
 
 /* ── 메인 레이아웃 ── */
-#main-screen{display:none;height:100vh;flex-direction:column}
+#main-screen{display:none;height:100vh;flex-direction:column;overflow:hidden}
 
 /* 상단바 */
 #top-bar{background:#fff;border-bottom:1px solid #DCDCDC;padding:0;display:flex;align-items:center;height:52px;flex-shrink:0}
@@ -61,8 +61,8 @@ input,select,textarea{font-family:inherit;outline:none}
 .topbtn-gold{background:#C7A96B;color:#fff}
 
 /* 2-column body */
-#main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
-#main-body{display:grid;grid-template-columns:350px 1fr 1fr;height:100%;width:100%}
+#main-body-outer{flex:1;overflow:hidden;background:#EDEDED;display:flex;flex-direction:column}
+#main-body{display:grid;grid-template-columns:350px 1fr 1fr;flex:1;min-height:0;width:100%}
 
 /* ── 인계 정보 패널 ── */
 #handover-panel{overflow-y:auto;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
