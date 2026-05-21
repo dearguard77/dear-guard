@@ -59,7 +59,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .sum-lbl.blue{color:#1D4ED8}
 .sum-lbl.pink{color:#9D174D}
 .sum-lbl.purple{color:#6D28D9}
-.sum-val{font-size:18px;font-weight:900;line-height:1;margin-bottom:2px}
+.sum-val{font-size:20px;font-weight:900;line-height:1;margin-bottom:3px}
 .sum-val.gold{color:var(--gold2)}
 .sum-val.blue{color:var(--blue)}
 .sum-val.pink{color:var(--pink)}
@@ -104,40 +104,40 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 
 /* 테이블 */
 #tbl-wrap{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
-.tbl-head{display:flex;align-items:center;background:#F5F3EF;border-bottom:2px solid var(--border);flex-shrink:0;font-size:10px;font-weight:700;color:var(--text3)}
+.tbl-head{display:flex;align-items:center;background:#F5F3EF;border-bottom:2px solid var(--border);flex-shrink:0;font-size:11px;font-weight:700;color:var(--text3)}
 .tbl-body{overflow-y:auto;flex:1}
 /* 양측: 2분할 */
 #split-wrap{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;min-height:0}
 .side-col{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
 .side-col:last-child{border-right:none}
-.side-col-hdr{padding:6px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.side-col-hdr{padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
 .side-col-hdr.groom{background:#EFF6FF}
 .side-col-hdr.bride{background:#FDF2F8}
 .side-col-body{overflow-y:auto;flex:1}
 
 /* 테이블 행 */
-.tbl-row{display:flex;align-items:center;border-bottom:1px solid #F0EDE8;font-size:12px;transition:background .1s}
+.tbl-row{display:flex;align-items:center;border-bottom:1px solid #ECEAE6;font-size:13px;transition:background .1s;min-height:42px}
 .tbl-row:hover{background:rgba(199,169,107,.04)}
 .tbl-row.new-item{animation:fadeIn .3s ease;background:rgba(199,169,107,.06)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
 /* 컬럼 */
-.tc-num{width:38px;flex-shrink:0;padding:6px 5px;text-align:center;font-size:10px;font-weight:700;color:var(--gold2)}
+.tc-num{width:42px;flex-shrink:0;padding:7px 5px;text-align:center;font-size:12px;font-weight:700;color:var(--gold2)}
 .tc-side{width:40px;flex-shrink:0;padding:6px 4px;text-align:center}
-.tc-name{flex:1;min-width:80px;padding:6px 8px;overflow:hidden}
-.tc-name-main{font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tc-name-sub{font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
-.tc-amt{width:76px;flex-shrink:0;padding:6px 8px;text-align:right;font-weight:800;color:var(--gold2)}
-.tc-tkt{width:80px;flex-shrink:0;padding:6px 6px;display:flex;gap:3px;flex-wrap:wrap;align-items:center}
-.tc-pay{width:52px;flex-shrink:0;padding:6px 4px;text-align:center}
-.tc-time{width:44px;flex-shrink:0;padding:6px 5px;text-align:right;font-size:10px;color:var(--text3)}
+.tc-name{flex:1;min-width:90px;padding:7px 10px;overflow:hidden}
+.tc-name-main{font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
+.tc-name-sub{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.tc-amt{width:90px;flex-shrink:0;padding:7px 10px;text-align:right;font-weight:900;color:var(--gold2);font-size:15px}
+.tc-tkt{width:90px;flex-shrink:0;padding:7px 6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.tc-pay{width:62px;flex-shrink:0;padding:7px 5px;text-align:center}
+.tc-time{width:50px;flex-shrink:0;padding:7px 5px;text-align:right;font-size:12px;color:var(--text3)}
 .th-sort{cursor:pointer;user-select:none}
 .th-sort:hover{color:var(--text)}
 .th-sort.asc::after{content:" ↑";color:var(--gold2)}
 .th-sort.desc::after{content:" ↓";color:var(--gold2)}
-.badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:3px;padding:1px 4px;font-size:10px;font-weight:700}
-.badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:3px;padding:1px 4px;font-size:10px;font-weight:700}
-.badge-cash{display:inline-block;background:#D1FAE518;color:#059669;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700}
-.badge-trans{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700}
+.badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:4px;padding:2px 6px;font-size:12px;font-weight:700}
+.badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:2px 6px;font-size:12px;font-weight:700}
+.badge-cash{display:inline-block;background:#D1FAE5;color:#059669;border-radius:4px;padding:2px 7px;font-size:12px;font-weight:700}
+.badge-trans{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:2px 7px;font-size:12px;font-weight:700}
 .badge-side-g{display:inline-block;background:#EFF6FF;color:#2563EB;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700}
 .badge-side-b{display:inline-block;background:#FDF2F8;color:#DB2777;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700}
 
@@ -361,6 +361,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 <div id="upd">✓ 업데이트</div>
 
 <script>
+
+
 
 
 
@@ -752,6 +754,8 @@ _s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{o
 document.head.appendChild(_s);
 
 init();
+
+
 
 
 
