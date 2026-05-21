@@ -35,7 +35,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 #hdr{background:var(--bg2);border-bottom:1.5px solid var(--border);padding:10px 16px;flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
 
 /* 좌: 예식정보 */
-#hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:14px 20px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center}
+#hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:14px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px}
 .wedding-brand{font-family:Georgia,serif;font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8;margin-bottom:6px}
 .wedding-names{font-size:32px;font-weight:900;color:#111;letter-spacing:-.5px;margin-bottom:6px;line-height:1.1}
 .wedding-info{font-size:16px;font-weight:600;color:#374151;margin-bottom:6px}
@@ -44,7 +44,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--green)}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;margin-left:auto}
+.excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 #last-upd{font-size:10px;color:var(--text3)}
 
 /* 우: 축의 요약 */
@@ -177,12 +177,15 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
       <div style="flex:1">
         <div class="wedding-brand" style="text-align:center">DEAR GUARD</div>
         <div class="wedding-names" id="hdr-names" style="font-size:32px;margin-bottom:6px;text-align:center">—</div>
-        <div class="wedding-info" id="hdr-info" style="font-size:16px;font-weight:600;color:#374151;margin-bottom:8px;text-align:center">—</div>
+        <div style="text-align:center;margin-bottom:8px">
+          <div class="wedding-info" id="hdr-info-dt" style="font-size:16px;font-weight:600;color:#374151">—</div>
+          <div class="wedding-info" id="hdr-info-hall" style="font-size:16px;font-weight:600;color:#374151;margin-top:2px">—</div>
+        </div>
       </div>
       <div class="wedding-footer" style="justify-content:center">
         <span id="mode-badge"></span>
         <span class="live-pill"><span class="live-dot"></span>실시간</span>
-        <button class="excel-btn" onclick="downloadExcel()">📥 엑셀</button>
+        <button class="excel-btn" onclick="downloadExcel()">📥 엑셀 다운로드</button>
         <span id="last-upd" style="font-size:11px"></span>
       </div>
     </div>
@@ -402,7 +405,10 @@ async function init(){
     const _d=new Date((schedule.date||'')+'T00:00:00');
     const _days=['일','월','화','수','목','금','토'];
     const _day=schedule.date?` (${_days[_d.getDay()]})`:'';
-    se('hdr-info',`${schedule.date||''}${_day} · ${(schedule.time||'').slice(0,5)} · ${schedule.hall||''}`);
+    const _dateTime=`${schedule.date||''}${_day} · ${(schedule.time||'').slice(0,5)}`;
+    const _hall=schedule.hall||'';
+    document.getElementById('hdr-info-dt').textContent=_dateTime;
+    document.getElementById('hdr-info-hall').textContent=_hall;
     document.title=`${names} · 실시간 장부`;
     await loadLogs();
     loadFlowerLive();
