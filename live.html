@@ -770,12 +770,30 @@ function applyWeddingMode(){
     modeEl.textContent=ml;modeEl.style.color=mc;modeEl.style.background=mc+'15';modeEl.style.borderColor=mc+'40';
   }
   const hasG=logs.some(l=>l.side==='신랑측'),hasB=logs.some(l=>l.side==='신부측');
+  const isMobile=window.innerWidth<=900;
   const gCard=document.getElementById('groom-sum-card'),bCard=document.getElementById('bride-sum-card');
+  const ticketCard=document.getElementById('ticket-sum-card');
+  const groomWrap=document.getElementById('ticket-groom-wrap'),brideWrap=document.getElementById('ticket-bride-wrap');
+
   if(mode==='단측'){
-    if(gCard)gCard.style.display=(hasG||(!hasG&&!hasB))?'':'none';
-    if(bCard)bCard.style.display=hasB?'':'none';
-  }else{
-    if(gCard)gCard.style.display='';if(bCard)bCard.style.display='';
+    // PC: 기존 그대로
+    if(!isMobile){
+      if(gCard)gCard.style.display=(hasG||(!hasG&&!hasB))?'':'none';
+      if(bCard)bCard.style.display=hasB?'':'none';
+    }
+    // 모바일: 미운영 측 숨김
+    if(isMobile){
+      if(gCard)gCard.style.display=(hasG||(!hasG&&!hasB))?'':'none';
+      if(bCard)bCard.style.display=hasB?'':'none';
+      // 식권 카드도 측별 표시
+      if(groomWrap)groomWrap.style.display=(hasG||(!hasG&&!hasB))?'':'none';
+      if(brideWrap)brideWrap.style.display=hasB?'':'none';
+    }
+  } else {
+    if(gCard)gCard.style.display='';
+    if(bCard)bCard.style.display='';
+    if(groomWrap)groomWrap.style.display='';
+    if(brideWrap)brideWrap.style.display='';
   }
 }
 
