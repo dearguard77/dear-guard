@@ -60,7 +60,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .topbtn-ghost{background:#F3F4F6;border:1px solid #E0E0E0;color:#6B7280}
 .topbtn-gold{background:#C7A96B;color:#fff}
 
-/* 2-column body */
+/* 바디 레이아웃 */
 #main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
 #main-body{display:grid;grid-template-columns:350px 1fr 1fr;height:100%;width:100%}
 
@@ -74,70 +74,25 @@ input,select,textarea{font-family:inherit;outline:none}
 .ho-input:focus{border-color:#C7A96B;outline:none}
 .ho-textarea{width:100%;border:1.5px solid #E0E0E0;border-radius:6px;padding:5px 8px;font-size:12px;color:#111;background:#fff;resize:none;line-height:1.5;transition:border-color .15s}
 .ho-textarea:focus{border-color:#C7A96B;outline:none}
-.ho-link-btn{display:block;width:100%;background:#FDF8F3;border:1.5px solid #E8DFD0;border-radius:7px;padding:8px 10px;font-size:12px;font-weight:700;color:#C7A96B;text-decoration:none;text-align:center;transition:all .15s}
-.ho-link-btn:hover{background:#F5EDD8}
 .ho-save-indicator{font-size:10px;color:#10B981;text-align:right;height:14px;margin-top:2px}
 
-/* ── 중앙 패널 (입력 + 리스트) ── */
+/* ── 측별 탭 ── */
+.ho-tab-bar{display:flex;border-bottom:2px solid #E8E5E1;margin-bottom:6px;flex-shrink:0}
+.ho-tab-btn{flex:1;padding:7px 4px;font-size:12px;font-weight:700;border:none;background:none;color:#9CA3AF;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.ho-tab-btn.on-groom{color:#2563EB;border-bottom-color:#2563EB}
+.ho-tab-btn.on-bride{color:#DB2777;border-bottom-color:#DB2777}
+.ho-pane{display:none;flex-direction:column;gap:6px}
+.ho-pane.active{display:flex}
+
+/* ── 중앙 패널 ── */
 #center-panel{display:flex;flex-direction:column;overflow:hidden;height:100%;border-left:1px solid #DCDCDC;border-right:1px solid #DCDCDC}
 
-/* ── 장부 리스트 패널 ── */
-#list-panel{overflow:hidden;display:flex;flex-direction:column;height:100%;background:#F8F7F5;border-left:1px solid #DCDCDC;border-right:1px solid #DCDCDC}
-.list-panel-hdr{padding:6px 10px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:#fff}
-.list-panel-title{font-size:11px;font-weight:800;color:#374151}
-.list-col-wrap{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;min-height:0}
-.list-col-wrap.single{grid-template-columns:1fr}
-.list-col{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #E8E5E1}
-.list-col:last-child{border-right:none}
-.list-col-hdr{padding:5px 8px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E8E5E1}
-.list-col-hdr.groom{background:#F0F7FF}
-.list-col-hdr.bride{background:#FDF0F7}
-.list-col-body{overflow-y:auto;flex:1}
-
-/* 장부 아이템 */
-.ledger-item{padding:7px 10px;border-bottom:1px solid #EEEAE4;cursor:default}
-.ledger-item:hover{background:rgba(199,169,107,.03)}
-.ledger-r1{display:flex;align-items:center;gap:3px;min-width:0}
-.ledger-r2{display:flex;align-items:center;gap:3px;margin-top:1px;flex-wrap:nowrap}
-.ledger-num{font-size:11px;color:#C7A96B;font-weight:700;width:24px;flex-shrink:0;text-align:right}
-.ledger-name{font-size:14px;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-.ledger-amt{font-size:14px;font-weight:800;color:#C7A96B;white-space:nowrap;flex-shrink:0;margin-left:6px}
-.ledger-memo{font-size:12px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;margin-left:24px}
-.ledger-btn{border:none;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0}
-.ledger-edit{background:#EFF6FF;color:#2563EB}
-.ledger-del{background:#FEF2F2;color:#DC2626}
+/* ── 입력 패널 ── */
 #input-panel{overflow-y:auto;padding:6px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px;flex-shrink:0}
-#split-list-panel{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0}
-#split-list-panel.single{grid-template-columns:1fr}
-.split-list-col{overflow:hidden;display:flex;flex-direction:column;border-top:2px solid #E0E0E0}
-.split-list-col.groom-col{border-right:1px solid #E0E0E0;background:#FAFEFF}
-.split-list-col.bride-col{background:#FFF9FD}
-.split-col-hdr{padding:6px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E8E8E8;flex-shrink:0}
-.split-col-hdr-title{font-size:12px;font-weight:800;color:#374151;display:flex;align-items:center;gap:5px}
-.split-col-hdr-sum{font-size:11px;color:#9CA3AF}
-.split-col-body{overflow-y:auto;flex:1;min-height:0}
-
-/* 접수 리스트 아이템 */
-.log-full-item{display:flex;flex-direction:column;padding:5px 8px;border-bottom:1px solid #F0EDE8;transition:background .1s}
-.log-full-item:hover{background:rgba(0,0,0,.02)}
-.log-full-row1{display:flex;align-items:center;gap:4px;min-width:0}
-.log-full-row2{display:flex;align-items:center;gap:3px;margin-top:1px;padding-left:22px}
-.log-num{font-size:9px;color:#C7A96B;font-weight:700;min-width:22px;flex-shrink:0}
-.log-side{font-size:12px;flex-shrink:0}
-.log-name-main{font-size:12px;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-.log-amt-cell{font-size:12px;font-weight:800;color:#C7A96B;white-space:nowrap;flex-shrink:0}
-.log-meta{font-size:10px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-.log-time{font-size:10px;color:#9CA3AF;white-space:nowrap;flex-shrink:0}
-.log-btn-edit{background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:700;flex-shrink:0}
-.log-btn-del{background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:700;flex-shrink:0}
-
-/* ── 왼쪽 입력 ── */
-#input-panel{overflow-y:auto;padding:8px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px}
 
 .card{background:#fff;border-radius:8px;padding:9px 11px;border:1px solid #E0E0E0}
 .card-title{font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:.3px;margin-bottom:4px;text-transform:uppercase}
 
-/* 토글 */
 .tog-group{display:flex;gap:5px}
 .tog-btn{flex:1;border-radius:7px;padding:8px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;text-align:center;transition:all .1s;line-height:1.2;white-space:nowrap;min-width:0}
 .tog-btn:active{transform:scale(.97)}
@@ -146,7 +101,6 @@ input,select,textarea{font-family:inherit;outline:none}
 .tog-dark{background:#111;color:#fff;border-color:#111}
 .tog-gray{background:#6B7280;color:#fff;border-color:#6B7280}
 
-/* 금액 버튼 */
 .amt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:7px}
 .amt-btn{border-radius:7px;padding:9px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#333;text-align:center;transition:all .1s}
 .amt-btn:active{transform:scale(.96)}
@@ -158,12 +112,10 @@ input,select,textarea{font-family:inherit;outline:none}
 .inp-wrap{position:relative}
 .inp-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#9CA3AF;font-weight:600;pointer-events:none}
 
-/* 관계 */
 .rel-group{display:flex;flex-wrap:wrap;gap:4px}
 .rel-btn{border-radius:10px;padding:4px 9px;font-size:12px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;transition:all .1s}
 .rel-active{background:#374151;color:#fff;border-color:#374151}
 
-/* 식권 */
 .ticket-row{display:flex;align-items:center;gap:8px}
 .tkt-label{font-size:12px;font-weight:600;color:#374151;width:38px;flex-shrink:0}
 .counter{display:flex;align-items:center;gap:5px;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;padding:3px 6px}
@@ -171,19 +123,16 @@ input,select,textarea{font-family:inherit;outline:none}
 .cnt-btn:active{background:#E5E7EB}
 .cnt-val{font-size:15px;font-weight:800;color:#111;min-width:26px;text-align:center}
 
-/* 식권 설정 */
 .tkt-setup-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
 .tkt-setup-row:last-child{margin-bottom:0}
 .tkt-setup-lbl{font-size:12px;font-weight:600;color:#374151;width:84px;flex-shrink:0}
 .tkt-setup-inp{border:1.5px solid #E0E0E0;border-radius:7px;padding:5px 8px;font-size:14px;font-weight:700;color:#111;width:72px;text-align:center;background:#fff}
 .tkt-setup-inp:focus{border-color:#C7A96B}
 
-/* 접수 버튼 */
 .submit-btn{width:100%;background:linear-gradient(135deg,#C7A96B,#E8C98A);color:#fff;border-radius:9px;padding:12px;font-size:15px;font-weight:800;letter-spacing:.3px;box-shadow:0 3px 12px rgba(199,169,107,.3);transition:all .15s;flex-shrink:0;border:none;cursor:pointer}
 .submit-btn:active{transform:scale(.98)}
 
 /* ── 오른쪽 현황 ── */
-#log-panel{overflow:hidden;padding:8px;background:#FAFAFA;border-left:1px solid #DCDCDC;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px;height:100%}
 #stats-panel{background:#F4F2EF;border-left:1px solid #DCDCDC;overflow:hidden;padding:6px;display:flex;flex-direction:column;gap:4px;height:100%;flex-shrink:0}
 
 .scard{background:#fff;border-radius:8px;padding:6px 9px;border:1px solid #E8E5E1;flex-shrink:0}
@@ -198,9 +147,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .mini-val{font-size:14px;font-weight:800;color:#111}
 .mini-val.blue{color:#3B82F6}
 .mini-val.pink{color:#EC4899}
-.mini-val.gold{color:#C7A96B}
 
-/* 식권 현황 테이블 */
 .tkt-stat{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #F0EDE8}
 .tkt-stat:last-child{border-bottom:none;padding-bottom:0}
 .tkt-stat-lbl{font-size:11px;color:#6B7280}
@@ -209,19 +156,35 @@ input,select,textarea{font-family:inherit;outline:none}
 .tkt-stat-val.orange{color:#F59E0B}
 .tkt-stat-val.red{color:#EF4444}
 
-/* 최근접수 */
-.ri{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #F0EDE8}
-.ri:last-child{border-bottom:none;padding-bottom:0}
-.ri-left{flex:1;min-width:0}
-.ri-name{font-size:12px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
-.ri-info{font-size:10px;color:#9CA3AF;margin-top:1px}
-.ri-amt{font-size:12px;font-weight:800;color:#C7A96B;white-space:nowrap;margin-left:6px}
+/* 장부 */
+#split-list-panel{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;flex:1;min-height:0}
+#split-list-panel.single{grid-template-columns:1fr}
+.split-list-col{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #E0E0E0}
+.split-list-col:last-child{border-right:none}
+.split-col-hdr{padding:6px 10px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.split-col-hdr-title{font-size:13px;font-weight:800;color:#374151;display:flex;align-items:center;gap:5px}
+.split-col-hdr-sum{font-size:12px;color:#9CA3AF}
+.split-col-body{overflow-y:auto;flex:1}
 
-/* 토스트 */
+.ledger-item{padding:7px 10px;border-bottom:1px solid #EEEAE4;cursor:default}
+.ledger-item:hover{background:rgba(199,169,107,.03)}
+.ledger-r1{display:flex;align-items:center;gap:3px;min-width:0}
+.ledger-r2{display:flex;align-items:center;gap:3px;margin-top:1px;flex-wrap:nowrap}
+.ledger-num{font-size:11px;color:#C7A96B;font-weight:700;width:24px;flex-shrink:0;text-align:right}
+.ledger-name{font-size:14px;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.ledger-amt{font-size:14px;font-weight:800;color:#C7A96B;white-space:nowrap;flex-shrink:0;margin-left:6px}
+.ledger-memo{font-size:12px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;margin-left:24px}
+.ledger-btn{border:none;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0}
+.ledger-edit{background:#EFF6FF;color:#2563EB}
+.ledger-del{background:#FEF2F2;color:#DC2626}
+
+.tkt-extra-item{display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px}
+.tkt-extra-item:last-child{border-bottom:none}
+
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25);animation:tUp .18s ease}
 @keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* 토큰 모달 */
 #token-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
 .token-box{background:#fff;border-radius:14px;padding:22px;max-width:340px;width:100%;text-align:center}
 .token-title{font-size:15px;font-weight:800;color:#111;margin-bottom:5px}
@@ -236,26 +199,10 @@ input,select,textarea{font-family:inherit;outline:none}
 .STATUS_진행완료{background:#ECFDF5;color:#10B981}
 .STATUS_긴급확인{background:#FEF2F2;color:#EF4444}
 
-/* 전체 접수 리스트 */
-.log-full-item{display:flex;flex-direction:column;padding:5px 8px;border-bottom:1px solid #F0EDE8;cursor:default;transition:background .1s}
-.log-full-item:hover{background:#F9F8F6}
-.log-full-row1{display:flex;align-items:center;gap:4px;min-width:0}
-.log-full-row2{display:flex;align-items:center;gap:4px;margin-top:2px;padding-left:22px}
-.log-num{font-size:9px;color:#C7A96B;font-weight:700;min-width:22px;flex-shrink:0}
-.log-side{font-size:12px;flex-shrink:0}
-.log-name-main{font-size:12px;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-.log-amt-cell{font-size:12px;font-weight:800;color:#C7A96B;white-space:nowrap;flex-shrink:0}
-.log-meta{font-size:10px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-.log-time{font-size:10px;color:#9CA3AF;white-space:nowrap;flex-shrink:0}
-.log-btn-edit{background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;font-weight:700;flex-shrink:0}
-.log-btn-del{background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;font-weight:700;flex-shrink:0}
-.filter-bar{display:flex;gap:4px;flex-shrink:0}
-.filter-btn{border-radius:14px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer;transition:all .1s;white-space:nowrap}
-.filter-btn.on{background:#374151;color:#fff;border-color:#374151}
-.search-input{flex:1;border:1.5px solid #E0E0E0;border-radius:7px;padding:4px 8px;font-size:11px;color:#111;background:#fff;min-width:0}
-.search-input:focus{border-color:#C7A96B;outline:none}
+#guest-name{font-size:15px!important;padding:9px 12px!important;border:2px solid #E0E0E0!important;border-radius:8px!important;background:#FAFAFA!important;transition:all .2s!important;font-weight:600!important}
+#guest-name:focus{border-color:#C7A96B!important;background:#fff!important;box-shadow:0 0 0 3px rgba(199,169,107,.12)!important;outline:none!important}
+#guest-name::placeholder{color:#C0B8AE;font-weight:400;font-size:13px}
 
-/* 수정 모달 */
 #edit-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px}
 .edit-box{background:#fff;border-radius:14px;padding:22px 20px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
 .edit-box h3{font-size:14px;font-weight:800;color:#111;margin-bottom:14px}
@@ -267,28 +214,6 @@ input,select,textarea{font-family:inherit;outline:none}
 .edit-btns{display:flex;gap:7px;margin-top:14px}
 .edit-save{flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
 .edit-cancel{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-width:72px}
-
-#guest-name{font-size:15px!important;padding:9px 12px!important;border:2px solid #E0E0E0!important;border-radius:8px!important;background:#FAFAFA!important;transition:all .2s!important;font-weight:600!important}
-#guest-name:focus{border-color:#C7A96B!important;background:#fff!important;box-shadow:0 0 0 3px rgba(199,169,107,.12)!important;outline:none!important}
-#guest-name::placeholder{color:#C0B8AE;font-weight:400;font-size:13px}
-.tkt-toolbar{display:flex;align-items:center;gap:4px}
-.tkt-toolbar select,.tkt-toolbar input{height:30px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;background:#fff;color:#111;padding:0 7px}
-.tkt-toolbar select:focus,.tkt-toolbar input:focus{border-color:#C7A96B;outline:none}
-.tkt-toolbar-btn{height:30px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
-.tkt-extra-item{display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px}
-.tkt-extra-item:last-child{border-bottom:none}
-
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
-/* split-list-panel */
-#split-list-panel{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;flex:1;min-height:0}
-#split-list-panel.single{grid-template-columns:1fr}
-.split-list-col{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #E0E0E0}
-.split-list-col:last-child{border-right:none}
-.split-col-hdr{padding:6px 10px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
-.split-col-hdr.groom-col>.split-col-hdr,.groom-col .split-col-hdr{background:#F0F7FF}
-.split-col-hdr-title{font-size:13px;font-weight:800;color:#374151;display:flex;align-items:center;gap:5px}
-.split-col-hdr-sum{font-size:12px;color:#9CA3AF}
-.split-col-body{overflow-y:auto;flex:1}
 </style>
 </head>
 <body>
@@ -323,21 +248,15 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <button class="btn-sm" onclick="doLogout()">로그아웃</button>
   </div>
-  <!-- 탭 -->
   <div style="display:flex;gap:6px;margin-bottom:12px">
-    <button id="sch-tab-upcoming" class="sch-tab-btn sch-tab-active" onclick="setSchTab('upcoming')">
-      📅 진행 예정
-    </button>
-    <button id="sch-tab-done" class="sch-tab-btn" onclick="setSchTab('done')">
-      ✅ 진행완료
-    </button>
+    <button id="sch-tab-upcoming" class="sch-tab-btn sch-tab-active" onclick="setSchTab('upcoming')">📅 진행 예정</button>
+    <button id="sch-tab-done" class="sch-tab-btn" onclick="setSchTab('done')">✅ 진행완료</button>
   </div>
   <div id="schedule-list-wrap"></div>
 </div>
 
 <!-- 메인 -->
 <div id="main-screen">
-  <!-- 상단바 -->
   <div id="top-bar">
   <div id="top-bar-inner">
     <div style="display:flex;align-items:center;gap:10px">
@@ -359,110 +278,143 @@ input,select,textarea{font-family:inherit;outline:none}
   <div id="main-body-outer">
   <div id="main-body">
 
-    <!-- 인계 정보 패널 -->
+    <!-- ① 인계 정보 패널 -->
     <div id="handover-panel">
-      <div style="font-size:11px;font-weight:800;color:#C7A96B;letter-spacing:1px;padding:4px 0 8px;text-align:center;border-bottom:1px solid #E8E5E1;margin-bottom:4px">
+      <div style="font-size:11px;font-weight:800;color:#C7A96B;letter-spacing:1px;padding:4px 0 6px;text-align:center;border-bottom:1px solid #E8E5E1;margin-bottom:4px;flex-shrink:0">
         📦 인계 정보
       </div>
 
-      <!-- 인계 물품 -->
-      <div class="ho-section">
-        <div class="ho-section-title">인계 물품</div>
-        <textarea id="ho-items" class="ho-textarea" rows="4"
-          placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권&#10;· 포토부스 앨범"
-          oninput="saveHandover()"></textarea>
+      <!-- 탭 버튼 -->
+      <div class="ho-tab-bar">
+        <button class="ho-tab-btn on-groom" id="ho-tab-g" onclick="setHoTab('g')">🤵 신랑측</button>
+        <button class="ho-tab-btn" id="ho-tab-b" onclick="setHoTab('b')">👰 신부측</button>
       </div>
 
-      <!-- 인계자 -->
-      <div class="ho-section">
-        <div class="ho-section-title">인계자 정보</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          <div>
-            <div class="ho-label">관계</div>
-            <input id="ho-relation" class="ho-input" placeholder="예: 신랑 아버지" oninput="saveHandover()">
-          </div>
-          <div>
-            <div class="ho-label">성함</div>
-            <input id="ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()">
-          </div>
-          <div>
-            <div class="ho-label">연락처</div>
-            <input id="ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()">
+      <!-- 🤵 신랑측 패널 -->
+      <div class="ho-pane active" id="ho-pane-g">
+
+        <div class="ho-section">
+          <div class="ho-section-title" style="color:#2563EB">인계자 정보</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div><div class="ho-label">성함</div>
+              <input id="g-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
+            <div><div class="ho-label">연락처</div>
+              <input id="g-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
           </div>
         </div>
-      </div>
 
-      <!-- 비밀번호 -->
-      <div class="ho-section">
-        <div class="ho-section-title">🔒 설정 비밀번호</div>
-        <div class="ho-label">레디백 비번</div>
-        <input id="ho-password" class="ho-input"
-          placeholder="예: 1234"
-          style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
-          oninput="saveHandover()">
-      </div>
+        <div class="ho-section">
+          <div class="ho-section-title">인계 물품</div>
+          <textarea id="g-ho-items" class="ho-textarea" rows="3"
+            placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권"
+            oninput="saveHandover()"></textarea>
+        </div>
 
-      <!-- 다시보기 링크 -->
-      <div class="ho-section">
-        <div class="ho-section-title">📹 다시보기 링크</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          <div>
-            <div class="ho-label">접수응대캠</div>
-            <input id="ho-replay1" class="ho-input" placeholder="https://..." oninput="saveHandover()">
+        <div class="ho-section">
+          <div class="ho-section-title">🔒 레디백 비번</div>
+          <input id="g-ho-pw" class="ho-input" placeholder="예: 1234"
+            style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
+            oninput="saveHandover()">
+        </div>
+
+        <div class="ho-section">
+          <div class="ho-section-title">📹 LIVE 링크</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div><div class="ho-label">LIVE 1</div>
+              <input id="g-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+            <div><div class="ho-label">LIVE 2</div>
+              <input id="g-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
           </div>
-          <div>
-            <div class="ho-label">계수기록캠</div>
-            <input id="ho-replay2" class="ho-input" placeholder="https://..." oninput="saveHandover()">
+        </div>
+
+        <!-- 화환/축기 -->
+        <div class="ho-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <div class="ho-section-title" style="margin-bottom:6px">💐 화환 / 축기</div>
+          <div style="display:flex;gap:4px;margin-bottom:5px">
+            <select id="flower-side" class="ho-input" style="width:72px;flex-shrink:0;padding:4px 5px;font-size:11px">
+              <option value="신랑측">신랑측</option>
+              <option value="신부측">신부측</option>
+            </select>
+            <select id="flower-type" class="ho-input" style="width:60px;flex-shrink:0;padding:4px 5px;font-size:11px">
+              <option value="화환">화환</option>
+              <option value="축기">축기</option>
+            </select>
+            <input id="flower-sender" class="ho-input" placeholder="보낸 분"
+              style="flex:1;font-size:11px;padding:4px 6px"
+              onkeydown="if(event.key==='Enter')focusFlowerMsg()">
+          </div>
+          <div style="display:flex;gap:4px;margin-bottom:6px">
+            <input id="flower-msg" class="ho-input" placeholder="문구 (선택)"
+              style="flex:1;font-size:11px;padding:4px 6px"
+              onkeydown="if(event.key==='Enter')addFlower()">
+            <button onclick="addFlower()"
+              style="background:#374151;color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
+          </div>
+          <div id="flower-list" style="overflow-y:auto;flex:1;min-height:0">
+            <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 기록이 없습니다</div>
           </div>
         </div>
-      </div>
 
-      <div class="ho-save-indicator" id="ho-save-indicator"></div>
+      </div><!-- /ho-pane-g -->
 
-      <!-- 화환 / 축기 -->
-      <div class="ho-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
-        <div class="ho-section-title" style="margin-bottom:6px">💐 화환 / 축기</div>
+      <!-- 👰 신부측 패널 -->
+      <div class="ho-pane" id="ho-pane-b">
 
-        <!-- 입력폼 -->
-        <div style="display:flex;gap:4px;margin-bottom:5px">
-          <select id="flower-side" class="ho-input" style="width:72px;flex-shrink:0;padding:4px 5px;font-size:11px">
-            <option value="신랑측">신랑측</option>
-            <option value="신부측">신부측</option>
-          </select>
-          <select id="flower-type" class="ho-input" style="width:60px;flex-shrink:0;padding:4px 5px;font-size:11px">
-            <option value="화환">화환</option>
-            <option value="축기">축기</option>
-          </select>
-          <input id="flower-sender" class="ho-input" placeholder="보낸 분"
-            style="flex:1;font-size:11px;padding:4px 6px"
-            onkeydown="if(event.key==='Enter')focusFlowerMsg()">
-        </div>
-        <div style="display:flex;gap:4px;margin-bottom:6px">
-          <input id="flower-msg" class="ho-input" placeholder="문구 (선택)"
-            style="flex:1;font-size:11px;padding:4px 6px"
-            onkeydown="if(event.key==='Enter')addFlower()">
-          <button onclick="addFlower()"
-            style="background:#374151;color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">
-            추가
-          </button>
+        <div class="ho-section">
+          <div class="ho-section-title" style="color:#DB2777">인계자 정보</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div><div class="ho-label">성함</div>
+              <input id="b-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
+            <div><div class="ho-label">연락처</div>
+              <input id="b-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
+          </div>
         </div>
 
-        <!-- 기록 리스트 -->
-        <div id="flower-list" style="overflow-y:auto;flex:1;min-height:0">
-          <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 기록이 없습니다</div>
+        <div class="ho-section">
+          <div class="ho-section-title">인계 물품</div>
+          <textarea id="b-ho-items" class="ho-textarea" rows="3"
+            placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권"
+            oninput="saveHandover()"></textarea>
         </div>
-      </div>
 
-    </div>
+        <div class="ho-section">
+          <div class="ho-section-title">🔒 레디백 비번</div>
+          <input id="b-ho-pw" class="ho-input" placeholder="예: 1234"
+            style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
+            oninput="saveHandover()">
+        </div>
 
-    <!-- 중앙: 입력 + 리스트 -->
+        <div class="ho-section">
+          <div class="ho-section-title">📹 LIVE 링크</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div><div class="ho-label">LIVE 1</div>
+              <input id="b-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+            <div><div class="ho-label">LIVE 2</div>
+              <input id="b-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+          </div>
+        </div>
+
+        <!-- 화환 목록 보기 전용 -->
+        <div class="ho-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <div class="ho-section-title" style="margin-bottom:4px">💐 화환 / 축기 목록</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:5px">추가는 신랑측 탭에서 입력하세요</div>
+          <div id="flower-list-b" style="overflow-y:auto;flex:1;min-height:0">
+            <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 기록이 없습니다</div>
+          </div>
+        </div>
+
+      </div><!-- /ho-pane-b -->
+
+      <div class="ho-save-indicator" id="ho-save-indicator" style="flex-shrink:0"></div>
+    </div><!-- /handover-panel -->
+
+    <!-- ② 중앙: 입력 + 리스트 -->
     <div id="center-panel">
     <div id="input-panel">
 
       <!-- ⚡ 실시간 식권 현황 -->
       <div id="tkt-status-card" style="background:#fff;border-radius:8px;border:1px solid #E0E0E0;padding:5px 9px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <!-- 신랑측 -->
           <div>
             <div style="font-size:11px;font-weight:700;color:#2563EB;letter-spacing:.3px;margin-bottom:4px">🤵 신랑측 식권</div>
             <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:2px">
@@ -472,12 +424,9 @@ input,select,textarea{font-family:inherit;outline:none}
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <div style="font-size:11px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-g-used">0</span></div>
-              <div style="font-size:11px;color:#9CA3AF">잔여
-                <span id="tks-g-remain" style="font-size:15px;font-weight:900;line-height:1">—</span>
-              </div>
+              <div style="font-size:11px;color:#9CA3AF">잔여 <span id="tks-g-remain" style="font-size:15px;font-weight:900;line-height:1">—</span></div>
             </div>
           </div>
-          <!-- 신부측 -->
           <div style="border-left:1px solid #F0EDE8;padding-left:8px">
             <div style="font-size:11px;font-weight:700;color:#DB2777;letter-spacing:.3px;margin-bottom:4px">👰 신부측 식권</div>
             <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:2px">
@@ -487,19 +436,15 @@ input,select,textarea{font-family:inherit;outline:none}
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <div style="font-size:11px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-b-used">0</span></div>
-              <div style="font-size:11px;color:#9CA3AF">잔여
-                <span id="tks-b-remain" style="font-size:15px;font-weight:900;line-height:1">—</span>
-              </div>
+              <div style="font-size:11px;color:#9CA3AF">잔여 <span id="tks-b-remain" style="font-size:15px;font-weight:900;line-height:1">—</span></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 식권 설정: 초기 | 추가발급 가로 배치 -->
+      <!-- 식권 설정 -->
       <div class="card" style="padding:5px 9px">
         <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0;align-items:start">
-
-          <!-- 초기 식권 -->
           <div style="padding-right:10px">
             <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">초기 식권 설정</div>
             <div style="display:flex;flex-direction:column;gap:4px">
@@ -517,15 +462,10 @@ input,select,textarea{font-family:inherit;outline:none}
               </div>
             </div>
           </div>
-
-          <!-- 구분선 -->
           <div style="background:#E5E7EB;width:1px;height:100%;min-height:50px"></div>
-
-          <!-- 추가 발급 -->
           <div style="padding-left:10px">
             <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">추가 발급</div>
             <div style="display:flex;flex-direction:column;gap:4px">
-              <!-- 줄1: 측 + 수량 + 추가버튼 -->
               <div style="display:flex;align-items:center;gap:3px">
                 <select id="add-ticket-side"
                   style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:70px">
@@ -537,22 +477,18 @@ input,select,textarea{font-family:inherit;outline:none}
                   onkeydown="if(event.key==='Enter')addTicketExtra()">
                 <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
                 <button onclick="addTicketExtra()"
-                  style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">
-                  추가
-                </button>
+                  style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
               </div>
-              <!-- 줄2: 메모 -->
-              <input id="add-ticket-memo" placeholder="메모 (예약실 수령...)"
+              <input id="add-ticket-memo" placeholder="메모"
                 style="width:100%;height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 7px;box-sizing:border-box"
                 onkeydown="if(event.key==='Enter')addTicketExtra()">
             </div>
             <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;margin-top:3px"></div>
           </div>
-
         </div>
       </div>
 
-      <!-- 1️⃣ 접수 측 + 결제 방식 -->
+      <!-- 접수 측 + 결제 방식 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
         <div class="card" style="padding:5px 8px">
           <div class="card-title" style="margin-bottom:5px">접수 측</div>
@@ -570,7 +506,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 2️⃣ 하객 이름 + 관계 -->
+      <!-- 하객 이름 + 관계 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름</div>
         <div style="display:flex;align-items:center;gap:6px">
@@ -587,7 +523,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 3️⃣ 금액 -->
+      <!-- 금액 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">2️⃣ 금액</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:4px">
@@ -607,32 +543,23 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 4️⃣ 식권 -->
+      <!-- 식권 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">3️⃣ 식권</div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap">
-          <!-- 대인 -->
           <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">대인</span>
           <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
-            <button onclick="changeTicket('adult',-1)"
-              style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
-            <span id="adult-ticket-val"
-              style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">1</span>
-            <button onclick="changeTicket('adult',1)"
-              style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
+            <button onclick="changeTicket('adult',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+            <span id="adult-ticket-val" style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">1</span>
+            <button onclick="changeTicket('adult',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
           </div>
           <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
-          <!-- 구분 -->
           <div style="width:1px;height:20px;background:#E0E0E0;flex-shrink:0"></div>
-          <!-- 소인 -->
           <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">소인</span>
           <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
-            <button onclick="changeTicket('child',-1)"
-              style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
-            <span id="child-ticket-val"
-              style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">0</span>
-            <button onclick="changeTicket('child',1)"
-              style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
+            <button onclick="changeTicket('child',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+            <span id="child-ticket-val" style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">0</span>
+            <button onclick="changeTicket('child',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
           </div>
           <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
         </div>
@@ -640,14 +567,11 @@ input,select,textarea{font-family:inherit;outline:none}
 
       <!-- 메모 -->
       <div class="card" style="padding:5px 8px">
-        <input class="form-input" id="memo-input" placeholder="📝 메모 (선택)"
-          style="font-size:12px;padding:4px 8px">
+        <input class="form-input" id="memo-input" placeholder="📝 메모 (선택)" style="font-size:12px;padding:4px 8px">
       </div>
 
-      <!-- 접수 완료 버튼 -->
       <button class="submit-btn" onclick="submitEntry()" style="font-size:15px;padding:11px;letter-spacing:.5px">✅ 접수 완료</button>
 
-    </div>
     </div><!-- /input-panel -->
 
     <!-- 신랑/신부 분리 접수 리스트 -->
@@ -672,13 +596,12 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div class="split-col-body" id="bride-full-list"></div>
       </div>
-    </div><!-- /split-list-panel -->
+    </div>
     </div><!-- /center-panel -->
 
-    <!-- 오른쪽: 현황 -->
+    <!-- ③ 오른쪽: 현황 -->
     <div id="stats-panel">
 
-      <!-- 총 축의금 -->
       <div class="scard" style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div class="scard-title" style="margin-bottom:2px">총 축의금</div>
@@ -687,7 +610,6 @@ input,select,textarea{font-family:inherit;outline:none}
         <div style="font-size:11px;color:#9CA3AF" id="stat-total-count">총 0건</div>
       </div>
 
-      <!-- 신랑/신부 + 식권 통합 -->
       <div class="scard">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
           <div>
@@ -732,7 +654,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="text-align:center;flex:1">
             <div style="font-size:9px;color:#9CA3AF">사용</div>
-            <div style="font-size:16px;font-weight:800;color:#111" id="g-used-tkt">0</div>
+            <div style="font-size:16px;font-weight:800;color:#111" id="g-used-tkt2">0</div>
           </div>
           <div style="width:1px;background:#F0EDE8;height:32px"></div>
           <div style="text-align:center;flex:1">
@@ -742,7 +664,7 @@ input,select,textarea{font-family:inherit;outline:none}
           <div style="width:1px;background:#F0EDE8;height:32px"></div>
           <div style="text-align:center;flex:1">
             <div style="font-size:9px;color:#9CA3AF">잔여</div>
-            <div style="font-size:22px;font-weight:900;line-height:1" id="g-remain-tkt">—</div>
+            <div style="font-size:22px;font-weight:900;line-height:1" id="g-remain-tkt2">—</div>
           </div>
         </div>
       </div>
@@ -756,7 +678,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="text-align:center;flex:1">
             <div style="font-size:9px;color:#9CA3AF">사용</div>
-            <div style="font-size:16px;font-weight:800;color:#111" id="b-used-tkt">0</div>
+            <div style="font-size:16px;font-weight:800;color:#111" id="b-used-tkt2">0</div>
           </div>
           <div style="width:1px;background:#F0EDE8;height:32px"></div>
           <div style="text-align:center;flex:1">
@@ -766,7 +688,7 @@ input,select,textarea{font-family:inherit;outline:none}
           <div style="width:1px;background:#F0EDE8;height:32px"></div>
           <div style="text-align:center;flex:1">
             <div style="font-size:9px;color:#9CA3AF">잔여</div>
-            <div style="font-size:22px;font-weight:900;line-height:1" id="b-remain-tkt">—</div>
+            <div style="font-size:22px;font-weight:900;line-height:1" id="b-remain-tkt2">—</div>
           </div>
         </div>
       </div>
@@ -795,16 +717,14 @@ input,select,textarea{font-family:inherit;outline:none}
             style="font-size:11px;padding:5px 8px;flex:1"
             onkeydown="if(event.key==='Enter')addOpsLog()">
           <button onclick="addOpsLog()"
-            style="background:#374151;color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">
-            추가
-          </button>
+            style="background:#374151;color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
         </div>
       </div>
 
-    </div>
-  </div>
-  </div><!-- /#main-body-outer -->
-</div>
+    </div><!-- /stats-panel -->
+  </div><!-- /main-body -->
+  </div><!-- /main-body-outer -->
+</div><!-- /main-screen -->
 
 <div id="toast"></div>
 
@@ -907,16 +827,27 @@ const USERS=[
 ];
 
 const STATUS_CFG={'계약완료':{c:'#6B7280'},'인터뷰대기':{c:'#D97706'},'최종준비완료':{c:'#3B82F6'},'진행완료':{c:'#10B981'},'긴급확인':{c:'#EF4444'}};
-
 const TODAY=(()=>{ const d=new Date(); const k=new Date(d.getTime()+9*60*60*1000); return k.toISOString().slice(0,10); })();
 
 let currentUser=null, currentSchedule=null, logs=[];
 let totalTickets={groom:0,bride:0};
+let ticketExtras=[], flowerLogs=[], opsLogs=[];
 const st={side:'groom',payment:'cash',amount:0,relation:'',adultTicket:1,childTicket:0};
 
 const fmt=n=>n>=10000?Math.round(n/10000)+'만원':n.toLocaleString()+'원';
 const fmtFull=n=>n.toLocaleString()+'원';
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtTime=iso=>{ const d=new Date(iso); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+const gv=id=>{ const el=document.getElementById(id); return el?el.value.trim()||null:null; };
+const sv=(id,v)=>{ const el=document.getElementById(id); if(el&&v!=null)el.value=v; };
+
+// ── 측별 탭 ──
+function setHoTab(side){
+  document.getElementById('ho-tab-g').className='ho-tab-btn'+(side==='g'?' on-groom':'');
+  document.getElementById('ho-tab-b').className='ho-tab-btn'+(side==='b'?' on-bride':'');
+  document.getElementById('ho-pane-g').className='ho-pane'+(side==='g'?' active':'');
+  document.getElementById('ho-pane-b').className='ho-pane'+(side==='b'?' active':'');
+}
 
 // ── 로그인 ──
 function initLogin(){
@@ -940,43 +871,28 @@ function doLogin(){
 function doLogout(){ localStorage.removeItem('dg_contrib_user'); location.reload(); }
 
 // ── 예식 선택 ──
-var _schTab = 'upcoming'; // 'upcoming' | 'done'
-
+var _schTab='upcoming', _allSchRows=[];
 function setSchTab(tab){
-  _schTab = tab;
-  document.getElementById('sch-tab-upcoming').className = 'sch-tab-btn' + (tab==='upcoming'?' sch-tab-active':'');
-  document.getElementById('sch-tab-done').className    = 'sch-tab-btn' + (tab==='done'?' sch-tab-active':'');
+  _schTab=tab;
+  document.getElementById('sch-tab-upcoming').className='sch-tab-btn'+(tab==='upcoming'?' sch-tab-active':'');
+  document.getElementById('sch-tab-done').className='sch-tab-btn'+(tab==='done'?' sch-tab-active':'');
   renderSchList();
 }
-
-var _allSchRows = [];
-
 function renderSchList(){
-  const wrap = document.getElementById('schedule-list-wrap');
-  const rows = _schTab === 'done'
-    ? _allSchRows.filter(s => s.status === '진행완료')
-    : _allSchRows.filter(s => s.status !== '진행완료');
-
-  if(!rows.length){
-    wrap.innerHTML = '<div class="empty-state">' + (_schTab==='done'?'진행완료 예식이 없습니다':'담당 예식이 없습니다') + '</div>';
-    return;
-  }
-
-  const todayRows   = rows.filter(s => s.date === TODAY);
-  const upcomRows   = rows.filter(s => s.date > TODAY);
-  const pastRows    = rows.filter(s => s.date < TODAY);
-
-  let html = '';
-  if(_schTab === 'upcoming'){
-    if(todayRows.length)  html += '<div class="section-label">📅 오늘 예식</div>' + todayRows.map(schCard).join('');
-    if(upcomRows.length)  html += '<div class="section-label">다가오는 예식</div>' + upcomRows.map(schCard).join('');
-    if(pastRows.length)   html += '<div class="section-label" style="color:#9CA3AF">지난 예식</div>' + pastRows.map(schCard).join('');
-  } else {
-    html = rows.map(schCard).join('');
-  }
-  wrap.innerHTML = html;
+  const wrap=document.getElementById('schedule-list-wrap');
+  const rows=_schTab==='done'?_allSchRows.filter(s=>s.status==='진행완료'):_allSchRows.filter(s=>s.status!=='진행완료');
+  if(!rows.length){wrap.innerHTML='<div class="empty-state">'+(_schTab==='done'?'진행완료 예식이 없습니다':'담당 예식이 없습니다')+'</div>';return;}
+  const todayRows=rows.filter(s=>s.date===TODAY);
+  const upcomRows=rows.filter(s=>s.date>TODAY);
+  const pastRows=rows.filter(s=>s.date<TODAY);
+  let html='';
+  if(_schTab==='upcoming'){
+    if(todayRows.length) html+='<div class="section-label">📅 오늘 예식</div>'+todayRows.map(schCard).join('');
+    if(upcomRows.length) html+='<div class="section-label">다가오는 예식</div>'+upcomRows.map(schCard).join('');
+    if(pastRows.length)  html+='<div class="section-label" style="color:#9CA3AF">지난 예식</div>'+pastRows.map(schCard).join('');
+  } else { html=rows.map(schCard).join(''); }
+  wrap.innerHTML=html;
 }
-
 async function goSelectSchedule(){
   currentSchedule=null;
   document.getElementById('main-screen').style.display='none';
@@ -988,20 +904,13 @@ async function goSelectSchedule(){
     let rows=await sb.get('schedules','?order=date.asc,time.asc');
     const isAdmin=ADMIN_NAMES.includes(currentUser.name);
     if(!isAdmin) rows=rows.filter(s=>(s.front_manager||'').includes(currentUser.name)||(s.back_manager||'').includes(currentUser.name));
-    _allSchRows = rows;
+    _allSchRows=rows;
     if(!rows.length){wrap.innerHTML='<div class="empty-state">담당 예식이 없습니다</div>';return;}
     renderSchList();
   } catch(e){
-    console.error('[DG] 예식 로드 실패:', e);
-    wrap.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center">' +
-      '<div style="font-size:18px;margin-bottom:8px">⚠️</div>' +
-      '<div style="font-weight:700;margin-bottom:4px">로드 실패</div>' +
-      '<div style="font-size:11px;color:#9CA3AF;margin-bottom:12px">' + e.message + '</div>' +
-      '<button onclick="goSelectSchedule()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">🔄 다시 시도</button>' +
-    '</div>';
+    wrap.innerHTML='<div class="empty-state" style="padding:20px;text-align:center"><div style="font-size:18px;margin-bottom:8px">⚠️</div><div style="font-weight:700;margin-bottom:4px">로드 실패</div><div style="font-size:11px;color:#9CA3AF;margin-bottom:12px">'+e.message+'</div><button onclick="goSelectSchedule()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">🔄 다시 시도</button></div>';
   }
 }
-
 function schCard(s){
   const g=(s.groom_name||'').trim(),b=(s.bride_name||'').trim();
   const name=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:s.hall||'미입력';
@@ -1015,13 +924,12 @@ function schCard(s){
     <div style="flex:1;min-width:0">
       <div class="sch-card-name">💍 ${esc(name)}</div>
       <div class="sch-card-info">${esc(info)}</div>
-      <!-- 모드 선택 -->
       <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
         <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
         ${['단측','양측','양측통합'].map(m=>`
           <button onclick="event.stopPropagation();setWeddingMode(${s.id},this,'${m}')"
             data-mode="${m}"
-            style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid ${mode===m?modeColor:'#E0E0E0'};background:${mode===m?modeColor+'20':'#F5F5F5'};color:${mode===m?modeColor:'#6B7280'};cursor:pointer;transition:all .1s">
+            style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid ${mode===m?modeColor:'#E0E0E0'};background:${mode===m?modeColor+'20':'#F5F5F5'};color:${mode===m?modeColor:'#6B7280'};cursor:pointer">
             ${m==='단측'?'🤵 단측':m==='양측'?'🤵👰 양측':'🤝 양측통합'}
           </button>`).join('')}
       </div>
@@ -1030,33 +938,28 @@ function schCard(s){
       ${isToday?'<span class="today-badge">오늘</span>':''}
       <span class="status-badge" style="background:${col}20;color:${col}">${esc(status)}</span>
       <button onclick="selectSchedule(${s.id})"
-        style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">
-        선택 →
-      </button>
+        style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
     </div>
   </div>`;
 }
-
-async function setWeddingMode(scheduleId, btn, mode){
+async function setWeddingMode(scheduleId,btn,mode){
   try {
-    await sb.patch('schedules', scheduleId, {wedding_mode: mode});
-    // 버튼 스타일 즉시 업데이트
+    await sb.patch('schedules',scheduleId,{wedding_mode:mode});
     const modeColor={'단측':'#D97706','양측':'#2563EB','양측통합':'#059669'}[mode]||'#9CA3AF';
-    const card = btn.closest('.sch-card');
+    const card=btn.closest('.sch-card');
     if(card){
       card.querySelectorAll('[data-mode]').forEach(function(b){
-        const m = b.getAttribute('data-mode');
-        const mc = {'단측':'#D97706','양측':'#2563EB','양측통합':'#059669'}[m]||'#9CA3AF';
-        const isActive = m === mode;
-        b.style.border = '1.5px solid '+(isActive?mc:'#E0E0E0');
-        b.style.background = isActive?mc+'20':'#F5F5F5';
-        b.style.color = isActive?mc:'#6B7280';
+        const m=b.getAttribute('data-mode');
+        const mc={'단측':'#D97706','양측':'#2563EB','양측통합':'#059669'}[m]||'#9CA3AF';
+        const isActive=m===mode;
+        b.style.border='1.5px solid '+(isActive?mc:'#E0E0E0');
+        b.style.background=isActive?mc+'20':'#F5F5F5';
+        b.style.color=isActive?mc:'#6B7280';
       });
     }
     showToast('✅ 모드: '+mode+' 설정됨');
   } catch(e){ showToast('⚠️ 모드 저장 실패'); }
 }
-
 async function selectSchedule(id){
   try {
     const rows=await sb.get('schedules',`?id=eq.${id}`);
@@ -1067,114 +970,67 @@ async function selectSchedule(id){
         const token=Math.random().toString(36).slice(2,12).toUpperCase();
         await sb.patch('schedules',id,{dashboard_token:token});
         currentSchedule.dashboard_token=token;
-      } catch(e){ console.warn('[DG] 토큰 생성 실패:', e); }
+      } catch(e){ console.warn('[DG] 토큰 생성 실패:',e); }
     }
     const g=(currentSchedule.groom_name||'').trim(),b=(currentSchedule.bride_name||'').trim();
     const name=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:currentSchedule.hall||'미입력';
     document.getElementById('top-schedule-name').textContent=name;
-
-    // 날짜/요일/시간/장소 서브텍스트
     const DAYS=['일','월','화','수','목','금','토'];
-    const dateStr = currentSchedule.date||'';
-    const timeStr = (currentSchedule.time||'').slice(0,5);
-    const hall    = currentSchedule.hall||'';
-    let infoStr   = '';
-    if(dateStr){
-      const d = new Date(dateStr+'T00:00:00');
-      const dayName = DAYS[d.getDay()];
-      infoStr = dateStr + ' (' + dayName + ')';
-      if(timeStr) infoStr += ' ' + timeStr;
-      if(hall)    infoStr += ' · ' + hall;
-    }
-    document.getElementById('top-schedule-info').textContent = infoStr;
-
-    // 식권 설정 복원
+    const dateStr=currentSchedule.date||'';
+    const timeStr=(currentSchedule.time||'').slice(0,5);
+    const hall=currentSchedule.hall||'';
+    let infoStr='';
+    if(dateStr){ const d=new Date(dateStr+'T00:00:00'); infoStr=dateStr+' ('+DAYS[d.getDay()]+')'; if(timeStr) infoStr+=' '+timeStr; if(hall) infoStr+=' · '+hall; }
+    document.getElementById('top-schedule-info').textContent=infoStr;
     const saved=JSON.parse(localStorage.getItem(`dg_tickets_${id}`)||'{}');
     totalTickets.groom=saved.groom||0;
     totalTickets.bride=saved.bride||0;
-    var gtEl=document.getElementById('groom-total-ticket');
-    var btEl=document.getElementById('bride-total-ticket');
-    if(gtEl) gtEl.value=totalTickets.groom||'';
-    if(btEl) btEl.value=totalTickets.bride||'';
-
+    sv('groom-total-ticket',totalTickets.groom||'');
+    sv('bride-total-ticket',totalTickets.bride||'');
     document.getElementById('schedule-select-screen').style.display='none';
     document.getElementById('main-screen').style.display='flex';
     document.body.style.overflow='hidden';
-
     await loadLogs();
     await loadTicketExtras();
     loadOpsLogs();
     loadFlowerLogs();
-    try { loadHandover(); } catch(e){ console.warn('[DG] 인계 정보 로드 실패:', e); }
+    loadHandover();
     subscribeRealtime();
-  } catch(e){ console.error('[DG] 예식 로드 실패:', e); showToast('⚠️ 예식 로드 실패: '+e.message); }
+  } catch(e){ console.error('[DG] 예식 로드 실패:',e); showToast('⚠️ 예식 로드 실패: '+e.message); }
 }
 
-// ── 추가 식권 발급 ──
-var ticketExtras = [];  // {id, side, amount, memo, time, by}
-
+// ── 추가 식권 ──
 async function loadTicketExtras(){
   if(!currentSchedule) return;
-  try {
-    ticketExtras = await sb.get('ticket_additions',
-      '?schedule_id=eq.'+currentSchedule.id+'&order=created_at.asc');
-    renderTicketExtraList();
-    renderStats();
-  } catch(e){ console.error('추가 식권 로드 실패:', e); }
+  try { ticketExtras=await sb.get('ticket_additions','?schedule_id=eq.'+currentSchedule.id+'&order=created_at.asc'); renderTicketExtraList(); renderStats(); } catch(e){}
 }
-
 async function addTicketExtra(){
-  var amount = parseInt(document.getElementById('add-ticket-amount').value)||0;
-  if(!amount || amount < 1){ showToast('⚠️ 추가 수량을 입력해주세요'); return; }
+  const amount=parseInt(document.getElementById('add-ticket-amount').value)||0;
+  if(!amount||amount<1){showToast('⚠️ 추가 수량을 입력해주세요');return;}
   if(!currentSchedule) return;
-
-  var now = new Date();
-  var timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  var row = {
-    schedule_id: currentSchedule.id,
-    side:        document.getElementById('add-ticket-side').value,
-    amount:      amount,
-    memo:        document.getElementById('add-ticket-memo').value.trim()||null,
-    created_by:  currentUser.name,
-  };
+  const now=new Date();
+  const row={schedule_id:currentSchedule.id,side:document.getElementById('add-ticket-side').value,amount,memo:document.getElementById('add-ticket-memo').value.trim()||null,created_by:currentUser.name};
   try {
-    var created = await sb.post('ticket_additions', row);
+    const created=await sb.post('ticket_additions',row);
     ticketExtras.push(Array.isArray(created)?created[0]:created);
-    document.getElementById('add-ticket-amount').value = '';
-    document.getElementById('add-ticket-memo').value   = '';
-    renderTicketExtraList();
-    renderStats();
+    document.getElementById('add-ticket-amount').value='';
+    document.getElementById('add-ticket-memo').value='';
+    renderTicketExtraList(); renderStats();
     showToast('✅ 추가 식권 '+amount+'장 등록됨');
   } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
 }
-
 async function deleteTicketExtra(id){
   if(!confirm('추가 식권 기록을 삭제하시겠습니까?')) return;
-  try {
-    await fetch(sb.url('ticket_additions','?id=eq.'+id),{method:'DELETE',headers:sb.h});
-    ticketExtras = ticketExtras.filter(function(x){ return x.id!==id; });
-    renderTicketExtraList();
-    renderStats();
-  } catch(e){ showToast('⚠️ 삭제 실패'); }
+  try { await fetch(sb.url('ticket_additions','?id=eq.'+id),{method:'DELETE',headers:sb.h}); ticketExtras=ticketExtras.filter(x=>x.id!==id); renderTicketExtraList(); renderStats(); } catch(e){ showToast('⚠️ 삭제 실패'); }
 }
-
 function renderTicketExtraList(){
-  var el = document.getElementById('ticket-extra-list');
+  const el=document.getElementById('ticket-extra-list');
   if(!el) return;
-  if(!ticketExtras.length){
-    el.innerHTML = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">추가 발급 내역 없음</div>';
-    return;
-  }
-  el.innerHTML = ticketExtras.map(function(t){
-    var icon = t.side==='신랑측'?'🤵':'👰';
-    var time = t.created_at?(function(){ var d=new Date(t.created_at); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); })():'';
-    return '<div class="tkt-extra-item">' +
-      '<span>'+icon+'</span>' +
-      '<span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>' +
-      (t.memo?'<span style="color:#9CA3AF;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t.memo)+'</span>':'<span style="flex:1"></span>') +
-      '<span style="color:#C7A96B;flex-shrink:0">'+time+'</span>' +
-      '<button onclick="deleteTicketExtra('+t.id+')" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1">✕</button>' +
-    '</div>';
+  if(!ticketExtras.length){el.innerHTML='<div style="font-size:10px;color:#9CA3AF;padding:3px 0">추가 발급 내역 없음</div>';return;}
+  el.innerHTML=ticketExtras.map(t=>{
+    const icon=t.side==='신랑측'?'🤵':'👰';
+    const time=t.created_at?fmtTime(t.created_at):'';
+    return '<div class="tkt-extra-item"><span>'+icon+'</span><span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>'+(t.memo?'<span style="color:#9CA3AF;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t.memo)+'</span>':'<span style="flex:1"></span>')+'<span style="color:#C7A96B;flex-shrink:0">'+time+'</span><button onclick="deleteTicketExtra('+t.id+')" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1">✕</button></div>';
   }).join('');
 }
 
@@ -1186,188 +1042,129 @@ function saveTotalTickets(){
   renderStats();
 }
 
+// ── 인계 정보 ──
+var _hoSaveTimer=null;
+function loadHandover(){
+  if(!currentSchedule) return;
+  const s=currentSchedule;
+  sv('g-ho-name',  s.groom_handover_name);
+  sv('g-ho-phone', s.groom_handover_phone);
+  sv('g-ho-items', s.groom_handoff_items);
+  sv('g-ho-pw',    s.groom_password);
+  sv('g-live1',    s.groom_live1);
+  sv('g-live2',    s.groom_live2);
+  sv('b-ho-name',  s.bride_handover_name);
+  sv('b-ho-phone', s.bride_handover_phone);
+  sv('b-ho-items', s.bride_handoff_items);
+  sv('b-ho-pw',    s.bride_password);
+  sv('b-live1',    s.bride_live1);
+  sv('b-live2',    s.bride_live2);
+}
+function saveHandover(){
+  if(!currentSchedule) return;
+  clearTimeout(_hoSaveTimer);
+  _hoSaveTimer=setTimeout(function(){
+    const body={
+      groom_handover_name:  gv('g-ho-name'),
+      groom_handover_phone: gv('g-ho-phone'),
+      groom_handoff_items:  gv('g-ho-items'),
+      groom_password:       gv('g-ho-pw'),
+      groom_live1:          gv('g-live1'),
+      groom_live2:          gv('g-live2'),
+      bride_handover_name:  gv('b-ho-name'),
+      bride_handover_phone: gv('b-ho-phone'),
+      bride_handoff_items:  gv('b-ho-items'),
+      bride_password:       gv('b-ho-pw'),
+      bride_live1:          gv('b-live1'),
+      bride_live2:          gv('b-live2'),
+    };
+    sb.patch('schedules',currentSchedule.id,body)
+      .then(()=>{
+        Object.assign(currentSchedule,body);
+        const ind=document.getElementById('ho-save-indicator');
+        if(ind){ind.textContent='✓ 저장됨';setTimeout(()=>{ind.textContent='';},2000);}
+      })
+      .catch(e=>console.error('인계 저장 실패:',e));
+  },800);
+}
+
+// ── 화환/축기 ──
+async function loadFlowerLogs(){
+  if(!currentSchedule) return;
+  try { flowerLogs=await sb.get('flower_logs','?schedule_id=eq.'+currentSchedule.id+'&order=created_at.desc'); renderFlowerList(); } catch(e){}
+}
+function focusFlowerMsg(){ document.getElementById('flower-msg').focus(); }
+async function addFlower(){
+  const sender=document.getElementById('flower-sender').value.trim();
+  if(!sender){showToast('⚠️ 보낸 분 이름을 입력해주세요');return;}
+  if(!currentSchedule) return;
+  const now=new Date();
+  const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const row={schedule_id:currentSchedule.id,time_str:timeStr,side:document.getElementById('flower-side').value,type:document.getElementById('flower-type').value,sender,message:document.getElementById('flower-msg').value.trim()||null,created_by:currentUser.name};
+  try {
+    const created=await sb.post('flower_logs',row);
+    flowerLogs.unshift(Array.isArray(created)?created[0]:created);
+    document.getElementById('flower-sender').value='';
+    document.getElementById('flower-msg').value='';
+    renderFlowerList();
+    showToast('💐 '+row.type+' 기록이 추가되었습니다');
+  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
+}
+async function deleteFlower(id){
+  try { await fetch(sb.url('flower_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h}); flowerLogs=flowerLogs.filter(f=>f.id!==id); renderFlowerList(); } catch(e){ showToast('⚠️ 삭제 실패'); }
+}
+function renderFlowerList(){
+  const html=flowerLogs.length?flowerLogs.map(f=>{
+    const icon=f.type==='화환'?'💐':'🎏';
+    const sc=f.side==='신랑측'?'#3B82F6':'#EC4899';
+    return '<div style="display:flex;align-items:flex-start;gap:6px;padding:6px 0;border-bottom:1px solid #F0EDE8">'+
+      '<span style="font-size:14px;flex-shrink:0">'+icon+'</span>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:12px;font-weight:700;color:#111">'+esc(f.sender)+'<span style="font-size:10px;font-weight:600;color:'+sc+';margin-left:5px">'+esc(f.side)+'</span><span style="font-size:10px;color:#9CA3AF;margin-left:4px">'+esc(f.type)+'</span></div>'+
+        (f.message?'<div style="font-size:11px;color:#6B7280;margin-top:1px">"'+esc(f.message)+'"</div>':'')+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">'+
+        '<span style="font-size:10px;color:#C7A96B">'+esc(f.time_str||'')+'</span>'+
+        '<button onclick="deleteFlower('+f.id+')" style="font-size:10px;color:#9CA3AF;background:none;border:none;cursor:pointer;padding:0">✕</button>'+
+      '</div></div>';
+  }).join(''):'<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px 0">아직 기록이 없습니다</div>';
+  const el=document.getElementById('flower-list');
+  const el2=document.getElementById('flower-list-b');
+  if(el) el.innerHTML=html;
+  if(el2) el2.innerHTML=html;
+}
+
+// ── 운영 메모 ──
+async function loadOpsLogs(){
+  if(!currentSchedule) return;
+  try { opsLogs=await sb.get('operation_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`); renderOpsLogs(opsLogs); } catch(e){}
+}
+async function addOpsLog(){
+  const inp=document.getElementById('ops-log-input');
+  const text=inp.value.trim();
+  if(!text||!currentSchedule) return;
+  const now=new Date();
+  const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const row={schedule_id:currentSchedule.id,time_str:timeStr,content:text,created_by:currentUser.name};
+  try {
+    const created=await sb.post('operation_logs',row);
+    opsLogs.unshift(Array.isArray(created)?created[0]:created);
+    inp.value='';
+    renderOpsLogs(opsLogs);
+    showToast('📋 메모가 추가되었습니다');
+  } catch(e){ showToast('⚠️ 메모 저장 실패: '+e.message); }
+}
+function renderOpsLogs(logs){
+  const el=document.getElementById('ops-log-list');
+  if(!el) return;
+  if(!logs.length){el.innerHTML='<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px 0">메모 없음</div>';return;}
+  el.innerHTML=logs.map(l=>'<div style="display:flex;gap:5px;align-items:baseline;padding:3px 0;border-bottom:1px solid #F5F3F0"><span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">'+esc(l.time_str||'')+'</span><span style="font-size:11px;color:#374151;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(l.content||'')+'</span></div>').join('');
+}
+
 // ── 데이터 로드 ──
 async function loadLogs(){
   if(!currentSchedule) return;
-  try {
-    logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
-    renderStats(); renderRecent(); renderFullList();
-  } catch(e){ console.error('logs 로드 실패:',e); }
-}
-
-// ── 화환 / 축기 기록 (DB 기반) ──
-var flowerLogs = [];
-
-async function loadFlowerLogs(){
-  if(!currentSchedule) return;
-  try {
-    flowerLogs = await sb.get('flower_logs',
-      '?schedule_id=eq.' + currentSchedule.id + '&order=created_at.desc');
-    renderFlowerList();
-  } catch(e){ console.error('화환 로드 실패:', e); }
-}
-
-function focusFlowerMsg(){
-  document.getElementById('flower-msg').focus();
-}
-
-async function addFlower(){
-  var sender = document.getElementById('flower-sender').value.trim();
-  if(!sender){ showToast('⚠️ 보낸 분 이름을 입력해주세요'); return; }
-  if(!currentSchedule) return;
-
-  var now = new Date();
-  var timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  var row = {
-    schedule_id: currentSchedule.id,
-    time_str:    timeStr,
-    side:        document.getElementById('flower-side').value,
-    type:        document.getElementById('flower-type').value,
-    sender:      sender,
-    message:     document.getElementById('flower-msg').value.trim() || null,
-    created_by:  currentUser.name,
-  };
-
-  try {
-    var created = await sb.post('flower_logs', row);
-    flowerLogs.unshift(Array.isArray(created) ? created[0] : created);
-    document.getElementById('flower-sender').value = '';
-    document.getElementById('flower-msg').value    = '';
-    renderFlowerList();
-    showToast('💐 ' + row.type + ' 기록이 추가되었습니다');
-  } catch(e){ showToast('⚠️ 저장 실패: ' + e.message); }
-}
-
-async function deleteFlower(id){
-  try {
-    await fetch(sb.url('flower_logs', '?id=eq.' + id), {method:'DELETE', headers:sb.h});
-    flowerLogs = flowerLogs.filter(function(f){ return f.id !== id; });
-    renderFlowerList();
-  } catch(e){ showToast('⚠️ 삭제 실패'); }
-}
-
-function renderFlowerList(){
-  var el = document.getElementById('flower-list');
-  if(!el) return;
-  if(!flowerLogs.length){
-    el.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px 0">아직 기록이 없습니다</div>';
-    return;
-  }
-  el.innerHTML = flowerLogs.map(function(f){
-    var icon = f.type === '화환' ? '💐' : '🎏';
-    var sideColor = f.side === '신랑측' ? '#3B82F6' : '#EC4899';
-    return '<div style="display:flex;align-items:flex-start;gap:6px;padding:6px 0;border-bottom:1px solid #F0EDE8">' +
-      '<span style="font-size:14px;flex-shrink:0">' + icon + '</span>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:12px;font-weight:700;color:#111">' + esc(f.sender) +
-          '<span style="font-size:10px;font-weight:600;color:' + sideColor + ';margin-left:5px">' + esc(f.side) + '</span>' +
-          '<span style="font-size:10px;color:#9CA3AF;margin-left:4px">' + esc(f.type) + '</span>' +
-        '</div>' +
-        (f.message ? '<div style="font-size:11px;color:#6B7280;margin-top:1px">"' + esc(f.message) + '"</div>' : '') +
-      '</div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">' +
-        '<span style="font-size:10px;color:#C7A96B">' + esc(f.time_str||'') + '</span>' +
-        '<button onclick="deleteFlower(' + f.id + ')" style="font-size:10px;color:#9CA3AF;background:none;border:none;cursor:pointer;padding:0">✕</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-// ── 인계 정보 (DB 기반) ──
-var _hoSaveTimer = null;
-
-function loadHandover(){
-  if(!currentSchedule) return;
-  try {
-    var s = currentSchedule;
-    var set = function(id, val){ var el=document.getElementById(id); if(el&&val) el.value=val; };
-    set('ho-items',    s.handoff_items);
-    set('ho-relation', s.handoff_relation);
-    set('ho-name',     s.handoff_person);
-    set('ho-phone',    s.handoff_phone);
-    set('ho-password', s.handoff_password);
-    set('ho-replay1',  s.replay_link_1);
-    set('ho-replay2',  s.replay_link_2);
-  } catch(e){ console.warn('[DG] loadHandover 오류:', e); }
-}
-
-function saveHandover(){
-  if(!currentSchedule) return;
-  // 디바운스 - 입력 멈추고 800ms 후 저장
-  clearTimeout(_hoSaveTimer);
-  _hoSaveTimer = setTimeout(function(){
-    var body = {
-      handoff_items:    document.getElementById('ho-items').value    || null,
-      handoff_relation: document.getElementById('ho-relation').value  || null,
-      handoff_person:   document.getElementById('ho-name').value      || null,
-      handoff_phone:    document.getElementById('ho-phone').value     || null,
-      handoff_password: document.getElementById('ho-password').value  || null,
-      replay_link_1:    document.getElementById('ho-replay1').value   || null,
-      replay_link_2:    document.getElementById('ho-replay2').value   || null,
-    };
-    sb.patch('schedules', currentSchedule.id, body)
-      .then(function(){
-        // currentSchedule 동기화
-        Object.assign(currentSchedule, body);
-        var ind = document.getElementById('ho-save-indicator');
-        if(ind){ ind.textContent='✓ 저장됨'; setTimeout(function(){ ind.textContent=''; },2000); }
-      })
-      .catch(function(e){ console.error('인계 저장 실패:', e); });
-  }, 800);
-}
-
-// ── 현장 운영 메모 (DB 기반) ──
-let opsLogs = [];
-
-async function loadOpsLogs(){
-  if(!currentSchedule) return;
-  try {
-    opsLogs = await sb.get('operation_logs',
-      `?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
-    renderOpsLogs(opsLogs);
-  } catch(e){ console.error('운영 메모 로드 실패:', e); }
-}
-
-async function addOpsLog(){
-  const inp = document.getElementById('ops-log-input');
-  const text = inp.value.trim();
-  if(!text || !currentSchedule) return;
-
-  const now = new Date();
-  const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-
-  const row = {
-    schedule_id: currentSchedule.id,
-    time_str:    timeStr,
-    content:     text,
-    created_by:  currentUser.name,
-  };
-
-  try {
-    const created = await sb.post('operation_logs', row);
-    opsLogs.unshift(Array.isArray(created) ? created[0] : created);
-    inp.value = '';
-    renderOpsLogs(opsLogs);
-    showToast('📋 메모가 추가되었습니다');
-  } catch(e){
-    showToast('⚠️ 메모 저장 실패: ' + e.message);
-    console.error(e);
-  }
-}
-
-function renderOpsLogs(logs){
-  const el = document.getElementById('ops-log-list');
-  if(!el) return;
-  if(!logs.length){
-    el.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px 0">메모 없음</div>';
-    return;
-  }
-  el.innerHTML = logs.map(function(l){
-    return '<div style="display:flex;gap:5px;align-items:baseline;padding:3px 0;border-bottom:1px solid #F5F3F0">' +
-      '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">' + esc(l.time_str||'') + '</span>' +
-      '<span style="font-size:11px;color:#374151;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l.content||'') + '</span>' +
-    '</div>';
-  }).join('');
+  try { logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`); renderStats(); renderFullList(); } catch(e){ console.error('logs 로드 실패:',e); }
 }
 
 // ── 실시간 구독 ──
@@ -1389,7 +1186,6 @@ function renderStats(){
   const transCnt=logs.filter(l=>l.payment_type==='계좌이체').length;
   const gUsed=gL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
   const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
-  // 추가 발급 포함 계산
   const gExtra=ticketExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
   const bExtra=ticketExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
   const gTotal=totalTickets.groom>0?totalTickets.groom+gExtra:null;
@@ -1397,156 +1193,55 @@ function renderStats(){
   const gRemain=gTotal!==null?gTotal-gUsed:null;
   const bRemain=bTotal!==null?bTotal-bUsed:null;
 
-  document.getElementById('stat-total-amount').textContent=fmtFull(total);
-  document.getElementById('stat-total-count').textContent=`총 ${logs.length}건`;
-  document.getElementById('stat-groom-amount').textContent=fmt(gAmt);
-  document.getElementById('stat-groom-count').textContent=`${gL.length}건`;
-  document.getElementById('stat-bride-amount').textContent=fmt(bAmt);
-  document.getElementById('stat-bride-count').textContent=`${bL.length}건`;
-  document.getElementById('stat-cash').textContent=cashCnt+'건';
-  document.getElementById('stat-transfer').textContent=transCnt+'건';
+  const se=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  se('stat-total-amount',fmtFull(total));
+  se('stat-total-count','총 '+logs.length+'건');
+  se('stat-groom-amount',fmt(gAmt));
+  se('stat-groom-count',gL.length+'건');
+  se('stat-bride-amount',fmt(bAmt));
+  se('stat-bride-count',bL.length+'건');
+  se('stat-cash',cashCnt+'건');
+  se('stat-transfer',transCnt+'건');
 
   // 신랑 식권
-  document.getElementById('g-total-tkt').textContent=gTotal!==null
-    ?(totalTickets.groom+'장'+(gExtra>0?' +추가'+gExtra:'')):'미설정';
-  document.getElementById('g-used-tkt').textContent=gUsed+'장';
-  const gEl=document.getElementById('g-remain-tkt');
-  if(gRemain===null){
-    if(gEl){gEl.textContent='—';gEl.style.color='#9CA3AF';gEl.style.animation='';}
-  } else {
-    if(gEl){
-      gEl.textContent=gRemain;
-      if(gRemain<=10){gEl.style.color='#DC2626';gEl.style.animation='blink 1s ease-in-out infinite';}
-      else if(gRemain<=20){gEl.style.color='#D97706';gEl.style.animation='';}
-      else{gEl.style.color='#059669';gEl.style.animation='';}
-    }
-  }
-  // 추가발급 표시
-  var gExtraEl=document.getElementById('g-extra-tkt');
-  if(gExtraEl) gExtraEl.textContent = gExtra>0?'+'+gExtra+'장':'—';
+  se('g-total-tkt',gTotal!==null?(totalTickets.groom+'장'+(gExtra>0?' +추가'+gExtra:'')):'미설정');
+  se('g-used-tkt',gUsed+'장');
+  se('g-used-tkt2',gUsed);
+  se('g-extra-tkt',gExtra>0?'+'+gExtra+'장':'—');
+  const gREl=document.getElementById('g-remain-tkt');
+  const gR2El=document.getElementById('g-remain-tkt2');
+  const gRVal=gRemain===null?'—':String(gRemain);
+  const gRColor=gRemain===null?'#9CA3AF':gRemain<=10?'#DC2626':gRemain<=20?'#D97706':'#059669';
+  if(gREl){gREl.textContent=gRemain===null?'—':gRemain+'장';gREl.style.color=gRColor;}
+  if(gR2El){gR2El.textContent=gRVal;gR2El.style.color=gRColor;}
 
   // 신부 식권
-  document.getElementById('b-total-tkt').textContent=bTotal!==null
-    ?(totalTickets.bride+'장'+(bExtra>0?' +추가'+bExtra:'')):'미설정';
-  document.getElementById('b-used-tkt').textContent=bUsed+'장';
-  const bEl=document.getElementById('b-remain-tkt');
-  if(bRemain===null){
-    if(bEl){bEl.textContent='—';bEl.style.color='#9CA3AF';bEl.style.animation='';}
-  } else {
-    if(bEl){
-      bEl.textContent=bRemain;
-      if(bRemain<=10){bEl.style.color='#DC2626';bEl.style.animation='blink 1s ease-in-out infinite';}
-      else if(bRemain<=20){bEl.style.color='#D97706';bEl.style.animation='';}
-      else{bEl.style.color='#059669';bEl.style.animation='';}
-    }
-  }
-  var bExtraEl=document.getElementById('b-extra-tkt');
-  if(bExtraEl) bExtraEl.textContent = bExtra>0?'+'+bExtra+'장':'—';
+  se('b-total-tkt',bTotal!==null?(totalTickets.bride+'장'+(bExtra>0?' +추가'+bExtra:'')):'미설정');
+  se('b-used-tkt',bUsed+'장');
+  se('b-used-tkt2',bUsed);
+  se('b-extra-tkt',bExtra>0?'+'+bExtra+'장':'—');
+  const bREl=document.getElementById('b-remain-tkt');
+  const bR2El=document.getElementById('b-remain-tkt2');
+  const bRVal=bRemain===null?'—':String(bRemain);
+  const bRColor=bRemain===null?'#9CA3AF':bRemain<=10?'#DC2626':bRemain<=20?'#D97706':'#059669';
+  if(bREl){bREl.textContent=bRemain===null?'—':bRemain+'장';bREl.style.color=bRColor;}
+  if(bR2El){bR2El.textContent=bRVal;bR2El.style.color=bRColor;}
 
-  // ⚡ 상단 실시간 식권 현황 카드 업데이트
-  updateTktStatusCard({
-    gTotal:gTotal, gUsed:gUsed, gRemain:gRemain, gExtra:gExtra,
-    bTotal:bTotal, bUsed:bUsed, bRemain:bRemain, bExtra:bExtra
-  });
-}
-
-function updateTktStatusCard(d){
-  function setEl(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; }
-  function setStyle(id, style, val){ var el=document.getElementById(id); if(el) el.style[style]=val; }
-
-  // 신랑측
-  setEl('tks-g-total', d.gTotal!==null ? d.gTotal+'장' : '미설정');
-  setEl('tks-g-used',  d.gUsed+'장');
-  // 추가발급
-  var gEw = document.getElementById('tks-g-extra-wrap');
-  var gEt = document.getElementById('tks-g-extra');
-  if(gEw && gEt){
-    if(d.gExtra>0){ gEw.style.display='inline'; gEt.textContent='(+추가'+d.gExtra+'장)'; }
-    else gEw.style.display='none';
+  // 상단 실시간 카드
+  se('tks-g-total',gTotal!==null?gTotal+'장':'미설정');
+  se('tks-g-used',gUsed+'장');
+  const tksGR=document.getElementById('tks-g-remain');
+  if(tksGR){
+    if(gRemain===null){tksGR.textContent='—';tksGR.style.color='#9CA3AF';tksGR.style.animation='';}
+    else{tksGR.textContent=gRemain+'장';tksGR.style.color=gRColor;tksGR.style.animation=gRemain<=5?'blink 0.7s ease-in-out infinite':'';}
   }
-  // 잔여 (위험구간 강조)
-  var gREl = document.getElementById('tks-g-remain');
-  if(gREl){
-    if(d.gRemain===null){ gREl.textContent='—'; gREl.style.color='#9CA3AF'; gREl.style.animation=''; }
-    else {
-      gREl.textContent = d.gRemain+'장';
-      if(d.gRemain<=5){
-        gREl.style.color='#DC2626';
-        gREl.style.animation='blink 0.7s ease-in-out infinite';
-        gREl.style.fontSize='17px';
-      } else if(d.gRemain<=10){
-        gREl.style.color='#DC2626';
-        gREl.style.animation='';
-        gREl.style.fontSize='16px';
-      } else if(d.gRemain<=20){
-        gREl.style.color='#D97706';
-        gREl.style.animation='';
-        gREl.style.fontSize='15px';
-      } else {
-        gREl.style.color='#059669';
-        gREl.style.animation='';
-        gREl.style.fontSize='15px';
-      }
-    }
+  se('tks-b-total',bTotal!==null?bTotal+'장':'미설정');
+  se('tks-b-used',bUsed+'장');
+  const tksBR=document.getElementById('tks-b-remain');
+  if(tksBR){
+    if(bRemain===null){tksBR.textContent='—';tksBR.style.color='#9CA3AF';tksBR.style.animation='';}
+    else{tksBR.textContent=bRemain+'장';tksBR.style.color=bRColor;tksBR.style.animation=bRemain<=5?'blink 0.7s ease-in-out infinite':'';}
   }
-
-  // 신부측
-  setEl('tks-b-total', d.bTotal!==null ? d.bTotal+'장' : '미설정');
-  setEl('tks-b-used',  d.bUsed+'장');
-  var bEw = document.getElementById('tks-b-extra-wrap');
-  var bEt = document.getElementById('tks-b-extra');
-  if(bEw && bEt){
-    if(d.bExtra>0){ bEw.style.display='inline'; bEt.textContent='(+추가'+d.bExtra+'장)'; }
-    else bEw.style.display='none';
-  }
-  var bREl = document.getElementById('tks-b-remain');
-  if(bREl){
-    if(d.bRemain===null){ bREl.textContent='—'; bREl.style.color='#9CA3AF'; bREl.style.animation=''; }
-    else {
-      bREl.textContent = d.bRemain+'장';
-      if(d.bRemain<=5){
-        bREl.style.color='#DC2626';
-        bREl.style.animation='blink 0.7s ease-in-out infinite';
-        bREl.style.fontSize='17px';
-      } else if(d.bRemain<=10){
-        bREl.style.color='#DC2626';
-        bREl.style.animation='';
-        bREl.style.fontSize='16px';
-      } else if(d.bRemain<=20){
-        bREl.style.color='#D97706';
-        bREl.style.animation='';
-        bREl.style.fontSize='15px';
-      } else {
-        bREl.style.color='#059669';
-        bREl.style.animation='';
-        bREl.style.fontSize='15px';
-      }
-    }
-  }
-}
-
-function renderRecent(){
-  const el=document.getElementById('recent-list');
-  if(!el) return;
-  const recent=logs.slice(0,30);
-  if(!recent.length){
-    el.innerHTML='<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:12px 0">아직 접수 내역이 없습니다</div>';
-    return;
-  }
-  el.innerHTML=recent.map(l=>{
-    const name=l.guest_name||'익명';
-    const rel=l.relation?' '+l.relation:'';
-    const pay=l.payment_type==='계좌이체'?'📱':'💵';
-    const side=l.side==='신랑측'?'🤵':'👰';
-    const tkt=(l.adult_ticket||0)+(l.child_ticket||0);
-    const tktStr=tkt>0?` 🎫${tkt}`:'';
-    return `<div style="display:flex;align-items:center;gap:4px;padding:4px 0;border-bottom:1px solid #F5F3F0;min-width:0">
-      <span style="font-size:11px;flex-shrink:0">${side}</span>
-      <span style="font-size:11px;font-weight:600;color:#111;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}<span style="color:#9CA3AF;font-weight:400">${esc(rel)}</span></span>
-      <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">${pay}${tktStr}</span>
-      <span style="font-size:11px;font-weight:800;color:#C7A96B;flex-shrink:0;margin-left:2px">${l.amount?fmt(l.amount):'-'}</span>
-    </div>`;
-  }).join('');
 }
 
 // ── 입력 상태 ──
@@ -1562,20 +1257,11 @@ function setPayment(pay){
 }
 function setAmount(amt){
   const map={50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',1000000:'100만'};
-  // 같은 버튼 재클릭 시 해제
-  if(st.amount===amt){
-    st.amount=0;
-    document.getElementById('amount-input').value='';
-    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));
-  } else {
-    st.amount=amt;
-    document.getElementById('amount-input').value=amt;
-    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));
-  }
+  if(st.amount===amt){st.amount=0;document.getElementById('amount-input').value='';document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));}
+  else{st.amount=amt;document.getElementById('amount-input').value=amt;document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));}
 }
 function focusCustomAmount(){
-  const inp=document.getElementById('amount-input');
-  inp.focus();inp.select();
+  const inp=document.getElementById('amount-input');inp.focus();inp.select();
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
 function onAmountInput(){
@@ -1583,14 +1269,8 @@ function onAmountInput(){
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
 function setRelation(rel){
-  // 같은 버튼 재클릭 시 해제 (toggle)
-  if(st.relation===rel){
-    st.relation='';
-    document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('rel-active'));
-  } else {
-    st.relation=rel;
-    document.querySelectorAll('.rel-btn').forEach(b=>b.classList.toggle('rel-active',b.textContent===rel));
-  }
+  if(st.relation===rel){st.relation='';document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('rel-active'));}
+  else{st.relation=rel;document.querySelectorAll('.rel-btn').forEach(b=>b.classList.toggle('rel-active',b.textContent===rel));}
 }
 function changeTicket(type,delta){
   if(type==='adult'){st.adultTicket=Math.max(0,st.adultTicket+delta);document.getElementById('adult-ticket-val').textContent=st.adultTicket;}
@@ -1605,180 +1285,6 @@ function resetForm(){
   document.getElementById('child-ticket-val').textContent='0';
   document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));
   document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('rel-active'));
-}
-
-// ── 전체 접수 리스트 ──
-var _logFilter = 'all';
-
-function setFilter(f){
-  _logFilter = f;
-  ['all','groom','bride','cash','trans'].forEach(function(k){
-    var el = document.getElementById('f-'+k);
-    if(el) el.classList.toggle('on', k===f);
-  });
-  renderFullList();
-}
-
-function renderFullList(){
-  var isAdmin = ADMIN_NAMES.includes(currentUser.name);
-  var searchG = ((document.getElementById('log-search-groom')||{}).value||'').trim().toLowerCase();
-  var searchB = ((document.getElementById('log-search-bride')||{}).value||'').trim().toLowerCase();
-  var totalLen = logs.length;
-
-  function applySearch(arr, q){
-    if(!q) return arr;
-    return arr.filter(function(l){
-      return (l.guest_name||'').toLowerCase().includes(q)||(l.relation||'').toLowerCase().includes(q);
-    });
-  }
-
-  var gLogs = applySearch(logs.filter(function(l){return l.side==='신랑측';}), searchG);
-  var bLogs = applySearch(logs.filter(function(l){return l.side==='신부측';}), searchB);
-  var hasG  = logs.some(function(l){return l.side==='신랑측';});
-  var hasB  = logs.some(function(l){return l.side==='신부측';});
-
-  // 단측/양측 레이아웃
-  var panel = document.getElementById('split-list-panel');
-  var gCol  = document.getElementById('groom-list-col');
-  var bCol  = document.getElementById('bride-list-col');
-  if(panel){
-    if(hasG && hasB){
-      panel.style.gridTemplateColumns='1fr 1fr';
-      if(gCol) gCol.style.display='flex';
-      if(bCol) bCol.style.display='flex';
-    } else if(hasG){
-      panel.style.gridTemplateColumns='1fr';
-      if(gCol) gCol.style.display='flex';
-      if(bCol) bCol.style.display='none';
-    } else if(hasB){
-      panel.style.gridTemplateColumns='1fr';
-      if(gCol) gCol.style.display='none';
-      if(bCol) bCol.style.display='flex';
-    } else {
-      panel.style.gridTemplateColumns='1fr';
-      if(gCol) gCol.style.display='flex';
-      if(bCol) bCol.style.display='none';
-    }
-  }
-
-  var gAmt = gLogs.reduce(function(s,l){return s+(l.amount||0);},0);
-  var bAmt = bLogs.reduce(function(s,l){return s+(l.amount||0);},0);
-  var gSumEl=document.getElementById('groom-list-sum');
-  var bSumEl=document.getElementById('bride-list-sum');
-  if(gSumEl) gSumEl.textContent=gLogs.length+'건 · '+fmt(gAmt);
-  if(bSumEl) bSumEl.textContent=bLogs.length+'건 · '+fmt(bAmt);
-
-  renderLedgerCol('groom-full-list', gLogs, totalLen, isAdmin);
-  renderLedgerCol('bride-full-list', bLogs, totalLen, isAdmin);
-}
-function renderLedgerCol(elId, sideLogs, isAdmin){
-  var el = document.getElementById(elId);
-  if(!el) return;
-  if(!sideLogs.length){
-    el.innerHTML = '<div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">내역 없음</div>';
-    return;
-  }
-  el.innerHTML = sideLogs.map(function(l, i){
-    var num    = sideLogs.length - i;
-    var name   = esc(l.guest_name||'—');
-    var rel    = l.relation ? '<span style="color:#9CA3AF;font-size:9px;margin-left:3px">'+esc(l.relation)+'</span>' : '';
-    var amt    = l.amount ? fmt(l.amount) : '<span style="color:#D1D5DB">—</span>';
-    var adultT = l.adult_ticket||0;
-    var childT = l.child_ticket||0;
-    var tkt    = '';
-    if(adultT>0) tkt += '<span style="background:#FEF3C7;color:#D97706;border-radius:3px;padding:0 3px;font-size:9px;font-weight:700">대'+adultT+'</span>';
-    if(childT>0) tkt += '<span style="background:#EDE9FE;color:#7C3AED;border-radius:3px;padding:0 3px;font-size:9px;font-weight:700;margin-left:1px">소'+childT+'</span>';
-    var payC   = l.payment_type==='계좌이체'?'#7C3AED':'#059669';
-    var payT   = l.payment_type==='계좌이체'?'계좌':'현금';
-    var time   = l.created_at?fmtTime(l.created_at):'';
-    var memo   = l.memo?'<div class="ledger-memo">'+esc(l.memo)+'</div>':'';
-    var canEdit= isAdmin || l.created_by===currentUser.name;
-    var btns   = canEdit
-      ? '<button class="ledger-btn ledger-edit" onclick="openEditModal('+l.id+')">수정</button>' +
-        '<button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>'
-      : '';
-
-    return '<div class="ledger-item">' +
-      '<div class="ledger-r1">' +
-        '<span class="ledger-num">#'+num+'</span>' +
-        '<span class="ledger-name">'+name+rel+'</span>' +
-        '<span class="ledger-amt">'+amt+'</span>' +
-      '</div>' +
-      memo +
-      '<div class="ledger-r2">' +
-        '<span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;flex-shrink:0">'+payT+'</span>' +
-        (tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'') +
-        '<span style="flex:1"></span>' +
-        '<span style="font-size:11px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>' +
-        btns +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-function fmtTime(iso){
-  var d = new Date(iso);
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-}
-
-// ── 수정 모달 ──
-function openEditModal(id){
-  var l = logs.find(function(x){ return x.id===id; });
-  if(!l) return;
-  document.getElementById('edit-id').value      = id;
-  document.getElementById('edit-side').value    = l.side||'신랑측';
-  document.getElementById('edit-payment').value = l.payment_type||'현금';
-  document.getElementById('edit-name').value    = l.guest_name||'';
-  document.getElementById('edit-relation').value= l.relation||'';
-  document.getElementById('edit-amount').value  = l.amount||'';
-  document.getElementById('edit-adult').value   = l.adult_ticket||0;
-  document.getElementById('edit-child').value   = l.child_ticket||0;
-  document.getElementById('edit-memo').value    = l.memo||'';
-  document.getElementById('edit-modal').style.display='flex';
-}
-
-function closeEditModal(){
-  document.getElementById('edit-modal').style.display='none';
-}
-
-async function saveEdit(){
-  var id = Number(document.getElementById('edit-id').value);
-  var body = {
-    side:         document.getElementById('edit-side').value,
-    payment_type: document.getElementById('edit-payment').value,
-    guest_name:   document.getElementById('edit-name').value.trim()||null,
-    relation:     document.getElementById('edit-relation').value||null,
-    amount:       Number(document.getElementById('edit-amount').value)||null,
-    adult_ticket: Number(document.getElementById('edit-adult').value)||0,
-    child_ticket: Number(document.getElementById('edit-child').value)||0,
-    memo:         document.getElementById('edit-memo').value.trim()||null,
-  };
-  try {
-    await sb.patch('contribution_logs', id, body);
-    var idx = logs.findIndex(function(x){ return x.id===id; });
-    if(idx!==-1) Object.assign(logs[idx], body);
-    closeEditModal();
-    renderStats(); renderRecent(); renderFullList();
-    showToast('✅ 수정되었습니다');
-  } catch(e){ showToast('⚠️ 수정 실패: '+e.message); }
-}
-
-async function deleteLog(id){
-  if(!confirm('해당 접수 내역을 삭제하시겠습니까?')) return;
-  try {
-    const r = await fetch(sb.url('contribution_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h});
-    if(!r.ok){
-      const errText = await r.text();
-      console.error('[DG] 삭제 실패 응답:', r.status, errText);
-      showToast('⚠️ 삭제 실패 ('+r.status+'): '+errText.slice(0,60));
-      return;
-    }
-    logs = logs.filter(function(x){ return x.id!==id; });
-    renderStats(); renderRecent(); renderFullList();
-    showToast('🗑️ 삭제되었습니다');
-  } catch(e){
-    console.error('[DG] 삭제 오류:', e);
-    showToast('⚠️ 삭제 실패: '+e.message);
-  }
 }
 
 // ── 접수 저장 ──
@@ -1800,10 +1306,93 @@ async function submitEntry(){
   try {
     const created=await sb.post('contribution_logs',row);
     logs.unshift(Array.isArray(created)?created[0]:created);
-    renderStats();renderRecent();renderFullList();
+    renderStats();renderFullList();
     resetForm();
     showToast('✅ 접수 완료되었습니다');
   } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
+}
+
+// ── 전체 장부 리스트 ──
+function renderFullList(){
+  const isAdmin=ADMIN_NAMES.includes(currentUser.name);
+  const searchG=((document.getElementById('log-search-groom')||{}).value||'').trim().toLowerCase();
+  const searchB=((document.getElementById('log-search-bride')||{}).value||'').trim().toLowerCase();
+  const apply=(arr,q)=>q?arr.filter(l=>(l.guest_name||'').toLowerCase().includes(q)||(l.relation||'').toLowerCase().includes(q)):arr;
+  const gLogs=apply(logs.filter(l=>l.side==='신랑측'),searchG);
+  const bLogs=apply(logs.filter(l=>l.side==='신부측'),searchB);
+  const hasG=logs.some(l=>l.side==='신랑측');
+  const hasB=logs.some(l=>l.side==='신부측');
+  const panel=document.getElementById('split-list-panel');
+  const gCol=document.getElementById('groom-list-col');
+  const bCol=document.getElementById('bride-list-col');
+  if(panel){
+    if(hasG&&hasB){panel.style.gridTemplateColumns='1fr 1fr';if(gCol)gCol.style.display='flex';if(bCol)bCol.style.display='flex';}
+    else if(hasG){panel.style.gridTemplateColumns='1fr';if(gCol)gCol.style.display='flex';if(bCol)bCol.style.display='none';}
+    else if(hasB){panel.style.gridTemplateColumns='1fr';if(gCol)gCol.style.display='none';if(bCol)bCol.style.display='flex';}
+    else{panel.style.gridTemplateColumns='1fr';if(gCol)gCol.style.display='flex';if(bCol)bCol.style.display='none';}
+  }
+  const gAmt=gLogs.reduce((s,l)=>s+(l.amount||0),0);
+  const bAmt=bLogs.reduce((s,l)=>s+(l.amount||0),0);
+  const gSumEl=document.getElementById('groom-list-sum');
+  const bSumEl=document.getElementById('bride-list-sum');
+  if(gSumEl) gSumEl.textContent=gLogs.length+'건 · '+fmt(gAmt);
+  if(bSumEl) bSumEl.textContent=bLogs.length+'건 · '+fmt(bAmt);
+  renderLedgerCol('groom-full-list',gLogs,isAdmin);
+  renderLedgerCol('bride-full-list',bLogs,isAdmin);
+}
+function renderLedgerCol(elId,sideLogs,isAdmin){
+  const el=document.getElementById(elId);
+  if(!el) return;
+  if(!sideLogs.length){el.innerHTML='<div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">내역 없음</div>';return;}
+  el.innerHTML=sideLogs.map((l,i)=>{
+    const num=sideLogs.length-i;
+    const name=esc(l.guest_name||'—');
+    const rel=l.relation?'<span style="color:#9CA3AF;font-size:9px;margin-left:3px">'+esc(l.relation)+'</span>':'';
+    const amt=l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>';
+    const adultT=l.adult_ticket||0,childT=l.child_ticket||0;
+    let tkt='';
+    if(adultT>0) tkt+='<span style="background:#FEF3C7;color:#D97706;border-radius:3px;padding:0 3px;font-size:9px;font-weight:700">대'+adultT+'</span>';
+    if(childT>0) tkt+='<span style="background:#EDE9FE;color:#7C3AED;border-radius:3px;padding:0 3px;font-size:9px;font-weight:700;margin-left:1px">소'+childT+'</span>';
+    const payC=l.payment_type==='계좌이체'?'#7C3AED':'#059669';
+    const payT=l.payment_type==='계좌이체'?'계좌':'현금';
+    const time=l.created_at?fmtTime(l.created_at):'';
+    const memo=l.memo?'<div class="ledger-memo">'+esc(l.memo)+'</div>':'';
+    const canEdit=isAdmin||l.created_by===currentUser.name;
+    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+l.id+')">수정</button><button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>':'';
+    return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:11px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
+  }).join('');
+}
+
+// ── 수정/삭제 ──
+function openEditModal(id){
+  const l=logs.find(x=>x.id===id);
+  if(!l) return;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-side').value=l.side||'신랑측';
+  document.getElementById('edit-payment').value=l.payment_type||'현금';
+  document.getElementById('edit-name').value=l.guest_name||'';
+  document.getElementById('edit-relation').value=l.relation||'';
+  document.getElementById('edit-amount').value=l.amount||'';
+  document.getElementById('edit-adult').value=l.adult_ticket||0;
+  document.getElementById('edit-child').value=l.child_ticket||0;
+  document.getElementById('edit-memo').value=l.memo||'';
+  document.getElementById('edit-modal').style.display='flex';
+}
+function closeEditModal(){ document.getElementById('edit-modal').style.display='none'; }
+async function saveEdit(){
+  const id=Number(document.getElementById('edit-id').value);
+  const body={side:document.getElementById('edit-side').value,payment_type:document.getElementById('edit-payment').value,guest_name:document.getElementById('edit-name').value.trim()||null,relation:document.getElementById('edit-relation').value||null,amount:Number(document.getElementById('edit-amount').value)||null,adult_ticket:Number(document.getElementById('edit-adult').value)||0,child_ticket:Number(document.getElementById('edit-child').value)||0,memo:document.getElementById('edit-memo').value.trim()||null};
+  try { await sb.patch('contribution_logs',id,body); const idx=logs.findIndex(x=>x.id===id); if(idx!==-1) Object.assign(logs[idx],body); closeEditModal(); renderStats();renderFullList(); showToast('✅ 수정되었습니다'); } catch(e){ showToast('⚠️ 수정 실패: '+e.message); }
+}
+async function deleteLog(id){
+  if(!confirm('해당 접수 내역을 삭제하시겠습니까?')) return;
+  try {
+    const r=await fetch(sb.url('contribution_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h});
+    if(!r.ok){showToast('⚠️ 삭제 실패 ('+r.status+')');return;}
+    logs=logs.filter(x=>x.id!==id);
+    renderStats();renderFullList();
+    showToast('🗑️ 삭제되었습니다');
+  } catch(e){ showToast('⚠️ 삭제 실패: '+e.message); }
 }
 
 // ── 대시보드 링크 ──
@@ -1824,10 +1413,7 @@ function showToast(msg){
   setTimeout(()=>{t.style.display='none';},2200);
 }
 
-// ── 초기화 ──
-document.addEventListener('keydown', function(e){
-  if(e.key==='Escape') closeEditModal();
-});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEditModal();});
 
 (function init(){
   initLogin();
