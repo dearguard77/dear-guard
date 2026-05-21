@@ -35,11 +35,11 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 #hdr{background:var(--bg2);border-bottom:1.5px solid var(--border);padding:10px 16px;flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
 
 /* 좌: 예식정보 */
-#hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:14px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px}
+#hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;height:100%}
 .wedding-brand{font-family:Georgia,serif;font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8;margin-bottom:6px}
 .wedding-names{font-size:32px;font-weight:900;color:#111;letter-spacing:-.5px;margin-bottom:6px;line-height:1.1}
 .wedding-info{font-size:16px;font-weight:600;color:#374151;margin-bottom:6px}
-.wedding-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.wedding-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:2px}
 #mode-badge{font-size:13px;font-weight:700;border-radius:10px;padding:4px 12px;border:1px solid #E0E0E0;color:#9CA3AF;background:#F5F5F5}
 .live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--green)}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
@@ -174,12 +174,12 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 
     <!-- 좌: 예식 정보 -->
     <div id="hdr-wedding" style="text-align:center;justify-content:center">
-      <div style="flex:1">
-        <div class="wedding-brand" style="text-align:center">DEAR GUARD</div>
-        <div class="wedding-names" id="hdr-names" style="font-size:32px;margin-bottom:6px;text-align:center">—</div>
-        <div style="text-align:center;margin-bottom:8px">
-          <div class="wedding-info" id="hdr-info-dt" style="font-size:16px;font-weight:600;color:#374151">—</div>
-          <div class="wedding-info" id="hdr-info-hall" style="font-size:16px;font-weight:600;color:#374151;margin-top:2px">—</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <div class="wedding-brand" style="text-align:center;margin-bottom:2px">DEAR GUARD</div>
+        <div class="wedding-names" id="hdr-names" style="font-size:32px;text-align:center;line-height:1.15">—</div>
+        <div style="text-align:center;display:flex;flex-direction:column;gap:4px">
+          <div class="wedding-info" id="hdr-info-dt" style="font-size:16px;font-weight:600;color:#374151;line-height:1.4">—</div>
+          <div class="wedding-info" id="hdr-info-hall" style="font-size:16px;font-weight:700;color:#C7A96B;line-height:1.4">—</div>
         </div>
       </div>
       <div class="wedding-footer" style="justify-content:center">
