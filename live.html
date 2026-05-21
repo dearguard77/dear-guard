@@ -187,8 +187,10 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
       <div class="wedding-footer" style="justify-content:center">
         <span id="mode-badge"></span>
         <span class="live-pill"><span class="live-dot"></span>실시간</span>
-        <a id="live-btn-1" href="#" target="_blank" class="live-stream-btn" style="display:none">🔴 LIVE 1</a>
-        <a id="live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none">🔴 LIVE 2</a>
+        <a id="groom-live-btn-1" href="#" target="_blank" class="live-stream-btn" style="display:none">🤵 LIVE 1</a>
+        <a id="groom-live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none">🤵 LIVE 2</a>
+        <a id="bride-live-btn-1" href="#" target="_blank" class="live-stream-btn" style="display:none;background:#DB2777">👰 LIVE 1</a>
+        <a id="bride-live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none;background:#DB2777">👰 LIVE 2</a>
         <button class="excel-btn" onclick="downloadExcel()">📥 엑셀 다운로드</button>
         <span id="last-upd" style="font-size:11px"></span>
       </div>
@@ -251,32 +253,37 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
     <!-- 좌: 운영 패널 -->
     <div id="left-panel">
 
-      <!-- 인계 정보 -->
-      <div class="pcard" id="handover-card" style="display:none">
-        <div class="pcard-title">📦 인계 정보</div>
-        <div id="hc-items-wrap" style="display:none">
-          <div class="ho-lbl">인계 물품</div>
-          <div id="hc-items" class="ho-item" style="white-space:pre-line;margin-bottom:5px"></div>
-        </div>
-        <div id="hc-person-wrap" style="display:none">
-          <div class="ho-lbl">인계자</div>
-          <div id="hc-person" class="ho-item" style="margin-bottom:5px"></div>
-        </div>
-        <div id="hc-pw-wrap" style="display:none">
-          <div class="ho-lbl">🔒 레디백 비밀번호</div>
-          <div id="hc-password" class="ho-pw"></div>
-        </div>
-        <div id="hc-r1-wrap" style="display:none">
-          <a id="hc-replay1" href="#" target="_blank" class="ho-link">📹 접수응대캠 다시보기</a>
-        </div>
-        <div id="hc-r2-wrap" style="display:none">
-          <a id="hc-replay2" href="#" target="_blank" class="ho-link">📹 계수기록캠 다시보기</a>
-        </div>
-        <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
-          target="_blank" class="ho-template" style="margin-top:4px">💌 하객 답례인사 템플릿</a>
+      <!-- 측별 탭 -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:6px;flex-shrink:0" id="live-ho-tab-bar">
+        <button id="live-tab-groom" onclick="setLiveHoTab('groom')"
+          style="flex:1;padding:7px 4px;font-size:12px;font-weight:700;border:none;background:none;color:#2563EB;cursor:pointer;border-bottom:2px solid #2563EB;margin-bottom:-2px">
+          🤵 신랑측
+        </button>
+        <button id="live-tab-bride" onclick="setLiveHoTab('bride')"
+          style="flex:1;padding:7px 4px;font-size:12px;font-weight:700;border:none;background:none;color:#9CA3AF;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">
+          👰 신부측
+        </button>
       </div>
+
+      <!-- 🤵 신랑측 패널 -->
+      <div id="live-pane-groom" style="display:flex;flex-direction:column;gap:6px">
+        <div class="pcard" id="groom-info-card">
+          <div class="pcard-title" style="color:#2563EB">🤵 신랑측 운영정보</div>
+          <div id="groom-info-body"></div>
+        </div>
+      </div>
+
+      <!-- 👰 신부측 패널 -->
+      <div id="live-pane-bride" style="display:none;flex-direction:column;gap:6px">
+        <div class="pcard" id="bride-info-card">
+          <div class="pcard-title" style="color:#DB2777">👰 신부측 운영정보</div>
+          <div id="bride-info-body"></div>
+        </div>
+      </div>
+
+      <!-- 답례 템플릿 -->
       <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
-        target="_blank" id="template-standalone" class="ho-template pcard">💌 하객 답례인사 템플릿</a>
+        target="_blank" class="ho-template pcard">💌 하객 답례인사 템플릿</a>
 
       <!-- 화환/축기 -->
       <div class="pcard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
@@ -381,6 +388,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 
 
 
+
+
 const SUPABASE_URL='https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 const sb={
@@ -398,6 +407,21 @@ const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 const fmtTime=iso=>{const d=new Date(iso);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
 const getToken=()=>new URLSearchParams(location.search).get('t')||'';
 const se=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+
+// ── 운영정보 측별 탭 ──
+var _liveHoTab = 'groom';
+function setLiveHoTab(side){
+  _liveHoTab = side;
+  var tg = document.getElementById('live-tab-groom');
+  var tb = document.getElementById('live-tab-bride');
+  var pg = document.getElementById('live-pane-groom');
+  var pb = document.getElementById('live-pane-bride');
+  var blue='#2563EB', pink='#DB2777', gray='#9CA3AF';
+  if(tg){ tg.style.color=(side==='groom')?blue:gray; tg.style.borderBottomColor=(side==='groom')?blue:'transparent'; }
+  if(tb){ tb.style.color=(side==='bride')?pink:gray; tb.style.borderBottomColor=(side==='bride')?pink:'transparent'; }
+  if(pg) pg.style.display=(side==='groom')?'flex':'none';
+  if(pb) pb.style.display=(side==='bride')?'flex':'none';
+}
 
 async function init(){
   const token=getToken();
@@ -658,44 +682,76 @@ function renderOpsList(){
 }
 
 function renderHandover(){
-  if(!schedule)return;
-  const s=schedule;
-  const hasAny=s.handoff_items||s.handoff_person||s.handoff_password||s.replay_link_1||s.replay_link_2;
-  const card=document.getElementById('handover-card');
-  const standalone=document.getElementById('template-standalone');
-  if(!card)return;
-  if(!hasAny){card.style.display='none';if(standalone)standalone.style.display='flex';return;}
-  card.style.display='block';
-  if(standalone)standalone.style.display='none';
-  const show=(wid,eid,val,isHtml)=>{
-    const w=document.getElementById(wid),e=document.getElementById(eid);
-    if(!w||!e)return;
-    if(val){w.style.display='block';isHtml?e.innerHTML=val:e.textContent=val;}
-    else w.style.display='none';
-  };
-  show('hc-items-wrap','hc-items',s.handoff_items);
-  if(s.handoff_person||s.handoff_relation||s.handoff_phone){
-    document.getElementById('hc-person-wrap').style.display='block';
-    document.getElementById('hc-person').innerHTML=
-      (s.handoff_relation?`<span style="font-size:10px;color:var(--text3)">${esc(s.handoff_relation)}</span><br>`:'')+
-      (s.handoff_person?`<strong>${esc(s.handoff_person)}</strong><br>`:'')+
-      (s.handoff_phone?`<a href="tel:${esc(s.handoff_phone)}" style="color:var(--blue);text-decoration:none">${esc(s.handoff_phone)}</a>`:'');
-  }
-  show('hc-pw-wrap','hc-password',s.handoff_password);
-  if(s.replay_link_1){document.getElementById('hc-r1-wrap').style.display='block';document.getElementById('hc-replay1').href=s.replay_link_1;}
-  if(s.replay_link_2){document.getElementById('hc-r2-wrap').style.display='block';document.getElementById('hc-replay2').href=s.replay_link_2;}
+  if(!schedule) return;
+  var s = schedule;
 
-  // LIVE 버튼 연동
-  var lb1=document.getElementById('live-btn-1');
-  var lb2=document.getElementById('live-btn-2');
-  if(lb1){
-    if(s.replay_link_1){lb1.href=s.replay_link_1;lb1.style.display='inline-flex';}
-    else lb1.style.display='none';
+  function buildInfoHtml(name, phone, items, pw, live1, live2){
+    var html = '';
+    if(name||phone){
+      html += '<div class="ho-item" style="margin-bottom:5px">';
+      if(name) html += '<div style="font-weight:700;font-size:13px">'+esc(name)+'</div>';
+      if(phone) html += '<a href="tel:'+esc(phone)+'" style="color:var(--blue);font-size:12px;text-decoration:none">'+esc(phone)+'</a>';
+      html += '</div>';
+    }
+    if(pw){
+      html += '<div class="ho-pw" style="margin-bottom:6px">'+esc(pw)+'</div>';
+    }
+    if(items){
+      html += '<div class="ho-item" style="white-space:pre-line;font-size:12px;margin-bottom:5px">'+esc(items)+'</div>';
+    }
+    if(live1){
+      html += '<a href="'+esc(live1)+'" target="_blank" class="ho-link" style="margin-bottom:4px">📹 LIVE 1</a>';
+    }
+    if(live2){
+      html += '<a href="'+esc(live2)+'" target="_blank" class="ho-link">📹 LIVE 2</a>';
+    }
+    if(!name&&!phone&&!pw&&!items&&!live1&&!live2){
+      html = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:8px">정보 없음</div>';
+    }
+    return html;
   }
-  if(lb2){
-    if(s.replay_link_2){lb2.href=s.replay_link_2;lb2.style.display='inline-flex';}
-    else lb2.style.display='none';
+
+  var mode = s.wedding_mode||'양측';
+  var hasGroom = logs.some(function(l){return l.side==='신랑측';});
+  var hasBride  = logs.some(function(l){return l.side==='신부측';});
+
+  // 신랑측 카드
+  var gCard = document.getElementById('groom-info-card');
+  var gBody  = document.getElementById('groom-info-body');
+  if(gCard && gBody){
+    var showG = (mode!=='단측') || hasGroom || (!hasGroom&&!hasBride);
+    gCard.style.display = showG ? '' : 'none';
+    if(showG) gBody.innerHTML = buildInfoHtml(
+      s.groom_handover_name, s.groom_handover_phone,
+      s.groom_handoff_items, s.groom_password,
+      s.groom_live1, s.groom_live2
+    );
   }
+
+  // 신부측 카드
+  var bCard = document.getElementById('bride-info-card');
+  var bBody  = document.getElementById('bride-info-body');
+  if(bCard && bBody){
+    var showB = (mode!=='단측') || hasBride;
+    bCard.style.display = showB ? '' : 'none';
+    if(showB) bBody.innerHTML = buildInfoHtml(
+      s.bride_handover_name, s.bride_handover_phone,
+      s.bride_handoff_items, s.bride_password,
+      s.bride_live1, s.bride_live2
+    );
+  }
+
+  // 상단 LIVE 버튼 연동
+  function setLiveBtn(id, url){
+    var el = document.getElementById(id);
+    if(!el) return;
+    if(url){el.href=url; el.style.display='inline-flex';}
+    else el.style.display='none';
+  }
+  setLiveBtn('groom-live-btn-1', s.groom_live1);
+  setLiveBtn('groom-live-btn-2', s.groom_live2);
+  setLiveBtn('bride-live-btn-1', s.bride_live1);
+  setLiveBtn('bride-live-btn-2', s.bride_live2);
 }
 
 function applyWeddingMode(){
@@ -783,6 +839,8 @@ _s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{o
 document.head.appendChild(_s);
 
 init();
+
+
 
 
 
