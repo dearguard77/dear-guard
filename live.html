@@ -48,7 +48,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 #last-upd{font-size:10px;color:var(--text3)}
 
 /* 우: 축의 요약 */
-#hdr-summary{display:grid;grid-template-columns:1.4fr 1fr 1fr 0.9fr;gap:8px;align-items:stretch}
+#hdr-summary{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px;align-items:stretch}
 .sum-card{border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center}
 .sum-card.total{background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border:1.5px solid #E8D5B0}
 .sum-card.groom{background:#EFF6FF;border:1.5px solid #BFDBFE}
@@ -68,7 +68,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .sum-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-top:3px}
 
 /* 메인 바디 */
-#body{flex:1;display:grid;grid-template-columns:260px 1fr;overflow:hidden;min-height:0}
+#body{flex:1;display:grid;grid-template-columns:320px 1fr;overflow:hidden;min-height:0}
 
 /* 좌: 운영 패널 */
 #left-panel{overflow-y:auto;padding:8px;background:#F5F3EF;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
@@ -152,9 +152,9 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
   html,body{height:auto;overflow:auto}
   #app{height:auto;overflow:visible}
   #hdr{grid-template-columns:1fr;padding:8px 10px}
-  #hdr-summary{grid-template-columns:1fr 1fr}
-  #body{grid-template-columns:1fr;height:auto;overflow:visible}
-  #left-panel{display:none}
+  #hdr-summary{grid-template-columns:1fr 1fr;row-gap:6px}
+  #body{grid-template-columns:1fr;height:auto;overflow:visible;display:flex;flex-direction:column}
+  #left-panel{display:flex !important}
   #split-wrap{grid-template-columns:1fr}
 }
 </style>
@@ -210,10 +210,30 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
         <div class="sum-val pink" id="bride-total">0원</div>
         <div class="sum-sub" id="bride-cnt-sub">0건</div>
       </div>
-      <div class="sum-card ticket">
-        <div class="sum-lbl purple">식권</div>
-        <div class="sum-row"><span style="color:#6B7280;font-size:11px">대인</span><span style="font-size:16px;font-weight:900;color:#D97706" id="total-adult">0</span></div>
-        <div class="sum-row"><span style="color:#6B7280;font-size:11px">소인</span><span style="font-size:16px;font-weight:900;color:#7C3AED" id="total-child">0</span></div>
+      <div class="sum-card ticket" style="grid-column:span 2" id="ticket-sum-card">
+        <div class="sum-lbl purple" style="margin-bottom:6px">🎫 식권 현황</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="ticket-detail-wrap">
+          <!-- 양측: 신랑/신부 구분 -->
+          <div id="ticket-groom-wrap">
+            <div style="font-size:10px;font-weight:700;color:#2563EB;margin-bottom:3px">🤵 신랑측</div>
+            <div style="display:flex;gap:10px;font-size:13px">
+              <span style="color:#6B7280">대인 <strong style="color:#D97706" id="groom-adult-tkt">0</strong></span>
+              <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="groom-child-tkt">0</strong></span>
+            </div>
+          </div>
+          <div id="ticket-bride-wrap">
+            <div style="font-size:10px;font-weight:700;color:#DB2777;margin-bottom:3px">👰 신부측</div>
+            <div style="display:flex;gap:10px;font-size:13px">
+              <span style="color:#6B7280">대인 <strong style="color:#D97706" id="bride-adult-tkt">0</strong></span>
+              <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="bride-child-tkt">0</strong></span>
+            </div>
+          </div>
+        </div>
+        <!-- 단측: 합계만 표시 -->
+        <div style="display:none;gap:16px;font-size:13px" id="ticket-single-wrap">
+          <span style="color:#6B7280">대인 <strong style="color:#D97706" id="total-adult">0</strong>매</span>
+          <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="total-child">0</strong>매</span>
+        </div>
       </div>
     </div>
   </div>
@@ -252,7 +272,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
         target="_blank" id="template-standalone" class="ho-template pcard">💌 하객 답례인사 템플릿</a>
 
       <!-- 화환/축기 -->
-      <div class="pcard">
+      <div class="pcard" style="min-height:120px;display:flex;flex-direction:column">
         <div class="pcard-title">💐 화환 / 축기 <span id="flower-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
         <div id="flower-live-list"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div></div>
       </div>
@@ -323,6 +343,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 <div id="upd">✓ 업데이트</div>
 
 <script>
+
+
 
 const SUPABASE_URL='https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
@@ -397,8 +419,37 @@ function renderStats(){
   se('bride-total',fmt(bL.reduce((s,l)=>s+(l.amount||0),0)));
   se('groom-cnt-sub',gL.length+'건');
   se('bride-cnt-sub',bL.length+'건');
-  se('total-adult',logs.reduce((s,l)=>s+(l.adult_ticket||0),0)+'매');
-  se('total-child',logs.reduce((s,l)=>s+(l.child_ticket||0),0)+'매');
+  const gAdultTkt=logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const gChildTkt=logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.child_ticket||0),0);
+  const bAdultTkt=logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const bChildTkt=logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
+  const totalAdult=logs.reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const totalChild=logs.reduce((s,l)=>s+(l.child_ticket||0),0);
+  se('total-adult',totalAdult+'매');
+  se('total-child',totalChild+'매');
+  se('groom-adult-tkt',gAdultTkt);
+  se('groom-child-tkt',gChildTkt);
+  se('bride-adult-tkt',bAdultTkt);
+  se('bride-child-tkt',bChildTkt);
+  // 모드에 따라 식권 표시 전환
+  const mode=schedule?schedule.wedding_mode||'양측':'양측';
+  const ticketDetail=document.getElementById('ticket-detail-wrap');
+  const ticketSingle=document.getElementById('ticket-single-wrap');
+  const groomWrap=document.getElementById('ticket-groom-wrap');
+  const brideWrap=document.getElementById('ticket-bride-wrap');
+  if(ticketDetail&&ticketSingle){
+    if(mode==='단측'){
+      ticketDetail.style.display='none';
+      ticketSingle.style.display='flex';
+    } else {
+      ticketDetail.style.display='grid';
+      ticketSingle.style.display='none';
+      const hasG=logs.some(l=>l.side==='신랑측');
+      const hasB=logs.some(l=>l.side==='신부측');
+      if(groomWrap) groomWrap.style.display=hasG||(!hasG&&!hasB)?'':'none';
+      if(brideWrap) brideWrap.style.display=hasB?'':'none';
+    }
+  }
 }
 
 // ── 정렬 ──
@@ -646,6 +697,8 @@ _s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{o
 document.head.appendChild(_s);
 
 init();
+
+
 
 </script>
 </body>
