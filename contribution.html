@@ -361,58 +361,76 @@ input,select,textarea{font-family:inherit;outline:none}
 
     <!-- 인계 정보 패널 -->
     <div id="handover-panel">
-      <div style="font-size:11px;font-weight:800;color:#C7A96B;letter-spacing:1px;padding:4px 0 8px;text-align:center;border-bottom:1px solid #E8E5E1;margin-bottom:4px">
+      <div style="font-size:11px;font-weight:800;color:#C7A96B;letter-spacing:1px;padding:4px 0 8px;text-align:center;border-bottom:1px solid #E8E5E1;margin-bottom:6px">
         📦 인계 정보
       </div>
 
-      <!-- 인계 물품 -->
-      <div class="ho-section">
-        <div class="ho-section-title">인계 물품</div>
-        <textarea id="ho-items" class="ho-textarea" rows="4"
-          placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권&#10;· 포토부스 앨범"
-          oninput="saveHandover()"></textarea>
-      </div>
-
-      <!-- 인계자 -->
-      <div class="ho-section">
-        <div class="ho-section-title">인계자 정보</div>
+      <!-- 🤵 신랑측 운영정보 -->
+      <div class="ho-section" id="groom-ho-section">
+        <div class="ho-section-title" style="color:#2563EB">🤵 신랑측</div>
         <div style="display:flex;flex-direction:column;gap:5px">
           <div>
-            <div class="ho-label">관계</div>
-            <input id="ho-relation" class="ho-input" placeholder="예: 신랑 아버지" oninput="saveHandover()">
-          </div>
-          <div>
-            <div class="ho-label">성함</div>
-            <input id="ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()">
+            <div class="ho-label">인계자</div>
+            <input id="groom-ho-name" class="ho-input" placeholder="성함" oninput="saveHandover()">
           </div>
           <div>
             <div class="ho-label">연락처</div>
-            <input id="ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()">
+            <input id="groom-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">인계 물품</div>
+            <textarea id="groom-ho-items" class="ho-textarea" rows="3"
+              placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권" oninput="saveHandover()"></textarea>
+          </div>
+          <div>
+            <div class="ho-label">🔒 레디백 비밀번호</div>
+            <input id="groom-ho-password" class="ho-input"
+              placeholder="예: 1234"
+              style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
+              oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">📹 LIVE 1</div>
+            <input id="groom-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">📹 LIVE 2</div>
+            <input id="groom-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()">
           </div>
         </div>
       </div>
 
-      <!-- 비밀번호 -->
-      <div class="ho-section">
-        <div class="ho-section-title">🔒 설정 비밀번호</div>
-        <div class="ho-label">레디백 비번</div>
-        <input id="ho-password" class="ho-input"
-          placeholder="예: 1234"
-          style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
-          oninput="saveHandover()">
-      </div>
-
-      <!-- 다시보기 링크 -->
-      <div class="ho-section">
-        <div class="ho-section-title">📹 다시보기 링크</div>
+      <!-- 👰 신부측 운영정보 -->
+      <div class="ho-section" id="bride-ho-section">
+        <div class="ho-section-title" style="color:#DB2777">👰 신부측</div>
         <div style="display:flex;flex-direction:column;gap:5px">
           <div>
-            <div class="ho-label">접수응대캠</div>
-            <input id="ho-replay1" class="ho-input" placeholder="https://..." oninput="saveHandover()">
+            <div class="ho-label">인계자</div>
+            <input id="bride-ho-name" class="ho-input" placeholder="성함" oninput="saveHandover()">
           </div>
           <div>
-            <div class="ho-label">계수기록캠</div>
-            <input id="ho-replay2" class="ho-input" placeholder="https://..." oninput="saveHandover()">
+            <div class="ho-label">연락처</div>
+            <input id="bride-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">인계 물품</div>
+            <textarea id="bride-ho-items" class="ho-textarea" rows="3"
+              placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권" oninput="saveHandover()"></textarea>
+          </div>
+          <div>
+            <div class="ho-label">🔒 레디백 비밀번호</div>
+            <input id="bride-ho-password" class="ho-input"
+              placeholder="예: 1234"
+              style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
+              oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">📹 LIVE 1</div>
+            <input id="bride-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()">
+          </div>
+          <div>
+            <div class="ho-label">📹 LIVE 2</div>
+            <input id="bride-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()">
           </div>
         </div>
       </div>
@@ -422,8 +440,6 @@ input,select,textarea{font-family:inherit;outline:none}
       <!-- 화환 / 축기 -->
       <div class="ho-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div class="ho-section-title" style="margin-bottom:6px">💐 화환 / 축기</div>
-
-        <!-- 입력폼 -->
         <div style="display:flex;gap:4px;margin-bottom:5px">
           <select id="flower-side" class="ho-input" style="width:72px;flex-shrink:0;padding:4px 5px;font-size:11px">
             <option value="신랑측">신랑측</option>
@@ -446,14 +462,12 @@ input,select,textarea{font-family:inherit;outline:none}
             추가
           </button>
         </div>
-
-        <!-- 기록 리스트 -->
         <div id="flower-list" style="overflow-y:auto;flex:1;min-height:0">
           <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 기록이 없습니다</div>
         </div>
       </div>
 
-    </div>
+    </div></div>
 
     <!-- 중앙: 입력 + 리스트 -->
     <div id="center-panel">
@@ -1192,6 +1206,7 @@ async function loadLogs(){
   try {
     logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
     renderStats(); renderRecent(); renderFullList();
+    applyHandoverMode();
   } catch(e){ console.error('logs 로드 실패:',e); }
 }
 
@@ -1280,34 +1295,64 @@ function loadHandover(){
   if(!currentSchedule) return;
   try {
     var s = currentSchedule;
-    var set = function(id, val){ var el=document.getElementById(id); if(el&&val) el.value=val; };
-    set('ho-items',    s.handoff_items);
-    set('ho-relation', s.handoff_relation);
-    set('ho-name',     s.handoff_person);
-    set('ho-phone',    s.handoff_phone);
-    set('ho-password', s.handoff_password);
-    set('ho-replay1',  s.replay_link_1);
-    set('ho-replay2',  s.replay_link_2);
+    var set = function(id, val){ var el=document.getElementById(id); if(el&&val!=null) el.value=val; };
+    // 신랑측
+    set('groom-ho-name',     s.groom_handover_name);
+    set('groom-ho-phone',    s.groom_handover_phone);
+    set('groom-ho-items',    s.groom_handoff_items);
+    set('groom-ho-password', s.groom_password);
+    set('groom-live1',       s.groom_live1);
+    set('groom-live2',       s.groom_live2);
+    // 신부측
+    set('bride-ho-name',     s.bride_handover_name);
+    set('bride-ho-phone',    s.bride_handover_phone);
+    set('bride-ho-items',    s.bride_handoff_items);
+    set('bride-ho-password', s.bride_password);
+    set('bride-live1',       s.bride_live1);
+    set('bride-live2',       s.bride_live2);
+    // 예식 모드에 따라 측 카드 표시
+    applyHandoverMode();
   } catch(e){ console.warn('[DG] loadHandover 오류:', e); }
+}
+
+function applyHandoverMode(){
+  var mode = currentSchedule ? (currentSchedule.wedding_mode||'양측') : '양측';
+  var gSection = document.getElementById('groom-ho-section');
+  var bSection = document.getElementById('bride-ho-section');
+  if(!gSection||!bSection) return;
+  if(mode==='단측'){
+    // 접수된 측 확인
+    var hasG = logs.some(function(l){return l.side==='신랑측';});
+    var hasB = logs.some(function(l){return l.side==='신부측';});
+    gSection.style.display = (hasG||(!hasG&&!hasB)) ? '' : 'none';
+    bSection.style.display = hasB ? '' : 'none';
+  } else {
+    gSection.style.display = '';
+    bSection.style.display = '';
+  }
 }
 
 function saveHandover(){
   if(!currentSchedule) return;
-  // 디바운스 - 입력 멈추고 800ms 후 저장
   clearTimeout(_hoSaveTimer);
   _hoSaveTimer = setTimeout(function(){
+    var g = function(id){ var el=document.getElementById(id); return el?el.value.trim()||null:null; };
     var body = {
-      handoff_items:    document.getElementById('ho-items').value    || null,
-      handoff_relation: document.getElementById('ho-relation').value  || null,
-      handoff_person:   document.getElementById('ho-name').value      || null,
-      handoff_phone:    document.getElementById('ho-phone').value     || null,
-      handoff_password: document.getElementById('ho-password').value  || null,
-      replay_link_1:    document.getElementById('ho-replay1').value   || null,
-      replay_link_2:    document.getElementById('ho-replay2').value   || null,
+      groom_handover_name:  g('groom-ho-name'),
+      groom_handover_phone: g('groom-ho-phone'),
+      groom_handoff_items:  g('groom-ho-items'),
+      groom_password:       g('groom-ho-password'),
+      groom_live1:          g('groom-live1'),
+      groom_live2:          g('groom-live2'),
+      bride_handover_name:  g('bride-ho-name'),
+      bride_handover_phone: g('bride-ho-phone'),
+      bride_handoff_items:  g('bride-ho-items'),
+      bride_password:       g('bride-ho-password'),
+      bride_live1:          g('bride-live1'),
+      bride_live2:          g('bride-live2'),
     };
     sb.patch('schedules', currentSchedule.id, body)
       .then(function(){
-        // currentSchedule 동기화
         Object.assign(currentSchedule, body);
         var ind = document.getElementById('ho-save-indicator');
         if(ind){ ind.textContent='✓ 저장됨'; setTimeout(function(){ ind.textContent=''; },2000); }
