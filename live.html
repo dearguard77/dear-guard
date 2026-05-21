@@ -286,9 +286,10 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
         target="_blank" class="ho-template pcard">💌 하객 답례인사 템플릿</a>
 
       <!-- 화환/축기 -->
-      <div class="pcard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+      <div class="pcard" style="flex-shrink:0">
         <div class="pcard-title">💐 화환 / 축기 <span id="flower-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
-        <div id="flower-live-list"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div></div>
+        <div id="flower-live-list-groom" style="max-height:140px;overflow-y:auto"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div></div>
+        <div id="flower-live-list-bride" style="max-height:140px;overflow-y:auto;display:none"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div></div>
       </div>
 
       <!-- 운영 메모 -->
@@ -421,6 +422,11 @@ function setLiveHoTab(side){
   if(tb){ tb.style.color=(side==='bride')?pink:gray; tb.style.borderBottomColor=(side==='bride')?pink:'transparent'; }
   if(pg) pg.style.display=(side==='groom')?'flex':'none';
   if(pb) pb.style.display=(side==='bride')?'flex':'none';
+  // 화환/축기 측별 전환
+  var fg=document.getElementById('flower-live-list-groom');
+  var fb=document.getElementById('flower-live-list-bride');
+  if(fg) fg.style.display=(side==='groom')?'block':'none';
+  if(fb) fb.style.display=(side==='bride')?'block':'none';
 }
 
 async function init(){
@@ -777,16 +783,23 @@ async function loadFlowerLive(){
   if(!schedule)return;
   try{
     const fl=await sb.get('flower_logs','?schedule_id=eq.'+schedule.id+'&order=created_at.desc');
-    const el=document.getElementById('flower-live-list');
     const cnt=document.getElementById('flower-cnt');
-    if(!el)return;
     if(cnt)cnt.textContent=fl.length+'건';
-    if(!fl.length){el.innerHTML='<div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div>';return;}
-    el.innerHTML=fl.map(f=>{
-      const icon=f.type==='화환'?'💐':'🎏';
-      const sc=f.side==='신랑측'?'color:var(--blue)':'color:var(--pink)';
-      return `<div class="flower-row"><span style="font-size:22px;flex-shrink:0">${icon}</span><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:15px;line-height:1.4">${esc(f.sender)}<span style="font-size:10px;${sc};margin-left:6px;font-size:13px;font-weight:700">${esc(f.side)}</span></div>${f.message?`<div style="font-size:13px;color:var(--text3);margin-top:3px;line-height:1.3">"${esc(f.message)}"</div>`:''}</div><span style="font-size:13px;color:var(--gold2);flex-shrink:0;font-weight:600">${esc(f.time_str||'')}</span></div>`;
-    }).join('');
+    const gEl=document.getElementById('flower-live-list-groom');
+    const bEl=document.getElementById('flower-live-list-bride');
+    const empty='<div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div>';
+    const gFl=fl.filter(f=>f.side==='신랑측');
+    const bFl=fl.filter(f=>f.side==='신부측');
+    function buildHtml(list){
+      if(!list.length) return empty;
+      return list.map(f=>{
+        const icon=f.type==='화환'?'💐':'🎏';
+        const sc=f.side==='신랑측'?'color:var(--blue)':'color:var(--pink)';
+        return `<div class="flower-row"><span style="font-size:22px;flex-shrink:0">${icon}</span><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:15px;line-height:1.4">${esc(f.sender)}<span style="font-size:10px;${sc};margin-left:6px;font-size:13px;font-weight:700">${esc(f.side)}</span></div>${f.message?`<div style="font-size:13px;color:var(--text3);margin-top:3px;line-height:1.3">"${esc(f.message)}"</div>`:''}</div><span style="font-size:13px;color:var(--gold2);flex-shrink:0;font-weight:600">${esc(f.time_str||'')}</span></div>`;
+      }).join('');
+    }
+    if(gEl) gEl.innerHTML=buildHtml(gFl);
+    if(bEl) bEl.innerHTML=buildHtml(bFl);
   }catch(e){console.error('[DG] flower',e);}
 }
 
