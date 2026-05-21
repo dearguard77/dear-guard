@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Dear Guard · 축의 접수</title>
-<link rel="icon" type="image/png" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
+<link rel="shortcut icon" href="icon.png">
+<link rel="icon" sizes="192x192" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Dear Guard">
@@ -60,7 +62,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 2-column body */
 #main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
-#main-body{display:grid;grid-template-columns:220px 1fr 220px;height:100%;max-width:1600px;margin:0 auto;width:100%}
+#main-body{display:grid;grid-template-columns:350px 1fr 1fr;height:100%;width:100%}
 
 /* ── 인계 정보 패널 ── */
 #handover-panel{overflow-y:auto;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
@@ -98,13 +100,13 @@ input,select,textarea{font-family:inherit;outline:none}
 .ledger-r1{display:flex;align-items:center;gap:3px;min-width:0}
 .ledger-r2{display:flex;align-items:center;gap:3px;margin-top:1px;flex-wrap:nowrap}
 .ledger-num{font-size:9px;color:#C7A96B;font-weight:700;width:18px;flex-shrink:0;text-align:right}
-.ledger-name{font-size:13px;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-.ledger-amt{font-size:13px;font-weight:800;color:#C7A96B;white-space:nowrap;flex-shrink:0;margin-left:6px}
+.ledger-name{font-size:12px;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.ledger-amt{font-size:12px;font-weight:800;color:#C7A96B;white-space:nowrap;flex-shrink:0;margin-left:4px}
 .ledger-memo{font-size:10px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;margin-left:18px}
-.ledger-btn{border:none;border-radius:3px;padding:1px 5px;font-size:9px;cursor:pointer;font-weight:600;flex-shrink:0}
+.ledger-btn{border:none;border-radius:3px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:600;flex-shrink:0}
 .ledger-edit{background:#EFF6FF;color:#2563EB}
 .ledger-del{background:#FEF2F2;color:#DC2626}
-#input-panel{overflow-y:auto;padding:6px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+#input-panel{overflow-y:auto;padding:5px 8px;background:#EDEDED;display:flex;flex-direction:column;gap:3px;flex-shrink:0}
 #split-list-panel{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0}
 #split-list-panel.single{grid-template-columns:1fr}
 .split-list-col{overflow:hidden;display:flex;flex-direction:column;border-top:2px solid #E0E0E0}
@@ -133,11 +135,11 @@ input,select,textarea{font-family:inherit;outline:none}
 #input-panel{overflow-y:auto;padding:8px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px}
 
 .card{background:#fff;border-radius:8px;padding:7px 10px;border:1px solid #E0E0E0}
-.card-title{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.4px;margin-bottom:5px;text-transform:uppercase}
+.card-title{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.3px;margin-bottom:3px;text-transform:uppercase}
 
 /* 토글 */
 .tog-group{display:flex;gap:5px}
-.tog-btn{flex:1;border-radius:7px;padding:7px 6px;font-size:12px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;text-align:center;transition:all .1s;line-height:1.2;white-space:nowrap;min-width:0}
+.tog-btn{flex:1;border-radius:7px;padding:6px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;text-align:center;transition:all .1s;line-height:1.2;white-space:nowrap;min-width:0}
 .tog-btn:active{transform:scale(.97)}
 .tog-blue{background:#3B82F6;color:#fff;border-color:#3B82F6}
 .tog-pink{background:#EC4899;color:#fff;border-color:#EC4899}
@@ -146,19 +148,19 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 금액 버튼 */
 .amt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:7px}
-.amt-btn{border-radius:7px;padding:7px 4px;font-size:12px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#333;text-align:center;transition:all .1s}
+.amt-btn{border-radius:7px;padding:7px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#333;text-align:center;transition:all .1s}
 .amt-btn:active{transform:scale(.96)}
 .amt-active{background:#111;color:#fff;border-color:#111}
 .amt-custom{background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B}
 
-.form-input{border:1.5px solid #E0E0E0;border-radius:7px;padding:7px 10px;font-size:14px;color:#111;background:#fff;width:100%;transition:border-color .15s}
+.form-input{border:1.5px solid #E0E0E0;border-radius:7px;padding:6px 10px;font-size:13px;color:#111;background:#fff;width:100%;transition:border-color .15s}
 .form-input:focus{border-color:#C7A96B}
 .inp-wrap{position:relative}
 .inp-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#9CA3AF;font-weight:600;pointer-events:none}
 
 /* 관계 */
 .rel-group{display:flex;flex-wrap:wrap;gap:4px}
-.rel-btn{border-radius:12px;padding:3px 8px;font-size:11px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;transition:all .1s}
+.rel-btn{border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;transition:all .1s}
 .rel-active{background:#374151;color:#fff;border-color:#374151}
 
 /* 식권 */
@@ -458,7 +460,7 @@ input,select,textarea{font-family:inherit;outline:none}
     <div id="input-panel">
 
       <!-- ⚡ 실시간 식권 현황 -->
-      <div id="tkt-status-card" style="background:#fff;border-radius:9px;border:1px solid #E0E0E0;padding:7px 10px">
+      <div id="tkt-status-card" style="background:#fff;border-radius:8px;border:1px solid #E0E0E0;padding:5px 9px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <!-- 신랑측 -->
           <div>
@@ -494,7 +496,7 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <!-- 식권 설정: 초기 | 추가발급 가로 배치 -->
-      <div class="card" style="padding:7px 10px">
+      <div class="card" style="padding:5px 9px">
         <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0;align-items:start">
 
           <!-- 초기 식권 -->
@@ -526,9 +528,9 @@ input,select,textarea{font-family:inherit;outline:none}
               <!-- 줄1: 측 + 수량 + 추가버튼 -->
               <div style="display:flex;align-items:center;gap:3px">
                 <select id="add-ticket-side"
-                  style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:10px;padding:0 3px;background:#fff;flex-shrink:0;width:54px">
-                  <option value="신랑측">🤵신랑</option>
-                  <option value="신부측">👰신부</option>
+                  style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:70px">
+                  <option value="신랑측">🤵 신랑</option>
+                  <option value="신부측">👰 신부</option>
                 </select>
                 <input id="add-ticket-amount" type="number" placeholder="수량" min="1"
                   style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;flex:1;min-width:0"
@@ -551,15 +553,15 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <!-- 1️⃣ 접수 측 + 결제 방식 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
-        <div class="card" style="padding:7px 10px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <div class="card" style="padding:5px 8px">
           <div class="card-title" style="margin-bottom:5px">접수 측</div>
           <div class="tog-group" style="gap:5px">
             <button class="tog-btn tog-blue" id="side-groom" onclick="setSide('groom')" style="white-space:nowrap;font-size:12px">🤵 신랑측</button>
             <button class="tog-btn" id="side-bride" onclick="setSide('bride')" style="white-space:nowrap;font-size:12px">👰 신부측</button>
           </div>
         </div>
-        <div class="card" style="padding:7px 10px">
+        <div class="card" style="padding:5px 8px">
           <div class="card-title" style="margin-bottom:5px">결제 방식</div>
           <div class="tog-group" style="gap:5px">
             <button class="tog-btn tog-dark" id="pay-cash" onclick="setPayment('cash')" style="white-space:nowrap;font-size:12px">💵 현금</button>
@@ -569,24 +571,26 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <!-- 2️⃣ 하객 이름 + 관계 -->
-      <div class="card" style="padding:8px 10px">
-        <div class="card-title" style="margin-bottom:6px">1️⃣ 하객 이름</div>
-        <input class="form-input" id="guest-name" placeholder="이름 입력 (선택)"
-          style="margin-bottom:6px">
-        <div class="rel-group">
-          <button class="rel-btn" onclick="setRelation('친구')">친구</button>
-          <button class="rel-btn" onclick="setRelation('직장')">직장</button>
-          <button class="rel-btn" onclick="setRelation('가족')">가족</button>
-          <button class="rel-btn" onclick="setRelation('부 지인')">부지인</button>
-          <button class="rel-btn" onclick="setRelation('모 지인')">모지인</button>
-          <button class="rel-btn" onclick="setRelation('기타')">기타</button>
+      <div class="card" style="padding:5px 8px">
+        <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input class="form-input" id="guest-name" placeholder="이름 (선택)"
+            style="width:120px;flex-shrink:0;font-size:13px;padding:5px 8px">
+          <div class="rel-group" style="flex:1;flex-wrap:wrap;gap:3px">
+            <button class="rel-btn" onclick="setRelation('친구')">친구</button>
+            <button class="rel-btn" onclick="setRelation('직장')">직장</button>
+            <button class="rel-btn" onclick="setRelation('가족')">가족</button>
+            <button class="rel-btn" onclick="setRelation('부 지인')">부지인</button>
+            <button class="rel-btn" onclick="setRelation('모 지인')">모지인</button>
+            <button class="rel-btn" onclick="setRelation('기타')">기타</button>
+          </div>
         </div>
       </div>
 
       <!-- 3️⃣ 금액 -->
-      <div class="card" style="padding:8px 10px">
+      <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">2️⃣ 금액</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:5px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:4px">
           <button class="amt-btn" onclick="setAmount(50000)">5만</button>
           <button class="amt-btn" onclick="setAmount(100000)">10만</button>
           <button class="amt-btn" onclick="setAmount(150000)">15만</button>
@@ -604,7 +608,7 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <!-- 4️⃣ 식권 -->
-      <div class="card" style="padding:7px 10px">
+      <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">3️⃣ 식권</div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap">
           <!-- 대인 -->
@@ -635,9 +639,9 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <!-- 메모 -->
-      <div class="card" style="padding:7px 10px">
+      <div class="card" style="padding:5px 8px">
         <input class="form-input" id="memo-input" placeholder="📝 메모 (선택)"
-          style="font-size:12px;padding:5px 8px">
+          style="font-size:12px;padding:4px 8px">
       </div>
 
       <!-- 접수 완료 버튼 -->
@@ -768,7 +772,7 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <!-- 결제 방식 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
         <div class="scard" style="text-align:center;padding:7px 10px">
           <div style="font-size:10px;color:#9CA3AF">💵 현금</div>
           <div style="font-size:16px;font-weight:800;color:#111" id="stat-cash">0건</div>
@@ -886,7 +890,7 @@ const ADMIN_NAMES       = ['강성주','전수연'];
 const sb = {
   h:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
   url:(t,q='')=>`${SUPABASE_URL}/rest/v1/${t}${q}`,
-  async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
+  async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h,mode:'cors'}); if(!r.ok){ const txt=await r.text(); throw new Error('HTTP '+r.status+': '+txt.slice(0,100)); } return r.json(); },
   async post(t,b){ const r=await fetch(sb.url(t),{method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
   async patch(t,id,b){ const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 };
@@ -987,7 +991,15 @@ async function goSelectSchedule(){
     _allSchRows = rows;
     if(!rows.length){wrap.innerHTML='<div class="empty-state">담당 예식이 없습니다</div>';return;}
     renderSchList();
-  } catch(e){ wrap.innerHTML=`<div class="empty-state">로드 실패: ${e.message}</div>`; }
+  } catch(e){
+    console.error('[DG] 예식 로드 실패:', e);
+    wrap.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center">' +
+      '<div style="font-size:18px;margin-bottom:8px">⚠️</div>' +
+      '<div style="font-weight:700;margin-bottom:4px">로드 실패</div>' +
+      '<div style="font-size:11px;color:#9CA3AF;margin-bottom:12px">' + e.message + '</div>' +
+      '<button onclick="goSelectSchedule()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">🔄 다시 시도</button>' +
+    '</div>';
+  }
 }
 
 function schCard(s){
