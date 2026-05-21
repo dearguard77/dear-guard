@@ -37,8 +37,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 /* 좌: 예식정보 */
 #hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:12px 18px;display:flex;flex-direction:column;justify-content:space-between}
 .wedding-brand{font-family:Georgia,serif;font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8;margin-bottom:6px}
-.wedding-names{font-size:22px;font-weight:900;color:#111;letter-spacing:-.3px;margin-bottom:4px;line-height:1.2}
-.wedding-info{font-size:12px;color:var(--text2);margin-bottom:6px}
+.wedding-names{font-size:26px;font-weight:900;color:#111;letter-spacing:-.5px;margin-bottom:5px;line-height:1.1}
+.wedding-info{font-size:14px;font-weight:600;color:#374151;margin-bottom:6px}
 .wedding-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 #mode-badge{font-size:11px;font-weight:700;border-radius:10px;padding:3px 10px;border:1px solid #E0E0E0;color:#9CA3AF;background:#F5F5F5}
 .live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:16px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--green)}
@@ -71,7 +71,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 #body{flex:1;display:grid;grid-template-columns:320px 1fr;overflow:hidden;min-height:0}
 
 /* 좌: 운영 패널 */
-#left-panel{overflow-y:auto;padding:8px;background:#F5F3EF;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+#left-panel{overflow-y:auto;padding:8px;background:#F5F3EF;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px;height:100%}
 .pcard{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 12px}
 .pcard-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:7px}
 .prow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #F5F3F0;font-size:12px}
@@ -174,16 +174,16 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 
     <!-- 좌: 예식 정보 -->
     <div id="hdr-wedding">
-      <div>
+      <div style="flex:1">
         <div class="wedding-brand">DEAR GUARD</div>
-        <div class="wedding-names" id="hdr-names">—</div>
-        <div class="wedding-info" id="hdr-info">—</div>
+        <div class="wedding-names" id="hdr-names" style="font-size:26px;margin-bottom:5px">—</div>
+        <div class="wedding-info" id="hdr-info" style="font-size:14px;font-weight:600;color:#374151;margin-bottom:4px">—</div>
       </div>
       <div class="wedding-footer">
         <span id="mode-badge"></span>
         <span class="live-pill"><span class="live-dot"></span>실시간</span>
         <button class="excel-btn" onclick="downloadExcel()">📥 엑셀</button>
-        <span id="last-upd"></span>
+        <span id="last-upd" style="font-size:11px"></span>
       </div>
     </div>
 
@@ -231,8 +231,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
         </div>
         <!-- 단측: 합계만 표시 -->
         <div style="display:none;gap:16px;font-size:13px" id="ticket-single-wrap">
-          <span style="color:#6B7280">대인 <strong style="color:#D97706" id="total-adult">0</strong>매</span>
-          <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="total-child">0</strong>매</span>
+          <span style="color:#6B7280">대인 <strong style="color:#D97706" id="total-adult">0</strong></span>
+          <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="total-child">0</strong></span>
         </div>
       </div>
     </div>
@@ -272,7 +272,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
         target="_blank" id="template-standalone" class="ho-template pcard">💌 하객 답례인사 템플릿</a>
 
       <!-- 화환/축기 -->
-      <div class="pcard" style="min-height:120px;display:flex;flex-direction:column">
+      <div class="pcard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
         <div class="pcard-title">💐 화환 / 축기 <span id="flower-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
         <div id="flower-live-list"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div></div>
       </div>
@@ -323,14 +323,32 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
         <div class="side-col">
           <div class="side-col-hdr groom">
             <span style="font-size:12px;font-weight:800;color:var(--blue)">🤵 신랑측</span>
-            <span style="font-size:10px;color:#93C5FD" id="groom-sum">0건 · 0원</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:#93C5FD" id="groom-sum">0건 · 0원</span>
+              <select onchange="setSideSort(this.value)" style="font-size:10px;border:1px solid #BFDBFE;border-radius:4px;padding:1px 4px;background:#EFF6FF;color:#2563EB;cursor:pointer">
+                <option value="num_desc">최신순</option>
+                <option value="num_asc">오래된순</option>
+                <option value="amt_desc">금액↓</option>
+                <option value="amt_asc">금액↑</option>
+                <option value="name_asc">이름순</option>
+              </select>
+            </div>
           </div>
           <div class="side-col-body" id="groom-list"></div>
         </div>
         <div class="side-col">
           <div class="side-col-hdr bride">
             <span style="font-size:12px;font-weight:800;color:var(--pink)">👰 신부측</span>
-            <span style="font-size:10px;color:#F9A8D4" id="bride-sum">0건 · 0원</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:#F9A8D4" id="bride-sum">0건 · 0원</span>
+              <select onchange="setSideSort(this.value)" style="font-size:10px;border:1px solid #FBCFE8;border-radius:4px;padding:1px 4px;background:#FDF2F8;color:#DB2777;cursor:pointer">
+                <option value="num_desc">최신순</option>
+                <option value="num_asc">오래된순</option>
+                <option value="amt_desc">금액↓</option>
+                <option value="amt_asc">금액↑</option>
+                <option value="name_asc">이름순</option>
+              </select>
+            </div>
           </div>
           <div class="side-col-body" id="bride-list"></div>
         </div>
@@ -343,6 +361,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 <div id="upd">✓ 업데이트</div>
 
 <script>
+
+
 
 
 
@@ -425,8 +445,8 @@ function renderStats(){
   const bChildTkt=logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
   const totalAdult=logs.reduce((s,l)=>s+(l.adult_ticket||0),0);
   const totalChild=logs.reduce((s,l)=>s+(l.child_ticket||0),0);
-  se('total-adult',totalAdult+'매');
-  se('total-child',totalChild+'매');
+  se('total-adult',totalAdult);
+  se('total-child',totalChild);
   se('groom-adult-tkt',gAdultTkt);
   se('groom-child-tkt',gChildTkt);
   se('bride-adult-tkt',bAdultTkt);
@@ -453,6 +473,25 @@ function renderStats(){
 }
 
 // ── 정렬 ──
+var _sideSort='num_desc';
+function setSideSort(val){
+  _sideSort=val;
+  renderList();
+}
+
+function applySideSort(arr){
+  var sorted=arr.slice();
+  sorted.sort(function(a,b){
+    if(_sideSort==='num_desc') return logs.indexOf(a)-logs.indexOf(b);
+    if(_sideSort==='num_asc')  return logs.indexOf(b)-logs.indexOf(a);
+    if(_sideSort==='amt_desc') return (b.amount||0)-(a.amount||0);
+    if(_sideSort==='amt_asc')  return (a.amount||0)-(b.amount||0);
+    if(_sideSort==='name_asc') return (a.guest_name||'').localeCompare(b.guest_name||'','ko');
+    return 0;
+  });
+  return sorted;
+}
+
 function sortTbl(key){
   if(_sortKey===key){_sortDir=_sortDir==='asc'?'desc':'asc';}
   else{_sortKey=key;_sortDir=key==='num'?'desc':'asc';}
@@ -555,8 +594,10 @@ function renderList(){
     se('bride-sum',bF.length+'건 · '+fmtFull(bAmt));
     const gEl=document.getElementById('groom-list');
     const bEl=document.getElementById('bride-list');
-    if(gEl)gEl.innerHTML=gF.length?gF.map(l=>buildRow(l,false)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
-    if(bEl)bEl.innerHTML=bF.length?bF.map(l=>buildRow(l,false)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    const gFS=applySideSort(gF);
+    if(gEl)gEl.innerHTML=gFS.length?gFS.map(l=>buildRow(l,false)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    const bFS=applySideSort(bF);
+    if(bEl)bEl.innerHTML=bFS.length?bFS.map(l=>buildRow(l,false)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
   } else {
     // 단일 테이블 뷰
     if(splitWrap)splitWrap.style.display='none';
@@ -697,6 +738,8 @@ _s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{o
 document.head.appendChild(_s);
 
 init();
+
+
 
 
 
