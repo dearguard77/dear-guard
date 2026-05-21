@@ -35,11 +35,11 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 #hdr{background:var(--bg2);border-bottom:1.5px solid var(--border);padding:10px 16px;flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
 
 /* 좌: 예식정보 */
-#hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:12px 18px;display:flex;flex-direction:column;justify-content:space-between}
+#hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:14px 20px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center}
 .wedding-brand{font-family:Georgia,serif;font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8;margin-bottom:6px}
 .wedding-names{font-size:32px;font-weight:900;color:#111;letter-spacing:-.5px;margin-bottom:6px;line-height:1.1}
 .wedding-info{font-size:16px;font-weight:600;color:#374151;margin-bottom:6px}
-.wedding-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wedding-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
 #mode-badge{font-size:13px;font-weight:700;border-radius:10px;padding:4px 12px;border:1px solid #E0E0E0;color:#9CA3AF;background:#F5F5F5}
 .live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--green)}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
@@ -173,13 +173,13 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
   <div id="hdr">
 
     <!-- 좌: 예식 정보 -->
-    <div id="hdr-wedding">
+    <div id="hdr-wedding" style="text-align:center;justify-content:center">
       <div style="flex:1">
-        <div class="wedding-brand">DEAR GUARD</div>
-        <div class="wedding-names" id="hdr-names" style="font-size:26px;margin-bottom:5px">—</div>
-        <div class="wedding-info" id="hdr-info" style="font-size:14px;font-weight:600;color:#374151;margin-bottom:4px">—</div>
+        <div class="wedding-brand" style="text-align:center">DEAR GUARD</div>
+        <div class="wedding-names" id="hdr-names" style="font-size:32px;margin-bottom:6px;text-align:center">—</div>
+        <div class="wedding-info" id="hdr-info" style="font-size:16px;font-weight:600;color:#374151;margin-bottom:8px;text-align:center">—</div>
       </div>
-      <div class="wedding-footer">
+      <div class="wedding-footer" style="justify-content:center">
         <span id="mode-badge"></span>
         <span class="live-pill"><span class="live-dot"></span>실시간</span>
         <button class="excel-btn" onclick="downloadExcel()">📥 엑셀</button>
@@ -399,7 +399,10 @@ async function init(){
     const g=(schedule.groom_name||'').trim(),b=(schedule.bride_name||'').trim();
     const names=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:schedule.hall||'—';
     se('hdr-names',names);
-    se('hdr-info',`${schedule.date||''} · ${(schedule.time||'').slice(0,5)} · ${schedule.hall||''}`);
+    const _d=new Date((schedule.date||'')+'T00:00:00');
+    const _days=['일','월','화','수','목','금','토'];
+    const _day=schedule.date?` (${_days[_d.getDay()]})`:'';
+    se('hdr-info',`${schedule.date||''}${_day} · ${(schedule.time||'').slice(0,5)} · ${schedule.hall||''}`);
     document.title=`${names} · 실시간 장부`;
     await loadLogs();
     loadFlowerLive();
