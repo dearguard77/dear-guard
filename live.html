@@ -366,6 +366,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 
 
 
+
+
 const SUPABASE_URL='https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 const sb={
@@ -542,8 +544,8 @@ function getFiltered(side){
 }
 
 // ── 행 빌드 ──
-function buildRow(l,showSide){
-  const num=logs.length-logs.indexOf(l);
+function buildRow(l,showSide,sideIndex,sideTotal){
+  const num = sideIndex !== undefined ? sideTotal - sideIndex : logs.length - logs.indexOf(l);
   const isNew=newIds.has(l.id);
   const adultT=l.adult_ticket||0,childT=l.child_ticket||0;
   const tktHtml=(adultT>0?`<span class="badge-adult">대${adultT}</span>`:'')+
@@ -595,9 +597,9 @@ function renderList(){
     const gEl=document.getElementById('groom-list');
     const bEl=document.getElementById('bride-list');
     const gFS=applySideSort(gF);
-    if(gEl)gEl.innerHTML=gFS.length?gFS.map(l=>buildRow(l,false)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    if(gEl)gEl.innerHTML=gFS.length?gFS.map((l,i)=>buildRow(l,false,i,gFS.length)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
     const bFS=applySideSort(bF);
-    if(bEl)bEl.innerHTML=bFS.length?bFS.map(l=>buildRow(l,false)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    if(bEl)bEl.innerHTML=bFS.length?bFS.map((l,i)=>buildRow(l,false,i,bFS.length)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
   } else {
     // 단일 테이블 뷰
     if(splitWrap)splitWrap.style.display='none';
@@ -610,7 +612,19 @@ function renderList(){
     const showSide=!side&&both;
     const thSide=document.getElementById('th-side');
     if(thSide)thSide.style.display=showSide?'':'none';
-    if(singleBody)singleBody.innerHTML=filt.length?filt.map(l=>buildRow(l,showSide)).join(''):`<div style="text-align:center;padding:30px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    if(singleBody){
+      // 측별 독립 넘버링을 위해 측별 카운터 계산
+      const grpCount={};
+      filt.forEach(l=>{ grpCount[l.side]=(grpCount[l.side]||0)+1; });
+      const grpIdx={};
+      singleBody.innerHTML=filt.length?filt.map(l=>{
+        grpIdx[l.side]=(grpIdx[l.side]||0);
+        const si=grpIdx[l.side];
+        const st=grpCount[l.side];
+        grpIdx[l.side]++;
+        return buildRow(l,showSide,si,st);
+      }).join(''):`<div style="text-align:center;padding:30px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    }
   }
   setTimeout(()=>newIds.clear(),2500);
 }
@@ -738,6 +752,8 @@ _s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{o
 document.head.appendChild(_s);
 
 init();
+
+
 
 
 
