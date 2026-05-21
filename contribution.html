@@ -106,7 +106,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .ledger-btn{border:none;border-radius:3px;padding:2px 6px;font-size:10px;cursor:pointer;font-weight:600;flex-shrink:0}
 .ledger-edit{background:#EFF6FF;color:#2563EB}
 .ledger-del{background:#FEF2F2;color:#DC2626}
-#input-panel{overflow-y:auto;padding:5px 8px;background:#EDEDED;display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+#input-panel{overflow-y:auto;padding:6px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px;flex-shrink:0}
 #split-list-panel{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0}
 #split-list-panel.single{grid-template-columns:1fr}
 .split-list-col{overflow:hidden;display:flex;flex-direction:column;border-top:2px solid #E0E0E0}
@@ -134,12 +134,12 @@ input,select,textarea{font-family:inherit;outline:none}
 /* ── 왼쪽 입력 ── */
 #input-panel{overflow-y:auto;padding:8px 10px;background:#EDEDED;display:flex;flex-direction:column;gap:5px}
 
-.card{background:#fff;border-radius:8px;padding:7px 10px;border:1px solid #E0E0E0}
-.card-title{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.3px;margin-bottom:3px;text-transform:uppercase}
+.card{background:#fff;border-radius:8px;padding:9px 11px;border:1px solid #E0E0E0}
+.card-title{font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:.3px;margin-bottom:4px;text-transform:uppercase}
 
 /* 토글 */
 .tog-group{display:flex;gap:5px}
-.tog-btn{flex:1;border-radius:7px;padding:6px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;text-align:center;transition:all .1s;line-height:1.2;white-space:nowrap;min-width:0}
+.tog-btn{flex:1;border-radius:7px;padding:8px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;text-align:center;transition:all .1s;line-height:1.2;white-space:nowrap;min-width:0}
 .tog-btn:active{transform:scale(.97)}
 .tog-blue{background:#3B82F6;color:#fff;border-color:#3B82F6}
 .tog-pink{background:#EC4899;color:#fff;border-color:#EC4899}
@@ -148,19 +148,19 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 금액 버튼 */
 .amt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:7px}
-.amt-btn{border-radius:7px;padding:7px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#333;text-align:center;transition:all .1s}
+.amt-btn{border-radius:7px;padding:9px 4px;font-size:13px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#333;text-align:center;transition:all .1s}
 .amt-btn:active{transform:scale(.96)}
 .amt-active{background:#111;color:#fff;border-color:#111}
 .amt-custom{background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B}
 
-.form-input{border:1.5px solid #E0E0E0;border-radius:7px;padding:6px 10px;font-size:13px;color:#111;background:#fff;width:100%;transition:border-color .15s}
+.form-input{border:1.5px solid #E0E0E0;border-radius:7px;padding:8px 10px;font-size:14px;color:#111;background:#fff;width:100%;transition:border-color .15s}
 .form-input:focus{border-color:#C7A96B}
 .inp-wrap{position:relative}
 .inp-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:#9CA3AF;font-weight:600;pointer-events:none}
 
 /* 관계 */
 .rel-group{display:flex;flex-wrap:wrap;gap:4px}
-.rel-btn{border-radius:10px;padding:3px 8px;font-size:11px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;transition:all .1s}
+.rel-btn{border-radius:10px;padding:4px 9px;font-size:12px;font-weight:600;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#666;transition:all .1s}
 .rel-active{background:#374151;color:#fff;border-color:#374151}
 
 /* 식권 */
@@ -464,30 +464,30 @@ input,select,textarea{font-family:inherit;outline:none}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <!-- 신랑측 -->
           <div>
-            <div style="font-size:9px;font-weight:700;color:#2563EB;letter-spacing:.3px;margin-bottom:4px">🤵 신랑측 식권</div>
+            <div style="font-size:11px;font-weight:700;color:#2563EB;letter-spacing:.3px;margin-bottom:4px">🤵 신랑측 식권</div>
             <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:2px">
-              <span style="font-size:9px;color:#9CA3AF">총</span>
-              <span style="font-size:12px;font-weight:700;color:#374151" id="tks-g-total">—</span>
+              <span style="font-size:11px;color:#9CA3AF">총</span>
+              <span style="font-size:13px;font-weight:700;color:#374151" id="tks-g-total">—</span>
               <span id="tks-g-extra-wrap" style="display:none;font-size:9px;color:#059669;font-weight:600" id="tks-g-extra"></span>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
-              <div style="font-size:9px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-g-used">0</span></div>
-              <div style="font-size:9px;color:#9CA3AF">잔여
+              <div style="font-size:11px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-g-used">0</span></div>
+              <div style="font-size:11px;color:#9CA3AF">잔여
                 <span id="tks-g-remain" style="font-size:15px;font-weight:900;line-height:1">—</span>
               </div>
             </div>
           </div>
           <!-- 신부측 -->
           <div style="border-left:1px solid #F0EDE8;padding-left:8px">
-            <div style="font-size:9px;font-weight:700;color:#DB2777;letter-spacing:.3px;margin-bottom:4px">👰 신부측 식권</div>
+            <div style="font-size:11px;font-weight:700;color:#DB2777;letter-spacing:.3px;margin-bottom:4px">👰 신부측 식권</div>
             <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:2px">
-              <span style="font-size:9px;color:#9CA3AF">총</span>
-              <span style="font-size:12px;font-weight:700;color:#374151" id="tks-b-total">—</span>
+              <span style="font-size:11px;color:#9CA3AF">총</span>
+              <span style="font-size:13px;font-weight:700;color:#374151" id="tks-b-total">—</span>
               <span id="tks-b-extra-wrap" style="display:none;font-size:9px;color:#059669;font-weight:600" id="tks-b-extra"></span>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
-              <div style="font-size:9px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-b-used">0</span></div>
-              <div style="font-size:9px;color:#9CA3AF">잔여
+              <div style="font-size:11px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-b-used">0</span></div>
+              <div style="font-size:11px;color:#9CA3AF">잔여
                 <span id="tks-b-remain" style="font-size:15px;font-weight:900;line-height:1">—</span>
               </div>
             </div>
@@ -501,7 +501,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
           <!-- 초기 식권 -->
           <div style="padding-right:10px">
-            <div style="font-size:10px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">초기 식권 설정</div>
+            <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">초기 식권 설정</div>
             <div style="display:flex;flex-direction:column;gap:4px">
               <div style="display:flex;align-items:center;gap:5px">
                 <span style="font-size:11px;color:#6B7280;width:14px">🤵</span>
@@ -523,7 +523,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
           <!-- 추가 발급 -->
           <div style="padding-left:10px">
-            <div style="font-size:10px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">추가 발급</div>
+            <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">추가 발급</div>
             <div style="display:flex;flex-direction:column;gap:4px">
               <!-- 줄1: 측 + 수량 + 추가버튼 -->
               <div style="display:flex;align-items:center;gap:3px">
@@ -575,7 +575,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름</div>
         <div style="display:flex;align-items:center;gap:6px">
           <input class="form-input" id="guest-name" placeholder="이름 (선택)"
-            style="width:120px;flex-shrink:0;font-size:13px;padding:5px 8px">
+            style="width:180px;flex-shrink:0;font-size:13px;padding:7px 8px">
           <div class="rel-group" style="flex:1;flex-wrap:wrap;gap:3px">
             <button class="rel-btn" onclick="setRelation('친구')">친구</button>
             <button class="rel-btn" onclick="setRelation('직장')">직장</button>
@@ -612,7 +612,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="card-title" style="margin-bottom:5px">3️⃣ 식권</div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap">
           <!-- 대인 -->
-          <span style="font-size:11px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">대인</span>
+          <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">대인</span>
           <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
             <button onclick="changeTicket('adult',-1)"
               style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
@@ -621,11 +621,11 @@ input,select,textarea{font-family:inherit;outline:none}
             <button onclick="changeTicket('adult',1)"
               style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
           </div>
-          <span style="font-size:11px;color:#9CA3AF;flex-shrink:0">매</span>
+          <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
           <!-- 구분 -->
           <div style="width:1px;height:20px;background:#E0E0E0;flex-shrink:0"></div>
           <!-- 소인 -->
-          <span style="font-size:11px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">소인</span>
+          <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">소인</span>
           <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
             <button onclick="changeTicket('child',-1)"
               style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
@@ -634,7 +634,7 @@ input,select,textarea{font-family:inherit;outline:none}
             <button onclick="changeTicket('child',1)"
               style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
           </div>
-          <span style="font-size:11px;color:#9CA3AF;flex-shrink:0">매</span>
+          <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
         </div>
       </div>
 
