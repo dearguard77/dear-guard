@@ -36,12 +36,12 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 
 /* 좌: 예식정보 */
 #hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:12px 18px;display:flex;flex-direction:column;justify-content:space-between}
-.wedding-brand{font-family:Georgia,serif;font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8;margin-bottom:6px}
-.wedding-names{font-size:26px;font-weight:900;color:#111;letter-spacing:-.5px;margin-bottom:5px;line-height:1.1}
-.wedding-info{font-size:14px;font-weight:600;color:#374151;margin-bottom:6px}
+.wedding-brand{font-family:Georgia,serif;font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8;margin-bottom:6px}
+.wedding-names{font-size:32px;font-weight:900;color:#111;letter-spacing:-.5px;margin-bottom:6px;line-height:1.1}
+.wedding-info{font-size:16px;font-weight:600;color:#374151;margin-bottom:6px}
 .wedding-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-#mode-badge{font-size:11px;font-weight:700;border-radius:10px;padding:3px 10px;border:1px solid #E0E0E0;color:#9CA3AF;background:#F5F5F5}
-.live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:16px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--green)}
+#mode-badge{font-size:13px;font-weight:700;border-radius:10px;padding:4px 12px;border:1px solid #E0E0E0;color:#9CA3AF;background:#F5F5F5}
+.live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--green)}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;margin-left:auto}
@@ -54,18 +54,18 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .sum-card.groom{background:#EFF6FF;border:1.5px solid #BFDBFE}
 .sum-card.bride{background:#FDF2F8;border:1.5px solid #FBCFE8}
 .sum-card.ticket{background:#F5F3FF;border:1.5px solid #DDD6FE}
-.sum-lbl{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.sum-lbl{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
 .sum-lbl.gold{color:#A07030}
 .sum-lbl.blue{color:#1D4ED8}
 .sum-lbl.pink{color:#9D174D}
 .sum-lbl.purple{color:#6D28D9}
-.sum-val{font-size:20px;font-weight:900;line-height:1;margin-bottom:3px}
+.sum-val{font-size:22px;font-weight:900;line-height:1;margin-bottom:4px}
 .sum-val.gold{color:var(--gold2)}
-.sum-val.blue{color:var(--blue)}
-.sum-val.pink{color:var(--pink)}
+.sum-val.blue{color:var(--blue);font-size:20px}
+.sum-val.pink{color:var(--pink);font-size:20px}
 .sum-val.purple{color:#7C3AED}
-.sum-sub{font-size:11px;color:var(--text3)}
-.sum-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-top:3px}
+.sum-sub{font-size:13px;color:var(--text3)}
+.sum-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-top:4px}
 
 /* 메인 바디 */
 #body{flex:1;display:grid;grid-template-columns:320px 1fr;overflow:hidden;min-height:0}
@@ -73,8 +73,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 /* 좌: 운영 패널 */
 #left-panel{overflow-y:auto;padding:8px;background:#F5F3EF;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px;height:100%}
 .pcard{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 12px}
-.pcard-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:7px}
-.prow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #F5F3F0;font-size:12px}
+.pcard-title{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:.3px;text-transform:uppercase;margin-bottom:8px}
+.prow{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #F5F3F0;font-size:13px}
 .prow:last-child{border-bottom:none;padding-bottom:0}
 .prow-lbl{color:var(--text2)}
 .prow-val{font-weight:700;color:var(--text)}
@@ -84,9 +84,9 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .ho-pw{font-size:22px;font-weight:900;color:var(--gold2);letter-spacing:4px;text-align:center;padding:8px;background:var(--bg3);border-radius:6px;margin-bottom:5px}
 .ho-link{display:block;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;margin-bottom:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ho-template{display:flex;align-items:center;justify-content:center;gap:5px;background:#FDF8F0;border:1.5px solid #E8D5B0;border-radius:7px;padding:8px;text-decoration:none;color:var(--gold2);font-size:12px;font-weight:700}
-.flower-row{display:flex;align-items:flex-start;gap:5px;padding:4px 0;border-bottom:1px solid #F5F3F0;font-size:11px}
+.flower-row{display:flex;align-items:flex-start;gap:6px;padding:6px 0;border-bottom:1px solid #F5F3F0;font-size:13px}
 .flower-row:last-child{border-bottom:none}
-.ops-row{display:flex;gap:5px;align-items:baseline;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:11px}
+.ops-row{display:flex;gap:6px;align-items:baseline;padding:5px 0;border-bottom:1px solid #F5F3F0;font-size:13px}
 .ops-row:last-child{border-bottom:none}
 
 /* 우: 장부 테이블 */
@@ -94,17 +94,17 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 
 /* 장부 컨트롤 바 */
 #tbl-ctrl{padding:7px 12px;border-bottom:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;background:#FAFAF8}
-.tbl-ctrl-title{font-size:12px;font-weight:800;color:var(--text);white-space:nowrap}
-.ctrl-select{height:28px;border:1.5px solid var(--border);border-radius:6px;padding:0 8px;font-size:11px;background:var(--bg2);color:var(--text);cursor:pointer;outline:none}
+.tbl-ctrl-title{font-size:14px;font-weight:800;color:var(--text);white-space:nowrap}
+.ctrl-select{height:30px;border:1.5px solid var(--border);border-radius:6px;padding:0 8px;font-size:12px;background:var(--bg2);color:var(--text);cursor:pointer;outline:none}
 .ctrl-select:focus{border-color:var(--gold2)}
-.ctrl-input{height:28px;border:1.5px solid var(--border);border-radius:6px;padding:0 8px;font-size:11px;background:var(--bg2);color:var(--text);outline:none;width:110px}
+.ctrl-input{height:30px;border:1.5px solid var(--border);border-radius:6px;padding:0 8px;font-size:12px;background:var(--bg2);color:var(--text);outline:none;width:120px}
 .ctrl-input:focus{border-color:var(--gold2)}
-.ctrl-tab{border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer;transition:all .1s;white-space:nowrap}
+.ctrl-tab{border-radius:14px;padding:4px 12px;font-size:12px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer;transition:all .1s;white-space:nowrap}
 .ctrl-tab.on{background:#111;color:#fff;border-color:#111}
 
 /* 테이블 */
 #tbl-wrap{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
-.tbl-head{display:flex;align-items:center;background:#F5F3EF;border-bottom:2px solid var(--border);flex-shrink:0;font-size:11px;font-weight:700;color:var(--text3)}
+.tbl-head{display:flex;align-items:center;background:#F5F3EF;border-bottom:2px solid var(--border);flex-shrink:0;font-size:12px;font-weight:700;color:var(--text3)}
 .tbl-body{overflow-y:auto;flex:1}
 /* 양측: 2분할 */
 #split-wrap{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;min-height:0}
@@ -116,7 +116,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .side-col-body{overflow-y:auto;flex:1}
 
 /* 테이블 행 */
-.tbl-row{display:flex;align-items:center;border-bottom:1px solid #ECEAE6;font-size:13px;transition:background .1s;min-height:42px}
+.tbl-row{display:flex;align-items:center;border-bottom:1px solid #ECEAE6;font-size:14px;transition:background .1s;min-height:48px}
 .tbl-row:hover{background:rgba(199,169,107,.04)}
 .tbl-row.new-item{animation:fadeIn .3s ease;background:rgba(199,169,107,.06)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
@@ -124,20 +124,20 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .tc-num{width:42px;flex-shrink:0;padding:7px 5px;text-align:center;font-size:12px;font-weight:700;color:var(--gold2)}
 .tc-side{width:40px;flex-shrink:0;padding:6px 4px;text-align:center}
 .tc-name{flex:1;min-width:90px;padding:7px 10px;overflow:hidden}
-.tc-name-main{font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
-.tc-name-sub{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.tc-amt{width:90px;flex-shrink:0;padding:7px 10px;text-align:right;font-weight:900;color:var(--gold2);font-size:15px}
+.tc-name-main{font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:17px}
+.tc-name-sub{font-size:13px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.tc-amt{width:100px;flex-shrink:0;padding:7px 10px;text-align:right;font-weight:900;color:var(--gold2);font-size:17px}
 .tc-tkt{width:90px;flex-shrink:0;padding:7px 6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 .tc-pay{width:62px;flex-shrink:0;padding:7px 5px;text-align:center}
-.tc-time{width:50px;flex-shrink:0;padding:7px 5px;text-align:right;font-size:12px;color:var(--text3)}
+.tc-time{width:54px;flex-shrink:0;padding:7px 5px;text-align:right;font-size:13px;color:var(--text3)}
 .th-sort{cursor:pointer;user-select:none}
 .th-sort:hover{color:var(--text)}
 .th-sort.asc::after{content:" ↑";color:var(--gold2)}
 .th-sort.desc::after{content:" ↓";color:var(--gold2)}
-.badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:4px;padding:2px 6px;font-size:12px;font-weight:700}
-.badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:2px 6px;font-size:12px;font-weight:700}
-.badge-cash{display:inline-block;background:#D1FAE5;color:#059669;border-radius:4px;padding:2px 7px;font-size:12px;font-weight:700}
-.badge-trans{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:2px 7px;font-size:12px;font-weight:700}
+.badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:4px;padding:3px 7px;font-size:13px;font-weight:700}
+.badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:3px 7px;font-size:13px;font-weight:700}
+.badge-cash{display:inline-block;background:#D1FAE5;color:#059669;border-radius:4px;padding:3px 8px;font-size:13px;font-weight:700}
+.badge-trans{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:3px 8px;font-size:13px;font-weight:700}
 .badge-side-g{display:inline-block;background:#EFF6FF;color:#2563EB;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700}
 .badge-side-b{display:inline-block;background:#FDF2F8;color:#DB2777;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700}
 
@@ -215,15 +215,15 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="ticket-detail-wrap">
           <!-- 양측: 신랑/신부 구분 -->
           <div id="ticket-groom-wrap">
-            <div style="font-size:10px;font-weight:700;color:#2563EB;margin-bottom:3px">🤵 신랑측</div>
-            <div style="display:flex;gap:10px;font-size:13px">
+            <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:4px">🤵 신랑측</div>
+            <div style="display:flex;gap:12px;font-size:15px">
               <span style="color:#6B7280">대인 <strong style="color:#D97706" id="groom-adult-tkt">0</strong></span>
               <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="groom-child-tkt">0</strong></span>
             </div>
           </div>
           <div id="ticket-bride-wrap">
-            <div style="font-size:10px;font-weight:700;color:#DB2777;margin-bottom:3px">👰 신부측</div>
-            <div style="display:flex;gap:10px;font-size:13px">
+            <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:4px">👰 신부측</div>
+            <div style="display:flex;gap:12px;font-size:15px">
               <span style="color:#6B7280">대인 <strong style="color:#D97706" id="bride-adult-tkt">0</strong></span>
               <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="bride-child-tkt">0</strong></span>
             </div>
@@ -361,6 +361,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 <div id="upd">✓ 업데이트</div>
 
 <script>
+
 
 
 
@@ -754,6 +755,7 @@ _s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{o
 document.head.appendChild(_s);
 
 init();
+
 
 
 
