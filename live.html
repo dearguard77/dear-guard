@@ -45,6 +45,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.live-stream-btn{display:inline-flex;align-items:center;gap:5px;background:#FF0000;color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap;letter-spacing:.3px;transition:background .15s;border:none}
+.live-stream-btn:hover{background:#CC0000}
 #last-upd{font-size:10px;color:var(--text3)}
 
 /* 우: 축의 요약 */
@@ -185,6 +187,8 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
       <div class="wedding-footer" style="justify-content:center">
         <span id="mode-badge"></span>
         <span class="live-pill"><span class="live-dot"></span>실시간</span>
+        <a id="live-btn-1" href="#" target="_blank" class="live-stream-btn" style="display:none">🔴 LIVE 1</a>
+        <a id="live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none">🔴 LIVE 2</a>
         <button class="excel-btn" onclick="downloadExcel()">📥 엑셀 다운로드</button>
         <span id="last-upd" style="font-size:11px"></span>
       </div>
@@ -364,6 +368,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 <div id="upd">✓ 업데이트</div>
 
 <script>
+
 
 
 
@@ -679,6 +684,18 @@ function renderHandover(){
   show('hc-pw-wrap','hc-password',s.handoff_password);
   if(s.replay_link_1){document.getElementById('hc-r1-wrap').style.display='block';document.getElementById('hc-replay1').href=s.replay_link_1;}
   if(s.replay_link_2){document.getElementById('hc-r2-wrap').style.display='block';document.getElementById('hc-replay2').href=s.replay_link_2;}
+
+  // LIVE 버튼 연동
+  var lb1=document.getElementById('live-btn-1');
+  var lb2=document.getElementById('live-btn-2');
+  if(lb1){
+    if(s.replay_link_1){lb1.href=s.replay_link_1;lb1.style.display='inline-flex';}
+    else lb1.style.display='none';
+  }
+  if(lb2){
+    if(s.replay_link_2){lb2.href=s.replay_link_2;lb2.style.display='inline-flex';}
+    else lb2.style.display='none';
+  }
 }
 
 function applyWeddingMode(){
@@ -766,6 +783,7 @@ _s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{o
 document.head.appendChild(_s);
 
 init();
+
 
 
 
