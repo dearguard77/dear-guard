@@ -741,10 +741,10 @@ function downloadExcel(){
   const nm=(g&&b)?g+' ♥ '+b:(g||b||schedule.hall||'예식');
   const dt=schedule.date||new Date().toISOString().slice(0,10);
   const wb=XLSX.utils.book_new();
-  const data=[['번호','접수측','결제방식','하객이름','관계','금액(원)','대인식권','소인식권','메모','접수시간','입력자']];
+  const data=[['번호','접수측','결제방식','하객이름','관계','금액(원)','대인식권','소인식권','메모','접수시간']];
   for(let i=0;i<logs.length;i++){
     const l=logs[i];
-    data.push([logs.length-i,l.side||'',l.payment_type||'',l.guest_name||'',l.relation||'',l.amount||0,l.adult_ticket||0,l.child_ticket||0,l.memo||'',l.created_at?fmtTime(l.created_at):'',l.created_by||'']);
+    data.push([logs.length-i,l.side||'',l.payment_type||'',l.guest_name||'',l.relation||'',l.amount||0,l.adult_ticket||0,l.child_ticket||0,l.memo||'',l.created_at?fmtTime(l.created_at):'']);
   }
   const gL=logs.filter(l=>l.side==='신랑측'),bL=logs.filter(l=>l.side==='신부측');
   data.push([]);
@@ -753,7 +753,7 @@ function downloadExcel(){
   data.push([' 신부측',bL.length+'건','','','',bL.reduce((s,l)=>s+(l.amount||0),0)]);
   if(opsLogs.length){data.push([]);data.push([' 운영메모']);data.push(['시간','내용','작성자']);opsLogs.forEach(l=>data.push([l.time_str||'',l.content||'',l.created_by||'']));}
   const ws=XLSX.utils.aoa_to_sheet(data);
-  ws['!cols']=[{wch:6},{wch:8},{wch:10},{wch:12},{wch:8},{wch:12},{wch:8},{wch:8},{wch:20},{wch:8},{wch:8}];
+  ws['!cols']=[{wch:6},{wch:8},{wch:10},{wch:12},{wch:8},{wch:12},{wch:8},{wch:8},{wch:20},{wch:8}];
   XLSX.utils.book_append_sheet(wb,ws,'접수내역');
   XLSX.writeFile(wb,'축의접수_'+nm+'_'+dt+'.xlsx');
 }
