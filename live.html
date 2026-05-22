@@ -169,6 +169,12 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
   #left-panel{display:flex !important}
   #split-wrap{grid-template-columns:1fr}
 }
+  /* 운영정보 compact grid */
+.ho-compact-row{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;margin-bottom:6px}
+.ho-compact-row.links{grid-template-columns:1fr 1fr 1fr}
+.ho-compact-cell{background:var(--bg3);border-radius:6px;padding:7px 9px;font-size:11px;min-width:0}
+.ho-compact-cell .ho-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.ho-compact-cell a.ho-link{display:block;background:transparent;border:none;padding:0;margin:0;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -302,11 +308,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
           <div id="bride-info-body"></div>
         </div>
       </div>
-
-      <!-- 답례 템플릿 -->
-      <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
-        target="_blank" class="ho-template pcard">💌 하객 답례인사 템플릿</a>
-
+      
       <!-- 화환/축기 -->
       <div class="pcard" style="flex-shrink:0">
         <div class="pcard-title">💐 화환 / 축기 <span id="flower-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
@@ -745,37 +747,57 @@ function renderHandover(){
 
     var html = '';
 
-    // 인계자 정보 + 레디백 비번 가로 2분할
-    if(name||phone||pw){
-      html += '<div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px">';
-      // 좌: 인계자 정보
-      html += '<div class="ho-item" style="flex:1;min-width:0;margin-bottom:0">';
-      if(name) html += '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px">인계자</div><div style="font-weight:700;font-size:13px;margin-bottom:2px">'+esc(name)+'</div>';
-      if(phone) html += '<a href="tel:'+esc(phone)+'" style="color:var(--blue);font-size:12px;text-decoration:none">'+esc(phone)+'</a>';
-      if(!name&&!phone) html += '<div style="font-size:11px;color:var(--text3)">—</div>';
-      html += '</div>';
-      // 우: 레디백 비번
-      if(pw){
-        html += '<div style="background:#F9F8F6;border:1px solid #E5E7EB;border-radius:8px;padding:6px 8px;width:84px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center">';
-        html += '<div style="font-size:9px;font-weight:700;color:var(--text3);margin-bottom:4px">🔒 비번</div>';
-        html += '<div style="font-size:18px;font-weight:900;letter-spacing:4px;color:var(--gold2)">'+esc(pw)+'</div>';
-        html += '</div>';
-      }
-      html += '</div>';
-    }
+    // ── 1줄: 인계자 | 비번 | 인계물품 ──
+    html += '<div class="ho-compact-row">';
 
-    // 인계 물품
-    if(items){
-      html += '<div class="ho-item" style="white-space:pre-line;font-size:12px;margin-bottom:6px">'+esc(items)+'</div>';
-    }
+    // 인계자
+    html += '<div class="ho-compact-cell">';
+    html += '<div class="ho-lbl">인계자</div>';
+    if(name) html += '<div style="font-weight:700;font-size:12px;margin-bottom:2px">'+esc(name)+'</div>';
+    if(phone) html += '<a href="tel:'+esc(phone)+'" style="color:var(--blue);font-size:11px;text-decoration:none">'+esc(phone)+'</a>';
+    if(!name&&!phone) html += '<div style="font-size:11px;color:var(--text3)">—</div>';
+    html += '</div>';
 
-    // LIVE 링크
-    if(live1) html += '<a href="'+esc(live1)+'" target="_blank" class="ho-link" style="margin-bottom:4px">📹 LIVE 1</a>';
-    if(live2) html += '<a href="'+esc(live2)+'" target="_blank" class="ho-link">📹 LIVE 2</a>';
+    // 비번
+    html += '<div class="ho-compact-cell" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:60px">';
+    html += '<div class="ho-lbl">🔒 비번</div>';
+    if(pw) html += '<div style="font-size:16px;font-weight:900;letter-spacing:3px;color:var(--gold2)">'+esc(pw)+'</div>';
+    else   html += '<div style="font-size:11px;color:var(--text3)">—</div>';
+    html += '</div>';
+
+    // 인계물품
+    html += '<div class="ho-compact-cell" style="overflow:hidden">';
+    html += '<div class="ho-lbl">인계물품</div>';
+    if(items) html += '<div style="font-size:11px;white-space:pre-line;line-height:1.4;word-break:break-all">'+esc(items)+'</div>';
+    else      html += '<div style="font-size:11px;color:var(--text3)">—</div>';
+    html += '</div>';
+
+    html += '</div>'; // end row1
+
+    // ── 2줄: LIVE1 | LIVE2 | 답례템플릿 ──
+    html += '<div class="ho-compact-row links">';
+
+    // LIVE1
+    html += '<div class="ho-compact-cell" style="display:flex;align-items:center;justify-content:center">';
+    if(live1) html += '<a href="'+esc(live1)+'" target="_blank" class="ho-link" style="font-size:12px;color:var(--blue);font-weight:700;text-decoration:none">📹 LIVE 1</a>';
+    else      html += '<span style="font-size:11px;color:var(--text3)">LIVE 1 —</span>';
+    html += '</div>';
+
+    // LIVE2
+    html += '<div class="ho-compact-cell" style="display:flex;align-items:center;justify-content:center">';
+    if(live2) html += '<a href="'+esc(live2)+'" target="_blank" class="ho-link" style="font-size:12px;color:var(--blue);font-weight:700;text-decoration:none">📹 LIVE 2</a>';
+    else      html += '<span style="font-size:11px;color:var(--text3)">LIVE 2 —</span>';
+    html += '</div>';
+
+    // 답례 템플릿
+    html += '<div class="ho-compact-cell" style="display:flex;align-items:center;justify-content:center">';
+    html += '<a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link" target="_blank" style="font-size:11px;font-weight:700;color:var(--gold2);text-decoration:none;white-space:nowrap">💌 답례인사</a>';
+    html += '</div>';
+
+    html += '</div>'; // end row2
 
     return html;
   }
-
   var mode = s.wedding_mode||'양측';
   var hasGroom = logs.some(function(l){return l.side==='신랑측';});
   var hasBride  = logs.some(function(l){return l.side==='신부측';});
