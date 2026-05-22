@@ -1036,32 +1036,47 @@ async function loadPreShares(){
 }
 
 async function addPreShare(){
-  var side   = document.getElementById('pre-share-side').value;
-  var name   = document.getElementById('pre-share-name').value.trim();
-  var amount = parseInt(document.getElementById('pre-share-amount').value)||0;
-  var memo   = document.getElementById('pre-share-memo').value.trim();
-  if(!name){ showToast('⚠️ 이름을 입력해주세요'); return; }
-  if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); return; }
-  if(!currentSchedule) return;
+  var sideEl   = document.getElementById('pre-share-side');
+  var nameEl   = document.getElementById('pre-share-name');
+  var amountEl = document.getElementById('pre-share-amount');
+
+  // 혹시 id가 여러 개 있을 경우 대비해 querySelectorAll로 검증
+  if(!sideEl||!nameEl||!amountEl){
+    showToast('⚠️ 사전 공유 식권 입력칸을 찾을 수 없습니다');
+    return;
+  }
+
+  var side   = sideEl.value;
+  var name   = nameEl.value.trim();
+  var amount = parseInt(amountEl.value)||0;
+
+  if(!name){ showToast('⚠️ 이름을 입력해주세요'); nameEl.focus(); return; }
+  if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); amountEl.focus(); return; }
+  if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
+
   var row = {
-    schedule_id:  currentSchedule.id,
-    side:         side,
-    amount:       amount,
-    person_name:  name,
-    memo:         memo || null,
-    type:         'pre_share',
-    created_by:   currentUser.name,
+    schedule_id: currentSchedule.id,
+    side:        side,
+    amount:      amount,
+    person_name: name,
+    memo:        null,
+    type:        'pre_share',
+    created_by:  currentUser.name,
   };
+
   try {
     var created = await sb.post('ticket_additions', row);
-    preShares.push(Array.isArray(created) ? created[0] : created);
-    document.getElementById('pre-share-name').value   = '';
-    document.getElementById('pre-share-amount').value = '';
-    document.getElementById('pre-share-memo').value   = '';
+    var entry = Array.isArray(created) ? created[0] : created;
+    preShares.push(entry);
+    nameEl.value   = '';
+    amountEl.value = '';
     renderPreShareList();
     renderStats();
     showToast('🎫 사전 공유 식권 '+amount+'장 등록됨');
-  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
+  } catch(e){
+    console.error('[DG] addPreShare 오류:', e);
+    showToast('⚠️ 저장 실패: '+e.message);
+  }
 }
 
 async function deletePreShare(id){
