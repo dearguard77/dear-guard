@@ -215,6 +215,21 @@ input,select,textarea{font-family:inherit;outline:none}
 .edit-save{flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
 .edit-cancel{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-width:72px}
   /* 운영메모 수정/삭제 버튼 */
+  /* 금액 버튼 파스텔 컬러 */
+.amt-btn-5  {background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8}
+.amt-btn-10 {background:#F0FDF4;border-color:#BBF7D0;color:#15803D}
+.amt-btn-15 {background:#FEFCE8;border-color:#FDE68A;color:#A16207}
+.amt-btn-20 {background:#FFF7ED;border-color:#FED7AA;color:#C2410C}
+.amt-btn-30 {background:#FAF5FF;border-color:#E9D5FF;color:#7E22CE}
+.amt-btn-50 {background:#FDF8F3;border-color:#E8D5B0;color:#92400E}
+.amt-btn-100{background:#FFFBEB;border-color:#FDE68A;color:#B45309}
+.amt-btn-5.amt-active  {background:#1D4ED8;border-color:#1D4ED8;color:#fff}
+.amt-btn-10.amt-active {background:#15803D;border-color:#15803D;color:#fff}
+.amt-btn-15.amt-active {background:#A16207;border-color:#A16207;color:#fff}
+.amt-btn-20.amt-active {background:#C2410C;border-color:#C2410C;color:#fff}
+.amt-btn-30.amt-active {background:#7E22CE;border-color:#7E22CE;color:#fff}
+.amt-btn-50.amt-active {background:#92400E;border-color:#92400E;color:#fff}
+.amt-btn-100.amt-active{background:#B45309;border-color:#B45309;color:#fff}
 </style>
 </head>
 <body>
@@ -566,20 +581,14 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 하객 이름 + 관계 -->
+      <!-- 하객 이름 + 접수완료 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름</div>
         <div style="display:flex;align-items:center;gap:6px">
           <input class="form-input" id="guest-name" placeholder="이름 (선택)"
-            style="width:180px;flex-shrink:0;font-size:13px;padding:7px 8px">
-          <div class="rel-group" style="flex:1;flex-wrap:wrap;gap:3px">
-            <button class="rel-btn" onclick="setRelation('친구')">친구</button>
-            <button class="rel-btn" onclick="setRelation('직장')">직장</button>
-            <button class="rel-btn" onclick="setRelation('가족')">가족</button>
-            <button class="rel-btn" onclick="setRelation('부 지인')">부지인</button>
-            <button class="rel-btn" onclick="setRelation('모 지인')">모지인</button>
-            <button class="rel-btn" onclick="setRelation('기타')">기타</button>
-          </div>
+            style="flex:1;font-size:13px;padding:7px 8px">
+          <button class="submit-btn" onclick="submitEntry()"
+            style="flex-shrink:0;width:auto;padding:8px 18px;font-size:14px;letter-spacing:.3px;border-radius:8px;box-shadow:none">✅ 접수 완료</button>
         </div>
       </div>
 
@@ -587,14 +596,14 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">2️⃣ 금액</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:4px">
-          <button class="amt-btn" onclick="setAmount(50000)">5만</button>
-          <button class="amt-btn" onclick="setAmount(100000)">10만</button>
-          <button class="amt-btn" onclick="setAmount(150000)">15만</button>
-          <button class="amt-btn" onclick="setAmount(200000)">20만</button>
-          <button class="amt-btn" onclick="setAmount(300000)">30만</button>
-          <button class="amt-btn" onclick="setAmount(500000)">50만</button>
-          <button class="amt-btn" onclick="setAmount(1000000)">100만</button>
-          <button class="amt-btn amt-custom" onclick="focusCustomAmount()">직접</button>
+          <button class="amt-btn amt-btn-5"   onclick="setAmount(50000)">5만</button>
+          <button class="amt-btn amt-btn-10"  onclick="setAmount(100000)">10만</button>
+          <button class="amt-btn amt-btn-15"  onclick="setAmount(150000)">15만</button>
+          <button class="amt-btn amt-btn-20"  onclick="setAmount(200000)">20만</button>
+          <button class="amt-btn amt-btn-30"  onclick="setAmount(300000)">30만</button>
+          <button class="amt-btn amt-btn-50"  onclick="setAmount(500000)">50만</button>
+          <button class="amt-btn amt-btn-100" onclick="setAmount(1000000)">100만</button>
+          <button class="amt-btn amt-custom"  onclick="focusCustomAmount()">직접</button>
         </div>
         <div class="inp-wrap">
           <input class="form-input" id="amount-input" type="text" inputmode="numeric" placeholder="직접 입력"
