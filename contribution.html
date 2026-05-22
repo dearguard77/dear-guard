@@ -215,6 +215,11 @@ input,select,textarea{font-family:inherit;outline:none}
 .edit-save{flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
 .edit-cancel{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-width:72px}
   /* 운영메모 수정/삭제 버튼 */
+  .ops-edit-btn{width:22px;height:22px;background:#EFF6FF;color:#2563EB;border:none;border-radius:5px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0}
+  .ops-del-btn{width:22px;height:22px;background:#FEF2F2;color:#DC2626;border:none;border-radius:5px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0}
+  .ops-save-btn{height:22px;background:#C7A96B;color:#fff;border:none;border-radius:5px;padding:0 7px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .ops-cancel-btn{height:22px;background:#F3F4F6;color:#6B7280;border:none;border-radius:5px;padding:0 7px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .ops-edit-input{border:1.5px solid #C7A96B;border-radius:5px;padding:2px 6px;font-size:11px;color:#111;background:#fff;flex:1;min-width:0;font-family:inherit;height:22px}
   /* 금액 버튼 파스텔 컬러 */
 .amt-btn-5  {background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8}
 .amt-btn-10 {background:#F0FDF4;border-color:#BBF7D0;color:#15803D}
@@ -335,30 +340,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <div id="ticket-extra-list" style="max-height:22px;overflow:hidden;display:none"></div>
       </div>
 
-      <!-- 사전 공유 식권 -->
-      <div style="background:#FDF8F3;border:1px solid #E8DFD0;border-radius:7px;padding:4px 10px;display:flex;align-items:center;gap:4px;flex-shrink:0">
-        <span style="font-size:10px;color:#C7A96B;font-weight:700">🎫 사전</span>
-        <select id="pre-share-side"
-          style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:10px;padding:0 3px;background:#fff;width:58px">
-          <option value="신랑측">🤵 신랑</option>
-          <option value="신부측">👰 신부</option>
-        </select>
-        <input id="pre-share-name" placeholder="이름" type="text"
-          style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:10px;padding:0 5px;width:60px"
-          onkeydown="if(event.key==='Enter')document.getElementById('pre-share-amount').focus()">
-        <input id="pre-share-amount" placeholder="수량" type="number" min="1"
-          style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:11px;text-align:center;font-weight:700;padding:0 3px;width:40px"
-          onkeydown="if(event.key==='Enter')document.getElementById('pre-share-memo').focus()">
-        <span style="font-size:10px;color:#9CA3AF">장</span>
-        <input id="pre-share-memo" placeholder="메모" type="text"
-          style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:10px;padding:0 5px;width:70px"
-          onkeydown="if(event.key==='Enter')addPreShare()">
-        <button onclick="addPreShare()"
-          style="height:22px;background:#C7A96B;color:#fff;border:none;border-radius:5px;padding:0 7px;font-size:10px;font-weight:700;cursor:pointer">추가</button>
-      </div>
-
-      <!-- 추가발급/사전공유 내역 팝업 토글 -->
-      <div id="pre-share-list" style="display:none"></div>
+    
 
     </div>
 
@@ -536,31 +518,32 @@ input,select,textarea{font-family:inherit;outline:none}
       
       <!-- 🎫 사전 공유 식권 -->
       <div class="card" style="padding:5px 9px" id="pre-share-card">
-        <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">🎫 사전 공유 식권</div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="display:flex;align-items:center;gap:3px">
-            <select id="pre-share-side"
-              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:70px">
-              <option value="신랑측">🤵 신랑</option>
-              <option value="신부측">👰 신부</option>
-            </select>
-            <input id="pre-share-name" placeholder="이름" type="text"
-              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
-              onkeydown="if(event.key==='Enter')document.getElementById('pre-share-amount').focus()">
-            <input id="pre-share-amount" placeholder="수량" type="number" min="1"
-              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:52px;flex-shrink:0"
-              onkeydown="if(event.key==='Enter')document.getElementById('pre-share-memo').focus()">
-            <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+        <div style="font-size:11px;font-weight:700;color:#C7A96B;margin-bottom:5px;letter-spacing:.3px">🎫 사전 공유 식권</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <!-- 좌: 입력 -->
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:3px">
+              <select id="pre-share-side"
+                style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:68px">
+                <option value="신랑측">🤵 신랑</option>
+                <option value="신부측">👰 신부</option>
+              </select>
+              <input id="pre-share-amount" placeholder="장수" type="number" min="1"
+                style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:44px;flex-shrink:0"
+                onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name').focus()">
+              <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:3px">
+              <input id="pre-share-name" placeholder="이름 (사회자, 헬퍼...)" type="text"
+                style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
+                onkeydown="if(event.key==='Enter')addPreShare()">
+              <button onclick="addPreShare()"
+                style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:3px">
-            <input id="pre-share-memo" placeholder="메모 (헬퍼 / 스냅 / 사회자...)" type="text"
-              style="width:100%;height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 7px;box-sizing:border-box"
-              onkeydown="if(event.key==='Enter')addPreShare()">
-            <button onclick="addPreShare()"
-              style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
-          </div>
+          <!-- 우: 리스트 -->
+          <div id="pre-share-list" style="max-height:56px;overflow-y:auto;border-left:1px solid #F0EDE8;padding-left:7px"></div>
         </div>
-        <div id="pre-share-list" style="max-height:72px;overflow-y:auto;margin-top:4px"></div>
       </div>
 
       <!-- 접수 측 + 결제 방식 -->
@@ -1107,7 +1090,7 @@ function renderPreShareList(){
       '<span>'+icon+'</span>'+
       '<span style="flex:1;min-width:0;color:#374151;font-weight:600">'+label+memoStr+'</span>'+
       '<span style="font-weight:700;color:#C7A96B;flex-shrink:0">'+p.amount+'장</span>'+
-      '<button onclick="deletePreShare('+p.id+')" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1">✕</button>'+
+      '<button onclick="deletePreShare('+p.id+')" style="width:18px;height:18px;background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">🗑️</button>'+
     '</div>';
   }).join('');
 }
@@ -1260,8 +1243,8 @@ function renderOpsLogs(side, list){
     return '<div style="display:flex;gap:5px;align-items:center;padding:3px 0;border-bottom:1px solid #F5F3F0" id="ops-row-'+l.id+'">' +
       '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">' + esc(l.time_str||'') + '</span>' +
       '<span style="font-size:11px;color:#374151;flex:1;min-width:0;word-break:keep-all;line-height:1.4" id="ops-text-'+l.id+'">' + esc(l.content||'') + '</span>' +
-      '<button class="ops-edit-btn" onclick="startOpsEdit('+l.id+',\''+side+'\')">수정</button>' +
-      '<button class="ops-del-btn" onclick="deleteOpsLog('+l.id+',\''+side+'\')">삭제</button>' +
+      '<button class="ops-edit-btn" onclick="startOpsEdit('+l.id+',\''+side+'\')" title="수정">✏️</button>' +
+      '<button class="ops-del-btn" onclick="deleteOpsLog('+l.id+',\''+side+'\')" title="삭제">🗑️</button>' +
     '</div>';
   }).join('');
 }
