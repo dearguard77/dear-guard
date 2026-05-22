@@ -905,7 +905,6 @@ function downloadExcel(){
   const nm=(g&&b)?g+' ♥ '+b:(g||b||schedule.hall||'예식');
   const dt=schedule.date||new Date().toISOString().slice(0,10);
   const wb=XLSX.utils.book_new();
-  const cols=[{wch:6},{wch:10},{wch:12},{wch:8},{wch:12},{wch:8},{wch:8},{wch:20},{wch:8}];
 
   const gL=logs.filter(l=>l.side==='신랑측');
   const bL=logs.filter(l=>l.side==='신부측');
@@ -913,37 +912,98 @@ function downloadExcel(){
   const gAmt=gL.reduce((s,l)=>s+(l.amount||0),0);
   const bAmt=bL.reduce((s,l)=>s+(l.amount||0),0);
 
+  // 소인식권 존재 여부 (전체 기준)
+  const hasChild=logs.some(l=>(l.child_ticket||0)>0);
+
+  // 금액 셀 포맷 헬퍼: {v: 숫자, t:'n', z:'#,##0'}
+  const money=v=>({v:v||0, t:'n', z:'#,##0'});
+
   // ── 1. 전체 요약 시트 ──
-  const summary=[
+  const gOps=opsLogs.filter(l=>l.side==='신랑측'||!l.side);
+  const bOps=opsLogs.filter(l=>l.side==='신부측');
+
+  const summaryHeader=['구분','건수','금액(원)','대인식권'];
+  if(hasChild) summaryHeader.push('소인식권');
+
+  const summaryRows=[
     ['Dear Guard 축의 정산 요약'],
     [],
-    ['구분','건수','금액(원)'],
-    ['전체',logs.length,total],
-    ['신랑측',gL.length,gAmt],
-    ['신부측',bL.length,bAmt],
+    summaryHeader,
   ];
-  if(opsLogs.length){
-    summary.push([]);
-    summary.push(['운영메모']);
-    summary.push(['시간','내용']);
-    opsLogs.forEach(l=>summary.push([l.time_str||'',l.content||'']));
+
+  function makeSummaryRow(label, list){
+    const row=[
+      label,
+      list.length,
+      money(list.reduce((s,l)=>s+(l.amount||0),0)),
+      list.reduce((s,l)=>s+(l.adult_ticket||0),0),
+    ];
+    if(hasChild) row.push(list.reduce((s,l)=>s+(l.child_ticket||0),0));
+    return row;
   }
-  const ws0=XLSX.utils.aoa_to_sheet(summary);
-  ws0['!cols']=[{wch:12},{wch:8},{wch:14},{wch:30}];
+  summaryRows.push(makeSummaryRow('전체', logs));
+  summaryRows.push(makeSummaryRow('신랑측', gL));
+  summaryRows.push(makeSummaryRow('신부측', bL));
+
+  if(gOps.length){
+    summaryRows.push([]);
+    summaryRows.push(['[신랑측 운영메모]']);
+    summaryRows.push(['시간','내용']);
+    gOps.forEach(l=>summaryRows.push([l.time_str||'',l.content||'']));
+  }
+  if(bOps.length){
+    summaryRows.push([]);
+    summaryRows.push(['[신부측 운영메모]']);
+    summaryRows.push(['시간','내용']);
+    bOps.forEach(l=>summaryRows.push([l.time_str||'',l.content||'']));
+  }
+
+  const ws0=XLSX.utils.aoa_to_sheet(summaryRows);
+  ws0['!cols']=[{wch:12},{wch:8},{wch:14},{wch:10},{wch:10}];
   XLSX.utils.book_append_sheet(wb,ws0,'전체 요약');
 
   // ── 측별 시트 공통 함수 ──
-  const header=['번호','결제방식','하객이름','관계','금액(원)','대인식권','소인식권','메모','접수시간'];
   function makeSideSheet(list){
+    const header=['번호','결제방식','하객이름','관계','금액(원)','대인식권'];
+    if(hasChild) header.push('소인식권');
+    header.push('메모','접수시간');
+
     const rows=[header];
-    list.forEach((l,i)=>{
-      const num=list.length-i;
-      rows.push([num,l.payment_type||'',l.guest_name||'',l.relation||'',l.amount||0,l.adult_ticket||0,l.child_ticket||0,l.memo||'',l.created_at?fmtTime(l.created_at):'']);
+    const reversed=[...list].reverse();
+    reversed.forEach((l,i)=>{
+      const row=[
+        i+1,
+        l.payment_type||'',
+        l.guest_name||'',
+        l.relation||'',
+        money(l.amount||0),
+        l.adult_ticket||0,
+      ];
+      if(hasChild) row.push(l.child_ticket||0);
+      row.push(l.memo||'', l.created_at?fmtTime(l.created_at):'');
+      rows.push(row);
     });
+
     rows.push([]);
-    rows.push(['합계','','','',list.reduce((s,l)=>s+(l.amount||0),0)]);
+
+    // 합계행
+    const sumRow=['합계','','','',money(list.reduce((s,l)=>s+(l.amount||0),0)),list.reduce((s,l)=>s+(l.adult_ticket||0),0)];
+    if(hasChild) sumRow.push(list.reduce((s,l)=>s+(l.child_ticket||0),0));
+    sumRow.push('','');
+    rows.push(sumRow);
+
     const ws=XLSX.utils.aoa_to_sheet(rows);
+
+    // 컬럼 폭 (소인 유무에 따라)
+    const cols=[{wch:6},{wch:10},{wch:12},{wch:8},{wch:12},{wch:8}];
+    if(hasChild) cols.push({wch:8});
+    cols.push({wch:20},{wch:8});
     ws['!cols']=cols;
+
+    // 자동 필터 (컬럼 수에 맞게)
+    const lastCol=String.fromCharCode(64+header.length);
+    ws['!autofilter']={ref:'A1:'+lastCol+'1'};
+
     return ws;
   }
 
