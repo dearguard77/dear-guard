@@ -364,7 +364,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
             <span style="font-size:12px;font-weight:800;color:var(--blue)">🤵 신랑측</span>
             <div style="display:flex;align-items:center;gap:6px">
               <span style="font-size:13px;font-weight:700;color:#2563EB" id="groom-sum">0건 · 0원</span>
-              <select onchange="setSideSort(this.value)" style="font-size:10px;border:1px solid #BFDBFE;border-radius:4px;padding:1px 4px;background:#EFF6FF;color:#2563EB;cursor:pointer">
+              <select onchange="setSideSort(this.value,'groom')" style="font-size:10px;border:1px solid #BFDBFE;border-radius:4px;padding:1px 4px;background:#EFF6FF;color:#2563EB;cursor:pointer">
                 <option value="num_desc">최신순</option>
                 <option value="num_asc">오래된순</option>
                 <option value="amt_desc">금액↓</option>
@@ -380,7 +380,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
             <span style="font-size:12px;font-weight:800;color:var(--pink)">👰 신부측</span>
             <div style="display:flex;align-items:center;gap:6px">
               <span style="font-size:13px;font-weight:700;color:#DB2777" id="bride-sum">0건 · 0원</span>
-              <select onchange="setSideSort(this.value)" style="font-size:10px;border:1px solid #FBCFE8;border-radius:4px;padding:1px 4px;background:#FDF2F8;color:#DB2777;cursor:pointer">
+              <select onchange="setSideSort(this.value,'bride')" style="font-size:10px;border:1px solid #FBCFE8;border-radius:4px;padding:1px 4px;background:#FDF2F8;color:#DB2777;cursor:pointer">
                 <option value="num_desc">최신순</option>
                 <option value="num_asc">오래된순</option>
                 <option value="amt_desc">금액↓</option>
@@ -548,20 +548,24 @@ function renderStats(){
 }
 
 // ── 정렬 ──
-var _sideSort='num_desc';
-function setSideSort(val){
-  _sideSort=val;
+var _groomSideSort='num_desc';
+var _brideSideSort='num_desc';
+
+function setSideSort(val, side){
+  if(side==='groom') _groomSideSort=val;
+  else if(side==='bride') _brideSideSort=val;
   renderList();
 }
 
-function applySideSort(arr){
+function applySideSort(arr, side){
+  var sort=(side==='bride')?_brideSideSort:_groomSideSort;
   var sorted=arr.slice();
   sorted.sort(function(a,b){
-    if(_sideSort==='num_desc') return logs.indexOf(a)-logs.indexOf(b);
-    if(_sideSort==='num_asc')  return logs.indexOf(b)-logs.indexOf(a);
-    if(_sideSort==='amt_desc') return (b.amount||0)-(a.amount||0);
-    if(_sideSort==='amt_asc')  return (a.amount||0)-(b.amount||0);
-    if(_sideSort==='name_asc') return (a.guest_name||'').localeCompare(b.guest_name||'','ko');
+    if(sort==='num_desc') return logs.indexOf(a)-logs.indexOf(b);
+    if(sort==='num_asc')  return logs.indexOf(b)-logs.indexOf(a);
+    if(sort==='amt_desc') return (b.amount||0)-(a.amount||0);
+    if(sort==='amt_asc')  return (a.amount||0)-(b.amount||0);
+    if(sort==='name_asc') return (a.guest_name||'').localeCompare(b.guest_name||'','ko');
     return 0;
   });
   return sorted;
@@ -669,14 +673,14 @@ function renderList(){
     se('bride-sum',bF.length+'건 · '+fmtFull(bAmt));
     const gEl=document.getElementById('groom-list');
     const bEl=document.getElementById('bride-list');
-    const gFS=applySideSort(gF);
-    const gIsAsc=(_sideSort==='num_asc'||_sideSort==='name_asc');
+    const gFS=applySideSort(gF,'groom');
+    const gIsAsc=(_groomSideSort==='num_asc'||_groomSideSort==='name_asc');
     if(gEl)gEl.innerHTML=gFS.length?gFS.map((l,i)=>{
       const num=gIsAsc?i+1:gFS.length-i;
       return buildRow(l,false,i,gFS.length,num);
     }).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
-    const bFS=applySideSort(bF);
-    const bIsAsc=(_sideSort==='num_asc'||_sideSort==='name_asc');
+    const bFS=applySideSort(bF,'bride');
+    const bIsAsc=(_brideSideSort==='num_asc'||_brideSideSort==='name_asc');
     if(bEl)bEl.innerHTML=bFS.length?bFS.map((l,i)=>{
       const num=bIsAsc?i+1:bFS.length-i;
       return buildRow(l,false,i,bFS.length,num);
@@ -698,12 +702,14 @@ function renderList(){
       const grpCount={};
       filt.forEach(l=>{ grpCount[l.side]=(grpCount[l.side]||0)+1; });
       const grpIdx={};
+      const isAscSort=(_sortKey==='num'&&_sortDir==='asc');
       singleBody.innerHTML=filt.length?filt.map(l=>{
         grpIdx[l.side]=(grpIdx[l.side]||0);
         const si=grpIdx[l.side];
         const st=grpCount[l.side];
         grpIdx[l.side]++;
-        return buildRow(l,showSide,si,st);
+        const num=isAscSort?si+1:st-si;
+        return buildRow(l,showSide,si,st,num);
       }).join(''):`<div style="text-align:center;padding:30px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
     }
   }
