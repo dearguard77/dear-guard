@@ -564,7 +564,7 @@ input,select,textarea{font-family:inherit;outline:none}
           <button class="amt-btn amt-custom" onclick="focusCustomAmount()">직접</button>
         </div>
         <div class="inp-wrap">
-          <input class="form-input" id="amount-input" type="number" placeholder="직접 입력"
+          <input class="form-input" id="amount-input" type="text" inputmode="numeric" placeholder="직접 입력"
             oninput="onAmountInput()" style="padding-right:28px;font-size:13px;padding-top:6px;padding-bottom:6px">
           <span class="inp-unit">원</span>
         </div>
@@ -1291,15 +1291,30 @@ function setPayment(pay){
 }
 function setAmount(amt){
   const map={50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',1000000:'100만'};
-  if(st.amount===amt){st.amount=0;document.getElementById('amount-input').value='';document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));}
-  else{st.amount=amt;document.getElementById('amount-input').value=amt;document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));}
+  var inp=document.getElementById('amount-input');
+  if(st.amount===amt){
+    st.amount=0;
+    inp.value='';
+    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));
+  } else {
+    st.amount=amt;
+    inp.value=amt.toLocaleString();
+    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));
+  }
 }
 function focusCustomAmount(){
   const inp=document.getElementById('amount-input');inp.focus();inp.select();
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
 function onAmountInput(){
-  st.amount=Number(document.getElementById('amount-input').value)||0;
+  var inp=document.getElementById('amount-input');
+  var raw=inp.value.replace(/,/g,'');
+  if(raw===''||isNaN(raw)){st.amount=0;return;}
+  var num=Number(raw);
+  st.amount=num;
+  inp.value=num.toLocaleString();
+  // 커서 끝으로
+  setTimeout(function(){ inp.setSelectionRange(inp.value.length,inp.value.length); },0);
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
 function setRelation(rel){
@@ -1324,7 +1339,7 @@ function resetForm(){
 // ── 접수 저장 ──
 async function submitEntry(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
-  const amount=Number(document.getElementById('amount-input').value)||st.amount;
+  const amount=Number((document.getElementById('amount-input').value||'').replace(/,/g,''))||st.amount;
   const row={
     schedule_id:currentSchedule.id,
     side:st.side==='groom'?'신랑측':'신부측',
