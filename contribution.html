@@ -332,9 +332,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <input id="add-ticket-amount" type="number" placeholder="수량" min="1"
           style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:11px;text-align:center;font-weight:700;padding:0 3px;width:40px">
         <span style="font-size:10px;color:#9CA3AF">장</span>
-        <input id="add-ticket-memo" placeholder="메모"
-          style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:10px;padding:0 5px;width:70px"
-          onkeydown="if(event.key==='Enter')addTicketExtra()">
+        
         <button onclick="addTicketExtra()"
           style="height:22px;background:#374151;color:#fff;border:none;border-radius:5px;padding:0 7px;font-size:10px;font-weight:700;cursor:pointer">추가</button>
         <div id="ticket-extra-list" style="max-height:22px;overflow:hidden;display:none"></div>
@@ -998,7 +996,7 @@ async function addTicketExtra(){
   if(!amount||amount<1){showToast('⚠️ 추가 수량을 입력해주세요');return;}
   if(!currentSchedule) return;
   const now=new Date();
-  const row={schedule_id:currentSchedule.id,side:document.getElementById('add-ticket-side').value,amount,memo:document.getElementById('add-ticket-memo').value.trim()||null,created_by:currentUser.name};
+  const row={schedule_id:currentSchedule.id,side:document.getElementById('add-ticket-side').value,amount,memo:null,created_by:currentUser.name};
   try {
     const created=await sb.post('ticket_additions',row);
     ticketExtras.push(Array.isArray(created)?created[0]:created);
