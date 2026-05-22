@@ -214,6 +214,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .edit-btns{display:flex;gap:7px;margin-top:14px}
 .edit-save{flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
 .edit-cancel{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-width:72px}
+  /* 운영메모 수정/삭제 버튼 */
 </style>
 </head>
 <body>
@@ -1136,11 +1137,61 @@ function renderOpsLogs(side, list){
     return;
   }
   el.innerHTML = list.map(function(l){
-    return '<div style="display:flex;gap:5px;align-items:baseline;padding:2px 0;border-bottom:1px solid #F5F3F0">' +
+    return '<div style="display:flex;gap:5px;align-items:center;padding:3px 0;border-bottom:1px solid #F5F3F0" id="ops-row-'+l.id+'">' +
       '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">' + esc(l.time_str||'') + '</span>' +
-      '<span style="font-size:11px;color:#374151;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l.content||'') + '</span>' +
+      '<span style="font-size:11px;color:#374151;flex:1;min-width:0;word-break:keep-all;line-height:1.4" id="ops-text-'+l.id+'">' + esc(l.content||'') + '</span>' +
+      '<button class="ops-edit-btn" onclick="startOpsEdit('+l.id+',\''+side+'\')">수정</button>' +
+      '<button class="ops-del-btn" onclick="deleteOpsLog('+l.id+',\''+side+'\')">삭제</button>' +
     '</div>';
   }).join('');
+}
+
+function startOpsEdit(id, side){
+  var row = document.getElementById('ops-row-'+id);
+  var textEl = document.getElementById('ops-text-'+id);
+  if(!row || !textEl) return;
+  var current = textEl.textContent;
+  row.innerHTML =
+    '<input class="ops-edit-input" id="ops-edit-inp-'+id+'" value="'+esc(current)+'">' +
+    '<button class="ops-save-btn" onclick="saveOpsEdit('+id+',\''+side+'\')">저장</button>' +
+    '<button class="ops-cancel-btn" onclick="cancelOpsEdit(\''+side+'\')">취소</button>';
+  var inp = document.getElementById('ops-edit-inp-'+id);
+  if(inp){ inp.focus(); inp.select(); }
+}
+
+function cancelOpsEdit(side){
+  if(side==='g') renderOpsLogs('g', opsLogsG);
+  else            renderOpsLogs('b', opsLogsB);
+}
+
+async function saveOpsEdit(id, side){
+  var inp = document.getElementById('ops-edit-inp-'+id);
+  if(!inp) return;
+  var text = inp.value.trim();
+  if(!text){ showToast('⚠️ 내용을 입력해주세요'); return; }
+  try {
+    await sb.patch('operation_logs', id, {content: text});
+    var list = side==='g' ? opsLogsG : opsLogsB;
+    var idx = list.findIndex(function(l){ return l.id===id; });
+    if(idx!==-1) list[idx].content = text;
+    renderOpsLogs(side, list);
+    showToast('✅ 메모가 수정되었습니다');
+  } catch(e){ showToast('⚠️ 수정 실패: '+e.message); }
+}
+
+async function deleteOpsLog(id, side){
+  if(!confirm('메모를 삭제하시겠습니까?')) return;
+  try {
+    await fetch(sb.url('operation_logs','?id=eq.'+id), {method:'DELETE', headers:sb.h});
+    if(side==='g'){
+      opsLogsG = opsLogsG.filter(function(l){ return l.id!==id; });
+      renderOpsLogs('g', opsLogsG);
+    } else {
+      opsLogsB = opsLogsB.filter(function(l){ return l.id!==id; });
+      renderOpsLogs('b', opsLogsB);
+    }
+    showToast('🗑️ 메모가 삭제되었습니다');
+  } catch(e){ showToast('⚠️ 삭제 실패: '+e.message); }
 }
 
 // ── 데이터 로드 ──
