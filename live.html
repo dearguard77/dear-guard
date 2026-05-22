@@ -213,7 +213,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
       <div class="sum-card total" style="grid-row:span 2;justify-content:space-between">
         <div>
           <div class="sum-lbl gold">총 축의금</div>
-          <div class="sum-val gold" style="font-size:28px" id="total-amount">0원</div>
+          <div class="sum-val gold" style="font-size:42px;white-space:nowrap" id="total-amount">0원</div>
           <div class="sum-sub" id="total-cnt-sub">총 0건</div>
         </div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px solid #E8D5B0">
@@ -504,7 +504,7 @@ async function loadLogs(){
 function renderStats(){
   const total=logs.reduce((s,l)=>s+(l.amount||0),0);
   const gL=logs.filter(l=>l.side==='신랑측'),bL=logs.filter(l=>l.side==='신부측');
-  se('total-amount',fmtFull(total));
+  se('total-amount',fmt(total));
   se('total-cnt-sub','총 '+logs.length+'건');
   se('cash-cnt',logs.filter(l=>l.payment_type==='현금').length+'건');
   se('transfer-cnt',logs.filter(l=>l.payment_type==='계좌이체').length+'건');
