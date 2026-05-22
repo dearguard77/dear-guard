@@ -235,6 +235,10 @@ input,select,textarea{font-family:inherit;outline:none}
 .amt-btn-30.amt-active {background:#7E22CE;border-color:#7E22CE;color:#fff}
 .amt-btn-50.amt-active {background:#92400E;border-color:#92400E;color:#fff}
 .amt-btn-100.amt-active{background:#B45309;border-color:#B45309;color:#fff}
+.pw-mini-card{background:#F9F8F6;border:1px solid #E5E7EB;border-radius:8px;padding:8px;width:90px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.pw-mini-title{font-size:10px;font-weight:700;color:#9CA3AF;text-align:center;margin-bottom:6px}
+.pw-mini-inp{width:100%;text-align:center;font-size:18px;font-weight:800;letter-spacing:4px;padding:6px 4px;border:1.5px solid #E0E0E0;border-radius:6px;background:#fff;color:#111}
+.pw-mini-inp:focus{border-color:#C7A96B;outline:none}
 </style>
 </head>
 <body>
@@ -370,11 +374,17 @@ input,select,textarea{font-family:inherit;outline:none}
 
         <div class="ho-section">
           <div class="ho-section-title" style="color:#2563EB">인계자 정보</div>
-          <div style="display:flex;flex-direction:column;gap:5px">
-            <div><div class="ho-label">성함</div>
-              <input id="g-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
-            <div><div class="ho-label">연락처</div>
-              <input id="g-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
+          <div style="display:flex;gap:8px;align-items:stretch">
+            <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
+              <div><div class="ho-label">성함</div>
+                <input id="g-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
+              <div><div class="ho-label">연락처</div>
+                <input id="g-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
+            </div>
+            <div class="pw-mini-card">
+              <div class="pw-mini-title">🔒 레디백 비번</div>
+              <input id="g-ho-pw" class="pw-mini-inp" placeholder="0000" oninput="saveHandover()">
+            </div>
           </div>
         </div>
 
@@ -385,13 +395,7 @@ input,select,textarea{font-family:inherit;outline:none}
             oninput="saveHandover()"></textarea>
         </div>
 
-        <div class="ho-section">
-          <div class="ho-section-title">🔒 레디백 비번</div>
-          <input id="g-ho-pw" class="ho-input" placeholder="예: 1234"
-            style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
-            oninput="saveHandover()">
-        </div>
-
+        
         <div class="ho-section">
           <div class="ho-section-title">📹 LIVE 링크</div>
           <div style="display:flex;flex-direction:column;gap:5px">
@@ -450,11 +454,17 @@ input,select,textarea{font-family:inherit;outline:none}
 
         <div class="ho-section">
           <div class="ho-section-title" style="color:#DB2777">인계자 정보</div>
-          <div style="display:flex;flex-direction:column;gap:5px">
-            <div><div class="ho-label">성함</div>
-              <input id="b-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
-            <div><div class="ho-label">연락처</div>
-              <input id="b-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
+          <div style="display:flex;gap:8px;align-items:stretch">
+            <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
+              <div><div class="ho-label">성함</div>
+                <input id="b-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
+              <div><div class="ho-label">연락처</div>
+                <input id="b-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
+            </div>
+            <div class="pw-mini-card">
+              <div class="pw-mini-title">🔒 레디백 비번</div>
+              <input id="b-ho-pw" class="pw-mini-inp" placeholder="0000" oninput="saveHandover()">
+            </div>
           </div>
         </div>
 
@@ -465,13 +475,7 @@ input,select,textarea{font-family:inherit;outline:none}
             oninput="saveHandover()"></textarea>
         </div>
 
-        <div class="ho-section">
-          <div class="ho-section-title">🔒 레디백 비번</div>
-          <input id="b-ho-pw" class="ho-input" placeholder="예: 1234"
-            style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
-            oninput="saveHandover()">
-        </div>
-
+        
         <div class="ho-section">
           <div class="ho-section-title">📹 LIVE 링크</div>
           <div style="display:flex;flex-direction:column;gap:5px">
