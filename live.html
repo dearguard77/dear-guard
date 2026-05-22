@@ -50,7 +50,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 #last-upd{font-size:10px;color:var(--text3)}
 
 /* 우: 축의 요약 */
-#hdr-summary{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px;align-items:stretch}
+#hdr-summary{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px;align-items:stretch;grid-template-rows:auto auto}
 .sum-card{border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center}
 .sum-card.total{background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border:1.5px solid #E8D5B0}
 .sum-card.groom{background:#EFF6FF;border:1.5px solid #BFDBFE}
@@ -198,31 +198,44 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 
     <!-- 우: 축의 요약 -->
     <div id="hdr-summary">
-      <div class="sum-card total">
-        <div class="sum-lbl gold">총 축의금</div>
-        <div class="sum-val gold" id="total-amount">0원</div>
-        <div class="sum-sub" id="total-cnt-sub">총 0건</div>
-        <div class="sum-row" style="margin-top:5px;padding-top:5px;border-top:1px solid #E8D5B0">
-          <span style="color:#9CA3AF;font-size:13px">💵 현금</span><span style="font-weight:800;color:#059669;font-size:18px" id="cash-cnt">0건</span>
+
+      <!-- 총 축의금: 세로 2행 span -->
+      <div class="sum-card total" style="grid-row:span 2;justify-content:space-between">
+        <div>
+          <div class="sum-lbl gold">총 축의금</div>
+          <div class="sum-val gold" style="font-size:28px" id="total-amount">0원</div>
+          <div class="sum-sub" id="total-cnt-sub">총 0건</div>
         </div>
-        <div class="sum-row">
-          <span style="color:#9CA3AF;font-size:13px">📱 계좌</span><span style="font-weight:800;color:#7C3AED;font-size:18px" id="transfer-cnt">0건</span>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #E8D5B0">
+          <div class="sum-row">
+            <span style="color:#9CA3AF;font-size:13px">💵 현금</span>
+            <span style="font-weight:800;color:#059669;font-size:18px" id="cash-cnt">0건</span>
+          </div>
+          <div class="sum-row">
+            <span style="color:#9CA3AF;font-size:13px">📱 계좌</span>
+            <span style="font-weight:800;color:#7C3AED;font-size:18px" id="transfer-cnt">0건</span>
+          </div>
         </div>
       </div>
+
+      <!-- 신랑측 -->
       <div class="sum-card groom" id="groom-sum-card">
         <div class="sum-lbl blue">🤵 신랑측</div>
         <div class="sum-val blue" id="groom-total">0원</div>
         <div class="sum-sub" id="groom-cnt-sub">0건</div>
       </div>
+
+      <!-- 신부측 -->
       <div class="sum-card bride" id="bride-sum-card">
         <div class="sum-lbl pink">👰 신부측</div>
         <div class="sum-val pink" id="bride-total">0원</div>
         <div class="sum-sub" id="bride-cnt-sub">0건</div>
       </div>
+
+      <!-- 식권현황: 신랑/신부 아래 2칸 span -->
       <div class="sum-card ticket" style="grid-column:span 2" id="ticket-sum-card">
         <div class="sum-lbl purple" style="margin-bottom:6px">🎫 식권 현황</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="ticket-detail-wrap">
-          <!-- 양측: 신랑/신부 구분 -->
           <div id="ticket-groom-wrap">
             <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:4px">🤵 신랑측</div>
             <div style="display:flex;gap:12px;font-size:15px">
@@ -238,7 +251,6 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
             </div>
           </div>
         </div>
-        <!-- 단측: 합계만 표시 -->
         <div style="display:none;gap:16px;font-size:13px" id="ticket-single-wrap">
           <span style="color:#6B7280">대인 <strong style="color:#D97706" id="total-adult">0</strong></span>
           <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="total-child">0</strong></span>
