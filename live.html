@@ -877,43 +877,45 @@ async function loadFlowerLive(){
     if(gEl) gEl.innerHTML=buildHtml(gFl);
     if(bEl) bEl.innerHTML=buildHtml(bFl);
   }catch(e){console.error('[DG] flower',e);}
-}function downloadExcel(){
+}
+
+function showUpdBadge(){
+  const el=document.getElementById('upd');
+  if(!el)return;
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',1800);
+}
+
+function subscribeRealtime(){
+  const ws=new WebSocket(`wss://fmvomfjmkbklhaaapkbk.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`);
+  ws.onopen=()=>{
+    ws.send(JSON.stringify({topic:`realtime:public:contribution_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'1'}));
+    ws.send(JSON.stringify({topic:`realtime:public:operation_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'2'}));
+    ws.send(JSON.stringify({topic:`realtime:public:flower_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'3'}));
+  };
+  ws.onmessage=async e=>{
+    try{const msg=JSON.parse(e.data);if(['INSERT','UPDATE','DELETE'].includes(msg.event)){await loadLogs();loadFlowerLive();}}catch{}
+  };
+  ws.onclose=()=>setTimeout(subscribeRealtime,3000);
+}
+
+function downloadExcel(){
   if(!schedule)return;
   const g=(schedule.groom_name||'').trim(),b=(schedule.bride_name||'').trim();
   const nm=(g&&b)?g+' ♥ '+b:(g||b||schedule.hall||'예식');
   const dt=schedule.date||new Date().toISOString().slice(0,10);
   const wb=XLSX.utils.book_new();
   const data=[['번호','접수측','결제방식','하객이름','관계','금액(원)','대인식권','소인식권','메모','접수시간']];
-
-  // 측별 독립 넘버링
-  const sideCounters={'신랑측':0,'신부측':0};
-  const sideTotals={
-    '신랑측': logs.filter(l=>l.side==='신랑측').length,
-    '신부측': logs.filter(l=>l.side==='신부측').length,
-  };
   for(let i=0;i<logs.length;i++){
     const l=logs[i];
-    const side=l.side||'';
-    if(sideCounters[side]===undefined) sideCounters[side]=0;
-    sideCounters[side]++;
-    const num=(sideTotals[side]||0)-sideCounters[side]+1;
-    data.push([num,side,l.payment_type||'',l.guest_name||'',l.relation||'',l.amount||0,l.adult_ticket||0,l.child_ticket||0,l.memo||'',l.created_at?fmtTime(l.created_at):'']);
+    data.push([logs.length-i,l.side||'',l.payment_type||'',l.guest_name||'',l.relation||'',l.amount||0,l.adult_ticket||0,l.child_ticket||0,l.memo||'',l.created_at?fmtTime(l.created_at):'']);
   }
-
   const gL=logs.filter(l=>l.side==='신랑측'),bL=logs.filter(l=>l.side==='신부측');
   data.push([]);
   data.push([' 합계','','','','',logs.reduce((s,l)=>s+(l.amount||0),0)]);
   data.push([' 신랑측',gL.length+'건','','','',gL.reduce((s,l)=>s+(l.amount||0),0)]);
   data.push([' 신부측',bL.length+'건','','','',bL.reduce((s,l)=>s+(l.amount||0),0)]);
-
-  // 운영메모 — 작성자 제외
-  if(opsLogs.length){
-    data.push([]);
-    data.push([' 운영메모']);
-    data.push(['시간','내용']);
-    opsLogs.forEach(l=>data.push([l.time_str||'',l.content||'']));
-  }
-
+  if(opsLogs.length){data.push([]);data.push([' 운영메모']);data.push(['시간','내용','작성자']);opsLogs.forEach(l=>data.push([l.time_str||'',l.content||'',l.created_by||'']));}
   const ws=XLSX.utils.aoa_to_sheet(data);
   ws['!cols']=[{wch:6},{wch:8},{wch:10},{wch:12},{wch:8},{wch:12},{wch:8},{wch:8},{wch:20},{wch:8}];
   XLSX.utils.book_append_sheet(wb,ws,'접수내역');
