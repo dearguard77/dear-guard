@@ -565,8 +565,14 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div class="inp-wrap">
           <input class="form-input" id="amount-input" type="text" inputmode="numeric" placeholder="직접 입력"
-            oninput="onAmountInput()" style="padding-right:28px;font-size:13px;padding-top:6px;padding-bottom:6px">
-          <span class="inp-unit">원</span>
+            oninput="onAmountInput()" style="padding-right:60px;font-size:13px;padding-top:6px;padding-bottom:6px">
+          <div style="position:absolute;right:0;top:0;bottom:0;display:flex;flex-direction:column;border-left:1px solid #E0E0E0">
+            <button type="button" onclick="stepAmount(10000)"
+              style="flex:1;width:30px;background:#F9F8F6;border:none;border-bottom:1px solid #E0E0E0;border-radius:0 7px 0 0;font-size:11px;color:#6B7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">▲</button>
+            <button type="button" onclick="stepAmount(-10000)"
+              style="flex:1;width:30px;background:#F9F8F6;border:none;border-radius:0 0 7px 0;font-size:11px;color:#6B7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">▼</button>
+          </div>
+          <span class="inp-unit" style="right:38px">원</span>
         </div>
       </div>
 
@@ -1315,6 +1321,14 @@ function onAmountInput(){
   inp.value=num.toLocaleString();
   // 커서 끝으로
   setTimeout(function(){ inp.setSelectionRange(inp.value.length,inp.value.length); },0);
+  document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
+}
+  function stepAmount(delta){
+  var inp=document.getElementById('amount-input');
+  var raw=Number((inp.value||'').replace(/,/g,''))||0;
+  var next=Math.max(0, raw+delta);
+  st.amount=next;
+  inp.value=next>0?next.toLocaleString():'';
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
 function setRelation(rel){
