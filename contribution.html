@@ -333,13 +333,13 @@ input,select,textarea{font-family:inherit;outline:none}
           <option value="신랑측">🤵 신랑</option>
           <option value="신부측">👰 신부</option>
         </select>
-        <input id="add-ticket-amount" type="number" placeholder="수량" min="1"
+        <input id="add-ticket-amount" type="number" placeholder="수량" min="1" autocomplete="off"
           style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:11px;text-align:center;font-weight:700;padding:0 3px;width:40px">
         <span style="font-size:10px;color:#9CA3AF">장</span>
         
         <button onclick="addTicketExtra()"
           style="height:22px;background:#374151;color:#fff;border:none;border-radius:5px;padding:0 7px;font-size:10px;font-weight:700;cursor:pointer">추가</button>
-        <div id="ticket-extra-list" style="max-height:22px;overflow:hidden;display:none"></div>
+        <div id="ticket-extra-list" style="max-height:60px;overflow-y:auto;margin-top:2px"></div>
       </div>
 
     
@@ -1023,11 +1023,20 @@ async function deleteTicketExtra(id){
 function renderTicketExtraList(){
   const el=document.getElementById('ticket-extra-list');
   if(!el) return;
-  if(!ticketExtras.length){el.innerHTML='<div style="font-size:10px;color:#9CA3AF;padding:3px 0">추가 발급 내역 없음</div>';return;}
+  if(!ticketExtras.length){
+    el.innerHTML='<div style="font-size:10px;color:#9CA3AF;padding:3px 0">추가 발급 내역 없음</div>';
+    return;
+  }
   el.innerHTML=ticketExtras.map(t=>{
     const icon=t.side==='신랑측'?'🤵':'👰';
     const time=t.created_at?fmtTime(t.created_at):'';
-    return '<div class="tkt-extra-item"><span>'+icon+'</span><span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>'+(t.memo?'<span style="color:#9CA3AF;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t.memo)+'</span>':'<span style="flex:1"></span>')+'<span style="color:#C7A96B;flex-shrink:0">'+time+'</span><button onclick="deleteTicketExtra('+t.id+')" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1">✕</button></div>';
+    return '<div class="tkt-extra-item">'+
+      '<span>'+icon+'</span>'+
+      '<span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>'+
+      '<span style="flex:1"></span>'+
+      '<span style="color:#C7A96B;flex-shrink:0;font-size:10px">'+time+'</span>'+
+      '<button onclick="deleteTicketExtra('+t.id+')" title="삭제" style="width:16px;height:16px;background:#FEF2F2;color:#DC2626;border:none;border-radius:3px;cursor:pointer;font-size:10px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0;margin-left:2px">🗑️</button>'+
+    '</div>';
   }).join('');
 }
 // ── 사전 공유 식권 ──
