@@ -514,6 +514,34 @@ input,select,textarea{font-family:inherit;outline:none}
           </div>
         </div>
       </div>
+      <!-- 🎫 사전 공유 식권 -->
+      <div class="card" style="padding:5px 9px" id="pre-share-card">
+        <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">🎫 사전 공유 식권</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:center;gap:3px">
+            <select id="pre-share-side"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:70px">
+              <option value="신랑측">🤵 신랑</option>
+              <option value="신부측">👰 신부</option>
+            </select>
+            <input id="pre-share-name" placeholder="이름" type="text"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
+              onkeydown="if(event.key==='Enter')document.getElementById('pre-share-amount').focus()">
+            <input id="pre-share-amount" placeholder="수량" type="number" min="1"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:52px;flex-shrink:0"
+              onkeydown="if(event.key==='Enter')document.getElementById('pre-share-memo').focus()">
+            <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:3px">
+            <input id="pre-share-memo" placeholder="메모 (헬퍼 / 스냅 / 사회자...)" type="text"
+              style="width:100%;height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 7px;box-sizing:border-box"
+              onkeydown="if(event.key==='Enter')addPreShare()">
+            <button onclick="addPreShare()"
+              style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+          </div>
+        </div>
+        <div id="pre-share-list" style="max-height:72px;overflow-y:auto;margin-top:4px"></div>
+      </div>
 
       <!-- 접수 측 + 결제 방식 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
@@ -955,6 +983,7 @@ async function selectSchedule(id){
     document.body.style.overflow='hidden';
     await loadLogs();
     await loadTicketExtras();
+    await loadPreShares();
     loadOpsLogs();
     loadFlowerLogs();
     loadHandover();
@@ -996,7 +1025,78 @@ function renderTicketExtraList(){
     return '<div class="tkt-extra-item"><span>'+icon+'</span><span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>'+(t.memo?'<span style="color:#9CA3AF;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t.memo)+'</span>':'<span style="flex:1"></span>')+'<span style="color:#C7A96B;flex-shrink:0">'+time+'</span><button onclick="deleteTicketExtra('+t.id+')" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1">✕</button></div>';
   }).join('');
 }
+// ── 사전 공유 식권 ──
+var preShares = [];
 
+async function loadPreShares(){
+  if(!currentSchedule) return;
+  try {
+    preShares = await sb.get('ticket_additions',
+      '?schedule_id=eq.'+currentSchedule.id+'&type=eq.pre_share&order=created_at.asc');
+    renderPreShareList();
+    renderStats();
+  } catch(e){ console.error('사전 공유 식권 로드 실패:', e); }
+}
+
+async function addPreShare(){
+  var side   = document.getElementById('pre-share-side').value;
+  var name   = document.getElementById('pre-share-name').value.trim();
+  var amount = parseInt(document.getElementById('pre-share-amount').value)||0;
+  var memo   = document.getElementById('pre-share-memo').value.trim();
+  if(!name){ showToast('⚠️ 이름을 입력해주세요'); return; }
+  if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); return; }
+  if(!currentSchedule) return;
+  var row = {
+    schedule_id:  currentSchedule.id,
+    side:         side,
+    amount:       amount,
+    person_name:  name,
+    memo:         memo || null,
+    type:         'pre_share',
+    created_by:   currentUser.name,
+  };
+  try {
+    var created = await sb.post('ticket_additions', row);
+    preShares.push(Array.isArray(created) ? created[0] : created);
+    document.getElementById('pre-share-name').value   = '';
+    document.getElementById('pre-share-amount').value = '';
+    document.getElementById('pre-share-memo').value   = '';
+    renderPreShareList();
+    renderStats();
+    showToast('🎫 사전 공유 식권 '+amount+'장 등록됨');
+  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
+}
+
+async function deletePreShare(id){
+  if(!confirm('사전 공유 식권을 삭제하시겠습니까?')) return;
+  try {
+    await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'DELETE', headers:sb.h});
+    preShares = preShares.filter(function(x){ return x.id !== id; });
+    renderPreShareList();
+    renderStats();
+    showToast('🗑️ 삭제되었습니다');
+  } catch(e){ showToast('⚠️ 삭제 실패'); }
+}
+
+function renderPreShareList(){
+  var el = document.getElementById('pre-share-list');
+  if(!el) return;
+  if(!preShares.length){
+    el.innerHTML = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div>';
+    return;
+  }
+  el.innerHTML = preShares.map(function(p){
+    var icon = p.side==='신랑측' ? '🤵' : '👰';
+    var label = esc(p.person_name||'');
+    var memoStr = p.memo ? ' · '+esc(p.memo) : '';
+    return '<div style="display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px">'+
+      '<span>'+icon+'</span>'+
+      '<span style="flex:1;min-width:0;color:#374151;font-weight:600">'+label+memoStr+'</span>'+
+      '<span style="font-weight:700;color:#C7A96B;flex-shrink:0">'+p.amount+'장</span>'+
+      '<button onclick="deletePreShare('+p.id+')" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1">✕</button>'+
+    '</div>';
+  }).join('');
+}
 // ── 식권 설정 ──
 function saveTotalTickets(){
   totalTickets.groom=Number(document.getElementById('groom-total-ticket').value)||0;
@@ -1227,10 +1327,12 @@ function renderStats(){
   const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
   const gExtra=ticketExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
   const bExtra=ticketExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+  const gPreShare=preShares.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
+  const bPreShare=preShares.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
   const gTotal=totalTickets.groom>0?totalTickets.groom+gExtra:null;
   const bTotal=totalTickets.bride>0?totalTickets.bride+bExtra:null;
-  const gRemain=gTotal!==null?gTotal-gUsed:null;
-  const bRemain=bTotal!==null?bTotal-bUsed:null;
+  const gRemain=gTotal!==null?gTotal-gUsed-gPreShare:null;
+  const bRemain=bTotal!==null?bTotal-bUsed-bPreShare:null;
 
   const se=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   se('stat-total-amount',fmtFull(total));
