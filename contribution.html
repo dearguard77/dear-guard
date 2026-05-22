@@ -993,22 +993,28 @@ async function selectSchedule(id){
 // ── 추가 식권 ──
 async function loadTicketExtras(){
   if(!currentSchedule) return;
-  try { ticketExtras=await sb.get('ticket_additions','?schedule_id=eq.'+currentSchedule.id+'&order=created_at.asc'); renderTicketExtraList(); renderStats(); } catch(e){}
+  try {
+    ticketExtras=await sb.get('ticket_additions',
+      '?schedule_id=eq.'+currentSchedule.id+'&type=eq.extra&order=created_at.asc');
+    renderTicketExtraList();
+    renderStats();
+  } catch(e){ console.error('[DG] loadTicketExtras 오류:', e); }
 }
 async function addTicketExtra(){
   const amount=parseInt(document.getElementById('add-ticket-amount').value)||0;
   if(!amount||amount<1){showToast('⚠️ 추가 수량을 입력해주세요');return;}
   if(!currentSchedule) return;
-  const now=new Date();
-  const row={schedule_id:currentSchedule.id,side:document.getElementById('add-ticket-side').value,amount,memo:null,created_by:currentUser.name};
+  const row={schedule_id:currentSchedule.id,side:document.getElementById('add-ticket-side').value,amount,memo:null,type:'extra',created_by:currentUser.name};
   try {
     const created=await sb.post('ticket_additions',row);
     ticketExtras.push(Array.isArray(created)?created[0]:created);
     document.getElementById('add-ticket-amount').value='';
-    document.getElementById('add-ticket-memo').value='';
     renderTicketExtraList(); renderStats();
     showToast('✅ 추가 식권 '+amount+'장 등록됨');
-  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
+  } catch(e){
+    console.error('[DG] addTicketExtra 오류:', e);
+    showToast('⚠️ 저장 실패: '+e.message);
+  }
 }
 async function deleteTicketExtra(id){
   if(!confirm('추가 식권 기록을 삭제하시겠습니까?')) return;
