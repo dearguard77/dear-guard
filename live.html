@@ -673,15 +673,13 @@ function renderList(){
     const gIsAsc=(_sideSort==='num_asc'||_sideSort==='name_asc');
     if(gEl)gEl.innerHTML=gFS.length?gFS.map((l,i)=>{
       const num=gIsAsc?i+1:gFS.length-i;
-      const originalNum=gF.length-gF.indexOf(l);
-      return buildRow(l,false,i,gF.length,originalNum);
+      return buildRow(l,false,i,gFS.length,num);
     }).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
     const bFS=applySideSort(bF);
     const bIsAsc=(_sideSort==='num_asc'||_sideSort==='name_asc');
     if(bEl)bEl.innerHTML=bFS.length?bFS.map((l,i)=>{
       const num=bIsAsc?i+1:bFS.length-i;
-      const originalNum=bF.length-bF.indexOf(l);
-      return buildRow(l,false,i,bF.length,originalNum);
+      return buildRow(l,false,i,bFS.length,num);
     }).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
   } else {
     // 단일 테이블 뷰
@@ -1065,19 +1063,6 @@ _s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{o
 document.head.appendChild(_s);
 
 init();
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 </script>
