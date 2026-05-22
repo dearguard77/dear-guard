@@ -334,7 +334,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
           <button class="ctrl-tab"    id="tab-bride" onclick="setListTab('bride')">👰 신부</button>
         </div>
         <select class="ctrl-select" id="f-pay" onchange="renderList()">
-          <option value="">전체 결제</option>
+          <option value="">전체</option>
           <option value="현금">💵 현금</option>
           <option value="계좌이체">📱 계좌이체</option>
         </select>
@@ -615,8 +615,8 @@ function getFiltered(side){
 }
 
 // ── 행 빌드 ──
-function buildRow(l,showSide,sideIndex,sideTotal){
-  const num = sideIndex !== undefined ? sideTotal - sideIndex : logs.length - logs.indexOf(l);
+function buildRow(l,showSide,sideIndex,sideTotal,overrideNum){
+  const num = overrideNum !== undefined ? overrideNum : (sideIndex !== undefined ? sideTotal - sideIndex : logs.length - logs.indexOf(l));
   const isNew=newIds.has(l.id);
   const adultT=l.adult_ticket||0,childT=l.child_ticket||0;
   const tktHtml=(adultT>0?`<span class="badge-adult">대${adultT}</span>`:'')+
@@ -668,9 +668,17 @@ function renderList(){
     const gEl=document.getElementById('groom-list');
     const bEl=document.getElementById('bride-list');
     const gFS=applySideSort(gF);
-    if(gEl)gEl.innerHTML=gFS.length?gFS.map((l,i)=>buildRow(l,false,i,gFS.length)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    const gIsAsc=(_sideSort==='num_asc'||_sideSort==='name_asc');
+    if(gEl)gEl.innerHTML=gFS.length?gFS.map((l,i)=>{
+      const num=gIsAsc?i+1:gFS.length-i;
+      return buildRow(l,false,i,gFS.length,num);
+    }).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
     const bFS=applySideSort(bF);
-    if(bEl)bEl.innerHTML=bFS.length?bFS.map((l,i)=>buildRow(l,false,i,bFS.length)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    const bIsAsc=(_sideSort==='num_asc'||_sideSort==='name_asc');
+    if(bEl)bEl.innerHTML=bFS.length?bFS.map((l,i)=>{
+      const num=bIsAsc?i+1:bFS.length-i;
+      return buildRow(l,false,i,bFS.length,num);
+    }).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
   } else {
     // 단일 테이블 뷰
     if(splitWrap)splitWrap.style.display='none';
@@ -732,28 +740,39 @@ function renderHandover(){
   var s = schedule;
 
   function buildInfoHtml(name, phone, items, pw, live1, live2){
+    var hasAny = name||phone||pw||items||live1||live2;
+    if(!hasAny) return '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:8px">정보 없음</div>';
+
     var html = '';
-    if(name||phone){
-      html += '<div class="ho-item" style="margin-bottom:5px">';
-      if(name) html += '<div style="font-weight:700;font-size:13px">'+esc(name)+'</div>';
+
+    // 인계자 정보 + 레디백 비번 가로 2분할
+    if(name||phone||pw){
+      html += '<div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px">';
+      // 좌: 인계자 정보
+      html += '<div class="ho-item" style="flex:1;min-width:0;margin-bottom:0">';
+      if(name) html += '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px">인계자</div><div style="font-weight:700;font-size:13px;margin-bottom:2px">'+esc(name)+'</div>';
       if(phone) html += '<a href="tel:'+esc(phone)+'" style="color:var(--blue);font-size:12px;text-decoration:none">'+esc(phone)+'</a>';
+      if(!name&&!phone) html += '<div style="font-size:11px;color:var(--text3)">—</div>';
+      html += '</div>';
+      // 우: 레디백 비번
+      if(pw){
+        html += '<div style="background:#F9F8F6;border:1px solid #E5E7EB;border-radius:8px;padding:6px 8px;width:84px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center">';
+        html += '<div style="font-size:9px;font-weight:700;color:var(--text3);margin-bottom:4px">🔒 비번</div>';
+        html += '<div style="font-size:18px;font-weight:900;letter-spacing:4px;color:var(--gold2)">'+esc(pw)+'</div>';
+        html += '</div>';
+      }
       html += '</div>';
     }
-    if(pw){
-      html += '<div class="ho-pw" style="margin-bottom:6px">'+esc(pw)+'</div>';
-    }
+
+    // 인계 물품
     if(items){
-      html += '<div class="ho-item" style="white-space:pre-line;font-size:12px;margin-bottom:5px">'+esc(items)+'</div>';
+      html += '<div class="ho-item" style="white-space:pre-line;font-size:12px;margin-bottom:6px">'+esc(items)+'</div>';
     }
-    if(live1){
-      html += '<a href="'+esc(live1)+'" target="_blank" class="ho-link" style="margin-bottom:4px">📹 LIVE 1</a>';
-    }
-    if(live2){
-      html += '<a href="'+esc(live2)+'" target="_blank" class="ho-link">📹 LIVE 2</a>';
-    }
-    if(!name&&!phone&&!pw&&!items&&!live1&&!live2){
-      html = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:8px">정보 없음</div>';
-    }
+
+    // LIVE 링크
+    if(live1) html += '<a href="'+esc(live1)+'" target="_blank" class="ho-link" style="margin-bottom:4px">📹 LIVE 1</a>';
+    if(live2) html += '<a href="'+esc(live2)+'" target="_blank" class="ho-link">📹 LIVE 2</a>';
+
     return html;
   }
 
