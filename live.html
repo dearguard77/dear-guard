@@ -423,7 +423,7 @@ const sb={
   async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 };
 
-let schedule=null,logs=[],opsLogs=[],newIds=new Set();
+let schedule=null,logs=[],opsLogs=[],preShares=[],newIds=new Set();
 let _sortKey='num',_sortDir='desc',_activeTab='all';
 
 const fmt=n=>n>=10000?Math.round(n/10000)+'만원':n.toLocaleString()+'원';
@@ -490,13 +490,14 @@ function showError(){
 async function loadLogs(){
   if(!schedule)return;
   try{
-    const [nl,no]=await Promise.all([
+    const [nl,no,np]=await Promise.all([
       sb.get('contribution_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`),
-      sb.get('operation_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`)
+      sb.get('operation_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`),
+      sb.get('ticket_additions',`?schedule_id=eq.${schedule.id}&type=eq.pre_share`)
     ]);
     const oldIds=new Set(logs.map(l=>l.id));
     nl.forEach(l=>{if(!oldIds.has(l.id))newIds.add(l.id);});
-    logs=nl;opsLogs=no;
+    logs=nl;opsLogs=no;preShares=np;
     renderStats();renderList();renderOpsList();applyWeddingMode();
     showUpdBadge();
     se('last-upd','갱신 '+fmtTime(new Date().toISOString()));
@@ -514,17 +515,24 @@ function renderStats(){
   se('bride-total',fmt(bL.reduce((s,l)=>s+(l.amount||0),0)));
   se('groom-cnt-sub',gL.length+'건');
   se('bride-cnt-sub',bL.length+'건');
+  // 실접수 식권
   const gAdultTkt=logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const gChildTkt=logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.child_ticket||0),0);
   const bAdultTkt=logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const bChildTkt=logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
+  // 사전 공유 식권 (사용으로 포함)
+  const gPreShare=preShares.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
+  const bPreShare=preShares.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+  // 사용량 = 실접수 + 사전공유
+  const gUsedTotal=gAdultTkt+gChildTkt+gPreShare;
+  const bUsedTotal=bAdultTkt+bChildTkt+bPreShare;
   const totalAdult=logs.reduce((s,l)=>s+(l.adult_ticket||0),0);
   const totalChild=logs.reduce((s,l)=>s+(l.child_ticket||0),0);
-  se('total-adult',totalAdult);
+  se('total-adult',totalAdult+gPreShare+bPreShare);
   se('total-child',totalChild);
-  se('groom-adult-tkt',gAdultTkt);
+  se('groom-adult-tkt',gUsedTotal);
   se('groom-child-tkt',gChildTkt);
-  se('bride-adult-tkt',bAdultTkt);
+  se('bride-adult-tkt',bUsedTotal);
   se('bride-child-tkt',bChildTkt);
   // 모드에 따라 식권 표시 전환
   const mode=schedule?schedule.wedding_mode||'양측':'양측';
