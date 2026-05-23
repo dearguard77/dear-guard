@@ -325,24 +325,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <span style="font-size:10px;color:#9CA3AF">장</span>
       </div>
 
-      <!-- 추가 발급 -->
-      <div style="background:#F9F8F6;border:1px solid #E0E0E0;border-radius:7px;padding:4px 10px;display:flex;align-items:center;gap:4px;flex-shrink:0">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:700">추가</span>
-        <select id="add-ticket-side"
-          style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:10px;padding:0 3px;background:#fff;width:58px">
-          <option value="신랑측">🤵 신랑</option>
-          <option value="신부측">👰 신부</option>
-        </select>
-        <input id="add-ticket-amount" type="number" placeholder="수량" min="1" autocomplete="off"
-          style="height:22px;border:1px solid #E0E0E0;border-radius:5px;font-size:11px;text-align:center;font-weight:700;padding:0 3px;width:40px">
-        <span style="font-size:10px;color:#9CA3AF">장</span>
-        
-        <button onclick="addTicketExtra()"
-          style="height:22px;background:#374151;color:#fff;border:none;border-radius:5px;padding:0 7px;font-size:10px;font-weight:700;cursor:pointer">추가</button>
-        <div id="ticket-extra-list" style="max-height:60px;overflow-y:auto;margin-top:2px"></div>
-      </div>
-
-    
+          
 
     </div>
 
@@ -606,7 +589,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <!-- 식권 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">3️⃣ 식권</div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
           <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">대인</span>
           <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
             <button onclick="changeTicket('adult',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
@@ -622,7 +605,22 @@ input,select,textarea{font-family:inherit;outline:none}
             <button onclick="changeTicket('child',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
           </div>
           <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
+          <div style="width:1px;height:20px;background:#E0E0E0;flex-shrink:0"></div>
+          <!-- 추가 발급 인라인 -->
+          <select id="add-ticket-side"
+            style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:68px">
+            <option value="신랑측">🤵 신랑</option>
+            <option value="신부측">👰 신부</option>
+          </select>
+          <input id="add-ticket-amount" type="number" placeholder="추가" min="1" autocomplete="off"
+            style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:44px;flex-shrink:0"
+            onkeydown="if(event.key==='Enter')addTicketExtra()">
+          <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+          <button onclick="addTicketExtra()"
+            style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
         </div>
+        <!-- 추가 발급 리스트 -->
+        <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;margin-top:4px;border-top:1px solid #F0EDE8;padding-top:3px"></div>
       </div>
 
       <!-- 메모 -->
@@ -1024,7 +1022,7 @@ function renderTicketExtraList(){
   const el=document.getElementById('ticket-extra-list');
   if(!el) return;
   if(!ticketExtras.length){
-    el.innerHTML='<div style="font-size:10px;color:#9CA3AF;padding:3px 0">추가 발급 내역 없음</div>';
+    el.innerHTML='';
     return;
   }
   el.innerHTML=ticketExtras.map(t=>{
@@ -1035,7 +1033,7 @@ function renderTicketExtraList(){
       '<span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>'+
       '<span style="flex:1"></span>'+
       '<span style="color:#C7A96B;flex-shrink:0;font-size:10px">'+time+'</span>'+
-      '<button onclick="deleteTicketExtra('+t.id+')" title="삭제" style="width:16px;height:16px;background:#FEF2F2;color:#DC2626;border:none;border-radius:3px;cursor:pointer;font-size:10px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0;margin-left:2px">🗑️</button>'+
+      '<button onclick="deleteTicketExtra('+t.id+')" title="삭제" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1;margin-left:3px">✕</button>'+
     '</div>';
   }).join('');
 }
