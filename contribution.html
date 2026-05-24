@@ -947,7 +947,6 @@ async function selectSchedule(id){
     await loadTicketExtras();
     await loadPreShares();
     loadOpsLogs();
-    loadFlowerLogs();
     loadHandover();
     subscribeRealtime();
   } catch(e){ console.error('[DG] 예식 로드 실패:',e); showToast('⚠️ 예식 로드 실패: '+e.message); }
