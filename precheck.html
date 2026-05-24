@@ -268,14 +268,18 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="section-toggle" id="sec-3-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-3-body">
-      <div class="grid2">
+      <div class="field">
+        <label class="field-label">전체 보증인원</label>
+        <input class="field-input" id="ticket_guarantee" type="number" placeholder="예: 200" oninput="updateProgress()">
+      </div>
+      <div class="grid2" style="margin-bottom:12px">
         <div class="field">
-          <label class="field-label">전체 보증인원</label>
-          <input class="field-input" id="ticket_guarantee" type="number" placeholder="예: 200" oninput="updateProgress()">
+          <label class="field-label" style="color:#2563EB">🤵 신랑측 식권 수량</label>
+          <input class="field-input" id="ticket_total_groom" type="number" placeholder="예: 110" oninput="updateProgress()">
         </div>
         <div class="field">
-          <label class="field-label">식권 총 수량</label>
-          <input class="field-input" id="ticket_total" type="number" placeholder="예: 210" oninput="updateProgress()">
+          <label class="field-label" style="color:#DB2777">👰 신부측 식권 수량</label>
+          <input class="field-input" id="ticket_total_bride" type="number" placeholder="예: 100" oninput="updateProgress()">
         </div>
       </div>
       <div class="field">
@@ -284,19 +288,20 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="field-hint">현장 상황에 따라 추가 발권이 필요한 경우 기준입니다.</div>
       </div>
       <div class="field">
-        <label class="field-label">식권 도장 여부</label>
+        <label class="field-label">식권 도장 전달 여부</label>
         <div class="radio-group" id="stamp-group" style="flex-direction:row;gap:8px">
           <label class="radio-item" data-val="true" onclick="selectRadio('stamp-group',this,'true');updateProgress()" style="flex:1">
             <input type="radio" name="ticket_stamp" value="true">
             <div class="radio-dot"></div>
-            <div class="radio-label">있음</div>
+            <div class="radio-label">전달함</div>
           </label>
           <label class="radio-item" data-val="false" onclick="selectRadio('stamp-group',this,'false');updateProgress()" style="flex:1">
             <input type="radio" name="ticket_stamp" value="false">
             <div class="radio-dot"></div>
-            <div class="radio-label">없음</div>
+            <div class="radio-label">전달안함</div>
           </label>
         </div>
+        <div class="field-hint" style="margin-top:6px">전달하지 않을 경우 디어가드 도장을 찍어서 나갑니다 😊</div>
       </div>
     </div>
   </div>
@@ -442,69 +447,12 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
   </div>
 
-  <!-- ⑨ 인계 정보 -->
-  <div class="section" id="sec-9">
-    <div class="section-hdr" onclick="toggleSection('sec-9')">
-      <div class="section-icon">📦</div>
-      <div class="section-meta">
-        <div class="section-num">STEP 9</div>
-        <div class="section-title">별도 인계자 정보</div>
-        <div class="section-status" id="sec-9-status">해당 없으면 건너뛰세요</div>
-      </div>
-      <div class="section-toggle" id="sec-9-toggle">▼</div>
-    </div>
-    <div class="section-body" id="sec-9-body">
-      <div class="info-box" style="margin-bottom:12px">신랑신부 본인이 아닌 <strong>별도 인계자</strong> 정보를 입력해주세요.<br><span style="color:#6B7280">예: 친동생 김철수 / 가방순이 박OO</span></div>
-      <div id="groom-handover-wrap">
-        <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측 인계자</div>
-        <div class="grid2" style="margin-bottom:4px">
-          <div class="field">
-            <label class="field-label">관계/성함</label>
-            <input class="field-input" id="g_ho_name" placeholder="예: 친동생 김철수" oninput="updateProgress()">
-          </div>
-          <div class="field">
-            <label class="field-label">연락처</label>
-            <input class="field-input" id="g_ho_phone" placeholder="010-0000-0000" oninput="updateProgress()">
-          </div>
-        </div>
-        <div class="field">
-          <label class="field-label">인계 물품 메모</label>
-          <input class="field-input" id="g_ho_items" placeholder="예: 레디백, 방명록, 남은 식권" oninput="updateProgress()">
-        </div>
-      </div>
-      <div id="bride-handover-wrap">
-        <div class="divider"></div>
-        <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측 인계자</div>
-        <div class="grid2" style="margin-bottom:4px">
-          <div class="field">
-            <label class="field-label">관계/성함</label>
-            <input class="field-input" id="b_ho_name" placeholder="예: 가방순이 박OO" oninput="updateProgress()">
-          </div>
-          <div class="field">
-            <label class="field-label">연락처</label>
-            <input class="field-input" id="b_ho_phone" placeholder="010-0000-0000" oninput="updateProgress()">
-          </div>
-        </div>
-        <div class="field">
-          <label class="field-label">인계 물품 메모</label>
-          <input class="field-input" id="b_ho_items" placeholder="예: 레디백, 방명록, 남은 식권" oninput="updateProgress()">
-        </div>
-      </div>
-      <div class="detail-toggle" onclick="toggleDetail('handover-tip')">
-        ℹ️ 인계 안내 보기
-      </div>
-      <div class="detail-toggle-body" id="handover-tip">
-        축의금 인계는 당일 현장 인사 후 진행됩니다 😊
-      </div>
-    </div>
-  </div>
-
-  <!-- ⑩ 레디백 비밀번호 -->
+  <!-- ⑨ 레디백 비밀번호 (구 STEP10, STEP9 삭제로 번호 이동) -->
   <div class="section" id="sec-10">
     <div class="section-hdr" onclick="toggleSection('sec-10')">
       <div class="section-icon">🔒</div>
       <div class="section-meta">
-        <div class="section-num">STEP 10</div>
+        <div class="section-num">STEP 9</div>
         <div class="section-title">레디백 비밀번호</div>
         <div class="section-status" id="sec-10-status">입력해주세요</div>
       </div>
@@ -522,28 +470,29 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
   </div>
 
-  <!-- ⑪ 모바일 청첩장 -->
+  <!-- ⑩ 모바일 청첩장 -->
   <div class="section" id="sec-11">
     <div class="section-hdr" onclick="toggleSection('sec-11')">
       <div class="section-icon">💌</div>
       <div class="section-meta">
-        <div class="section-num">STEP 11</div>
-        <div class="section-title">모바일 청첩장 링크</div>
-        <div class="section-status" id="sec-11-status">해당 없으면 건너뛰세요</div>
+        <div class="section-num">STEP 10</div>
+        <div class="section-title">모바일 청첩장 링크 <span style="color:#EF4444;font-size:11px">*필수</span></div>
+        <div class="section-status" id="sec-11-status">입력해주세요</div>
       </div>
       <div class="section-toggle" id="sec-11-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-11-body">
-      <input class="field-input" id="mobile_invite_url" placeholder="https://..." oninput="updateProgress()">
+      <input class="field-input" id="mobile_invite_url" placeholder="https://..." oninput="updateProgress()" style="border-color:#FCA5A5">
+      <div class="field-hint" style="color:#EF4444;margin-top:6px">* 필수 입력 항목입니다.</div>
     </div>
   </div>
 
-  <!-- ⑫ 현금영수증 -->
+  <!-- ⑪ 현금영수증 -->
   <div class="section" id="sec-12">
     <div class="section-hdr" onclick="toggleSection('sec-12')">
       <div class="section-icon">🧾</div>
       <div class="section-meta">
-        <div class="section-num">STEP 12</div>
+        <div class="section-num">STEP 11</div>
         <div class="section-title">현금영수증</div>
         <div class="section-status" id="sec-12-status">해당 없으면 건너뛰세요</div>
       </div>
@@ -591,6 +540,11 @@ input,select,textarea{font-family:inherit;outline:none}
 <div id="toast"></div>
 
 <script>
+/*
+  ⚠️ Supabase 신규 컬럼 추가 필요 (최초 1회):
+  ALTER TABLE schedules ADD COLUMN IF NOT EXISTS ticket_total_groom integer;
+  ALTER TABLE schedules ADD COLUMN IF NOT EXISTS ticket_total_bride integer;
+*/
 const SUPABASE_URL      = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 const sb = {
@@ -689,41 +643,32 @@ function applyMode(){
     document.getElementById('sec-1').style.display = 'none';
     document.getElementById('single-mode-notice').style.display = 'block';
     document.getElementById('live-mode-wrap').style.display = 'none';
-    // 단측이면 반대측 숨김
-    if(sideFilter==='groom'||isSingle){
+    if(sideFilter==='groom'){
       const bEl = document.getElementById('bride-contact-wrap');
-      const bHo = document.getElementById('bride-handover-wrap');
       const bPw = document.getElementById('bride-pw-wrap');
-      if(sideFilter==='groom'){ if(bEl)bEl.style.display='none'; if(bHo)bHo.style.display='none'; if(bPw)bPw.style.display='none'; }
+      if(bEl)bEl.style.display='none'; if(bPw)bPw.style.display='none';
     }
     if(sideFilter==='bride'){
       const gEl = document.getElementById('groom-contact-wrap');
-      const gHo = document.getElementById('groom-handover-wrap');
       const gPw = document.getElementById('groom-pw-wrap');
-      if(gEl)gEl.style.display='none'; if(gHo)gHo.style.display='none'; if(gPw)gPw.style.display='none';
+      if(gEl)gEl.style.display='none'; if(gPw)gPw.style.display='none';
     }
     if(!sideFilter){
-      // 단측 통합 — 신부측 숨김 (신랑측만)
       const bEl = document.getElementById('bride-contact-wrap');
-      const bHo = document.getElementById('bride-handover-wrap');
       const bPw = document.getElementById('bride-pw-wrap');
-      if(bEl)bEl.style.display='none'; if(bHo)bHo.style.display='none'; if(bPw)bPw.style.display='none';
+      if(bEl)bEl.style.display='none'; if(bPw)bPw.style.display='none';
     }
   } else {
-    // 양측: sideFilter 적용
     if(sideFilter==='groom'){
       const bEl = document.getElementById('bride-contact-wrap');
-      const bHo = document.getElementById('bride-handover-wrap');
       const bPw = document.getElementById('bride-pw-wrap');
-      if(bEl)bEl.style.display='none'; if(bHo)bHo.style.display='none'; if(bPw)bPw.style.display='none';
-      // 사전식권 신부측 옵션 숨김
+      if(bEl)bEl.style.display='none'; if(bPw)bPw.style.display='none';
       const psS = document.getElementById('ps-side');
       if(psS){ Array.from(psS.options).forEach(o=>{ if(o.value==='신부측') o.style.display='none'; }); psS.value='신랑측'; }
     } else if(sideFilter==='bride'){
       const gEl = document.getElementById('groom-contact-wrap');
-      const gHo = document.getElementById('groom-handover-wrap');
       const gPw = document.getElementById('groom-pw-wrap');
-      if(gEl)gEl.style.display='none'; if(gHo)gHo.style.display='none'; if(gPw)gPw.style.display='none';
+      if(gEl)gEl.style.display='none'; if(gPw)gPw.style.display='none';
       const psS = document.getElementById('ps-side');
       if(psS){ Array.from(psS.options).forEach(o=>{ if(o.value==='신랑측') o.style.display='none'; }); psS.value='신부측'; }
     }
@@ -743,7 +688,8 @@ function loadExistingData(){
   sv('bride_contact_name',  s.bride_contact_name);
   sv('bride_contact_phone', s.bride_contact_phone);
   // 식권
-  sv('ticket_total',       s.ticket_total);
+  sv('ticket_total_groom', s.ticket_total_groom);
+  sv('ticket_total_bride', s.ticket_total_bride);
   sv('ticket_extra_limit', s.ticket_extra_limit);
   if(s.ticket_stamp!=null) selectRadioByVal('stamp-group', String(s.ticket_stamp));
   // 축의금
@@ -760,13 +706,6 @@ function loadExistingData(){
   if(s.gift_yn!=null) selectRadioByVal('gift-group', String(s.gift_yn));
   // 특이사항
   sv('precheck_memo', s.precheck_memo);
-  // 인계자
-  sv('g_ho_name',  s.groom_handover_name);
-  sv('g_ho_phone', s.groom_handover_phone);
-  sv('g_ho_items', s.groom_handoff_items);
-  sv('b_ho_name',  s.bride_handover_name);
-  sv('b_ho_phone', s.bride_handover_phone);
-  sv('b_ho_items', s.bride_handoff_items);
   // 비밀번호
   sv('g_ho_pw', s.groom_password);
   sv('b_ho_pw', s.bride_password);
@@ -887,18 +826,28 @@ function renderPreShareList(){
 // ── 진행률 ──
 function updateProgress(){
   const checks = [
-    () => !!getRadioVal('live-mode-group') || schedule.wedding_mode==='단측',
+    // STEP 1: 장부 방식 선택
+    () => !!getRadioVal('live-mode-group') || (schedule && schedule.wedding_mode==='단측'),
+    // STEP 2: 담당자 연락처 (신랑 또는 신부 중 하나 이상)
     () => !!(gv('groom_contact_name') || gv('bride_contact_name')),
-    () => !!(gv('ticket_total')),
-    () => preShares.length >= 0, // 선택
+    // STEP 3: 식권 정보 (신랑 또는 신부 식권 수량 + 도장 선택)
+    () => !!(gv('ticket_total_groom') || gv('ticket_total_bride')) && !!getRadioVal('stamp-group'),
+    // STEP 4: 사전 전달 식권 (선택 항목 — 항상 완료로 처리)
+    () => true,
+    // STEP 5: 축의금 보관 방식
     () => !!getRadioVal('cash-group'),
+    // STEP 6: 디어가드 이용 안내
     () => !!getRadioVal('dg-disclosed-group'),
+    // STEP 7: 답례품
     () => !!getRadioVal('gift-group'),
-    () => true, // 특이사항 선택
-    () => true, // 인계자 선택
+    // STEP 8: 특이사항 (선택 항목 — 항상 완료로 처리)
+    () => true,
+    // STEP 9: 레디백 비밀번호 (신랑 또는 신부 중 하나 이상)
     () => !!(gv('g_ho_pw') || gv('b_ho_pw')),
-    () => true, // 모바일 선택
-    () => true, // 현금영수증 선택
+    // STEP 10: 모바일 청첩장 (필수)
+    () => !!gv('mobile_invite_url'),
+    // STEP 11: 현금영수증 (선택 항목 — 항상 완료로 처리)
+    () => true,
   ];
   const done = checks.filter(c=>c()).length;
   const pct = Math.round(done/checks.length*100);
@@ -910,6 +859,14 @@ function updateProgress(){
 async function saveAll(){
   if(!schedule){ showToast('⚠️ 예식 정보가 없습니다'); return; }
   if(schedule.precheck_locked){ showToast('🔒 운영팀이 확인 완료한 항목입니다'); return; }
+
+  // 모바일 청첩장 필수 검사
+  if(!gv('mobile_invite_url')){
+    alert('모바일 청첩장 링크를 입력해주세요.');
+    toggleSection('sec-11');
+    document.getElementById('mobile_invite_url').focus();
+    return;
+  }
 
   const btn = document.getElementById('save-btn');
   btn.disabled = true;
@@ -924,7 +881,8 @@ async function saveAll(){
     groom_contact_phone:  gv('groom_contact_phone'),
     bride_contact_name:   gv('bride_contact_name'),
     bride_contact_phone:  gv('bride_contact_phone'),
-    ticket_total:         parseInt(gv('ticket_total'))||null,
+    ticket_total_groom:   parseInt(gv('ticket_total_groom'))||null,
+    ticket_total_bride:   parseInt(gv('ticket_total_bride'))||null,
     ticket_extra_limit:   parseInt(gv('ticket_extra_limit'))||null,
     ticket_stamp:         getRadioVal('stamp-group')==='true',
     cash_method:          getRadioVal('cash-group'),
@@ -932,12 +890,6 @@ async function saveAll(){
     dg_relation_desc:     gv('dg_relation_desc'),
     gift_yn:              getRadioVal('gift-group')==='true',
     precheck_memo:        gv('precheck_memo'),
-    groom_handover_name:  gv('g_ho_name'),
-    groom_handover_phone: gv('g_ho_phone'),
-    groom_handoff_items:  gv('g_ho_items'),
-    bride_handover_name:  gv('b_ho_name'),
-    bride_handover_phone: gv('b_ho_phone'),
-    bride_handoff_items:  gv('b_ho_items'),
     groom_password:       gv('g_ho_pw'),
     bride_password:       gv('b_ho_pw'),
     mobile_invite_url:    gv('mobile_invite_url'),
