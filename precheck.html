@@ -160,6 +160,10 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="hdr-info" id="hdr-info">—</div>
     <div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:10px">⏱ 예상 소요시간 약 3~5분</div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:10px">작성해주신 내용 기준으로 당일 운영팀이 준비 예정입니다 😊</div>
+    <div style="background:#FDF8F0;border:1px solid #E8D5B0;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:11px;color:#92400E;line-height:1.6;text-align:left">
+      💡 작성 내용은 자동 저장됩니다 😊<br>
+      <span style="color:#A8893A">모바일 청첩장 링크 복사 등을 위해 잠시 나가셔도 입력 내용은 유지됩니다.</span>
+    </div>
     <div class="progress-wrap">
       <div class="progress-top">
         <span class="progress-label">📋 준비 체크 진행률</span>
@@ -465,11 +469,11 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="section-body" id="sec-10-body">
       <div id="groom-pw-wrap">
         <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측</div>
-        <input class="field-input" id="g_ho_pw" placeholder="예: 1234" oninput="updateProgress();autoSaveDraft()" style="margin-bottom:12px;letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
+        <input class="field-input" id="g_ho_pw" placeholder="예: 123" maxlength="3" oninput="updateProgress();autoSaveDraft()" style="margin-bottom:12px;letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
       </div>
       <div id="bride-pw-wrap">
         <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측</div>
-        <input class="field-input" id="b_ho_pw" placeholder="예: 5678" oninput="updateProgress();autoSaveDraft()" style="letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
+        <input class="field-input" id="b_ho_pw" placeholder="예: 567" maxlength="3" oninput="updateProgress();autoSaveDraft()" style="letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
       </div>
     </div>
   </div>
