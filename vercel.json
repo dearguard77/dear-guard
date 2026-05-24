@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/live.html", "destination": "/api/og" }
+  ]
+}
