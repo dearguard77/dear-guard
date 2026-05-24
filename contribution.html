@@ -1235,7 +1235,7 @@ async function loadOpsLogs(){
   try {
     var all = await sb.get('operation_logs',
       '?schedule_id=eq.'+currentSchedule.id+'&order=created_at.desc');
-    opsLogsG = all.filter(function(l){ return l.side==='신랑측'||!l.side; });
+    opsLogsG = all.filter(function(l){ return l.side==='신랑측'; });
     opsLogsB = all.filter(function(l){ return l.side==='신부측'; });
     renderOpsLogs('g', opsLogsG);
     renderOpsLogs('b', opsLogsB);
