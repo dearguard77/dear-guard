@@ -792,9 +792,24 @@ function renderOpsList(){
     </div>`).join('');
   }
 
+  const sf = schedule ? schedule._sideFilter : null;
+
+  // 양측 분리 모드 또는 모바일 탭 기준 단독 렌더
+  if(sf === 'groom'){
+    el.innerHTML =
+      '<div style="font-size:11px;font-weight:700;color:#2563EB;padding:4px 0 3px">🤵 신랑측</div>'+
+      buildRows(gLogs);
+    return;
+  }
+  if(sf === 'bride'){
+    el.innerHTML =
+      '<div style="font-size:11px;font-weight:700;color:#DB2777;padding:4px 0 3px">👰 신부측</div>'+
+      buildRows(bLogs);
+    return;
+  }
+
   const isMobile = window.innerWidth <= 900;
   if(isMobile){
-    // 모바일: 현재 선택된 탭 기준으로만 표시
     const currentSide = _liveHoTab === 'bride' ? '신부측' : '신랑측';
     const filteredLogs = opsLogs.filter(l => l.side === currentSide);
     const sideColor = currentSide === '신랑측' ? '#2563EB' : '#DB2777';
@@ -803,7 +818,6 @@ function renderOpsList(){
       '<div style="font-size:11px;font-weight:700;color:'+sideColor+';padding:4px 0 3px">'+sideIcon+' '+currentSide+'</div>'+
       buildRows(filteredLogs);
   } else {
-    // PC: 신랑/신부 모두 표시
     el.innerHTML=
       '<div style="font-size:11px;font-weight:700;color:#2563EB;padding:4px 0 3px">🤵 신랑측</div>'+
       buildRows(gLogs)+
@@ -914,6 +928,24 @@ function renderHandover(){
   setLiveBtn('groom-live-btn-2', s.groom_live2);
   setLiveBtn('bride-live-btn-1', s.bride_live1);
   setLiveBtn('bride-live-btn-2', s.bride_live2);
+
+  // 양측 분리 모드: 반대측 카드 숨김 + 탭 숨김
+  var sf = schedule ? schedule._sideFilter : null;
+  var tabBar = document.getElementById('live-ho-tab-bar');
+  if(sf === 'groom'){
+    if(bCard) bCard.style.display = 'none';
+    var bPane = document.getElementById('live-pane-bride');
+    if(bPane) bPane.style.display = 'none';
+    if(tabBar) tabBar.style.display = 'none';
+  } else if(sf === 'bride'){
+    if(gCard) gCard.style.display = 'none';
+    var gPane = document.getElementById('live-pane-groom');
+    if(gPane) gPane.style.display = 'none';
+    if(tabBar) tabBar.style.display = 'none';
+    // 신부측 패널 강제 표시
+    var bPane2 = document.getElementById('live-pane-bride');
+    if(bPane2) bPane2.style.display = 'flex';
+  }
 }
 
 function applyWeddingMode(){
@@ -1050,17 +1082,19 @@ function downloadExcel(){
     if(hasChild) row.push(list.reduce((s,l)=>s+(l.child_ticket||0),0));
     return row;
   }
-  summaryRows.push(makeSummaryRow('전체', logs));
-  summaryRows.push(makeSummaryRow('신랑측', gL));
-  summaryRows.push(makeSummaryRow('신부측', bL));
+  const _sf = schedule ? schedule._sideFilter : null;
 
-  if(gOps.length){
+  summaryRows.push(makeSummaryRow('전체', logs));
+  if(_sf !== 'bride') summaryRows.push(makeSummaryRow('신랑측', gL));
+  if(_sf !== 'groom') summaryRows.push(makeSummaryRow('신부측', bL));
+
+  if(_sf !== 'bride' && gOps.length){
     summaryRows.push([]);
     summaryRows.push(['[신랑측 운영메모]']);
     summaryRows.push(['시간','내용']);
     gOps.forEach(l=>summaryRows.push([l.time_str||'',l.content||'']));
   }
-  if(bOps.length){
+  if(_sf !== 'groom' && bOps.length){
     summaryRows.push([]);
     summaryRows.push(['[신부측 운영메모]']);
     summaryRows.push(['시간','내용']);
@@ -1116,11 +1150,13 @@ function downloadExcel(){
     return ws;
   }
 
-  // ── 2. 신랑측 시트 ──
-  XLSX.utils.book_append_sheet(wb, makeSideSheet(gL), '신랑측');
+  const sf = schedule ? schedule._sideFilter : null;
 
-  // ── 3. 신부측 시트 ──
-  XLSX.utils.book_append_sheet(wb, makeSideSheet(bL), '신부측');
+  // ── 2. 신랑측 시트 (신부측 전용 링크면 제외) ──
+  if(sf !== 'bride') XLSX.utils.book_append_sheet(wb, makeSideSheet(gL), '신랑측');
+
+  // ── 3. 신부측 시트 (신랑측 전용 링크면 제외) ──
+  if(sf !== 'groom') XLSX.utils.book_append_sheet(wb, makeSideSheet(bL), '신부측');
 
   XLSX.writeFile(wb,'축의접수_'+nm+'_'+dt+'.xlsx');
 }
