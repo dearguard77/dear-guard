@@ -478,7 +478,7 @@ async function init(){
     document.getElementById('loading').style.display='none';
     document.getElementById('app').style.display='flex';
     subscribeRealtime();
-    setInterval(()=>{loadLogs();loadFlowerLive();},8000);
+    setInterval(()=>{loadLogs();},8000);
   }catch(e){console.error('[DG]',e);showError();}
 }
 
@@ -946,10 +946,9 @@ function subscribeRealtime(){
   ws.onopen=()=>{
     ws.send(JSON.stringify({topic:`realtime:public:contribution_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'1'}));
     ws.send(JSON.stringify({topic:`realtime:public:operation_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'2'}));
-    ws.send(JSON.stringify({topic:`realtime:public:flower_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'3'}));
   };
   ws.onmessage=async e=>{
-    try{const msg=JSON.parse(e.data);if(['INSERT','UPDATE','DELETE'].includes(msg.event)){await loadLogs();loadFlowerLive();}}catch{}
+    try{const msg=JSON.parse(e.data);if(['INSERT','UPDATE','DELETE'].includes(msg.event)){await loadLogs();}}catch{}
   };
   ws.onclose=()=>setTimeout(subscribeRealtime,3000);
 }
