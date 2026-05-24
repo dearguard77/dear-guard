@@ -1060,11 +1060,7 @@ function rowToSchedule(row){
     result:       row.result       || null,
     fieldMemo:      row.field_memo      || {},
     adminMemo:      row.admin_memo      || {},
-    handoverPerson:       row.handover_person        || '',
-    photoAlertCompleted:  row.photo_alert_completed  || false,
-    dashboardToken:       row.dashboard_token        || '',
-    groomToken:           row.groom_token            || '',
-    brideToken:           row.bride_token            || '',
+    handoverPerson: row.handover_person || '',
   };
 }
 
@@ -1594,10 +1590,7 @@ function renderScheduleList(){
             ? `<button class="sch-del-btn" onclick="event.stopPropagation();confirmDeleteSch(${s.id})">삭제</button>`
             : ''}
           ${s.dashboardToken
-            ? `<button onclick="event.stopPropagation();navigator.clipboard.writeText('${location.origin}/precheck.html?t='+${JSON.stringify(s.dashboardToken||'')}).then(()=>showToast('📋 체크 링크 복사됨'))"
-                style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">
-                📋 사전체크
-              </button>`
+            ? `<button onclick="event.stopPropagation();openPrecheckModal(${s.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">📋 준비체크</button>`
             : ''}
         </div>
       </div>
@@ -1775,18 +1768,13 @@ function openDetail(id){
 
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
   document.getElementById('dm-footer').innerHTML = canEdit ? `
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;align-items:center">
       <button class="btn btn-ghost" onclick="closeDetail()">닫기</button>
       ${isAdmin ? `
         <button onclick="confirmDeleteSch(${id})"
           style="background:none;border:1px solid #FCA5A5;color:#DC2626;border-radius:8px;
             padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer">
           🗑️ 삭제
-        </button>` : ''}
-      ${s.dashboardToken ? `
-        <button onclick="openPrecheckModal(${id})"
-          style="background:#374151;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
-          📋 사전체크
         </button>` : ''}
     </div>
     <div style="display:flex;gap:8px">
@@ -1798,64 +1786,7 @@ function openDetail(id){
   document.getElementById('detail-modal').style.display='flex';
   document.body.style.overflow='hidden';
 }
-// ── PRECHECK 링크 모달 ──
-function openPrecheckModal(id){
-  const s = schedules.find(x => x.id === id);
-  if(!s) return;
 
-  const base = location.origin;
-  const precheckUrl = s.dashboardToken
-    ? `${base}/precheck.html?t=${s.dashboardToken}`
-    : null;
-
-  const existing = document.getElementById('precheck-modal');
-  if(existing) existing.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'precheck-modal';
-  modal.className = 'modal-overlay';
-  modal.style.display = 'flex';
-  modal.onclick = function(e){ if(e.target===modal) closePrecheckModal(); };
-
-  modal.innerHTML = `
-    <div class="modal-box sm" style="max-width:400px">
-      <div class="modal-header">
-        <button class="x-btn" onclick="closePrecheckModal()">✕</button>
-        <div class="modal-brand">Dear Guard · 본식 준비 체크</div>
-        <div class="modal-title">📋 PRECHECK 링크</div>
-      </div>
-      <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
-        ${precheckUrl ? `
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">🤝 통합 체크 링크</div>
-          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${precheckUrl}</div>
-          <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 PRECHECK 링크 복사됨'))"
-            style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
-            📋 링크 복사
-          </button>
-        </div>` : `
-        <div style="text-align:center;padding:20px;color:#9CA3AF;font-size:13px">
-          ⚠️ 토큰이 없습니다.<br>contribution에서 예식을 선택하면 자동 생성됩니다.
-        </div>`}
-      </div>
-      <div class="modal-footer" style="justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closePrecheckModal()">닫기</button>
-      </div>
-    </div>`;
-
-  document.body.appendChild(modal);
-  document.body.style.overflow = 'hidden';
-}
-
-function closePrecheckModal(){
-  const modal = document.getElementById('precheck-modal');
-  if(modal) modal.remove();
-  document.body.style.overflow = '';
-}
-
-function copyText(url, msg){
-  navigator.clipboard.writeText(url).then(()=>showToast(msg));
-}
 function closeDetail(){ document.getElementById('detail-modal').style.display='none'; document.body.style.overflow=''; }
 
 async function toggleCL(schId, key, checked){
@@ -3541,8 +3472,8 @@ function scheduleWeddingReminders(){
       }
 
       if(delayMs <= 0){
-        // 이미 5분 지난 경우 - DB 완료 체크 + 팝업 닫힘 체크
-        if(!s.photoAlertCompleted && !_isReminderClosed(s)){
+        // 이미 5분 지난 경우 - 닫지 않은 팝업이면 즉시 표시
+        if(!_isReminderClosed(s)){
           console.log('[DG] 즉시 팝업 표시:', coupleName(s));
           _reminderFired.add(key);
           try { showPhotoReminder(s); } catch(e){ console.error('[DG] showPhotoReminder 오류:', e); }
@@ -3563,7 +3494,6 @@ function scheduleWeddingReminders(){
       console.log('[DG] 팝업 예약:', coupleName(s), '→', Math.round(delayMs/1000), '초 후');
       setTimeout(function(){
         if(_reminderFired.has(key)) return;
-        if(s.photoAlertCompleted) return;
         if(_isReminderClosed(s)) return;
         _reminderFired.add(key);
         console.log('[DG] 팝업 발동:', coupleName(s));
@@ -3624,25 +3554,10 @@ function showPhotoReminder(s){
     popup.remove();
   };
 
-  // 촬영 완료 버튼 - DB 저장 + 로컬 상태 갱신
-  document.getElementById('photo-reminder-confirm').onclick = async function(){
-    // 1. 로컬 상태 즉시 갱신 (중복 팝업 방지)
-    s.photoAlertCompleted = true;
-    const idx = schedules.findIndex(function(x){ return x.id === s.id; });
-    if(idx !== -1) schedules[idx].photoAlertCompleted = true;
-    // 2. sessionStorage 닫힘 처리
+  // 촬영 완료 버튼 - 닫힘 처리
+  document.getElementById('photo-reminder-confirm').onclick = function(){
     _markReminderClosed(s);
-    // 3. 팝업 제거
     popup.remove();
-    showToast('📸 촬영 완료 저장 중...');
-    // 4. Supabase DB 저장
-    try {
-      await sb.patch('schedules', s.id, { photo_alert_completed: true });
-      showToast('✅ 촬영 완료가 저장되었습니다');
-    } catch(e){
-      console.error('[DG] photo_alert_completed 저장 실패:', e);
-      showToast('⚠️ 저장 실패 (다음 새로고침 시 재시도됩니다)');
-    }
   };
 
   // ⛔ 자동 닫힘 제거 — X 버튼 또는 촬영완료 버튼으로만 닫힘
