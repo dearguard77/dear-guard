@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dear Guard · 실시간 장부</title>
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="Dear Guard · 실시간 장부" id="og-title">
+<meta property="og:description" content="실시간 축의금 접수 현황을 확인하세요.">
+<meta property="og:image"       content="https://dear-guard.vercel.app/icon.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height"content="512">
+<meta property="og:url"         content="" id="og-url">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -451,7 +458,9 @@ function setLiveHoTab(side){
   if(tg){ tg.style.color=(side==='groom')?blue:gray; tg.style.borderBottomColor=(side==='groom')?blue:'transparent'; }
   if(tb){ tb.style.color=(side==='bride')?pink:gray; tb.style.borderBottomColor=(side==='bride')?pink:'transparent'; }
   if(pg) pg.style.display=(side==='groom')?'flex':'none';
-  if(pb) pb.style.display=(side==='bride')?'flex':'none';  
+  if(pb) pb.style.display=(side==='bride')?'flex':'none';
+  // 모바일: 탭 전환 시 운영메모도 재렌더
+  if(window.innerWidth <= 900) renderOpsList();
 }
 
 async function init(){
@@ -472,6 +481,11 @@ async function init(){
     document.getElementById('hdr-info-dt').textContent=_dateTime;
     document.getElementById('hdr-info-hall').textContent=_hall;
     document.title=`${names} · 실시간 장부`;
+    // OG 태그 동적 갱신 (카카오톡 미리보기)
+    const ogTitle = document.getElementById('og-title');
+    const ogUrl   = document.getElementById('og-url');
+    if(ogTitle) ogTitle.setAttribute('content', names+' · 실시간 장부');
+    if(ogUrl)   ogUrl.setAttribute('content', location.href);
     await loadLogs();
     renderHandover();
     applyWeddingMode();
@@ -744,11 +758,24 @@ function renderOpsList(){
     </div>`).join('');
   }
 
-  el.innerHTML=
-    '<div style="font-size:11px;font-weight:700;color:#2563EB;padding:4px 0 3px">🤵 신랑측</div>'+
-    buildRows(gLogs)+
-    '<div style="font-size:11px;font-weight:700;color:#DB2777;padding:7px 0 3px;border-top:1px solid #F0EDE8;margin-top:2px">👰 신부측</div>'+
-    buildRows(bLogs);
+  const isMobile = window.innerWidth <= 900;
+  if(isMobile){
+    // 모바일: 현재 선택된 탭 기준으로만 표시
+    const currentSide = _liveHoTab === 'bride' ? '신부측' : '신랑측';
+    const filteredLogs = opsLogs.filter(l => l.side === currentSide);
+    const sideColor = currentSide === '신랑측' ? '#2563EB' : '#DB2777';
+    const sideIcon  = currentSide === '신랑측' ? '🤵' : '👰';
+    el.innerHTML =
+      '<div style="font-size:11px;font-weight:700;color:'+sideColor+';padding:4px 0 3px">'+sideIcon+' '+currentSide+'</div>'+
+      buildRows(filteredLogs);
+  } else {
+    // PC: 신랑/신부 모두 표시
+    el.innerHTML=
+      '<div style="font-size:11px;font-weight:700;color:#2563EB;padding:4px 0 3px">🤵 신랑측</div>'+
+      buildRows(gLogs)+
+      '<div style="font-size:11px;font-weight:700;color:#DB2777;padding:7px 0 3px;border-top:1px solid #F0EDE8;margin-top:2px">👰 신부측</div>'+
+      buildRows(bLogs);
+  }
 }
 
 function renderHandover(){
