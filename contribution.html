@@ -403,6 +403,34 @@ input,select,textarea{font-family:inherit;outline:none}
             style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
         </div>
     </div>
+
+        <!-- 🎫 사전 공유 식권 -->
+        <div class="ho-section" style="flex-shrink:0">
+          <div class="ho-section-title" style="color:#C7A96B;margin-bottom:6px">🎫 사전 공유 식권</div>
+          <!-- 1줄: 측 + 장수 -->
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+            <select id="pre-share-side"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
+              <option value="신랑측">🤵 신랑</option>
+              <option value="신부측">👰 신부</option>
+            </select>
+            <input id="pre-share-amount" placeholder="장수" type="number" min="1"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0"
+              onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name').focus()">
+            <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+          </div>
+          <!-- 2줄: 이름 + 추가버튼 -->
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+            <input id="pre-share-name" placeholder="사회자, 헬퍼, 혼주직접..." type="text"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
+              onkeydown="if(event.key==='Enter')addPreShare()">
+            <button onclick="addPreShare()"
+              style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+          </div>
+          <!-- 3줄: 내역 리스트 -->
+          <div id="pre-share-list" style="max-height:80px;overflow-y:auto"></div>
+        </div>
+
       </div><!-- /ho-pane-g -->
 
       <!-- 👰 신부측 패널 -->
@@ -464,38 +492,7 @@ input,select,textarea{font-family:inherit;outline:none}
     <!-- ② 중앙: 입력 + 리스트 -->
     <div id="center-panel">
     <div id="input-panel">
-
       
-      <!-- 🎫 사전 공유 식권 -->
-      <div class="card" style="padding:5px 9px" id="pre-share-card">
-        <div style="font-size:11px;font-weight:700;color:#C7A96B;margin-bottom:5px;letter-spacing:.3px">🎫 사전 공유 식권</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <!-- 좌: 입력 -->
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="display:flex;align-items:center;gap:3px">
-              <select id="pre-share-side"
-                style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:68px">
-                <option value="신랑측">🤵 신랑</option>
-                <option value="신부측">👰 신부</option>
-              </select>
-              <input id="pre-share-amount" placeholder="장수" type="number" min="1"
-                style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:44px;flex-shrink:0"
-                onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name').focus()">
-              <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:3px">
-              <input id="pre-share-name" placeholder="이름 (사회자, 헬퍼...)" type="text"
-                style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
-                onkeydown="if(event.key==='Enter')addPreShare()">
-              <button onclick="addPreShare()"
-                style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
-            </div>
-          </div>
-          <!-- 우: 리스트 -->
-          <div id="pre-share-list" style="max-height:56px;overflow-y:auto;border-left:1px solid #F0EDE8;padding-left:7px"></div>
-        </div>
-      </div>
-
       <!-- 접수 측 + 결제 방식 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
         <div class="card" style="padding:5px 8px">
