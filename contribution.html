@@ -1318,7 +1318,14 @@ async function saveOpsEdit(id, side){
 async function deleteOpsLog(id, side){
   if(!confirm('메모를 삭제하시겠습니까?')) return;
   try {
-    await fetch(sb.url('operation_logs','?id=eq.'+id), {method:'DELETE', headers:sb.h});
+    const res = await fetch(sb.url('operation_logs','?id=eq.'+id), {method:'DELETE', headers:sb.h});
+    console.log('[DG] deleteOpsLog 응답:', res.status, res.ok);
+    if(!res.ok){
+      const txt = await res.text();
+      console.error('[DG] deleteOpsLog 실패:', txt);
+      showToast('⚠️ 삭제 실패 ('+res.status+'): '+txt.slice(0,80));
+      return;
+    }
     if(side==='g'){
       opsLogsG = opsLogsG.filter(function(l){ return l.id!==id; });
       renderOpsLogs('g', opsLogsG);
@@ -1327,7 +1334,10 @@ async function deleteOpsLog(id, side){
       renderOpsLogs('b', opsLogsB);
     }
     showToast('🗑️ 메모가 삭제되었습니다');
-  } catch(e){ showToast('⚠️ 삭제 실패: '+e.message); }
+  } catch(e){
+    console.error('[DG] deleteOpsLog 오류:', e);
+    showToast('⚠️ 삭제 실패: '+e.message);
+  }
 }
 
 // ── 데이터 로드 ──
