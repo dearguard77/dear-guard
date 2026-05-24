@@ -1586,9 +1586,15 @@ function renderScheduleList(){
       <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;flex-shrink:0;width:80px;padding-left:8px">
         <div>${badge(s.status)}</div>
         <div style="width:100%">${progBar(s.checklist)}</div>
-        <div style="min-height:20px">
+        <div style="min-height:20px;display:flex;flex-direction:column;gap:4px;align-items:flex-end">
           ${ADMIN_NAMES.includes(currentUser.name)
             ? `<button class="sch-del-btn" onclick="event.stopPropagation();confirmDeleteSch(${s.id})">삭제</button>`
+            : ''}
+          ${s.dashboard_token
+            ? `<button onclick="event.stopPropagation();navigator.clipboard.writeText(location.origin+'/precheck.html?t='+${JSON.stringify(s.dashboard_token||'')}).then(()=>showToast('📋 체크 링크 복사됨'))"
+                style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">
+                📋 체크
+              </button>`
             : ''}
         </div>
       </div>
@@ -1765,14 +1771,20 @@ function openDetail(id){
     </div>`;
 
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  const precheckUrl = `${location.origin}/precheck.html?t=${s.dashboard_token||''}`;
   document.getElementById('dm-footer').innerHTML = canEdit ? `
-    <div style="display:flex;gap:8px;align-items:center">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="closeDetail()">닫기</button>
       ${isAdmin ? `
         <button onclick="confirmDeleteSch(${id})"
           style="background:none;border:1px solid #FCA5A5;color:#DC2626;border-radius:8px;
             padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer">
           🗑️ 삭제
+        </button>` : ''}
+      ${s.dashboard_token ? `
+        <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 체크 링크 복사됨'))"
+          style="background:#374151;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+          📋 체크 링크
         </button>` : ''}
     </div>
     <div style="display:flex;gap:8px">
