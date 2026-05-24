@@ -746,11 +746,25 @@ input,select,textarea{font-family:inherit;outline:none}
 </div>
 
 <div id="token-modal">
-  <div class="token-box">
-    <div class="token-title">📱 고객 대시보드 링크</div>
-    <div class="token-sub">신랑·신부·혼주님께 이 링크를 공유하세요</div>
+  <div class="token-box" style="max-width:380px;max-height:90vh;overflow-y:auto">
+    <div class="token-title">📱 대시보드 링크</div>
+
+    <!-- 양측 통합 -->
+    <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#374151">🤝 양측 통합 링크</div>
     <div class="token-url" id="token-url-display">—</div>
-    <button class="token-copy-btn" onclick="copyDashboardLink()">🔗 링크 복사</button>
+    <button class="token-copy-btn" onclick="copyDashboardLink()" style="margin-bottom:14px">🔗 통합 링크 복사</button>
+
+    <!-- 분리 링크 -->
+    <div style="border-top:1px solid #E5E7EB;padding-top:12px">
+      <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#2563EB">🤵 신랑측 전용 링크</div>
+      <div class="token-url" id="token-url-groom" style="border-color:#BFDBFE;color:#1D4ED8;margin-bottom:8px">—</div>
+      <button class="token-copy-btn" onclick="copyGroomLink()" style="background:#2563EB;margin-bottom:12px">🤵 신랑측 링크 복사</button>
+
+      <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#DB2777">👰 신부측 전용 링크</div>
+      <div class="token-url" id="token-url-bride" style="border-color:#FBCFE8;color:#9D174D;margin-bottom:8px">—</div>
+      <button class="token-copy-btn" onclick="copyBrideLink()" style="background:#DB2777;margin-bottom:12px">👰 신부측 링크 복사</button>
+    </div>
+
     <button class="token-close-btn" onclick="document.getElementById('token-modal').style.display='none'">닫기</button>
   </div>
 </div>
@@ -924,6 +938,16 @@ async function selectSchedule(id){
         await sb.patch('schedules',id,{dashboard_token:token});
         currentSchedule.dashboard_token=token;
       } catch(e){ console.warn('[DG] 토큰 생성 실패:',e); }
+    }
+    // 신랑/신부 분리 토큰
+    if(!currentSchedule.groom_token || !currentSchedule.bride_token){
+      try {
+        const gt='G_'+Math.random().toString(36).slice(2,10).toUpperCase();
+        const bt='B_'+Math.random().toString(36).slice(2,10).toUpperCase();
+        await sb.patch('schedules',id,{groom_token:gt,bride_token:bt});
+        currentSchedule.groom_token=gt;
+        currentSchedule.bride_token=bt;
+      } catch(e){ console.warn('[DG] 분리 토큰 생성 실패:',e); }
     }
     const g=(currentSchedule.groom_name||'').trim(),b=(currentSchedule.bride_name||'').trim();
     const name=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:currentSchedule.hall||'미입력';
@@ -1603,13 +1627,23 @@ async function deleteLog(id){
 // ── 대시보드 링크 ──
 function showDashboardLink(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
-  const url=`${location.origin}/live.html?t=${currentSchedule.dashboard_token}`;
-  document.getElementById('token-url-display').textContent=url;
+  const base=location.origin;
+  document.getElementById('token-url-display').textContent=`${base}/live.html?t=${currentSchedule.dashboard_token}`;
+  document.getElementById('token-url-groom').textContent=`${base}/live.html?t=${currentSchedule.groom_token||'(미생성)'}`;
+  document.getElementById('token-url-bride').textContent=`${base}/live.html?t=${currentSchedule.bride_token||'(미생성)'}`;
   document.getElementById('token-modal').style.display='flex';
 }
 function copyDashboardLink(){
   const url=document.getElementById('token-url-display').textContent;
-  navigator.clipboard.writeText(url).then(()=>showToast('🔗 링크가 복사되었습니다'));
+  navigator.clipboard.writeText(url).then(()=>showToast('🔗 통합 링크 복사됨'));
+}
+function copyGroomLink(){
+  const url=document.getElementById('token-url-groom').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('🤵 신랑측 링크 복사됨'));
+}
+function copyBrideLink(){
+  const url=document.getElementById('token-url-bride').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('👰 신부측 링크 복사됨'));
 }
 function renderRightList(){
   var isAdmin = ADMIN_NAMES.includes(currentUser.name);
