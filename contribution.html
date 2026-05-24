@@ -893,11 +893,11 @@ function schCard(s){
       <div class="sch-card-info">${esc(info)}</div>
       <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
         <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        ${['단측','양측','양측통합'].map(m=>`
+        ${['단측','양측'].map(m=>`
           <button onclick="event.stopPropagation();setWeddingMode(${s.id},this,'${m}')"
             data-mode="${m}"
             style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid ${mode===m?modeColor:'#E0E0E0'};background:${mode===m?modeColor+'20':'#F5F5F5'};color:${mode===m?modeColor:'#6B7280'};cursor:pointer">
-            ${m==='단측'?'🤵 단측':m==='양측'?'🤵👰 양측':'🤝 양측통합'}
+            ${m==='단측'?'🤵 단측':'🤵👰 양측'}
           </button>`).join('')}
       </div>
     </div>
