@@ -467,11 +467,34 @@ async function init(){
   const token=getToken();
   if(!token){showError();return;}
   try{
-    const rows=await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}`);
+    // 1. 공통 토큰으로 조회
+    let rows = await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}&select=*`);
+    let sideFilter = null;
+
+    // 2. 신랑측 전용 토큰으로 조회
+    if(!rows.length){
+      rows = await sb.get('schedules',`?groom_token=eq.${encodeURIComponent(token)}&select=*`);
+      if(rows.length) sideFilter = 'groom';
+    }
+
+    // 3. 신부측 전용 토큰으로 조회
+    if(!rows.length){
+      rows = await sb.get('schedules',`?bride_token=eq.${encodeURIComponent(token)}&select=*`);
+      if(rows.length) sideFilter = 'bride';
+    }
+
     if(!rows.length) throw new Error('not found');
-    schedule=rows[0];
+    schedule = rows[0];
+    schedule._sideFilter = sideFilter;
+
     const g=(schedule.groom_name||'').trim(),b=(schedule.bride_name||'').trim();
-    const names=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:schedule.hall||'—';
+
+    // sideFilter에 따라 표시 이름 결정
+    let names;
+    if(sideFilter==='groom')      names = g ? `${g} 신랑측` : (g&&b?`${g} ♥ ${b}`:schedule.hall||'—');
+    else if(sideFilter==='bride') names = b ? `${b} 신부측` : (g&&b?`${g} ♥ ${b}`:schedule.hall||'—');
+    else                          names = (g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:schedule.hall||'—';
+
     se('hdr-names',names);
     const _d=new Date((schedule.date||'')+'T00:00:00');
     const _days=['일','월','화','수','목','금','토'];
@@ -481,7 +504,6 @@ async function init(){
     document.getElementById('hdr-info-dt').textContent=_dateTime;
     document.getElementById('hdr-info-hall').textContent=_hall;
     document.title=`${names} · 실시간 장부`;
-    // OG 태그 동적 갱신 (카카오톡 미리보기)
     const ogTitle = document.getElementById('og-title');
     const ogUrl   = document.getElementById('og-url');
     if(ogTitle) ogTitle.setAttribute('content', names+' · 실시간 장부');
@@ -494,7 +516,6 @@ async function init(){
     subscribeRealtime();
     setInterval(()=>{loadLogs();},8000);
   }catch(e){console.error('[DG]',e);showError();}
-}
 
 function showError(){
   document.getElementById('loading').style.display='none';
@@ -504,14 +525,27 @@ function showError(){
 async function loadLogs(){
   if(!schedule)return;
   try{
+    const sf = schedule._sideFilter;
     const [nl,no,np]=await Promise.all([
       sb.get('contribution_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`),
       sb.get('operation_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`),
       sb.get('ticket_additions',`?schedule_id=eq.${schedule.id}&type=eq.pre_share`)
     ]);
     const oldIds=new Set(logs.map(l=>l.id));
-    nl.forEach(l=>{if(!oldIds.has(l.id))newIds.add(l.id);});
-    logs=nl;opsLogs=no;preShares=np;
+
+    // sideFilter 적용: 분리 링크면 해당 측 데이터만
+    const filteredLogs = sf==='groom' ? nl.filter(l=>l.side==='신랑측')
+                       : sf==='bride' ? nl.filter(l=>l.side==='신부측')
+                       : nl;
+    const filteredOps  = sf==='groom' ? no.filter(l=>l.side==='신랑측')
+                       : sf==='bride' ? no.filter(l=>l.side==='신부측')
+                       : no;
+    const filteredPre  = sf==='groom' ? np.filter(t=>t.side==='신랑측')
+                       : sf==='bride' ? np.filter(t=>t.side==='신부측')
+                       : np;
+
+    filteredLogs.forEach(l=>{if(!oldIds.has(l.id))newIds.add(l.id);});
+    logs=filteredLogs; opsLogs=filteredOps; preShares=filteredPre;
     renderStats();renderList();renderOpsList();applyWeddingMode();
     showUpdBadge();
     se('last-upd','갱신 '+fmtTime(new Date().toISOString()));
