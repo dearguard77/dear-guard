@@ -1062,6 +1062,9 @@ function rowToSchedule(row){
     adminMemo:      row.admin_memo      || {},
     handoverPerson:       row.handover_person        || '',
     photoAlertCompleted:  row.photo_alert_completed  || false,
+    dashboardToken:       row.dashboard_token        || '',
+    groomToken:           row.groom_token            || '',
+    brideToken:           row.bride_token            || '',
   };
 }
 
@@ -1590,8 +1593,8 @@ function renderScheduleList(){
           ${ADMIN_NAMES.includes(currentUser.name)
             ? `<button class="sch-del-btn" onclick="event.stopPropagation();confirmDeleteSch(${s.id})">삭제</button>`
             : ''}
-          ${s.dashboard_token
-            ? `<button onclick="event.stopPropagation();navigator.clipboard.writeText(location.origin+'/precheck.html?t='+${JSON.stringify(s.dashboard_token||'')}).then(()=>showToast('📋 체크 링크 복사됨'))"
+          ${s.dashboardToken
+            ? `<button onclick="event.stopPropagation();navigator.clipboard.writeText('${location.origin}/precheck.html?t='+${JSON.stringify(s.dashboardToken||'')}).then(()=>showToast('📋 체크 링크 복사됨'))"
                 style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">
                 📋 체크
               </button>`
@@ -1780,7 +1783,7 @@ function openDetail(id){
             padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer">
           🗑️ 삭제
         </button>` : ''}
-      ${s.dashboard_token ? `
+      ${s.dashboardToken ? `
         <button onclick="openPrecheckModal(${id})"
           style="background:#374151;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
           📋 PRECHECK
@@ -1801,13 +1804,10 @@ function openPrecheckModal(id){
   if(!s) return;
 
   const base = location.origin;
-  const urls = {
-    main:  s.dashboard_token ? `${base}/precheck.html?t=${s.dashboard_token}` : null,
-    groom: s.groom_token     ? `${base}/precheck.html?t=${s.groom_token}`     : null,
-    bride: s.bride_token     ? `${base}/precheck.html?t=${s.bride_token}`     : null,
-  };
+  const precheckUrl = s.dashboardToken
+    ? `${base}/precheck.html?t=${s.dashboardToken}`
+    : null;
 
-  // 기존 precheck 모달 제거 후 재생성
   const existing = document.getElementById('precheck-modal');
   if(existing) existing.remove();
 
@@ -1825,42 +1825,18 @@ function openPrecheckModal(id){
         <div class="modal-title">📋 PRECHECK 링크</div>
       </div>
       <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
-
-        ${urls.main ? `
+        ${precheckUrl ? `
         <div>
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">🤝 통합 체크 링크</div>
-          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:6px">${urls.main}</div>
-          <button onclick="copyText('${urls.main}','📋 통합 체크 링크 복사됨')"
-            style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
-            📋 통합 링크 복사
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${precheckUrl}</div>
+          <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 PRECHECK 링크 복사됨'))"
+            style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            📋 링크 복사
           </button>
-        </div>` : ''}
-
-        ${urls.groom ? `
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#2563EB;margin-bottom:5px">🤵 신랑측 체크 링크</div>
-          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 10px;font-size:11px;color:#1D4ED8;word-break:break-all;margin-bottom:6px">${urls.groom}</div>
-          <button onclick="copyText('${urls.groom}','🤵 신랑측 체크 링크 복사됨')"
-            style="width:100%;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
-            🤵 신랑측 링크 복사
-          </button>
-        </div>` : ''}
-
-        ${urls.bride ? `
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#DB2777;margin-bottom:5px">👰 신부측 체크 링크</div>
-          <div style="background:#FDF2F8;border:1px solid #FBCFE8;border-radius:8px;padding:8px 10px;font-size:11px;color:#9D174D;word-break:break-all;margin-bottom:6px">${urls.bride}</div>
-          <button onclick="copyText('${urls.bride}','👰 신부측 체크 링크 복사됨')"
-            style="width:100%;background:#DB2777;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
-            👰 신부측 링크 복사
-          </button>
-        </div>` : ''}
-
-        ${!urls.main && !urls.groom && !urls.bride ? `
+        </div>` : `
         <div style="text-align:center;padding:20px;color:#9CA3AF;font-size:13px">
-          ⚠️ 토큰이 없습니다.<br>예식을 저장하면 자동 생성됩니다.
-        </div>` : ''}
-
+          ⚠️ 토큰이 없습니다.<br>contribution에서 예식을 선택하면 자동 생성됩니다.
+        </div>`}
       </div>
       <div class="modal-footer" style="justify-content:flex-end">
         <button class="btn btn-ghost" onclick="closePrecheckModal()">닫기</button>
