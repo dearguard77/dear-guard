@@ -389,33 +389,6 @@ input,select,textarea{font-family:inherit;outline:none}
           </div>
         </div>
 
-        <!-- 화환/축기 -->
-        <div class="ho-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
-          <div class="ho-section-title" style="margin-bottom:6px">💐 화환 / 축기</div>
-          <div style="display:flex;gap:4px;margin-bottom:5px">
-            <select id="flower-side" class="ho-input" style="width:72px;flex-shrink:0;padding:4px 5px;font-size:11px">
-              <option value="신랑측">신랑측</option>
-              <option value="신부측">신부측</option>
-            </select>
-            <select id="flower-type" class="ho-input" style="width:60px;flex-shrink:0;padding:4px 5px;font-size:11px">
-              <option value="화환">화환</option>
-              <option value="축기">축기</option>
-            </select>
-            <input id="flower-sender" class="ho-input" placeholder="보낸 분"
-              style="flex:1;font-size:11px;padding:4px 6px"
-              onkeydown="if(event.key==='Enter')focusFlowerMsg()">
-          </div>
-          <div style="display:flex;gap:4px;margin-bottom:6px">
-            <input id="flower-msg" class="ho-input" placeholder="문구 (선택)"
-              style="flex:1;font-size:11px;padding:4px 6px"
-              onkeydown="if(event.key==='Enter')addFlower()">
-            <button onclick="addFlower()"
-              style="background:#374151;color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
-          </div>
-          <div id="flower-list" style="overflow-y:auto;flex:1;min-height:0">
-            <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 기록이 없습니다</div>
-          </div>
-        </div>
         <!-- 🤵 신랑측 운영메모 -->
         <div class="ho-section" style="flex-shrink:0">
           <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
@@ -469,14 +442,6 @@ input,select,textarea{font-family:inherit;outline:none}
           </div>
         </div>
 
-        <!-- 화환 목록 보기 전용 -->
-        <div class="ho-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
-          <div class="ho-section-title" style="margin-bottom:4px">💐 화환 / 축기 목록</div>
-          <div style="font-size:10px;color:#9CA3AF;margin-bottom:5px">추가는 신랑측 탭에서 입력하세요</div>
-          <div id="flower-list-b" style="overflow-y:auto;flex:1;min-height:0">
-            <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 기록이 없습니다</div>
-          </div>
-        </div>
       <!-- 👰 신부측 운영메모 -->
       <div class="ho-section" style="flex-shrink:0">
         <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
