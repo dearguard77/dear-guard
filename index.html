@@ -1060,7 +1060,8 @@ function rowToSchedule(row){
     result:       row.result       || null,
     fieldMemo:      row.field_memo      || {},
     adminMemo:      row.admin_memo      || {},
-    handoverPerson: row.handover_person || '',
+    handoverPerson:       row.handover_person        || '',
+    photoAlertCompleted:  row.photo_alert_completed  || false,
   };
 }
 
@@ -3469,8 +3470,8 @@ function scheduleWeddingReminders(){
       }
 
       if(delayMs <= 0){
-        // 이미 5분 지난 경우 - 닫지 않은 팝업이면 즉시 표시
-        if(!_isReminderClosed(s)){
+        // 이미 5분 지난 경우 - DB 완료 체크 + 팝업 닫힘 체크
+        if(!s.photoAlertCompleted && !_isReminderClosed(s)){
           console.log('[DG] 즉시 팝업 표시:', coupleName(s));
           _reminderFired.add(key);
           try { showPhotoReminder(s); } catch(e){ console.error('[DG] showPhotoReminder 오류:', e); }
@@ -3491,6 +3492,7 @@ function scheduleWeddingReminders(){
       console.log('[DG] 팝업 예약:', coupleName(s), '→', Math.round(delayMs/1000), '초 후');
       setTimeout(function(){
         if(_reminderFired.has(key)) return;
+        if(s.photoAlertCompleted) return;
         if(_isReminderClosed(s)) return;
         _reminderFired.add(key);
         console.log('[DG] 팝업 발동:', coupleName(s));
@@ -3551,10 +3553,25 @@ function showPhotoReminder(s){
     popup.remove();
   };
 
-  // 촬영 완료 버튼 - 닫힘 처리
-  document.getElementById('photo-reminder-confirm').onclick = function(){
+  // 촬영 완료 버튼 - DB 저장 + 로컬 상태 갱신
+  document.getElementById('photo-reminder-confirm').onclick = async function(){
+    // 1. 로컬 상태 즉시 갱신 (중복 팝업 방지)
+    s.photoAlertCompleted = true;
+    const idx = schedules.findIndex(function(x){ return x.id === s.id; });
+    if(idx !== -1) schedules[idx].photoAlertCompleted = true;
+    // 2. sessionStorage 닫힘 처리
     _markReminderClosed(s);
+    // 3. 팝업 제거
     popup.remove();
+    showToast('📸 촬영 완료 저장 중...');
+    // 4. Supabase DB 저장
+    try {
+      await sb.patch('schedules', s.id, { photo_alert_completed: true });
+      showToast('✅ 촬영 완료가 저장되었습니다');
+    } catch(e){
+      console.error('[DG] photo_alert_completed 저장 실패:', e);
+      showToast('⚠️ 저장 실패 (다음 새로고침 시 재시도됩니다)');
+    }
   };
 
   // ⛔ 자동 닫힘 제거 — X 버튼 또는 촬영완료 버튼으로만 닫힘
