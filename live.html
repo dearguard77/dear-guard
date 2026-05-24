@@ -733,7 +733,7 @@ function renderOpsList(){
     el.innerHTML='<div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">메모 없음</div>';
     return;
   }
-  const gLogs=opsLogs.filter(l=>l.side==='신랑측'||!l.side);
+  const gLogs=opsLogs.filter(l=>l.side==='신랑측');
   const bLogs=opsLogs.filter(l=>l.side==='신부측');
 
   function buildRows(list){
