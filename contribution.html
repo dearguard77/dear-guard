@@ -184,7 +184,20 @@ input,select,textarea{font-family:inherit;outline:none}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25);animation:tUp .18s ease}
 @keyframes tUp{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+<!-- precheck 링크 -->
+    <div style="border-top:1px solid #E5E7EB;padding-top:12px;margin-top:4px">
+      <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#374151">📋 본식 준비 체크 링크</div>
+      <div class="token-url" id="token-url-precheck" style="margin-bottom:8px">—</div>
+      <button class="token-copy-btn" onclick="copyPrecheckLink()" style="background:#374151;margin-bottom:10px">📋 통합 체크 링크 복사</button>
 
+      <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#2563EB">🤵 신랑측 체크 링크</div>
+      <div class="token-url" id="token-url-precheck-g" style="border-color:#BFDBFE;color:#1D4ED8;margin-bottom:8px">—</div>
+      <button class="token-copy-btn" onclick="copyPrecheckGroomLink()" style="background:#2563EB;margin-bottom:8px">🤵 신랑측 체크 링크 복사</button>
+
+      <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#DB2777">👰 신부측 체크 링크</div>
+      <div class="token-url" id="token-url-precheck-b" style="border-color:#FBCFE8;color:#9D174D;margin-bottom:8px">—</div>
+      <button class="token-copy-btn" onclick="copyPrecheckBrideLink()" style="background:#DB2777;margin-bottom:12px">👰 신부측 체크 링크 복사</button>
+    </div>
 #token-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
 .token-box{background:#fff;border-radius:14px;padding:22px;max-width:340px;width:100%;text-align:center}
 .token-title{font-size:15px;font-weight:800;color:#111;margin-bottom:5px}
@@ -1631,8 +1644,22 @@ function showDashboardLink(){
   document.getElementById('token-url-display').textContent=`${base}/live.html?t=${currentSchedule.dashboard_token}`;
   document.getElementById('token-url-groom').textContent=`${base}/live.html?t=${currentSchedule.groom_token||'(미생성)'}`;
   document.getElementById('token-url-bride').textContent=`${base}/live.html?t=${currentSchedule.bride_token||'(미생성)'}`;
-  document.getElementById('token-modal').style.display='flex';
+  document.getElementById('token-url-precheck').textContent=`${base}/precheck.html?t=${currentSchedule.dashboard_token}`;
+  document.getElementById('token-url-precheck-g').textContent=`${base}/precheck.html?t=${currentSchedule.groom_token||'(미생성)'}`;
+  document.getElementById('token-url-precheck-b').textContent=`${base}/precheck.html?t=${currentSchedule.bride_token||'(미생성)'}`;
 }
+function copyPrecheckLink(){
+  const url=document.getElementById('token-url-precheck').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('📋 통합 체크 링크 복사됨'));
+}
+function copyPrecheckGroomLink(){
+  const url=document.getElementById('token-url-precheck-g').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('🤵 신랑측 체크 링크 복사됨'));
+}
+function copyPrecheckBrideLink(){
+  const url=document.getElementById('token-url-precheck-b').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('👰 신부측 체크 링크 복사됨'));
+}  
 function copyDashboardLink(){
   const url=document.getElementById('token-url-display').textContent;
   navigator.clipboard.writeText(url).then(()=>showToast('🔗 통합 링크 복사됨'));
