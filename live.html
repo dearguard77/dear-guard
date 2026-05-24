@@ -175,6 +175,18 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
 .ho-compact-cell{background:var(--bg3);border-radius:6px;padding:7px 9px;font-size:11px;min-width:0}
 .ho-compact-cell .ho-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
 .ho-compact-cell a.ho-link{display:block;background:transparent;border:none;padding:0;margin:0;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  @media(max-width:900px){
+  .tc-name-sub{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:unset;
+    word-break:keep-all;
+    line-height:1.4;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+  }
+}
 </style>
 </head>
 <body>
@@ -309,13 +321,7 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
         </div>
       </div>
       
-      <!-- 화환/축기 -->
-      <div class="pcard" style="flex-shrink:0">
-        <div class="pcard-title">💐 화환 / 축기 <span id="flower-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
-        <div id="flower-live-list-groom" style="max-height:140px;overflow-y:auto"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div></div>
-        <div id="flower-live-list-bride" style="max-height:140px;overflow-y:auto;display:none"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div></div>
-      </div>
-
+      
       <!-- 운영 메모 -->
       <div class="pcard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
         <div class="pcard-title">📋 운영 메모 <span id="ops-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
@@ -445,12 +451,7 @@ function setLiveHoTab(side){
   if(tg){ tg.style.color=(side==='groom')?blue:gray; tg.style.borderBottomColor=(side==='groom')?blue:'transparent'; }
   if(tb){ tb.style.color=(side==='bride')?pink:gray; tb.style.borderBottomColor=(side==='bride')?pink:'transparent'; }
   if(pg) pg.style.display=(side==='groom')?'flex':'none';
-  if(pb) pb.style.display=(side==='bride')?'flex':'none';
-  // 화환/축기 측별 전환
-  var fg=document.getElementById('flower-live-list-groom');
-  var fb=document.getElementById('flower-live-list-bride');
-  if(fg) fg.style.display=(side==='groom')?'block':'none';
-  if(fb) fb.style.display=(side==='bride')?'block':'none';
+  if(pb) pb.style.display=(side==='bride')?'flex':'none';  
 }
 
 async function init(){
@@ -472,7 +473,6 @@ async function init(){
     document.getElementById('hdr-info-hall').textContent=_hall;
     document.title=`${names} · 실시간 장부`;
     await loadLogs();
-    loadFlowerLive();
     renderHandover();
     applyWeddingMode();
     document.getElementById('loading').style.display='none';
@@ -908,30 +908,6 @@ function applyWeddingMode(){
     if(totalCard){ totalCard.style.gridRow='span 2'; totalCard.style.justifyContent='space-between'; }
     if(ticketCard) ticketCard.style.gridColumn='span 2';
   }
-}
-
-async function loadFlowerLive(){
-  if(!schedule)return;
-  try{
-    const fl=await sb.get('flower_logs','?schedule_id=eq.'+schedule.id+'&order=created_at.desc');
-    const cnt=document.getElementById('flower-cnt');
-    if(cnt)cnt.textContent=fl.length+'건';
-    const gEl=document.getElementById('flower-live-list-groom');
-    const bEl=document.getElementById('flower-live-list-bride');
-    const empty='<div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div>';
-    const gFl=fl.filter(f=>f.side==='신랑측');
-    const bFl=fl.filter(f=>f.side==='신부측');
-    function buildHtml(list){
-      if(!list.length) return empty;
-      return list.map(f=>{
-        const icon=f.type==='화환'?'💐':'🎏';
-        const sc=f.side==='신랑측'?'color:var(--blue)':'color:var(--pink)';
-        return `<div class="flower-row"><span style="font-size:22px;flex-shrink:0">${icon}</span><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:15px;line-height:1.4">${esc(f.sender)}<span style="font-size:10px;${sc};margin-left:6px;font-size:13px;font-weight:700">${esc(f.side)}</span></div>${f.message?`<div style="font-size:13px;color:var(--text3);margin-top:3px;line-height:1.3">"${esc(f.message)}"</div>`:''}</div><span style="font-size:13px;color:var(--gold2);flex-shrink:0;font-weight:600">${esc(f.time_str||'')}</span></div>`;
-      }).join('');
-    }
-    if(gEl) gEl.innerHTML=buildHtml(gFl);
-    if(bEl) bEl.innerHTML=buildHtml(bFl);
-  }catch(e){console.error('[DG] flower',e);}
 }
 
 function showUpdBadge(){
