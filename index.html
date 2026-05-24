@@ -1596,7 +1596,7 @@ function renderScheduleList(){
           ${s.dashboardToken
             ? `<button onclick="event.stopPropagation();navigator.clipboard.writeText('${location.origin}/precheck.html?t='+${JSON.stringify(s.dashboardToken||'')}).then(()=>showToast('📋 체크 링크 복사됨'))"
                 style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">
-                📋 체크
+                📋 사전체크
               </button>`
             : ''}
         </div>
@@ -1786,7 +1786,7 @@ function openDetail(id){
       ${s.dashboardToken ? `
         <button onclick="openPrecheckModal(${id})"
           style="background:#374151;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
-          📋 PRECHECK
+          📋 사전체크
         </button>` : ''}
     </div>
     <div style="display:flex;gap:8px">
