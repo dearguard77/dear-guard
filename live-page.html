@@ -516,7 +516,7 @@ async function init(){
     subscribeRealtime();
     setInterval(()=>{loadLogs();},8000);
   }catch(e){console.error('[DG]',e);showError();}
-
+}
 function showError(){
   document.getElementById('loading').style.display='none';
   document.getElementById('error-screen').style.display='flex';
