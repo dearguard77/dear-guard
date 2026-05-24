@@ -924,7 +924,25 @@ function subscribeRealtime(){
     ws.send(JSON.stringify({topic:`realtime:public:operation_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'2'}));
   };
   ws.onmessage=async e=>{
-    try{const msg=JSON.parse(e.data);if(['INSERT','UPDATE','DELETE'].includes(msg.event)){await loadLogs();}}catch{}
+    try{
+      const msg=JSON.parse(e.data);
+      // Supabase realtime: 실제 변경 타입은 msg.payload.type 에 담겨옴
+      const evtType = msg.event || (msg.payload && msg.payload.type) || '';
+      const isMutation = ['INSERT','UPDATE','DELETE'].includes(evtType) ||
+                         ['INSERT','UPDATE','DELETE'].includes(msg.payload && msg.payload.type);
+      if(!isMutation) return;
+
+      const topic = msg.topic || '';
+      if(topic.includes('operation_logs')){
+        // 운영메모 변경 → operation_logs만 다시 로드 후 렌더
+        const fresh = await sb.get('operation_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`);
+        opsLogs = fresh;
+        renderOpsList();
+      } else {
+        // contribution_logs 변경 → 전체 로드
+        await loadLogs();
+      }
+    }catch(e){console.error('[DG] realtime error',e);}
   };
   ws.onclose=()=>setTimeout(subscribeRealtime,3000);
 }
