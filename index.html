@@ -1061,6 +1061,10 @@ function rowToSchedule(row){
     fieldMemo:      row.field_memo      || {},
     adminMemo:      row.admin_memo      || {},
     handoverPerson: row.handover_person || '',
+    photoAlertCompleted: row.photo_alert_completed || false,
+    dashboardToken: row.dashboard_token || '',
+    groomToken:     row.groom_token     || '',
+    brideToken:     row.bride_token     || '',
   };
 }
 
@@ -1589,9 +1593,7 @@ function renderScheduleList(){
           ${ADMIN_NAMES.includes(currentUser.name)
             ? `<button class="sch-del-btn" onclick="event.stopPropagation();confirmDeleteSch(${s.id})">삭제</button>`
             : ''}
-          ${s.dashboardToken
-            ? `<button onclick="event.stopPropagation();openPrecheckModal(${s.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">📋 준비체크</button>`
-            : ''}
+          <button onclick="event.stopPropagation();openPrecheckModal(${s.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">📋 준비체크</button>
         </div>
       </div>
     </div>`).join('');
@@ -1785,6 +1787,75 @@ function openDetail(id){
 
   document.getElementById('detail-modal').style.display='flex';
   document.body.style.overflow='hidden';
+}
+
+// ── PRECHECK 링크 모달 ──
+async function openPrecheckModal(id){
+  let s = schedules.find(x => x.id === id);
+  if(!s) return;
+
+  // 토큰 없으면 자동 생성 후 DB 저장
+  if(!s.dashboardToken){
+    const newToken = 'T_' + Math.random().toString(36).slice(2,10).toUpperCase();
+    try {
+      await sb.patch('schedules', id, { dashboard_token: newToken });
+      s.dashboardToken = newToken;
+      // 분리 토큰도 함께 생성
+      if(!s.groomToken || !s.brideToken){
+        const gt = 'G_' + Math.random().toString(36).slice(2,10).toUpperCase();
+        const bt = 'B_' + Math.random().toString(36).slice(2,10).toUpperCase();
+        await sb.patch('schedules', id, { groom_token: gt, bride_token: bt });
+        s.groomToken = gt;
+        s.brideToken = bt;
+      }
+    } catch(e){
+      showToast('⚠️ 토큰 생성 실패: ' + e.message);
+      return;
+    }
+  }
+
+  const base = location.origin;
+  const precheckUrl = `${base}/precheck.html?t=${s.dashboardToken}`;
+
+  const existing = document.getElementById('precheck-modal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'precheck-modal';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal.onclick = function(e){ if(e.target===modal) closePrecheckModal(); };
+
+  modal.innerHTML = `
+    <div class="modal-box sm" style="max-width:400px">
+      <div class="modal-header">
+        <button class="x-btn" onclick="closePrecheckModal()">✕</button>
+        <div class="modal-brand">Dear Guard · 본식 준비 체크</div>
+        <div class="modal-title">📋 준비체크 링크</div>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">🤝 통합 체크 링크</div>
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${precheckUrl}</div>
+          <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 준비체크 링크 복사됨'))"
+            style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            📋 링크 복사
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closePrecheckModal()">닫기</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+}
+
+function closePrecheckModal(){
+  const modal = document.getElementById('precheck-modal');
+  if(modal) modal.remove();
+  document.body.style.overflow = '';
 }
 
 function closeDetail(){ document.getElementById('detail-modal').style.display='none'; document.body.style.overflow=''; }
