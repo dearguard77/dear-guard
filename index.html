@@ -1696,7 +1696,7 @@ function openDetail(id){
       const bCP = s.brideContactPhone || '';
       const CASH_LABEL = { sealed:'밀봉전달형', confirmed:'봉투유지형', sorted:'권종별정리형' };
       const hasContact      = !!(hp || gCN || bCN);
-      const hasPrecheckInfo = !!(s.cashMethod || s.giftYn != null || s.mobileInviteUrl || s.precheckMemo);
+      const hasPrecheckInfo = !!(s.cashMethod || s.giftYn != null || s.mobileInviteUrl || s.precheckMemo || fm.precheck);
       if(!hasContact && !fm.text && !fm.urgent && !hasPrecheckInfo) return '';
       return `<div class="detail-sec">
         <div class="detail-sec-title" style="color:#0369A1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -1718,14 +1718,20 @@ function openDetail(id){
             <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px 12px">
               <div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:6px">📋 사전체크 항목</div>
               <div style="font-size:12px;color:#374151;line-height:1.9">
-                ${s.cashMethod ? `<div>정산방식 · <strong>${esc(CASH_LABEL[s.cashMethod]||s.cashMethod)}</strong></div>` : ''}
-                ${s.dgDisclosed===false||s.dgDisclosed==='false' ? `<div>당일관계 · <strong>${esc(s.dgRelationDesc||'미입력')}</strong></div>`
-                  : s.dgDisclosed===true||s.dgDisclosed==='true' ? `<div>혼주 디어가드 인지 · <strong>완료</strong></div>` : ''}
-                ${s.giftYn!=null ? `<div>답례품 · <strong>${s.giftYn===true||s.giftYn==='true'?'있음':'없음'}</strong></div>` : ''}
-                ${s.mobileInviteUrl ? `<div>💌 <a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:600">청첩장 링크</a></div>` : ''}
-                ${s.precheckMemo ? `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #BBF7D0">📝 ${esc(s.precheckMemo)}</div>` : ''}                
+                ${fm.precheck
+                  ? `<div style="white-space:pre-wrap">${esc(fm.precheck.replace('[사전체크 자동 등록]\n','').replace('[사전체크]\n',''))}</div>`
+                  : `
+                    ${s.cashMethod ? `<div>정산방식 · <strong>${esc(CASH_LABEL[s.cashMethod]||s.cashMethod)}</strong></div>` : ''}
+                    ${s.dgDisclosed===false||s.dgDisclosed==='false' ? `<div>당일관계 · <strong>${esc(s.dgRelationDesc||'미입력')}</strong></div>`
+                      : s.dgDisclosed===true||s.dgDisclosed==='true' ? `<div>혼주 디어가드 인지 · <strong>완료</strong></div>` : ''}
+                    ${s.giftYn!=null ? `<div>답례품 · <strong>${s.giftYn===true||s.giftYn==='true'?'있음':'없음'}</strong></div>` : ''}
+                    ${s.mobileInviteUrl ? `<div>💌 <a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:600">청첩장 링크</a></div>` : ''}
+                    ${s.precheckMemo ? `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #BBF7D0">📝 ${esc(s.precheckMemo)}</div>` : ''}
+                  `}
               </div>
             </div>` : ''}
+        </div>
+      </div>`;
         </div>
       </div>`;
     })()}
