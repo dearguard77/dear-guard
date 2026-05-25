@@ -3,12 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Dear Guard · 본식 사전 준비</title>
+<title>Dear Guard · 본식 준비 체크</title>
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Dear Guard">
 <meta name="theme-color" content="#F5F3F0">
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="Dear Guard">
+<meta property="og:title"       content="Dear Guard · 본식 준비 체크" id="og-title">
+<meta property="og:description" content="예식 전 필요한 내용을 미리 확인해주세요 😊" id="og-desc">
+<meta property="og:image"       content="https://dear-guard.vercel.app/icon.png">
+<meta property="og:url"         content="" id="og-url">
+<meta name="twitter:card"       content="summary">
+<meta name="twitter:image"      content="https://dear-guard.vercel.app/icon.png">
+<meta name="twitter:title"      content="Dear Guard · 본식 준비 체크" id="tw-title">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -680,6 +689,21 @@ function showError(){
 }
 
 // ── 헤더 렌더 ──
+function updateMetaTag(property, content){
+  // property 또는 name 기준으로 찾기
+  let el = document.querySelector(`meta[property="${property}"]`)
+        || document.querySelector(`meta[name="${property}"]`);
+  if(!el){
+    el = document.createElement('meta');
+    if(property.startsWith('og:') || property.startsWith('twitter:'))
+      el.setAttribute('property', property);
+    else
+      el.setAttribute('name', property);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+}
+
 function renderHeader(){
   const s = schedule;
   const g = (s.groom_name||'').trim(), b = (s.bride_name||'').trim();
@@ -693,6 +717,17 @@ function renderHeader(){
   const d = new Date((s.date||'')+'T00:00:00');
   const dayStr = s.date ? `${s.date} (${DAYS[d.getDay()]}) · ${(s.time||'').slice(0,5)}` : '';
   document.getElementById('hdr-info').textContent = [dayStr, s.hall||''].filter(Boolean).join(' · ');
+
+  // OG / title 동적 업데이트
+  const displayName = (sideFilter==='groom') ? (g ? `${g} 신랑측` : 'Dear Guard')
+                    : (sideFilter==='bride')  ? (b ? `${b} 신부측` : 'Dear Guard')
+                    : (g&&b) ? `${g} ♥ ${b}` : g||b||'Dear Guard';
+  const pageTitle = `${displayName} · 본식 준비 체크`;
+  document.title = pageTitle;
+  updateMetaTag('og:title',       pageTitle);
+  updateMetaTag('og:description', '예식 전 필요한 내용을 미리 확인해주세요 😊');
+  updateMetaTag('og:url',         location.href);
+  updateMetaTag('twitter:title',  pageTitle);
 }
 
 // ── 모드 적용 ──
@@ -703,7 +738,9 @@ function applyMode(){
 
   // 단측 예식이면 STEP1 숨김
   if(isSingle){
+    document.getElementById('sec-1').style.display = 'none';
     document.getElementById('single-mode-notice').style.display = 'block';
+    document.getElementById('live-mode-wrap').style.display = 'none';
   }
 
   // 사전 공유 식권 드롭다운 필터
@@ -1091,39 +1128,40 @@ async function saveAll(){
   try {
     await sb.patch('schedules', schedule.id, body);
 
-    // ── 현장 메모 자동 등록 → schedules.field_memo.precheck (구조화) ──
+    // ── 현장 메모 자동 등록 → schedules.field_memo (index 현장메모) ──
     try {
-      const CASH_LABEL    = { sealed:'밀봉전달형', confirmed:'봉투유지형', sorted:'권종별정리형' };
+      const CASH_LABEL    = { sealed:'밀봉 전달형', confirmed:'봉투 유지형', sorted:'권종별 정리형' };
       const RECEIPT_LABEL = { personal:'개인', business:'사업자' };
 
       const cashMethod  = getRadioVal('cash-group');
-      const dgDisclosed = getRadioVal('dg-disclosed-group');
-      const dgRelation  = gv('dg_relation_desc');
       const giftYn      = getRadioVal('gift-group');
       const mobileUrl   = gv('mobile_invite_url');
       const receiptType = getRadioVal('receipt-type-group');
       const receiptNum  = gv('cash_receipt_number');
       const memo        = gv('precheck_memo');
+
+      const lines = ['[사전체크 자동 등록]'];
+
+      // 인계 담당자
       const gContactName  = gv('groom_contact_name');
       const gContactPhone = gv('groom_contact_phone');
       const bContactName  = gv('bride_contact_name');
       const bContactPhone = gv('bride_contact_phone');
+      if(gContactName || bContactName){
+        lines.push('📌 인계 담당자');
+        if(gContactName) lines.push(`🤵 신랑측 ${gContactName}${gContactPhone?' / '+gContactPhone:''}`);
+        if(bContactName) lines.push(`👰 신부측 ${bContactName}${bContactPhone?' / '+bContactPhone:''}`);
+      }
 
-      // 운영 요약 문자열 생성 (index 현장메모 표시용)
-      const lines = ['[사전체크]'];
-      if(gContactName) lines.push(`🤵 인계 ${gContactName}${gContactPhone?' '+gContactPhone:''}`);
-      if(bContactName) lines.push(`👰 인계 ${bContactName}${bContactPhone?' '+bContactPhone:''}`);
-      if(cashMethod)   lines.push(`정산방식 - ${CASH_LABEL[cashMethod]||cashMethod}`);
-      if(dgDisclosed==='false' && dgRelation) lines.push(`당일관계 - ${dgRelation}`);
-      else if(dgDisclosed==='true')           lines.push('혼주 디어가드 인지 완료');
-      if(giftYn)       lines.push(`답례품 - ${giftYn==='true'?'있음':'없음'}`);
-      if(mobileUrl)    lines.push(`💌 ${mobileUrl}`);
-      if(receiptType||receiptNum) lines.push(`현금영수증 - ${RECEIPT_LABEL[receiptType]||''} ${receiptNum||''}`.trim());
-      if(memo)         lines.push(`📝 ${memo}`);
+      if(cashMethod)              lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
+      if(giftYn)                  lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}`);
+      if(mobileUrl)               lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
+      if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${(RECEIPT_LABEL[receiptType]||'')+' '+(receiptNum||'')}`.trim());
+      if(memo)                    lines.push(`📝 특이사항: ${memo}`);
 
       const precheckText = lines.join('\n');
 
-      // 기존 field_memo 유지하면서 precheck 키만 업데이트
+      // 기존 field_memo 가져와서 precheck 항목만 업데이트 (기존 내용 유지)
       const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
       const prevFieldMemo = (existing[0]?.field_memo) || {};
       const newFieldMemo  = { ...prevFieldMemo, precheck: precheckText };
