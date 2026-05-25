@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dear Guard · 실시간 장부</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dear Guard">
+<meta name="theme-color" content="#F5F3F0">
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="Dear Guard">
+<meta property="og:title"       content="Dear Guard · 실시간 장부">
+<meta property="og:description" content="실시간 축의금 장부를 확인하세요 😊">
+<meta property="og:image"       content="https://dear-guard.vercel.app/icon.png">
+<meta property="og:url"         content="">
+<meta name="twitter:card"       content="summary">
+<meta name="twitter:image"      content="https://dear-guard.vercel.app/icon.png">
+<meta name="twitter:title"      content="Dear Guard · 실시간 장부">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0EDE8;--bg2:#fff;--bg3:#F9F7F4;--border:#E5E0D8;
+  --gold:#B8933A;--gold2:#C7A96B;--text:#111827;--text2:#6B7280;--text3:#9CA3AF;
+  --blue:#2563EB;--pink:#DB2777;--green:#059669;--red:#DC2626;
+}
+html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--text);font-size:13px}
+
+/* 로딩/에러 */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:12px}
+.spinner{width:32px;height:32px;border:2.5px solid rgba(199,169,107,.2);border-top-color:var(--gold2);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-logo{font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--gold2);letter-spacing:2px}
+#error-screen{display:none;position:fixed;inset:0;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:24px}
+#error-screen h2{font-size:18px;font-weight:800}
+#error-screen p{font-size:13px;color:var(--text3);line-height:1.6}
+
+/* 전체 레이아웃 */
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden}
+
+/* 상단 헤더 */
+#hdr{background:var(--bg2);border-bottom:1.5px solid var(--border);padding:10px 16px;flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
+
+/* 좌: 예식정보 */
+#hdr-wedding{background:linear-gradient(135deg,#FDF8F0,#FFFAF3);border:1.5px solid #E8D5B0;border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;height:100%}
+.wedding-brand{font-family:Georgia,serif;font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:2px;opacity:.8;margin-bottom:6px}
+.wedding-names{font-size:32px;font-weight:900;color:#111;letter-spacing:-.5px;margin-bottom:6px;line-height:1.1}
+.wedding-info{font-size:16px;font-weight:600;color:#374151;margin-bottom:6px}
+.wedding-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:2px}
+#mode-badge{font-size:13px;font-weight:700;border-radius:10px;padding:4px 12px;border:1px solid #E0E0E0;color:#9CA3AF;background:#F5F5F5}
+.live-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--green)}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.excel-btn{background:#217346;color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.live-stream-btn{display:inline-flex;align-items:center;gap:5px;background:#FF0000;color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap;letter-spacing:.3px;transition:background .15s;border:none}
+.live-stream-btn:hover{background:#CC0000}
+#last-upd{font-size:10px;color:var(--text3)}
+
+/* 우: 축의 요약 */
+#hdr-summary{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px;align-items:stretch}
+.sum-card{border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center}
+.sum-card.total{background:linear-gradient(135deg,#FDF8F0,#FFF5E4);border:1.5px solid #E8D5B0}
+.sum-card.groom{background:#EFF6FF;border:1.5px solid #BFDBFE}
+.sum-card.bride{background:#FDF2F8;border:1.5px solid #FBCFE8}
+.sum-card.ticket{background:#F5F3FF;border:1.5px solid #DDD6FE}
+.sum-lbl{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px}
+.sum-lbl.gold{color:#A07030}
+.sum-lbl.blue{color:#1D4ED8}
+.sum-lbl.pink{color:#9D174D}
+.sum-lbl.purple{color:#6D28D9}
+.sum-val{font-size:22px;font-weight:900;line-height:1;margin-bottom:4px}
+.sum-val.gold{color:var(--gold2)}
+.sum-val.blue{color:var(--blue);font-size:20px}
+.sum-val.pink{color:var(--pink);font-size:20px}
+.sum-val.purple{color:#7C3AED}
+.sum-sub{font-size:13px;color:var(--text3)}
+.sum-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-top:4px}
+
+/* 메인 바디 */
+#body{flex:1;display:grid;grid-template-columns:320px 1fr;overflow:hidden;min-height:0}
+
+/* 좌: 운영 패널 */
+#left-panel{overflow-y:auto;padding:8px;background:#F5F3EF;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px;height:100%}
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 12px}
+.pcard-title{font-size:13px;font-weight:700;color:var(--text3);letter-spacing:.3px;text-transform:uppercase;margin-bottom:8px}
+.prow{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #F5F3F0;font-size:13px}
+.prow:last-child{border-bottom:none;padding-bottom:0}
+.prow-lbl{color:var(--text2)}
+.prow-val{font-weight:700;color:var(--text)}
+.ho-item{background:var(--bg3);border-radius:6px;padding:7px 9px;margin-bottom:5px;font-size:11px}
+.ho-lbl{font-size:9px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px}
+.ho-val{font-weight:600;color:var(--text);line-height:1.5;word-break:break-all}
+.ho-pw{font-size:22px;font-weight:900;color:var(--gold2);letter-spacing:4px;text-align:center;padding:8px;background:var(--bg3);border-radius:6px;margin-bottom:5px}
+.ho-link{display:block;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;margin-bottom:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ho-template{display:flex;align-items:center;justify-content:center;gap:5px;background:#FDF8F0;border:1.5px solid #E8D5B0;border-radius:7px;padding:8px;text-decoration:none;color:var(--gold2);font-size:12px;font-weight:700}
+.flower-row{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px}
+.flower-row:last-child{border-bottom:none}
+.ops-row{display:flex;gap:6px;align-items:baseline;padding:7px 0;border-bottom:1px solid #F5F3F0;font-size:13px}
+.ops-row:last-child{border-bottom:none}
+
+/* 우: 장부 테이블 */
+#center-panel{overflow:hidden;display:flex;flex-direction:column;background:var(--bg2)}
+
+/* 장부 컨트롤 바 */
+#tbl-ctrl{padding:7px 12px;border-bottom:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;background:#FAFAF8}
+.tbl-ctrl-title{font-size:14px;font-weight:800;color:var(--text);white-space:nowrap}
+.ctrl-select{height:30px;border:1.5px solid var(--border);border-radius:6px;padding:0 8px;font-size:12px;background:var(--bg2);color:var(--text);cursor:pointer;outline:none}
+.ctrl-select:focus{border-color:var(--gold2)}
+.ctrl-input{height:30px;border:1.5px solid var(--border);border-radius:6px;padding:0 8px;font-size:12px;background:var(--bg2);color:var(--text);outline:none;width:120px}
+.ctrl-input:focus{border-color:var(--gold2)}
+.ctrl-tab{border-radius:14px;padding:4px 12px;font-size:12px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer;transition:all .1s;white-space:nowrap}
+.ctrl-tab.on{background:#111;color:#fff;border-color:#111}
+
+/* 테이블 */
+#tbl-wrap{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
+.tbl-head{display:flex;align-items:center;background:#F5F3EF;border-bottom:2px solid var(--border);flex-shrink:0;font-size:12px;font-weight:700;color:var(--text3)}
+.tbl-body{overflow-y:auto;flex:1}
+/* 양측: 2분할 */
+#split-wrap{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;min-height:0}
+.side-col{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+.side-col:last-child{border-right:none}
+.side-col-hdr{padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.side-col-hdr.groom{background:#EFF6FF}
+.side-col-hdr.bride{background:#FDF2F8}
+.side-col-body{overflow-y:auto;flex:1}
+
+/* 테이블 행 */
+.tbl-row{display:flex;align-items:center;border-bottom:1px solid #ECEAE6;font-size:14px;transition:background .1s;min-height:48px}
+.tbl-row:hover{background:rgba(199,169,107,.04)}
+.tbl-row.new-item{animation:fadeIn .3s ease;background:rgba(199,169,107,.06)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+/* 컬럼 */
+.tc-num{width:42px;flex-shrink:0;padding:7px 5px;text-align:center;font-size:12px;font-weight:700;color:var(--gold2)}
+.tc-side{width:40px;flex-shrink:0;padding:6px 4px;text-align:center}
+.tc-name{flex:1;min-width:90px;padding:7px 10px;overflow:hidden}
+.tc-name-main{font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:17px}
+.tc-name-sub{font-size:13px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.tc-amt{width:100px;flex-shrink:0;padding:7px 10px;text-align:right;font-weight:900;color:var(--gold2);font-size:17px}
+.tc-tkt{width:90px;flex-shrink:0;padding:7px 6px;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.tc-pay{width:62px;flex-shrink:0;padding:7px 5px;text-align:center}
+.tc-time{width:54px;flex-shrink:0;padding:7px 5px;text-align:right;font-size:13px;color:var(--text3)}
+.th-sort{cursor:pointer;user-select:none}
+.th-sort:hover{color:var(--text)}
+.th-sort.asc::after{content:" ↑";color:var(--gold2)}
+.th-sort.desc::after{content:" ↓";color:var(--gold2)}
+.badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:4px;padding:3px 7px;font-size:13px;font-weight:700}
+.badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:3px 7px;font-size:13px;font-weight:700}
+.badge-cash{display:inline-block;background:#D1FAE5;color:#059669;border-radius:4px;padding:3px 8px;font-size:13px;font-weight:700}
+.badge-trans{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:3px 8px;font-size:13px;font-weight:700}
+.badge-side-g{display:inline-block;background:#EFF6FF;color:#2563EB;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700}
+.badge-side-b{display:inline-block;background:#FDF2F8;color:#DB2777;border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700}
+
+/* 갱신 뱃지 */
+#upd{position:fixed;top:10px;right:10px;background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.25);border-radius:14px;padding:4px 10px;font-size:10px;font-weight:700;color:var(--green);display:none;z-index:50}
+/* 스크롤바 */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}
+
+@media(max-width:900px){
+  html,body{height:auto;overflow:auto}
+  #app{height:auto;overflow:visible}
+  #hdr{grid-template-columns:1fr;padding:8px 10px}
+  #hdr-summary{grid-template-columns:1fr 1fr;row-gap:6px}
+  #body{grid-template-columns:1fr;height:auto;overflow:visible;display:flex;flex-direction:column}
+  #left-panel{display:flex !important}
+  #split-wrap{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="loading-logo">Dear Guard</div><div class="spinner"></div></div>
+<div id="error-screen">
+  <h2>⚠️ 링크를 확인해주세요</h2>
+  <p>유효하지 않은 링크입니다.<br>담당 매니저에게 올바른 링크를 요청해주세요.</p>
+</div>
+
+<div id="app">
+
+  <!-- 헤더 -->
+  <div id="hdr">
+
+    <!-- 좌: 예식 정보 -->
+    <div id="hdr-wedding" style="text-align:center;justify-content:center">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <div class="wedding-brand" style="text-align:center;margin-bottom:2px">DEAR GUARD</div>
+        <div class="wedding-names" id="hdr-names" style="font-size:32px;text-align:center;line-height:1.15">—</div>
+        <div style="text-align:center;display:flex;flex-direction:column;gap:4px">
+          <div class="wedding-info" id="hdr-info-dt" style="font-size:16px;font-weight:600;color:#374151;line-height:1.4">—</div>
+          <div class="wedding-info" id="hdr-info-hall" style="font-size:16px;font-weight:700;color:#C7A96B;line-height:1.4">—</div>
+        </div>
+      </div>
+      <div class="wedding-footer" style="justify-content:center">
+        <span id="mode-badge"></span>
+        <span class="live-pill"><span class="live-dot"></span>실시간</span>
+        <a id="groom-live-btn-1" href="#" target="_blank" class="live-stream-btn" style="display:none">🤵 LIVE 1</a>
+        <a id="groom-live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none">🤵 LIVE 2</a>
+        <a id="bride-live-btn-1" href="#" target="_blank" class="live-stream-btn" style="display:none;background:#DB2777">👰 LIVE 1</a>
+        <a id="bride-live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none;background:#DB2777">👰 LIVE 2</a>
+        <button class="excel-btn" onclick="downloadExcel()">📥 엑셀 다운로드</button>
+        <span id="last-upd" style="font-size:11px"></span>
+      </div>
+    </div>
+
+    <!-- 우: 축의 요약 -->
+    <div id="hdr-summary">
+      <div class="sum-card total">
+        <div class="sum-lbl gold">총 축의금</div>
+        <div class="sum-val gold" id="total-amount">0원</div>
+        <div class="sum-sub" id="total-cnt-sub">총 0건</div>
+        <div class="sum-row" style="margin-top:5px;padding-top:5px;border-top:1px solid #E8D5B0">
+          <span style="color:#9CA3AF;font-size:13px">💵 현금</span><span style="font-weight:800;color:#059669;font-size:18px" id="cash-cnt">0건</span>
+        </div>
+        <div class="sum-row">
+          <span style="color:#9CA3AF;font-size:13px">📱 계좌</span><span style="font-weight:800;color:#7C3AED;font-size:18px" id="transfer-cnt">0건</span>
+        </div>
+      </div>
+      <div class="sum-card groom" id="groom-sum-card">
+        <div class="sum-lbl blue">🤵 신랑측</div>
+        <div class="sum-val blue" id="groom-total">0원</div>
+        <div class="sum-sub" id="groom-cnt-sub">0건</div>
+      </div>
+      <div class="sum-card bride" id="bride-sum-card">
+        <div class="sum-lbl pink">👰 신부측</div>
+        <div class="sum-val pink" id="bride-total">0원</div>
+        <div class="sum-sub" id="bride-cnt-sub">0건</div>
+      </div>
+      <div class="sum-card ticket" style="grid-column:span 2" id="ticket-sum-card">
+        <div class="sum-lbl purple" style="margin-bottom:6px">🎫 식권 현황</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="ticket-detail-wrap">
+          <!-- 양측: 신랑/신부 구분 -->
+          <div id="ticket-groom-wrap">
+            <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:4px">🤵 신랑측</div>
+            <div style="display:flex;gap:12px;font-size:15px">
+              <span style="color:#6B7280">대인 <strong style="color:#D97706" id="groom-adult-tkt">0</strong></span>
+              <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="groom-child-tkt">0</strong></span>
+            </div>
+          </div>
+          <div id="ticket-bride-wrap">
+            <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:4px">👰 신부측</div>
+            <div style="display:flex;gap:12px;font-size:15px">
+              <span style="color:#6B7280">대인 <strong style="color:#D97706" id="bride-adult-tkt">0</strong></span>
+              <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="bride-child-tkt">0</strong></span>
+            </div>
+          </div>
+        </div>
+        <!-- 단측: 합계만 표시 -->
+        <div style="display:none;gap:16px;font-size:13px" id="ticket-single-wrap">
+          <span style="color:#6B7280">대인 <strong style="color:#D97706" id="total-adult">0</strong></span>
+          <span style="color:#6B7280">소인 <strong style="color:#7C3AED" id="total-child">0</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 바디 -->
+  <div id="body">
+
+    <!-- 좌: 운영 패널 -->
+    <div id="left-panel">
+
+      <!-- 측별 탭 -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:6px;flex-shrink:0" id="live-ho-tab-bar">
+        <button id="live-tab-groom" onclick="setLiveHoTab('groom')"
+          style="flex:1;padding:7px 4px;font-size:12px;font-weight:700;border:none;background:none;color:#2563EB;cursor:pointer;border-bottom:2px solid #2563EB;margin-bottom:-2px">
+          🤵 신랑측
+        </button>
+        <button id="live-tab-bride" onclick="setLiveHoTab('bride')"
+          style="flex:1;padding:7px 4px;font-size:12px;font-weight:700;border:none;background:none;color:#9CA3AF;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">
+          👰 신부측
+        </button>
+      </div>
+
+      <!-- 🤵 신랑측 패널 -->
+      <div id="live-pane-groom" style="display:flex;flex-direction:column;gap:6px">
+        <div class="pcard" id="groom-info-card">
+          <div class="pcard-title" style="color:#2563EB">🤵 신랑측 운영정보</div>
+          <div id="groom-info-body"></div>
+        </div>
+      </div>
+
+      <!-- 👰 신부측 패널 -->
+      <div id="live-pane-bride" style="display:none;flex-direction:column;gap:6px">
+        <div class="pcard" id="bride-info-card">
+          <div class="pcard-title" style="color:#DB2777">👰 신부측 운영정보</div>
+          <div id="bride-info-body"></div>
+        </div>
+      </div>
+
+      <!-- 답례 템플릿 -->
+      <a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link"
+        target="_blank" class="ho-template pcard">💌 하객 답례인사 템플릿</a>
+
+      <!-- 화환/축기 -->
+      <div class="pcard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+        <div class="pcard-title">💐 화환 / 축기 <span id="flower-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
+        <div id="flower-live-list"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div></div>
+      </div>
+
+      <!-- 운영 메모 -->
+      <div class="pcard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+        <div class="pcard-title">📋 운영 메모 <span id="ops-cnt" style="font-weight:400;color:var(--text3)">0건</span></div>
+        <div id="ops-list" style="overflow-y:auto;flex:1"><div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">메모 없음</div></div>
+      </div>
+
+    </div>
+
+    <!-- 우: 장부 테이블 -->
+    <div id="center-panel">
+
+      <!-- 컨트롤 바 -->
+      <div id="tbl-ctrl">
+        <span class="tbl-ctrl-title">📋 실시간 접수 내역</span>
+        <div id="tab-bar" style="display:none;gap:4px;display:flex">
+          <button class="ctrl-tab on" id="tab-all"   onclick="setListTab('all')">전체</button>
+          <button class="ctrl-tab"    id="tab-groom" onclick="setListTab('groom')">🤵 신랑</button>
+          <button class="ctrl-tab"    id="tab-bride" onclick="setListTab('bride')">👰 신부</button>
+        </div>
+        <select class="ctrl-select" id="f-pay" onchange="renderList()">
+          <option value="">전체 결제</option>
+          <option value="현금">💵 현금</option>
+          <option value="계좌이체">📱 계좌이체</option>
+        </select>
+        <input class="ctrl-input" id="f-search" placeholder="🔍 이름 검색" oninput="renderList()">
+        <span style="flex:1"></span>
+        <span style="font-size:14px;font-weight:700;color:var(--text)" id="tbl-cnt"></span>
+      </div>
+
+      <!-- 단일 테이블 헤더 (단측/통합) -->
+      <div id="single-tbl-hdr" class="tbl-head" style="display:none">
+        <div class="tc-num th-sort" onclick="sortTbl('num')" id="th-num">#</div>
+        <div class="tc-side" id="th-side">측</div>
+        <div class="tc-name th-sort" onclick="sortTbl('name')" id="th-name">이름</div>
+        <div class="tc-amt th-sort" onclick="sortTbl('amt')" id="th-amt">금액</div>
+        <div class="tc-tkt th-sort" onclick="sortTbl('tkt')" id="th-tkt">식권</div>
+        <div class="tc-pay">결제</div>
+        <div class="tc-time th-sort" onclick="sortTbl('time')" id="th-time">시간</div>
+      </div>
+      <div id="single-tbl-body" class="tbl-body" style="display:none"></div>
+
+      <!-- 양측 분할 -->
+      <div id="split-wrap" style="display:none">
+        <div class="side-col">
+          <div class="side-col-hdr groom">
+            <span style="font-size:12px;font-weight:800;color:var(--blue)">🤵 신랑측</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:13px;font-weight:700;color:#2563EB" id="groom-sum">0건 · 0원</span>
+              <select onchange="setSideSort(this.value)" style="font-size:10px;border:1px solid #BFDBFE;border-radius:4px;padding:1px 4px;background:#EFF6FF;color:#2563EB;cursor:pointer">
+                <option value="num_desc">최신순</option>
+                <option value="num_asc">오래된순</option>
+                <option value="amt_desc">금액↓</option>
+                <option value="amt_asc">금액↑</option>
+                <option value="name_asc">이름순</option>
+              </select>
+            </div>
+          </div>
+          <div class="side-col-body" id="groom-list"></div>
+        </div>
+        <div class="side-col">
+          <div class="side-col-hdr bride">
+            <span style="font-size:12px;font-weight:800;color:var(--pink)">👰 신부측</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:13px;font-weight:700;color:#DB2777" id="bride-sum">0건 · 0원</span>
+              <select onchange="setSideSort(this.value)" style="font-size:10px;border:1px solid #FBCFE8;border-radius:4px;padding:1px 4px;background:#FDF2F8;color:#DB2777;cursor:pointer">
+                <option value="num_desc">최신순</option>
+                <option value="num_asc">오래된순</option>
+                <option value="amt_desc">금액↓</option>
+                <option value="amt_asc">금액↑</option>
+                <option value="name_asc">이름순</option>
+              </select>
+            </div>
+          </div>
+          <div class="side-col-body" id="bride-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="upd">✓ 업데이트</div>
+
+<script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const SUPABASE_URL='https://fmvomfjmkbklhaaapkbk.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
+const sb={
+  h:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
+  url:(t,q='')=>`${SUPABASE_URL}/rest/v1/${t}${q}`,
+  async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+};
+
+let schedule=null,logs=[],opsLogs=[],newIds=new Set();
+let _sortKey='num',_sortDir='desc',_activeTab='all';
+
+const fmt=n=>n>=10000?Math.round(n/10000)+'만원':n.toLocaleString()+'원';
+const fmtFull=n=>n.toLocaleString()+'원';
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtTime=iso=>{const d=new Date(iso);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+const getToken=()=>new URLSearchParams(location.search).get('t')||'';
+const se=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+
+// ── 운영정보 측별 탭 ──
+var _liveHoTab = 'groom';
+function setLiveHoTab(side){
+  _liveHoTab = side;
+  var tg = document.getElementById('live-tab-groom');
+  var tb = document.getElementById('live-tab-bride');
+  var pg = document.getElementById('live-pane-groom');
+  var pb = document.getElementById('live-pane-bride');
+  var blue='#2563EB', pink='#DB2777', gray='#9CA3AF';
+  if(tg){ tg.style.color=(side==='groom')?blue:gray; tg.style.borderBottomColor=(side==='groom')?blue:'transparent'; }
+  if(tb){ tb.style.color=(side==='bride')?pink:gray; tb.style.borderBottomColor=(side==='bride')?pink:'transparent'; }
+  if(pg) pg.style.display=(side==='groom')?'flex':'none';
+  if(pb) pb.style.display=(side==='bride')?'flex':'none';
+}
+
+async function init(){
+  const token=getToken();
+  if(!token){showError();return;}
+  try{
+    // 토큰 종류 판별: dashboard → 통합, groom → 신랑측, bride → 신부측
+    let rows=await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}`);
+    let sideFilter=null;
+    if(!rows.length){
+      rows=await sb.get('schedules',`?groom_token=eq.${encodeURIComponent(token)}`);
+      if(rows.length) sideFilter='groom';
+    }
+    if(!rows.length){
+      rows=await sb.get('schedules',`?bride_token=eq.${encodeURIComponent(token)}`);
+      if(rows.length) sideFilter='bride';
+    }
+    if(!rows.length) throw new Error('not found');
+    schedule=rows[0];
+    const g=(schedule.groom_name||'').trim(),b=(schedule.bride_name||'').trim();
+    // sideFilter 기준으로 표시 이름 결정
+    const names=sideFilter==='groom' ? (g?`${g} 신랑측`:schedule.hall||'—')
+              : sideFilter==='bride'  ? (b?`${b} 신부측`:schedule.hall||'—')
+              : (g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:schedule.hall||'—';
+    se('hdr-names',names);
+    const _d=new Date((schedule.date||'')+'T00:00:00');
+    const _days=['일','월','화','수','목','금','토'];
+    const _day=schedule.date?` (${_days[_d.getDay()]})`:'';
+    const _dateTime=`${schedule.date||''}${_day} · ${(schedule.time||'').slice(0,5)}`;
+    const _hall=schedule.hall||'';
+    document.getElementById('hdr-info-dt').textContent=_dateTime;
+    document.getElementById('hdr-info-hall').textContent=_hall;
+    // title + OG 즉시 업데이트
+    const displayTitle=`${names} · 실시간 장부`;
+    document.title=displayTitle;
+    const mOgTitle=document.querySelector('meta[property="og:title"]');
+    const mOgUrl  =document.querySelector('meta[property="og:url"]');
+    const mTwTitle=document.querySelector('meta[name="twitter:title"]');
+    if(mOgTitle) mOgTitle.setAttribute('content',displayTitle);
+    if(mOgUrl)   mOgUrl.setAttribute('content',location.href);
+    if(mTwTitle) mTwTitle.setAttribute('content',displayTitle);
+    await loadLogs();
+    loadFlowerLive();
+    renderHandover();
+    applyWeddingMode();
+    document.getElementById('loading').style.display='none';
+    document.getElementById('app').style.display='flex';
+    subscribeRealtime();
+    setInterval(()=>{loadLogs();loadFlowerLive();},8000);
+  }catch(e){console.error('[DG]',e);showError();}
+}
+
+function showError(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('error-screen').style.display='flex';
+}
+
+async function loadLogs(){
+  if(!schedule)return;
+  try{
+    const [nl,no]=await Promise.all([
+      sb.get('contribution_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`),
+      sb.get('operation_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`)
+    ]);
+    const oldIds=new Set(logs.map(l=>l.id));
+    nl.forEach(l=>{if(!oldIds.has(l.id))newIds.add(l.id);});
+    logs=nl;opsLogs=no;
+    renderStats();renderList();renderOpsList();applyWeddingMode();
+    showUpdBadge();
+    se('last-upd','갱신 '+fmtTime(new Date().toISOString()));
+  }catch(e){console.error('[DG] loadLogs',e);}
+}
+
+function renderStats(){
+  const total=logs.reduce((s,l)=>s+(l.amount||0),0);
+  const gL=logs.filter(l=>l.side==='신랑측'),bL=logs.filter(l=>l.side==='신부측');
+  se('total-amount',fmtFull(total));
+  se('total-cnt-sub','총 '+logs.length+'건');
+  se('cash-cnt',logs.filter(l=>l.payment_type==='현금').length+'건');
+  se('transfer-cnt',logs.filter(l=>l.payment_type==='계좌이체').length+'건');
+  se('groom-total',fmt(gL.reduce((s,l)=>s+(l.amount||0),0)));
+  se('bride-total',fmt(bL.reduce((s,l)=>s+(l.amount||0),0)));
+  se('groom-cnt-sub',gL.length+'건');
+  se('bride-cnt-sub',bL.length+'건');
+  const gAdultTkt=logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const gChildTkt=logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.child_ticket||0),0);
+  const bAdultTkt=logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const bChildTkt=logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
+  const totalAdult=logs.reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const totalChild=logs.reduce((s,l)=>s+(l.child_ticket||0),0);
+  se('total-adult',totalAdult);
+  se('total-child',totalChild);
+  se('groom-adult-tkt',gAdultTkt);
+  se('groom-child-tkt',gChildTkt);
+  se('bride-adult-tkt',bAdultTkt);
+  se('bride-child-tkt',bChildTkt);
+  // 모드에 따라 식권 표시 전환
+  const mode=schedule?schedule.wedding_mode||'양측':'양측';
+  const ticketDetail=document.getElementById('ticket-detail-wrap');
+  const ticketSingle=document.getElementById('ticket-single-wrap');
+  const groomWrap=document.getElementById('ticket-groom-wrap');
+  const brideWrap=document.getElementById('ticket-bride-wrap');
+  if(ticketDetail&&ticketSingle){
+    if(mode==='단측'){
+      ticketDetail.style.display='none';
+      ticketSingle.style.display='flex';
+    } else {
+      ticketDetail.style.display='grid';
+      ticketSingle.style.display='none';
+      const hasG=logs.some(l=>l.side==='신랑측');
+      const hasB=logs.some(l=>l.side==='신부측');
+      if(groomWrap) groomWrap.style.display=hasG||(!hasG&&!hasB)?'':'none';
+      if(brideWrap) brideWrap.style.display=hasB?'':'none';
+    }
+  }
+}
+
+// ── 정렬 ──
+var _sideSort='num_desc';
+function setSideSort(val){
+  _sideSort=val;
+  renderList();
+}
+
+function applySideSort(arr){
+  var sorted=arr.slice();
+  sorted.sort(function(a,b){
+    if(_sideSort==='num_desc') return logs.indexOf(a)-logs.indexOf(b);
+    if(_sideSort==='num_asc')  return logs.indexOf(b)-logs.indexOf(a);
+    if(_sideSort==='amt_desc') return (b.amount||0)-(a.amount||0);
+    if(_sideSort==='amt_asc')  return (a.amount||0)-(b.amount||0);
+    if(_sideSort==='name_asc') return (a.guest_name||'').localeCompare(b.guest_name||'','ko');
+    return 0;
+  });
+  return sorted;
+}
+
+function sortTbl(key){
+  if(_sortKey===key){_sortDir=_sortDir==='asc'?'desc':'asc';}
+  else{_sortKey=key;_sortDir=key==='num'?'desc':'asc';}
+  ['num','name','amt','tkt','time'].forEach(k=>{
+    const el=document.getElementById('th-'+k);
+    if(!el)return;
+    el.className=el.className.replace(/ asc| desc/g,'');
+    if(_sortKey===k)el.className+=' '+_sortDir;
+  });
+  renderList();
+}
+
+function applySort(arr){
+  return arr.slice().sort((a,b)=>{
+    let va,vb;
+    if(_sortKey==='num'){va=logs.indexOf(a);vb=logs.indexOf(b);}
+    else if(_sortKey==='name'){va=a.guest_name||'';vb=b.guest_name||'';}
+    else if(_sortKey==='amt'){va=a.amount||0;vb=b.amount||0;}
+    else if(_sortKey==='tkt'){va=(a.adult_ticket||0)+(a.child_ticket||0);vb=(b.adult_ticket||0)+(b.child_ticket||0);}
+    else if(_sortKey==='time'){va=a.created_at||'';vb=b.created_at||'';}
+    else{va=0;vb=0;}
+    if(va<vb)return _sortDir==='asc'?-1:1;
+    if(va>vb)return _sortDir==='asc'?1:-1;
+    return 0;
+  });
+}
+
+// ── 탭 ──
+function setListTab(tab){
+  _activeTab=tab;
+  ['all','groom','bride'].forEach(k=>{
+    const el=document.getElementById('tab-'+k);
+    if(el){el.className=el.className.replace(' on','');if(k===tab)el.className+=' on';}
+  });
+  renderList();
+}
+
+// ── 필터 ──
+function getFiltered(side){
+  const pay=(document.getElementById('f-pay')||{}).value||'';
+  const q=((document.getElementById('f-search')||{}).value||'').trim().toLowerCase();
+  return logs.filter(l=>{
+    if(side&&l.side!==side)return false;
+    if(pay&&l.payment_type!==pay)return false;
+    if(q&&!(l.guest_name||'').toLowerCase().includes(q)&&!(l.relation||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+}
+
+// ── 행 빌드 ──
+function buildRow(l,showSide,sideIndex,sideTotal){
+  const num = sideIndex !== undefined ? sideTotal - sideIndex : logs.length - logs.indexOf(l);
+  const isNew=newIds.has(l.id);
+  const adultT=l.adult_ticket||0,childT=l.child_ticket||0;
+  const tktHtml=(adultT>0?`<span class="badge-adult">대${adultT}</span>`:'')+
+                (childT>0?`<span class="badge-child">소${childT}</span>`:'');
+  const payBadge=l.payment_type==='계좌이체'?
+    '<span class="badge-trans">계좌</span>':'<span class="badge-cash">현금</span>';
+  const sideBadge=l.side==='신랑측'?
+    '<span class="badge-side-g">신랑</span>':'<span class="badge-side-b">신부</span>';
+  const name=esc(l.guest_name||'—');
+  const rel=l.relation?`<span style="color:var(--text3);font-weight:400;font-size:10px"> ${esc(l.relation)}</span>`:'';
+  const memo=l.memo?`<div class="tc-name-sub">${esc(l.memo)}</div>`:'';
+  const time=l.created_at?fmtTime(l.created_at):'';
+  return `<div class="tbl-row${isNew?' new-item':''}">
+    <div class="tc-num">#${num}</div>
+    ${showSide?`<div class="tc-side">${sideBadge}</div>`:''}
+    <div class="tc-name"><div class="tc-name-main">${name}${rel}</div>${memo}</div>
+    <div class="tc-amt">${l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>'}</div>
+    <div class="tc-tkt">${tktHtml||'<span style="color:#D1D5DB">—</span>'}</div>
+    <div class="tc-pay">${payBadge}</div>
+    <div class="tc-time">${time}</div>
+  </div>`;
+}
+
+// ── 메인 렌더 ──
+function renderList(){
+  const gLogs=logs.filter(l=>l.side==='신랑측');
+  const bLogs=logs.filter(l=>l.side==='신부측');
+  const hasG=gLogs.length>0,hasB=bLogs.length>0;
+  const both=hasG&&hasB;
+
+  const singleHdr=document.getElementById('single-tbl-hdr');
+  const singleBody=document.getElementById('single-tbl-body');
+  const splitWrap=document.getElementById('split-wrap');
+  const tabBar=document.getElementById('tab-bar');
+
+  if(tabBar) tabBar.style.display=both?'flex':'none';
+
+  if(both&&_activeTab==='all'){
+    // 양측 분할 뷰
+    if(singleHdr)singleHdr.style.display='none';
+    if(singleBody)singleBody.style.display='none';
+    if(splitWrap)splitWrap.style.display='grid';
+    const gF=applySort(getFiltered('신랑측'));
+    const bF=applySort(getFiltered('신부측'));
+    const gAmt=gF.reduce((s,l)=>s+(l.amount||0),0);
+    const bAmt=bF.reduce((s,l)=>s+(l.amount||0),0);
+    se('groom-sum',gF.length+'건 · '+fmtFull(gAmt));
+    se('bride-sum',bF.length+'건 · '+fmtFull(bAmt));
+    const gEl=document.getElementById('groom-list');
+    const bEl=document.getElementById('bride-list');
+    const gFS=applySideSort(gF);
+    if(gEl)gEl.innerHTML=gFS.length?gFS.map((l,i)=>buildRow(l,false,i,gFS.length)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    const bFS=applySideSort(bF);
+    if(bEl)bEl.innerHTML=bFS.length?bFS.map((l,i)=>buildRow(l,false,i,bFS.length)).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+  } else {
+    // 단일 테이블 뷰
+    if(splitWrap)splitWrap.style.display='none';
+    if(singleHdr)singleHdr.style.display='flex';
+    if(singleBody)singleBody.style.display='block';
+    const side=_activeTab==='groom'?'신랑측':_activeTab==='bride'?'신부측':'';
+    const filt=applySort(getFiltered(side));
+    se('tbl-cnt',filt.length+'건');
+    // 측 컬럼 표시 여부
+    const showSide=!side&&both;
+    const thSide=document.getElementById('th-side');
+    if(thSide)thSide.style.display=showSide?'':'none';
+    if(singleBody){
+      // 측별 독립 넘버링을 위해 측별 카운터 계산
+      const grpCount={};
+      filt.forEach(l=>{ grpCount[l.side]=(grpCount[l.side]||0)+1; });
+      const grpIdx={};
+      singleBody.innerHTML=filt.length?filt.map(l=>{
+        grpIdx[l.side]=(grpIdx[l.side]||0);
+        const si=grpIdx[l.side];
+        const st=grpCount[l.side];
+        grpIdx[l.side]++;
+        return buildRow(l,showSide,si,st);
+      }).join(''):`<div style="text-align:center;padding:30px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
+    }
+  }
+  setTimeout(()=>newIds.clear(),2500);
+}
+
+function renderOpsList(){
+  const el=document.getElementById('ops-list');
+  const cntEl=document.getElementById('ops-cnt');
+  if(!el)return;
+  if(cntEl)cntEl.textContent=opsLogs.length+'건';
+  if(!opsLogs.length){el.innerHTML='<div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">메모 없음</div>';return;}
+  el.innerHTML=opsLogs.map(l=>`<div class="ops-row"><span style="font-size:13px;color:var(--gold2);font-weight:700;flex-shrink:0">${esc(l.time_str||'')}</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px">${esc(l.content||'')}</span></div>`).join('');
+}
+
+function renderHandover(){
+  if(!schedule) return;
+  var s = schedule;
+
+  function buildInfoHtml(name, phone, items, pw, live1, live2){
+    var html = '';
+    if(name||phone){
+      html += '<div class="ho-item" style="margin-bottom:5px">';
+      if(name) html += '<div style="font-weight:700;font-size:13px">'+esc(name)+'</div>';
+      if(phone) html += '<a href="tel:'+esc(phone)+'" style="color:var(--blue);font-size:12px;text-decoration:none">'+esc(phone)+'</a>';
+      html += '</div>';
+    }
+    if(pw){
+      html += '<div class="ho-pw" style="margin-bottom:6px">'+esc(pw)+'</div>';
+    }
+    if(items){
+      html += '<div class="ho-item" style="white-space:pre-line;font-size:12px;margin-bottom:5px">'+esc(items)+'</div>';
+    }
+    if(live1){
+      html += '<a href="'+esc(live1)+'" target="_blank" class="ho-link" style="margin-bottom:4px">📹 LIVE 1</a>';
+    }
+    if(live2){
+      html += '<a href="'+esc(live2)+'" target="_blank" class="ho-link">📹 LIVE 2</a>';
+    }
+    if(!name&&!phone&&!pw&&!items&&!live1&&!live2){
+      html = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:8px">정보 없음</div>';
+    }
+    return html;
+  }
+
+  var mode = s.wedding_mode||'양측';
+  var hasGroom = logs.some(function(l){return l.side==='신랑측';});
+  var hasBride  = logs.some(function(l){return l.side==='신부측';});
+
+  // 신랑측 카드
+  var gCard = document.getElementById('groom-info-card');
+  var gBody  = document.getElementById('groom-info-body');
+  if(gCard && gBody){
+    var showG = (mode!=='단측') || hasGroom || (!hasGroom&&!hasBride);
+    gCard.style.display = showG ? '' : 'none';
+    if(showG) gBody.innerHTML = buildInfoHtml(
+      s.groom_handover_name, s.groom_handover_phone,
+      s.groom_handoff_items, s.groom_password,
+      s.groom_live1, s.groom_live2
+    );
+  }
+
+  // 신부측 카드
+  var bCard = document.getElementById('bride-info-card');
+  var bBody  = document.getElementById('bride-info-body');
+  if(bCard && bBody){
+    var showB = (mode!=='단측') || hasBride;
+    bCard.style.display = showB ? '' : 'none';
+    if(showB) bBody.innerHTML = buildInfoHtml(
+      s.bride_handover_name, s.bride_handover_phone,
+      s.bride_handoff_items, s.bride_password,
+      s.bride_live1, s.bride_live2
+    );
+  }
+
+  // 상단 LIVE 버튼 연동
+  function setLiveBtn(id, url){
+    var el = document.getElementById(id);
+    if(!el) return;
+    if(url){el.href=url; el.style.display='inline-flex';}
+    else el.style.display='none';
+  }
+  setLiveBtn('groom-live-btn-1', s.groom_live1);
+  setLiveBtn('groom-live-btn-2', s.groom_live2);
+  setLiveBtn('bride-live-btn-1', s.bride_live1);
+  setLiveBtn('bride-live-btn-2', s.bride_live2);
+}
+
+function applyWeddingMode(){
+  if(!schedule)return;
+  const mode=schedule.wedding_mode||'양측';
+  const modeEl=document.getElementById('mode-badge');
+  if(modeEl){
+    const ml={'단측':'단측 진행','양측':'양측 진행','양측통합':'양측통합 진행'}[mode]||mode;
+    const mc={'단측':'#D97706','양측':'#2563EB','양측통합':'#059669'}[mode]||'#9CA3AF';
+    modeEl.textContent=ml;modeEl.style.color=mc;modeEl.style.background=mc+'15';modeEl.style.borderColor=mc+'40';
+  }
+  const hasG=logs.some(l=>l.side==='신랑측'),hasB=logs.some(l=>l.side==='신부측');
+  const gCard=document.getElementById('groom-sum-card'),bCard=document.getElementById('bride-sum-card');
+  if(mode==='단측'){
+    if(gCard)gCard.style.display=(hasG||(!hasG&&!hasB))?'':'none';
+    if(bCard)bCard.style.display=hasB?'':'none';
+  }else{
+    if(gCard)gCard.style.display='';if(bCard)bCard.style.display='';
+  }
+}
+
+async function loadFlowerLive(){
+  if(!schedule)return;
+  try{
+    const fl=await sb.get('flower_logs','?schedule_id=eq.'+schedule.id+'&order=created_at.desc');
+    const el=document.getElementById('flower-live-list');
+    const cnt=document.getElementById('flower-cnt');
+    if(!el)return;
+    if(cnt)cnt.textContent=fl.length+'건';
+    if(!fl.length){el.innerHTML='<div style="text-align:center;padding:10px;font-size:11px;color:var(--text3)">기록 없음</div>';return;}
+    el.innerHTML=fl.map(f=>{
+      const icon=f.type==='화환'?'💐':'🎏';
+      const sc=f.side==='신랑측'?'color:var(--blue)':'color:var(--pink)';
+      return `<div class="flower-row"><span style="font-size:22px;flex-shrink:0">${icon}</span><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:15px;line-height:1.4">${esc(f.sender)}<span style="font-size:10px;${sc};margin-left:6px;font-size:13px;font-weight:700">${esc(f.side)}</span></div>${f.message?`<div style="font-size:13px;color:var(--text3);margin-top:3px;line-height:1.3">"${esc(f.message)}"</div>`:''}</div><span style="font-size:13px;color:var(--gold2);flex-shrink:0;font-weight:600">${esc(f.time_str||'')}</span></div>`;
+    }).join('');
+  }catch(e){console.error('[DG] flower',e);}
+}
+
+function showUpdBadge(){
+  const el=document.getElementById('upd');
+  if(!el)return;
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',1800);
+}
+
+function subscribeRealtime(){
+  const ws=new WebSocket(`wss://fmvomfjmkbklhaaapkbk.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`);
+  ws.onopen=()=>{
+    ws.send(JSON.stringify({topic:`realtime:public:contribution_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'1'}));
+    ws.send(JSON.stringify({topic:`realtime:public:operation_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'2'}));
+    ws.send(JSON.stringify({topic:`realtime:public:flower_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'3'}));
+  };
+  ws.onmessage=async e=>{
+    try{const msg=JSON.parse(e.data);if(['INSERT','UPDATE','DELETE'].includes(msg.event)){await loadLogs();loadFlowerLive();}}catch{}
+  };
+  ws.onclose=()=>setTimeout(subscribeRealtime,3000);
+}
+
+function downloadExcel(){
+  if(!schedule)return;
+  const g=(schedule.groom_name||'').trim(),b=(schedule.bride_name||'').trim();
+  const nm=(g&&b)?g+' ♥ '+b:(g||b||schedule.hall||'예식');
+  const dt=schedule.date||new Date().toISOString().slice(0,10);
+  const wb=XLSX.utils.book_new();
+  const data=[['번호','접수측','결제방식','하객이름','관계','금액(원)','대인식권','소인식권','메모','접수시간']];
+  for(let i=0;i<logs.length;i++){
+    const l=logs[i];
+    data.push([logs.length-i,l.side||'',l.payment_type||'',l.guest_name||'',l.relation||'',l.amount||0,l.adult_ticket||0,l.child_ticket||0,l.memo||'',l.created_at?fmtTime(l.created_at):'']);
+  }
+  const gL=logs.filter(l=>l.side==='신랑측'),bL=logs.filter(l=>l.side==='신부측');
+  data.push([]);
+  data.push([' 합계','','','','',logs.reduce((s,l)=>s+(l.amount||0),0)]);
+  data.push([' 신랑측',gL.length+'건','','','',gL.reduce((s,l)=>s+(l.amount||0),0)]);
+  data.push([' 신부측',bL.length+'건','','','',bL.reduce((s,l)=>s+(l.amount||0),0)]);
+  if(opsLogs.length){data.push([]);data.push([' 운영메모']);data.push(['시간','내용','작성자']);opsLogs.forEach(l=>data.push([l.time_str||'',l.content||'',l.created_by||'']));}
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:6},{wch:8},{wch:10},{wch:12},{wch:8},{wch:12},{wch:8},{wch:8},{wch:20},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws,'접수내역');
+  XLSX.writeFile(wb,'축의접수_'+nm+'_'+dt+'.xlsx');
+}
+
+// 새 항목 애니메이션
+const _s=document.createElement('style');
+_s.textContent='@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}';
+document.head.appendChild(_s);
+
+init();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
