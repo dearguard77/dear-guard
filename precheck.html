@@ -214,7 +214,22 @@ input,select,textarea{font-family:inherit;outline:none}
           <div class="info-box pink">🔒 개별 장부 모드입니다.<br>각 측 정보는 서로 공유되지 않습니다.<br><br>※ 원활한 안내를 위해 신청하지 않은 측도 디어가드 카카오톡 채널 추가 후 대화 부탁드립니다 😊</div>
         </div>
         <div id="single-notice" style="display:none;margin-top:10px">
-          <div class="info-box gold">👤 단측 진행 모드입니다.<br>해당 측 정보만 입력해주시면 됩니다 😊</div>
+          <div class="info-box gold" style="margin-bottom:10px">👤 단측 진행 모드입니다.<br>해당 측 정보만 입력해주시면 됩니다 😊</div>
+          <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">진행 측을 선택해주세요</div>
+          <div style="display:flex;gap:8px">
+            <label class="radio-item" id="single-groom-btn" data-val="groom"
+              onclick="selectSingleSide('groom')"
+              style="flex:1;cursor:pointer;border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 12px">
+              <input type="radio" name="single_side" value="groom" style="display:none">
+              <div style="font-size:14px;font-weight:700;color:#2563EB">🤵 신랑측</div>
+            </label>
+            <label class="radio-item" id="single-bride-btn" data-val="bride"
+              onclick="selectSingleSide('bride')"
+              style="flex:1;cursor:pointer;border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 12px">
+              <input type="radio" name="single_side" value="bride" style="display:none">
+              <div style="font-size:14px;font-weight:700;color:#DB2777">👰 신부측</div>
+            </label>
+          </div>
         </div>
       </div>
       <!-- 단측이면 이 섹션 숨김 -->
@@ -686,35 +701,25 @@ function applyMode(){
   const mode = s.wedding_mode || '양측';
   const isSingle = mode === '단측';
 
-  // 단측 예식이면 STEP1(장부 방식) 섹션 숨김
+  // 단측 예식이면 STEP1 숨김
   if(isSingle){
     document.getElementById('sec-1').style.display = 'none';
     document.getElementById('single-mode-notice').style.display = 'block';
     document.getElementById('live-mode-wrap').style.display = 'none';
   }
 
-  // ── sideFilter 기준으로 반대측 UI 숨김 (wedding_mode, STEP1 선택과 무관하게 항상 적용) ──
-  const gEl  = document.getElementById('groom-contact-wrap');
-  const bEl  = document.getElementById('bride-contact-wrap');
-  const gPw  = document.getElementById('groom-pw-wrap');
-  const bPw  = document.getElementById('bride-pw-wrap');
-  const psS  = document.getElementById('ps-side');
-
-  if(sideFilter === 'groom'){
-    // 신랑측 링크 접속: 신부측 전부 숨김
-    if(bEl)bEl.style.display='none';
-    if(bPw)bPw.style.display='none';
-    if(psS){ Array.from(psS.options).forEach(o=>{ if(o.value==='신부측') o.style.display='none'; }); psS.value='신랑측'; }
-  } else if(sideFilter === 'bride'){
-    // 신부측 링크 접속: 신랑측 전부 숨김
-    if(gEl)gEl.style.display='none';
-    if(gPw)gPw.style.display='none';
-    if(psS){ Array.from(psS.options).forEach(o=>{ if(o.value==='신랑측') o.style.display='none'; }); psS.value='신부측'; }
-  } else if(isSingle && !sideFilter){
-    // 단측 예식 + 통합 토큰: 신부측 숨김 (신랑측 기준)
-    if(bEl)bEl.style.display='none';
-    if(bPw)bPw.style.display='none';
+  // 사전 공유 식권 드롭다운 필터
+  const psS = document.getElementById('ps-side');
+  if(psS && sideFilter === 'groom'){
+    Array.from(psS.options).forEach(o=>{ if(o.value==='신부측') o.style.display='none'; });
+    psS.value = '신랑측';
+  } else if(psS && sideFilter === 'bride'){
+    Array.from(psS.options).forEach(o=>{ if(o.value==='신랑측') o.style.display='none'; });
+    psS.value = '신부측';
   }
+
+  // 담당자/비밀번호 숨김은 applySingleSideUI에 위임
+  applySingleSideUI();
 }
 
 // ── 기존 데이터 로드 ──
@@ -797,40 +802,76 @@ function toggleDetail(id){
 }
 
 // ── 장부 방식 변경 ──
-function onLiveModeChange(){
-  const val = getRadioVal('live-mode-group');
-  document.getElementById('split-notice').style.display  = val==='split'  ? 'block' : 'none';
-  document.getElementById('single-notice').style.display = val==='single' ? 'block' : 'none';
+// 단측 진행 시 고객이 직접 선택한 측 저장
+let singleSideChoice = null; // 'groom' | 'bride' | null
 
-  // 단측 선택 시: sideFilter 기준 반대측 숨김
+function selectSingleSide(side){
+  singleSideChoice = side;
+  // 버튼 스타일 업데이트
+  const gBtn = document.getElementById('single-groom-btn');
+  const bBtn = document.getElementById('single-bride-btn');
+  if(gBtn) gBtn.style.borderColor = side==='groom' ? '#2563EB' : '#E5E7EB';
+  if(gBtn) gBtn.style.background  = side==='groom' ? '#EFF6FF' : '';
+  if(bBtn) bBtn.style.borderColor = side==='bride' ? '#DB2777' : '#E5E7EB';
+  if(bBtn) bBtn.style.background  = side==='bride' ? '#FDF2F8' : '';
+  applySingleSideUI();
+  autoSaveDraft();
+}
+
+function applySingleSideUI(){
+  // 단측 진행 시 노출 측 결정:
+  //   1) sideFilter(토큰 기반) 우선
+  //   2) 없으면 고객이 직접 선택한 singleSideChoice 사용
+  const effectiveSide = sideFilter || singleSideChoice;
+  const val = getRadioVal('live-mode-group');
+
   const gEl = document.getElementById('groom-contact-wrap');
   const bEl = document.getElementById('bride-contact-wrap');
   const gPw = document.getElementById('groom-pw-wrap');
   const bPw = document.getElementById('bride-pw-wrap');
-  const gTkt = document.getElementById('ticket_total_groom')?.closest('.field');
-  const bTkt = document.getElementById('ticket_total_bride')?.closest('.field');
+  // 식권은 항상 양측 표시 — 숨기지 않음
 
-  if(val==='single'){
-    // 신부측 토큰으로 접근 시 신랑측 숨김, 그 외는 신부측 숨김
-    if(sideFilter==='bride'){
-      if(gEl)gEl.style.display='none'; if(gPw)gPw.style.display='none';
-      if(gTkt)gTkt.style.display='none';
-      if(bEl)bEl.style.display=''; if(bPw)bPw.style.display='';
-      if(bTkt)bTkt.style.display='';
+  if(val === 'single'){
+    if(effectiveSide === 'bride'){
+      if(gEl) gEl.style.display = 'none';
+      if(gPw) gPw.style.display = 'none';
+      if(bEl) bEl.style.display = '';
+      if(bPw) bPw.style.display = '';
+    } else if(effectiveSide === 'groom'){
+      if(bEl) bEl.style.display = 'none';
+      if(bPw) bPw.style.display = 'none';
+      if(gEl) gEl.style.display = '';
+      if(gPw) gPw.style.display = '';
     } else {
-      if(bEl)bEl.style.display='none'; if(bPw)bPw.style.display='none';
-      if(bTkt)bTkt.style.display='none';
-      if(gEl)gEl.style.display=''; if(gPw)gPw.style.display='';
-      if(gTkt)gTkt.style.display='';
+      // 아직 측 미선택: 양쪽 모두 표시 (선택 유도)
+      if(gEl) gEl.style.display = '';
+      if(bEl) bEl.style.display = '';
+      if(gPw) gPw.style.display = '';
+      if(bPw) bPw.style.display = '';
     }
   } else {
-    // 통합/분리: sideFilter 없으면 전체 표시
-    if(!sideFilter){
-      if(gEl)gEl.style.display=''; if(gPw)gPw.style.display='';
-      if(bEl)bEl.style.display=''; if(bPw)bPw.style.display='';
-      if(gTkt)gTkt.style.display=''; if(bTkt)bTkt.style.display='';
+    // 통합/분리: sideFilter 기준만 적용
+    if(sideFilter === 'groom'){
+      if(bEl) bEl.style.display = 'none'; if(bPw) bPw.style.display = 'none';
+      if(gEl) gEl.style.display = '';     if(gPw) gPw.style.display = '';
+    } else if(sideFilter === 'bride'){
+      if(gEl) gEl.style.display = 'none'; if(gPw) gPw.style.display = 'none';
+      if(bEl) bEl.style.display = '';     if(bPw) bPw.style.display = '';
+    } else {
+      // 통합 토큰: 양측 모두 표시
+      if(gEl) gEl.style.display = ''; if(gPw) gPw.style.display = '';
+      if(bEl) bEl.style.display = ''; if(bPw) bPw.style.display = '';
     }
   }
+}
+
+function onLiveModeChange(){
+  const val = getRadioVal('live-mode-group');
+  document.getElementById('split-notice').style.display  = val==='split'  ? 'block' : 'none';
+  document.getElementById('single-notice').style.display = val==='single' ? 'block' : 'none';
+  // 단측 선택 해제 시 초기화
+  if(val !== 'single') singleSideChoice = null;
+  applySingleSideUI();
   updateProgress();
 }
 
@@ -1065,6 +1106,18 @@ async function saveAll(){
       const memo        = gv('precheck_memo');
 
       const lines = ['[사전체크 자동 등록]'];
+
+      // 인계 담당자
+      const gContactName  = gv('groom_contact_name');
+      const gContactPhone = gv('groom_contact_phone');
+      const bContactName  = gv('bride_contact_name');
+      const bContactPhone = gv('bride_contact_phone');
+      if(gContactName || bContactName){
+        lines.push('📌 인계 담당자');
+        if(gContactName) lines.push(`🤵 신랑측 ${gContactName}${gContactPhone?' / '+gContactPhone:''}`);
+        if(bContactName) lines.push(`👰 신부측 ${bContactName}${bContactPhone?' / '+bContactPhone:''}`);
+      }
+
       if(cashMethod)              lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
       if(giftYn)                  lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}`);
       if(mobileUrl)               lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
