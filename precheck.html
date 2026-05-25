@@ -1093,40 +1093,39 @@ async function saveAll(){
   try {
     await sb.patch('schedules', schedule.id, body);
 
-    // ── 현장 메모 자동 등록 → schedules.field_memo (index 현장메모) ──
+    // ── 현장 메모 자동 등록 → schedules.field_memo.precheck (구조화) ──
     try {
-      const CASH_LABEL    = { sealed:'밀봉 전달형', confirmed:'봉투 유지형', sorted:'권종별 정리형' };
+      const CASH_LABEL    = { sealed:'밀봉전달형', confirmed:'봉투유지형', sorted:'권종별정리형' };
       const RECEIPT_LABEL = { personal:'개인', business:'사업자' };
 
       const cashMethod  = getRadioVal('cash-group');
+      const dgDisclosed = getRadioVal('dg-disclosed-group');
+      const dgRelation  = gv('dg_relation_desc');
       const giftYn      = getRadioVal('gift-group');
       const mobileUrl   = gv('mobile_invite_url');
       const receiptType = getRadioVal('receipt-type-group');
       const receiptNum  = gv('cash_receipt_number');
       const memo        = gv('precheck_memo');
-
-      const lines = ['[사전체크 자동 등록]'];
-
-      // 인계 담당자
       const gContactName  = gv('groom_contact_name');
       const gContactPhone = gv('groom_contact_phone');
       const bContactName  = gv('bride_contact_name');
       const bContactPhone = gv('bride_contact_phone');
-      if(gContactName || bContactName){
-        lines.push('📌 인계 담당자');
-        if(gContactName) lines.push(`🤵 신랑측 ${gContactName}${gContactPhone?' / '+gContactPhone:''}`);
-        if(bContactName) lines.push(`👰 신부측 ${bContactName}${bContactPhone?' / '+bContactPhone:''}`);
-      }
 
-      if(cashMethod)              lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
-      if(giftYn)                  lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}`);
-      if(mobileUrl)               lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
-      if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${(RECEIPT_LABEL[receiptType]||'')+' '+(receiptNum||'')}`.trim());
-      if(memo)                    lines.push(`📝 특이사항: ${memo}`);
+      // 운영 요약 문자열 생성 (index 현장메모 표시용)
+      const lines = ['[사전체크]'];
+      if(gContactName) lines.push(`🤵 인계 ${gContactName}${gContactPhone?' '+gContactPhone:''}`);
+      if(bContactName) lines.push(`👰 인계 ${bContactName}${bContactPhone?' '+bContactPhone:''}`);
+      if(cashMethod)   lines.push(`정산방식 - ${CASH_LABEL[cashMethod]||cashMethod}`);
+      if(dgDisclosed==='false' && dgRelation) lines.push(`당일관계 - ${dgRelation}`);
+      else if(dgDisclosed==='true')           lines.push('혼주 디어가드 인지 완료');
+      if(giftYn)       lines.push(`답례품 - ${giftYn==='true'?'있음':'없음'}`);
+      if(mobileUrl)    lines.push(`💌 ${mobileUrl}`);
+      if(receiptType||receiptNum) lines.push(`현금영수증 - ${RECEIPT_LABEL[receiptType]||''} ${receiptNum||''}`.trim());
+      if(memo)         lines.push(`📝 ${memo}`);
 
       const precheckText = lines.join('\n');
 
-      // 기존 field_memo 가져와서 precheck 항목만 업데이트 (기존 내용 유지)
+      // 기존 field_memo 유지하면서 precheck 키만 업데이트
       const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
       const prevFieldMemo = (existing[0]?.field_memo) || {};
       const newFieldMemo  = { ...prevFieldMemo, precheck: precheckText };
