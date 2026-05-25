@@ -51,7 +51,7 @@ input,select,textarea{font-family:inherit;outline:none}
 #main-screen{display:none;height:100vh;flex-direction:column}
 
 /* 상단바 */
-#top-bar{background:#fff;border-bottom:1px solid #DCDCDC;padding:0;display:flex;align-items:center;height:auto;min-height:52px;flex-shrink:0}
+#top-bar{background:#fff;border-bottom:1px solid #DCDCDC;padding:0;display:flex;align-items:center;height:52px;flex-shrink:0}
 #top-bar-inner{max-width:1280px;width:100%;margin:0 auto;padding:0 14px;display:flex;align-items:center;justify-content:space-between;height:100%}
 .top-logo{font-family:Georgia,serif;font-size:12px;font-weight:700;color:#C7A96B;letter-spacing:1px}
 .top-sch{font-size:13px;font-weight:700;color:#111;margin-left:8px}
@@ -214,31 +214,6 @@ input,select,textarea{font-family:inherit;outline:none}
 .edit-btns{display:flex;gap:7px;margin-top:14px}
 .edit-save{flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
 .edit-cancel{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-width:72px}
-  /* 운영메모 수정/삭제 버튼 */
-  .ops-edit-btn{width:22px;height:22px;background:#EFF6FF;color:#2563EB;border:none;border-radius:5px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0}
-  .ops-del-btn{width:22px;height:22px;background:#FEF2F2;color:#DC2626;border:none;border-radius:5px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0}
-  .ops-save-btn{height:22px;background:#C7A96B;color:#fff;border:none;border-radius:5px;padding:0 7px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
-  .ops-cancel-btn{height:22px;background:#F3F4F6;color:#6B7280;border:none;border-radius:5px;padding:0 7px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
-  .ops-edit-input{border:1.5px solid #C7A96B;border-radius:5px;padding:2px 6px;font-size:11px;color:#111;background:#fff;flex:1;min-width:0;font-family:inherit;height:22px}
-  /* 금액 버튼 파스텔 컬러 */
-.amt-btn-5  {background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8}
-.amt-btn-10 {background:#F0FDF4;border-color:#BBF7D0;color:#15803D}
-.amt-btn-15 {background:#FEFCE8;border-color:#FDE68A;color:#A16207}
-.amt-btn-20 {background:#FFF7ED;border-color:#FED7AA;color:#C2410C}
-.amt-btn-30 {background:#FAF5FF;border-color:#E9D5FF;color:#7E22CE}
-.amt-btn-50 {background:#FDF8F3;border-color:#E8D5B0;color:#92400E}
-.amt-btn-100{background:#FFFBEB;border-color:#FDE68A;color:#B45309}
-.amt-btn-5.amt-active  {background:#1D4ED8;border-color:#1D4ED8;color:#fff}
-.amt-btn-10.amt-active {background:#15803D;border-color:#15803D;color:#fff}
-.amt-btn-15.amt-active {background:#A16207;border-color:#A16207;color:#fff}
-.amt-btn-20.amt-active {background:#C2410C;border-color:#C2410C;color:#fff}
-.amt-btn-30.amt-active {background:#7E22CE;border-color:#7E22CE;color:#fff}
-.amt-btn-50.amt-active {background:#92400E;border-color:#92400E;color:#fff}
-.amt-btn-100.amt-active{background:#B45309;border-color:#B45309;color:#fff}
-.pw-mini-card{background:#F9F8F6;border:1px solid #E5E7EB;border-radius:8px;padding:8px;width:90px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:center}
-.pw-mini-title{font-size:10px;font-weight:700;color:#9CA3AF;text-align:center;margin-bottom:6px}
-.pw-mini-inp{width:100%;text-align:center;font-size:18px;font-weight:800;letter-spacing:4px;padding:6px 4px;border:1.5px solid #E0E0E0;border-radius:6px;background:#fff;color:#111}
-.pw-mini-inp:focus{border-color:#C7A96B;outline:none}
 </style>
 </head>
 <body>
@@ -285,50 +260,13 @@ input,select,textarea{font-family:inherit;outline:none}
   <div id="top-bar">
   <div id="top-bar-inner">
     <div style="display:flex;align-items:center;gap:10px">
-      <img src="logo.png" alt="Dear Guard" style="height:28px;width:auto;object-fit:contain;display:block">
+      <span class="top-logo">DG</span>
       <span style="color:#E0E0E0">|</span>
       <div style="display:flex;flex-direction:column;gap:1px">
         <span class="top-sch" id="top-schedule-name" style="font-size:14px;font-weight:800;color:#111;line-height:1.2">—</span>
         <span id="top-schedule-info" style="font-size:11px;color:#9CA3AF;line-height:1.2">—</span>
       </div>
     </div>
-    <!-- 식권 운영 패널 (상단 이동) -->
-    <div id="ticket-panel-top" style="display:flex;align-items:stretch;gap:6px;flex:1;margin:0 12px;min-width:0">
-
-      <!-- 식권 현황 -->
-      <div style="background:#F9F8F6;border:1px solid #E0E0E0;border-radius:7px;padding:4px 10px;display:flex;align-items:center;gap:12px;flex-shrink:0">
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:10px;font-weight:700;color:#2563EB">🤵</span>
-          <span style="font-size:10px;color:#9CA3AF">총 <span style="font-weight:700;color:#374151" id="tks-g-total">—</span></span>
-          <span style="font-size:10px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-g-used">0</span></span>
-          <span style="font-size:10px;color:#9CA3AF">잔여 <span style="font-weight:900" id="tks-g-remain">—</span></span>
-        </div>
-        <div style="width:1px;height:16px;background:#E0E0E0"></div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:10px;font-weight:700;color:#DB2777">👰</span>
-          <span style="font-size:10px;color:#9CA3AF">총 <span style="font-weight:700;color:#374151" id="tks-b-total">—</span></span>
-          <span style="font-size:10px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-b-used">0</span></span>
-          <span style="font-size:10px;color:#9CA3AF">잔여 <span style="font-weight:900" id="tks-b-remain">—</span></span>
-        </div>
-      </div>
-
-      <!-- 초기 식권 설정 -->
-      <div style="background:#F9F8F6;border:1px solid #E0E0E0;border-radius:7px;padding:4px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:700">초기</span>
-        <span style="font-size:10px;color:#2563EB">🤵</span>
-        <input class="tkt-setup-inp" id="groom-total-ticket" type="number" placeholder="신랑" min="0"
-          oninput="saveTotalTickets()" style="width:44px;height:22px;font-size:11px;padding:0 4px;text-align:center">
-        <span style="font-size:10px;color:#9CA3AF">장</span>
-        <span style="font-size:10px;color:#DB2777">👰</span>
-        <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="신부" min="0"
-          oninput="saveTotalTickets()" style="width:44px;height:22px;font-size:11px;padding:0 4px;text-align:center">
-        <span style="font-size:10px;color:#9CA3AF">장</span>
-      </div>
-
-          
-
-    </div>
-
     <div class="top-right">
       <button class="topbtn topbtn-ghost" onclick="goSelectSchedule()">예식 변경</button>
       <button class="topbtn topbtn-gold" onclick="showDashboardLink()">📱 대시보드</button>
@@ -357,17 +295,11 @@ input,select,textarea{font-family:inherit;outline:none}
 
         <div class="ho-section">
           <div class="ho-section-title" style="color:#2563EB">인계자 정보</div>
-          <div style="display:flex;gap:8px;align-items:stretch">
-            <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
-              <div><div class="ho-label">성함</div>
-                <input id="g-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
-              <div><div class="ho-label">연락처</div>
-                <input id="g-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
-            </div>
-            <div class="pw-mini-card">
-              <div class="pw-mini-title">🔒 레디백 비번</div>
-              <input id="g-ho-pw" class="pw-mini-inp" placeholder="0000" oninput="saveHandover()">
-            </div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div><div class="ho-label">성함</div>
+              <input id="g-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
+            <div><div class="ho-label">연락처</div>
+              <input id="g-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
           </div>
         </div>
 
@@ -378,7 +310,13 @@ input,select,textarea{font-family:inherit;outline:none}
             oninput="saveHandover()"></textarea>
         </div>
 
-        
+        <div class="ho-section">
+          <div class="ho-section-title">🔒 레디백 비번</div>
+          <input id="g-ho-pw" class="ho-input" placeholder="예: 123" maxlength="3"
+            style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
+            oninput="saveHandover()">
+        </div>
+
         <div class="ho-section">
           <div class="ho-section-title">📹 LIVE 링크</div>
           <div style="display:flex;flex-direction:column;gap:5px">
@@ -389,49 +327,32 @@ input,select,textarea{font-family:inherit;outline:none}
           </div>
         </div>
 
-        <!-- 🤵 신랑측 운영메모 -->
-        <div class="ho-section" style="flex-shrink:0">
-          <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
-          <div id="ops-log-list-g" style="max-height:80px;overflow-y:auto;margin-bottom:5px">
-            <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div>
-        </div>
-        <div style="display:flex;gap:4px">
-          <input id="ops-log-input-g" class="ho-input" placeholder="신랑측 특이사항..."
-            style="font-size:11px;padding:4px 8px;flex:1"
-            onkeydown="if(event.key==='Enter')addOpsLog('g')">
-          <button onclick="addOpsLog('g')"
-            style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
-        </div>
-    </div>
-
-        <!-- 🎫 사전 공유 식권 -->
-        <div class="ho-section" style="flex-shrink:0">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 사전 공유 식권</div>
-            <span style="font-size:10px;color:#9CA3AF;font-weight:400">운영메모 함께 기록 권장</span>
-          </div>
-          <!-- 1줄: 측 + 장수 -->
-          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
-            <select id="pre-share-side"
-              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
-              <option value="신랑측">🤵 신랑</option>
-              <option value="신부측">👰 신부</option>
+        <!-- 화환/축기 -->
+        <div class="ho-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <div class="ho-section-title" style="margin-bottom:6px">💐 화환 / 축기</div>
+          <div style="display:flex;gap:4px;margin-bottom:5px">
+            <select id="flower-side" class="ho-input" style="width:72px;flex-shrink:0;padding:4px 5px;font-size:11px">
+              <option value="신랑측">신랑측</option>
+              <option value="신부측">신부측</option>
             </select>
-            <input id="pre-share-amount" placeholder="장수" type="number" min="1"
-              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0"
-              onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name').focus()">
-            <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+            <select id="flower-type" class="ho-input" style="width:60px;flex-shrink:0;padding:4px 5px;font-size:11px">
+              <option value="화환">화환</option>
+              <option value="축기">축기</option>
+            </select>
+            <input id="flower-sender" class="ho-input" placeholder="보낸 분"
+              style="flex:1;font-size:11px;padding:4px 6px"
+              onkeydown="if(event.key==='Enter')focusFlowerMsg()">
           </div>
-          <!-- 2줄: 이름 + 추가버튼 -->
-          <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
-            <input id="pre-share-name" placeholder="사회자, 헬퍼, 혼주직접..." type="text"
-              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
-              onkeydown="if(event.key==='Enter')addPreShare()">
-            <button onclick="addPreShare()"
-              style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+          <div style="display:flex;gap:4px;margin-bottom:6px">
+            <input id="flower-msg" class="ho-input" placeholder="문구 (선택)"
+              style="flex:1;font-size:11px;padding:4px 6px"
+              onkeydown="if(event.key==='Enter')addFlower()">
+            <button onclick="addFlower()"
+              style="background:#374151;color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
           </div>
-          <!-- 3줄: 내역 리스트 -->
-          <div id="pre-share-list" style="max-height:80px;overflow-y:auto"></div>
+          <div id="flower-list" style="overflow-y:auto;flex:1;min-height:0">
+            <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 기록이 없습니다</div>
+          </div>
         </div>
 
       </div><!-- /ho-pane-g -->
@@ -441,17 +362,11 @@ input,select,textarea{font-family:inherit;outline:none}
 
         <div class="ho-section">
           <div class="ho-section-title" style="color:#DB2777">인계자 정보</div>
-          <div style="display:flex;gap:8px;align-items:stretch">
-            <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
-              <div><div class="ho-label">성함</div>
-                <input id="b-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
-              <div><div class="ho-label">연락처</div>
-                <input id="b-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
-            </div>
-            <div class="pw-mini-card">
-              <div class="pw-mini-title">🔒 레디백 비번</div>
-              <input id="b-ho-pw" class="pw-mini-inp" placeholder="0000" oninput="saveHandover()">
-            </div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div><div class="ho-label">성함</div>
+              <input id="b-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
+            <div><div class="ho-label">연락처</div>
+              <input id="b-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
           </div>
         </div>
 
@@ -462,7 +377,13 @@ input,select,textarea{font-family:inherit;outline:none}
             oninput="saveHandover()"></textarea>
         </div>
 
-        
+        <div class="ho-section">
+          <div class="ho-section-title">🔒 레디백 비번</div>
+          <input id="b-ho-pw" class="ho-input" placeholder="예: 567" maxlength="3"
+            style="letter-spacing:3px;font-weight:800;font-size:16px;text-align:center"
+            oninput="saveHandover()">
+        </div>
+
         <div class="ho-section">
           <div class="ho-section-title">📹 LIVE 링크</div>
           <div style="display:flex;flex-direction:column;gap:5px">
@@ -473,20 +394,42 @@ input,select,textarea{font-family:inherit;outline:none}
           </div>
         </div>
 
-      <!-- 👰 신부측 운영메모 -->
-      <div class="ho-section" style="flex-shrink:0">
-        <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
-        <div id="ops-log-list-b" style="max-height:80px;overflow-y:auto;margin-bottom:5px">
-          <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div>
+        <!-- 화환 목록 보기 전용 -->
+        <div class="ho-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <div class="ho-section-title" style="margin-bottom:4px">💐 화환 / 축기 목록</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:5px">추가는 신랑측 탭에서 입력하세요</div>
+          <div id="flower-list-b" style="overflow-y:auto;flex:1;min-height:0">
+            <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:10px 0">아직 기록이 없습니다</div>
+          </div>
         </div>
-        <div style="display:flex;gap:4px">
-          <input id="ops-log-input-b" class="ho-input" placeholder="신부측 특이사항..."
-            style="font-size:11px;padding:4px 8px;flex:1"
-            onkeydown="if(event.key==='Enter')addOpsLog('b')">
-          <button onclick="addOpsLog('b')"
-            style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
+
+        <!-- 🎫 사전 공유 식권 (신부측) -->
+        <div class="ho-section" style="flex-shrink:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 사전 공유 식권</div>
+            <span style="font-size:10px;color:#9CA3AF;font-weight:400">운영메모 함께 기록 권장</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+            <select id="pre-share-side-b"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
+              <option value="신랑측">🤵 신랑</option>
+              <option value="신부측" selected>👰 신부</option>
+            </select>
+            <input id="pre-share-amount-b" placeholder="장수" type="number" min="1"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0"
+              onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name-b').focus()">
+            <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+            <input id="pre-share-name-b" placeholder="사회자, 헬퍼, 혼주직접..." type="text"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
+              onkeydown="if(event.key==='Enter')addPreShareB()">
+            <button onclick="addPreShareB()"
+              style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+          </div>
+          <div id="pre-share-list-b" style="max-height:80px;overflow-y:auto"></div>
         </div>
-      </div>
+
       </div><!-- /ho-pane-b -->
 
       <div class="ho-save-indicator" id="ho-save-indicator" style="flex-shrink:0"></div>
@@ -495,7 +438,83 @@ input,select,textarea{font-family:inherit;outline:none}
     <!-- ② 중앙: 입력 + 리스트 -->
     <div id="center-panel">
     <div id="input-panel">
-      
+
+      <!-- ⚡ 실시간 식권 현황 -->
+      <div id="tkt-status-card" style="background:#fff;border-radius:8px;border:1px solid #E0E0E0;padding:5px 9px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#2563EB;letter-spacing:.3px;margin-bottom:4px">🤵 신랑측 식권</div>
+            <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:2px">
+              <span style="font-size:11px;color:#9CA3AF">총</span>
+              <span style="font-size:13px;font-weight:700;color:#374151" id="tks-g-total">—</span>
+              <span id="tks-g-extra-wrap" style="display:none;font-size:9px;color:#059669;font-weight:600" id="tks-g-extra"></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="font-size:11px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-g-used">0</span></div>
+              <div style="font-size:11px;color:#9CA3AF">잔여 <span id="tks-g-remain" style="font-size:15px;font-weight:900;line-height:1">—</span></div>
+            </div>
+          </div>
+          <div style="border-left:1px solid #F0EDE8;padding-left:8px">
+            <div style="font-size:11px;font-weight:700;color:#DB2777;letter-spacing:.3px;margin-bottom:4px">👰 신부측 식권</div>
+            <div style="display:flex;align-items:baseline;gap:3px;margin-bottom:2px">
+              <span style="font-size:11px;color:#9CA3AF">총</span>
+              <span style="font-size:13px;font-weight:700;color:#374151" id="tks-b-total">—</span>
+              <span id="tks-b-extra-wrap" style="display:none;font-size:9px;color:#059669;font-weight:600" id="tks-b-extra"></span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="font-size:11px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-b-used">0</span></div>
+              <div style="font-size:11px;color:#9CA3AF">잔여 <span id="tks-b-remain" style="font-size:15px;font-weight:900;line-height:1">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 식권 설정 -->
+      <div class="card" style="padding:5px 9px">
+        <div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0;align-items:start">
+          <div style="padding-right:10px">
+            <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">초기 식권 설정</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:5px">
+                <span style="font-size:11px;color:#6B7280;width:14px">🤵</span>
+                <input class="tkt-setup-inp" id="groom-total-ticket" type="number" placeholder="신랑" min="0"
+                  oninput="saveTotalTickets()" style="flex:1;height:26px;font-size:11px;padding:0 6px;text-align:center">
+                <span style="font-size:10px;color:#9CA3AF">장</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px">
+                <span style="font-size:11px;color:#6B7280;width:14px">👰</span>
+                <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="신부" min="0"
+                  oninput="saveTotalTickets()" style="flex:1;height:26px;font-size:11px;padding:0 6px;text-align:center">
+                <span style="font-size:10px;color:#9CA3AF">장</span>
+              </div>
+            </div>
+          </div>
+          <div style="background:#E5E7EB;width:1px;height:100%;min-height:50px"></div>
+          <div style="padding-left:10px">
+            <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px">추가 발급</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:3px">
+                <select id="add-ticket-side"
+                  style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:70px">
+                  <option value="신랑측">🤵 신랑</option>
+                  <option value="신부측">👰 신부</option>
+                </select>
+                <input id="add-ticket-amount" type="number" placeholder="수량" min="1"
+                  style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;flex:1;min-width:0"
+                  onkeydown="if(event.key==='Enter')addTicketExtra()">
+                <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+                <button onclick="addTicketExtra()"
+                  style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+              </div>
+              <input id="add-ticket-memo" placeholder="메모"
+                style="width:100%;height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 7px;box-sizing:border-box"
+                onkeydown="if(event.key==='Enter')addTicketExtra()">
+            </div>
+            <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;margin-top:3px"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- 접수 측 + 결제 방식 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
         <div class="card" style="padding:5px 8px">
@@ -514,14 +533,20 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 하객 이름 + 접수완료 -->
+      <!-- 하객 이름 + 관계 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름</div>
         <div style="display:flex;align-items:center;gap:6px">
           <input class="form-input" id="guest-name" placeholder="이름 (선택)"
-            style="flex:1;font-size:13px;padding:7px 8px">
-          <button class="submit-btn" onclick="submitEntry()"
-            style="flex-shrink:0;width:auto;padding:8px 18px;font-size:14px;letter-spacing:.3px;border-radius:8px;box-shadow:none">✅ 접수 완료</button>
+            style="width:180px;flex-shrink:0;font-size:13px;padding:7px 8px">
+          <div class="rel-group" style="flex:1;flex-wrap:wrap;gap:3px">
+            <button class="rel-btn" onclick="setRelation('친구')">친구</button>
+            <button class="rel-btn" onclick="setRelation('직장')">직장</button>
+            <button class="rel-btn" onclick="setRelation('가족')">가족</button>
+            <button class="rel-btn" onclick="setRelation('부 지인')">부지인</button>
+            <button class="rel-btn" onclick="setRelation('모 지인')">모지인</button>
+            <button class="rel-btn" onclick="setRelation('기타')">기타</button>
+          </div>
         </div>
       </div>
 
@@ -529,32 +554,26 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">2️⃣ 금액</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:4px">
-          <button class="amt-btn amt-btn-5"   onclick="setAmount(50000)">5만</button>
-          <button class="amt-btn amt-btn-10"  onclick="setAmount(100000)">10만</button>
-          <button class="amt-btn amt-btn-15"  onclick="setAmount(150000)">15만</button>
-          <button class="amt-btn amt-btn-20"  onclick="setAmount(200000)">20만</button>
-          <button class="amt-btn amt-btn-30"  onclick="setAmount(300000)">30만</button>
-          <button class="amt-btn amt-btn-50"  onclick="setAmount(500000)">50만</button>
-          <button class="amt-btn amt-btn-100" onclick="setAmount(1000000)">100만</button>
-          <button class="amt-btn amt-custom"  onclick="focusCustomAmount()">직접</button>
+          <button class="amt-btn" onclick="setAmount(50000)">5만</button>
+          <button class="amt-btn" onclick="setAmount(100000)">10만</button>
+          <button class="amt-btn" onclick="setAmount(150000)">15만</button>
+          <button class="amt-btn" onclick="setAmount(200000)">20만</button>
+          <button class="amt-btn" onclick="setAmount(300000)">30만</button>
+          <button class="amt-btn" onclick="setAmount(500000)">50만</button>
+          <button class="amt-btn" onclick="setAmount(1000000)">100만</button>
+          <button class="amt-btn amt-custom" onclick="focusCustomAmount()">직접</button>
         </div>
         <div class="inp-wrap">
-          <input class="form-input" id="amount-input" type="text" inputmode="numeric" placeholder="직접 입력"
-            oninput="onAmountInput()" style="padding-right:60px;font-size:13px;padding-top:6px;padding-bottom:6px">
-          <div style="position:absolute;right:0;top:0;bottom:0;display:flex;flex-direction:column;border-left:1px solid #E0E0E0">
-            <button type="button" onclick="stepAmount(10000)"
-              style="flex:1;width:30px;background:#F9F8F6;border:none;border-bottom:1px solid #E0E0E0;border-radius:0 7px 0 0;font-size:11px;color:#6B7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">▲</button>
-            <button type="button" onclick="stepAmount(-10000)"
-              style="flex:1;width:30px;background:#F9F8F6;border:none;border-radius:0 0 7px 0;font-size:11px;color:#6B7280;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">▼</button>
-          </div>
-          <span class="inp-unit" style="right:38px">원</span>
+          <input class="form-input" id="amount-input" type="number" placeholder="직접 입력"
+            oninput="onAmountInput()" style="padding-right:28px;font-size:13px;padding-top:6px;padding-bottom:6px">
+          <span class="inp-unit">원</span>
         </div>
       </div>
 
       <!-- 식권 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">3️⃣ 식권</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:nowrap">
           <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">대인</span>
           <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
             <button onclick="changeTicket('adult',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
@@ -570,22 +589,7 @@ input,select,textarea{font-family:inherit;outline:none}
             <button onclick="changeTicket('child',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
           </div>
           <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
-          <div style="width:1px;height:20px;background:#E0E0E0;flex-shrink:0"></div>
-          <!-- 추가 발급 인라인 -->
-          <select id="add-ticket-side"
-            style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:68px">
-            <option value="신랑측">🤵 신랑</option>
-            <option value="신부측">👰 신부</option>
-          </select>
-          <input id="add-ticket-amount" type="number" placeholder="추가" min="1" autocomplete="off"
-            style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:44px;flex-shrink:0"
-            onkeydown="if(event.key==='Enter')addTicketExtra()">
-          <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
-          <button onclick="addTicketExtra()"
-            style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
         </div>
-        <!-- 추가 발급 리스트 -->
-        <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;margin-top:4px;border-top:1px solid #F0EDE8;padding-top:3px"></div>
       </div>
 
       <!-- 메모 -->
@@ -623,58 +627,128 @@ input,select,textarea{font-family:inherit;outline:none}
     </div><!-- /center-panel -->
 
     <!-- ③ 오른쪽: 현황 -->
-    <!-- ③ 오른쪽: 실시간 장부 리스트 -->
-<div id="stats-panel" style="background:#F4F2EF;border-left:1px solid #DCDCDC;overflow:hidden;padding:0;display:flex;flex-direction:column;height:100%;flex-shrink:0">
+    <div id="stats-panel">
 
-  <!-- 요약 헤더 (한 줄) -->
-  <div style="background:#fff;border-bottom:1px solid #E0E0E0;padding:5px 10px;flex-shrink:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <span style="font-size:11px;font-weight:800;color:#C7A96B" id="stat-total-amount">0원</span>
-    <span style="font-size:10px;color:#9CA3AF" id="stat-total-count">총 0건</span>
-    <span style="font-size:10px;color:#9CA3AF">·</span>
-    <span style="font-size:10px;color:#3B82F6;font-weight:700" id="stat-groom-amount">신랑 0원</span>
-    <span style="font-size:10px;color:#EC4899;font-weight:700" id="stat-bride-amount">신부 0원</span>
-    <span style="flex:1"></span>
-    <span style="font-size:10px;color:#6B7280">💵 <span id="stat-cash">0건</span></span>
-    <span style="font-size:10px;color:#6B7280">📱 <span id="stat-transfer">0건</span></span>
-  </div>
-
-  <!-- 식권 요약 한 줄 -->
-  <div style="background:#F9F8F6;border-bottom:1px solid #E0E0E0;padding:4px 10px;flex-shrink:0;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-    <span style="font-size:10px;color:#2563EB;font-weight:700">🤵 식권</span>
-    <span style="font-size:10px;color:#6B7280">총 <span style="font-weight:700;color:#374151" id="g-total-tkt">—</span></span>
-    <span style="font-size:10px;color:#6B7280">사용 <span style="font-weight:700" id="g-used-tkt">0</span></span>
-    <span style="font-size:10px;color:#6B7280">잔여 <span style="font-weight:800" id="g-remain-tkt">—</span></span>
-    <span style="font-size:10px;color:#059669;font-weight:700" id="g-extra-tkt" style="display:none"></span>
-    <span style="color:#E0E0E0;font-size:10px">|</span>
-    <span style="font-size:10px;color:#DB2777;font-weight:700">👰 식권</span>
-    <span style="font-size:10px;color:#6B7280">총 <span style="font-weight:700;color:#374151" id="b-total-tkt">—</span></span>
-    <span style="font-size:10px;color:#6B7280">사용 <span style="font-weight:700" id="b-used-tkt">0</span></span>
-    <span style="font-size:10px;color:#6B7280">잔여 <span style="font-weight:800" id="b-remain-tkt">—</span></span>
-    <span style="font-size:10px;color:#059669;font-weight:700" id="b-extra-tkt" style="display:none"></span>
-  </div>
-
-  <!-- 장부 리스트 (신랑/신부 분할) -->
-  <div id="right-split-panel" style="flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;min-height:0">
-
-    <div id="right-groom-col" style="display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #E0E0E0;background:#FAFEFF">
-      <div style="padding:5px 8px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:#EFF6FF">
-        <span style="font-size:11px;font-weight:800;color:#2563EB">🤵 신랑측</span>
-        <span style="font-size:10px;color:#9CA3AF" id="right-groom-sum">0건</span>
+      <div class="scard" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="scard-title" style="margin-bottom:2px">총 축의금</div>
+          <div class="big-num gold" id="stat-total-amount">0원</div>
+        </div>
+        <div style="font-size:11px;color:#9CA3AF" id="stat-total-count">총 0건</div>
       </div>
-      <div id="right-groom-list" style="overflow-y:auto;flex:1;min-height:0"></div>
-    </div>
 
-    <div id="right-bride-col" style="display:flex;flex-direction:column;overflow:hidden;background:#FFF9FD">
-      <div style="padding:5px 8px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:#FDF0F7">
-        <span style="font-size:11px;font-weight:800;color:#DB2777">👰 신부측</span>
-        <span style="font-size:10px;color:#9CA3AF" id="right-bride-sum">0건</span>
+      <div class="scard">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+          <div>
+            <div style="font-size:10px;color:#9CA3AF;margin-bottom:2px">🤵 신랑측</div>
+            <div style="font-size:15px;font-weight:800;color:#3B82F6" id="stat-groom-amount">0원</div>
+            <div style="font-size:10px;color:#9CA3AF" id="stat-groom-count">0건</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#9CA3AF;margin-bottom:2px">👰 신부측</div>
+            <div style="font-size:15px;font-weight:800;color:#EC4899" id="stat-bride-amount">0원</div>
+            <div style="font-size:10px;color:#9CA3AF" id="stat-bride-count">0건</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid #F0EDE8;padding-top:5px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div>
+            <div style="font-size:10px;color:#9CA3AF;margin-bottom:2px">🤵 식권</div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:1px">
+              <span style="color:#6B7280">사용</span><span style="font-weight:700" id="g-used-tkt">0장</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px">
+              <span style="color:#6B7280">잔여</span><span class="tkt-stat-val green" id="g-remain-tkt">—</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#9CA3AF;margin-bottom:2px">👰 식권</div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:1px">
+              <span style="color:#6B7280">사용</span><span style="font-weight:700" id="b-used-tkt">0장</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px">
+              <span style="color:#6B7280">잔여</span><span class="tkt-stat-val green" id="b-remain-tkt">—</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div id="right-bride-list" style="overflow-y:auto;flex:1;min-height:0"></div>
-    </div>
 
-  </div>
+      <!-- 신랑 식권 강조 카드 -->
+      <div class="scard" style="padding:9px 12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:10px;font-weight:700;color:#9CA3AF">🤵 신랑측 식권</span>
+          <span style="font-size:10px;color:#9CA3AF" id="g-total-tkt">미설정</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">사용</div>
+            <div style="font-size:16px;font-weight:800;color:#111" id="g-used-tkt2">0</div>
+          </div>
+          <div style="width:1px;background:#F0EDE8;height:32px"></div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">추가발급</div>
+            <div style="font-size:16px;font-weight:800;color:#059669" id="g-extra-tkt">—</div>
+          </div>
+          <div style="width:1px;background:#F0EDE8;height:32px"></div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">잔여</div>
+            <div style="font-size:22px;font-weight:900;line-height:1" id="g-remain-tkt2">—</div>
+          </div>
+        </div>
+      </div>
 
-</div><!-- /stats-panel -->
+      <!-- 신부 식권 강조 카드 -->
+      <div class="scard" style="padding:9px 12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:10px;font-weight:700;color:#9CA3AF">👰 신부측 식권</span>
+          <span style="font-size:10px;color:#9CA3AF" id="b-total-tkt">미설정</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">사용</div>
+            <div style="font-size:16px;font-weight:800;color:#111" id="b-used-tkt2">0</div>
+          </div>
+          <div style="width:1px;background:#F0EDE8;height:32px"></div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">추가발급</div>
+            <div style="font-size:16px;font-weight:800;color:#059669" id="b-extra-tkt">—</div>
+          </div>
+          <div style="width:1px;background:#F0EDE8;height:32px"></div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:9px;color:#9CA3AF">잔여</div>
+            <div style="font-size:22px;font-weight:900;line-height:1" id="b-remain-tkt2">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 결제 방식 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <div class="scard" style="text-align:center;padding:7px 10px">
+          <div style="font-size:10px;color:#9CA3AF">💵 현금</div>
+          <div style="font-size:16px;font-weight:800;color:#111" id="stat-cash">0건</div>
+        </div>
+        <div class="scard" style="text-align:center;padding:7px 10px">
+          <div style="font-size:10px;color:#9CA3AF">📱 계좌이체</div>
+          <div style="font-size:16px;font-weight:800;color:#111" id="stat-transfer">0건</div>
+        </div>
+      </div>
+
+      <!-- 운영 메모 -->
+      <div class="scard" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <div class="scard-title" style="margin-bottom:0">📋 운영 메모</div>
+          <span style="font-size:10px;color:#9CA3AF">전체 공통</span>
+        </div>
+        <div id="ops-log-list" style="overflow-y:auto;flex:1;min-height:0;margin-bottom:5px"></div>
+        <div style="display:flex;gap:4px">
+          <input id="ops-log-input" class="form-input" placeholder="특이사항..."
+            style="font-size:11px;padding:5px 8px;flex:1"
+            onkeydown="if(event.key==='Enter')addOpsLog()">
+          <button onclick="addOpsLog()"
+            style="background:#374151;color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
+        </div>
+      </div>
+
+    </div><!-- /stats-panel -->
   </div><!-- /main-body -->
   </div><!-- /main-body-outer -->
 </div><!-- /main-screen -->
@@ -746,25 +820,11 @@ input,select,textarea{font-family:inherit;outline:none}
 </div>
 
 <div id="token-modal">
-  <div class="token-box" style="max-width:380px;max-height:90vh;overflow-y:auto">
-    <div class="token-title">📱 대시보드 링크</div>
-
-    <!-- 양측 통합 -->
-    <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#374151">🤝 양측 통합 링크</div>
+  <div class="token-box">
+    <div class="token-title">📱 고객 대시보드 링크</div>
+    <div class="token-sub">신랑·신부·혼주님께 이 링크를 공유하세요</div>
     <div class="token-url" id="token-url-display">—</div>
-    <button class="token-copy-btn" onclick="copyDashboardLink()" style="margin-bottom:14px">🔗 통합 링크 복사</button>
-
-    <!-- 분리 링크 -->
-    <div style="border-top:1px solid #E5E7EB;padding-top:12px">
-      <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#2563EB">🤵 신랑측 전용 링크</div>
-      <div class="token-url" id="token-url-groom" style="border-color:#BFDBFE;color:#1D4ED8;margin-bottom:8px">—</div>
-      <button class="token-copy-btn" onclick="copyGroomLink()" style="background:#2563EB;margin-bottom:12px">🤵 신랑측 링크 복사</button>
-
-      <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#DB2777">👰 신부측 전용 링크</div>
-      <div class="token-url" id="token-url-bride" style="border-color:#FBCFE8;color:#9D174D;margin-bottom:8px">—</div>
-      <button class="token-copy-btn" onclick="copyBrideLink()" style="background:#DB2777;margin-bottom:12px">👰 신부측 링크 복사</button>
-    </div>
-
+    <button class="token-copy-btn" onclick="copyDashboardLink()">🔗 링크 복사</button>
     <button class="token-close-btn" onclick="document.getElementById('token-modal').style.display='none'">닫기</button>
   </div>
 </div>
@@ -893,11 +953,11 @@ function schCard(s){
       <div class="sch-card-info">${esc(info)}</div>
       <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
         <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        ${['단측','양측'].map(m=>`
+        ${['단측','양측','양측통합'].map(m=>`
           <button onclick="event.stopPropagation();setWeddingMode(${s.id},this,'${m}')"
             data-mode="${m}"
             style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid ${mode===m?modeColor:'#E0E0E0'};background:${mode===m?modeColor+'20':'#F5F5F5'};color:${mode===m?modeColor:'#6B7280'};cursor:pointer">
-            ${m==='단측'?'🤵 단측':'🤵👰 양측'}
+            ${m==='단측'?'🤵 단측':m==='양측'?'🤵👰 양측':'🤝 양측통합'}
           </button>`).join('')}
       </div>
     </div>
@@ -939,16 +999,6 @@ async function selectSchedule(id){
         currentSchedule.dashboard_token=token;
       } catch(e){ console.warn('[DG] 토큰 생성 실패:',e); }
     }
-    // 신랑/신부 분리 토큰
-    if(!currentSchedule.groom_token || !currentSchedule.bride_token){
-      try {
-        const gt='G_'+Math.random().toString(36).slice(2,10).toUpperCase();
-        const bt='B_'+Math.random().toString(36).slice(2,10).toUpperCase();
-        await sb.patch('schedules',id,{groom_token:gt,bride_token:bt});
-        currentSchedule.groom_token=gt;
-        currentSchedule.bride_token=bt;
-      } catch(e){ console.warn('[DG] 분리 토큰 생성 실패:',e); }
-    }
     const g=(currentSchedule.groom_name||'').trim(),b=(currentSchedule.bride_name||'').trim();
     const name=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:currentSchedule.hall||'미입력';
     document.getElementById('top-schedule-name').textContent=name;
@@ -960,8 +1010,8 @@ async function selectSchedule(id){
     if(dateStr){ const d=new Date(dateStr+'T00:00:00'); infoStr=dateStr+' ('+DAYS[d.getDay()]+')'; if(timeStr) infoStr+=' '+timeStr; if(hall) infoStr+=' · '+hall; }
     document.getElementById('top-schedule-info').textContent=infoStr;
     const saved=JSON.parse(localStorage.getItem(`dg_tickets_${id}`)||'{}');
-    totalTickets.groom=saved.groom||currentSchedule.ticket_total_groom||0;
-    totalTickets.bride=saved.bride||currentSchedule.ticket_total_bride||0;
+    totalTickets.groom=saved.groom||0;
+    totalTickets.bride=saved.bride||0;
     sv('groom-total-ticket',totalTickets.groom||'');
     sv('bride-total-ticket',totalTickets.bride||'');
     document.getElementById('schedule-select-screen').style.display='none';
@@ -971,6 +1021,7 @@ async function selectSchedule(id){
     await loadTicketExtras();
     await loadPreShares();
     loadOpsLogs();
+    loadFlowerLogs();
     loadHandover();
     subscribeRealtime();
   } catch(e){ console.error('[DG] 예식 로드 실패:',e); showToast('⚠️ 예식 로드 실패: '+e.message); }
@@ -979,28 +1030,22 @@ async function selectSchedule(id){
 // ── 추가 식권 ──
 async function loadTicketExtras(){
   if(!currentSchedule) return;
-  try {
-    ticketExtras=await sb.get('ticket_additions',
-      '?schedule_id=eq.'+currentSchedule.id+'&type=eq.extra&order=created_at.asc');
-    renderTicketExtraList();
-    renderStats();
-  } catch(e){ console.error('[DG] loadTicketExtras 오류:', e); }
+  try { ticketExtras=await sb.get('ticket_additions','?schedule_id=eq.'+currentSchedule.id+'&order=created_at.asc'); renderTicketExtraList(); renderStats(); } catch(e){}
 }
 async function addTicketExtra(){
   const amount=parseInt(document.getElementById('add-ticket-amount').value)||0;
   if(!amount||amount<1){showToast('⚠️ 추가 수량을 입력해주세요');return;}
   if(!currentSchedule) return;
-  const row={schedule_id:currentSchedule.id,side:document.getElementById('add-ticket-side').value,amount,memo:null,type:'extra',created_by:currentUser.name};
+  const now=new Date();
+  const row={schedule_id:currentSchedule.id,side:document.getElementById('add-ticket-side').value,amount,memo:document.getElementById('add-ticket-memo').value.trim()||null,created_by:currentUser.name};
   try {
     const created=await sb.post('ticket_additions',row);
     ticketExtras.push(Array.isArray(created)?created[0]:created);
     document.getElementById('add-ticket-amount').value='';
+    document.getElementById('add-ticket-memo').value='';
     renderTicketExtraList(); renderStats();
     showToast('✅ 추가 식권 '+amount+'장 등록됨');
-  } catch(e){
-    console.error('[DG] addTicketExtra 오류:', e);
-    showToast('⚠️ 저장 실패: '+e.message);
-  }
+  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
 }
 async function deleteTicketExtra(id){
   if(!confirm('추가 식권 기록을 삭제하시겠습니까?')) return;
@@ -1009,22 +1054,14 @@ async function deleteTicketExtra(id){
 function renderTicketExtraList(){
   const el=document.getElementById('ticket-extra-list');
   if(!el) return;
-  if(!ticketExtras.length){
-    el.innerHTML='';
-    return;
-  }
+  if(!ticketExtras.length){el.innerHTML='<div style="font-size:10px;color:#9CA3AF;padding:3px 0">추가 발급 내역 없음</div>';return;}
   el.innerHTML=ticketExtras.map(t=>{
     const icon=t.side==='신랑측'?'🤵':'👰';
     const time=t.created_at?fmtTime(t.created_at):'';
-    return '<div class="tkt-extra-item">'+
-      '<span>'+icon+'</span>'+
-      '<span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>'+
-      '<span style="flex:1"></span>'+
-      '<span style="color:#C7A96B;flex-shrink:0;font-size:10px">'+time+'</span>'+
-      '<button onclick="deleteTicketExtra('+t.id+')" title="삭제" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1;margin-left:3px">✕</button>'+
-    '</div>';
+    return '<div class="tkt-extra-item"><span>'+icon+'</span><span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>'+(t.memo?'<span style="color:#9CA3AF;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t.memo)+'</span>':'<span style="flex:1"></span>')+'<span style="color:#C7A96B;flex-shrink:0">'+time+'</span><button onclick="deleteTicketExtra('+t.id+')" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1">✕</button></div>';
   }).join('');
 }
+
 // ── 사전 공유 식권 ──
 var preShares = [];
 
@@ -1037,88 +1074,53 @@ async function loadPreShares(){
     renderStats();
   } catch(e){ console.error('사전 공유 식권 로드 실패:', e); }
 }
-  async function editPreShare(id){
-  var p = preShares.find(function(x){ return x.id===id; });
-  if(!p) return;
-
-  var newName = prompt('이름 수정:', p.person_name||'');
-  if(newName===null) return;
-  newName = newName.trim();
-  if(!newName){ showToast('⚠️ 이름을 입력해주세요'); return; }
-
-  var newAmountStr = prompt('장수 수정:', String(p.amount||1));
-  if(newAmountStr===null) return;
-  var newAmount = parseInt(newAmountStr)||0;
-  if(newAmount < 1){ showToast('⚠️ 1장 이상 입력해주세요'); return; }
-
-  try {
-    var res = await fetch(sb.url('ticket_additions','?id=eq.'+id), {
-      method: 'PATCH',
-      headers: {...sb.h, 'Prefer': 'return=representation'},
-      body: JSON.stringify({person_name: newName, amount: newAmount})
-    });
-    if(!res.ok) throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
-    var idx = preShares.findIndex(function(x){ return x.id===id; });
-    if(idx!==-1){
-      preShares[idx].person_name = newName;
-      preShares[idx].amount      = newAmount;
-    }
-    renderPreShareList();
-    renderStats();
-    showToast('✅ 수정되었습니다');
-  } catch(e){
-    console.error('[DG] editPreShare 오류:', e);
-    showToast('⚠️ 수정 실패: '+e.message);
-  }
-}
 
 async function addPreShare(){
   var sideEl   = document.getElementById('pre-share-side');
   var nameEl   = document.getElementById('pre-share-name');
   var amountEl = document.getElementById('pre-share-amount');
-
-  if(!sideEl||!nameEl||!amountEl){
-    showToast('⚠️ 입력칸을 찾을 수 없습니다'); return;
-  }
-
+  if(!sideEl||!nameEl||!amountEl){ showToast('⚠️ 입력칸을 찾을 수 없습니다'); return; }
   var side   = sideEl.value;
   var name   = nameEl.value.trim();
   var amount = parseInt(amountEl.value)||0;
-
   if(!name){ showToast('⚠️ 이름을 입력해주세요'); nameEl.focus(); return; }
   if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); amountEl.focus(); return; }
   if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
-
-  var row = {
-    schedule_id: currentSchedule.id,
-    side:        side,
-    amount:      amount,
-    person_name: name,
-    type:        'pre_share',
-    created_by:  currentUser.name,
-  };
-
+  var row = { schedule_id: currentSchedule.id, side, amount, person_name: name, type: 'pre_share', created_by: currentUser.name };
   try {
-    var res = await fetch(sb.url('ticket_additions'), {
-      method: 'POST',
-      headers: {...sb.h, 'Prefer': 'return=representation'},
-      body: JSON.stringify(row)
-    });
+    var res = await fetch(sb.url('ticket_additions'), { method:'POST', headers:{...sb.h,'Prefer':'return=representation'}, body:JSON.stringify(row) });
     var resText = await res.text();
-    console.log('[DG] addPreShare 응답:', res.status, resText);
     if(!res.ok) throw new Error('HTTP '+res.status+': '+resText.slice(0,200));
-    var created = JSON.parse(resText);
-    var entry = Array.isArray(created) ? created[0] : created;
+    var entry = JSON.parse(resText); entry = Array.isArray(entry)?entry[0]:entry;
     preShares.push(entry);
-    nameEl.value   = '';
-    amountEl.value = '';
-    renderPreShareList();
-    renderStats();
+    nameEl.value=''; amountEl.value='';
+    renderPreShareList(); renderStats();
     showToast('🎫 사전 공유 식권 '+amount+'장 등록됨');
-  } catch(e){
-    console.error('[DG] addPreShare 오류:', e);
-    showToast('⚠️ 저장 실패: '+e.message);
-  }
+  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
+}
+
+async function addPreShareB(){
+  var sideEl   = document.getElementById('pre-share-side-b');
+  var nameEl   = document.getElementById('pre-share-name-b');
+  var amountEl = document.getElementById('pre-share-amount-b');
+  if(!sideEl||!nameEl||!amountEl){ showToast('⚠️ 입력칸을 찾을 수 없습니다'); return; }
+  var side   = sideEl.value;
+  var name   = nameEl.value.trim();
+  var amount = parseInt(amountEl.value)||0;
+  if(!name){ showToast('⚠️ 이름을 입력해주세요'); nameEl.focus(); return; }
+  if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); amountEl.focus(); return; }
+  if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
+  var row = { schedule_id: currentSchedule.id, side, amount, person_name: name, type: 'pre_share', created_by: currentUser.name };
+  try {
+    var res = await fetch(sb.url('ticket_additions'), { method:'POST', headers:{...sb.h,'Prefer':'return=representation'}, body:JSON.stringify(row) });
+    var resText = await res.text();
+    if(!res.ok) throw new Error('HTTP '+res.status+': '+resText.slice(0,200));
+    var entry = JSON.parse(resText); entry = Array.isArray(entry)?entry[0]:entry;
+    preShares.push(entry);
+    nameEl.value=''; amountEl.value='';
+    renderPreShareList(); renderStats();
+    showToast('🎫 사전 공유 식권 '+amount+'장 등록됨');
+  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
 }
 
 async function deletePreShare(id){
@@ -1126,31 +1128,36 @@ async function deletePreShare(id){
   try {
     await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'DELETE', headers:sb.h});
     preShares = preShares.filter(function(x){ return x.id !== id; });
-    renderPreShareList();
-    renderStats();
+    renderPreShareList(); renderStats();
     showToast('🗑️ 삭제되었습니다');
   } catch(e){ showToast('⚠️ 삭제 실패'); }
 }
 
 function renderPreShareList(){
-  var el = document.getElementById('pre-share-list');
-  if(!el) return;
+  // 신랑측 리스트
+  var elG = document.getElementById('pre-share-list');
+  // 신부측 리스트
+  var elB = document.getElementById('pre-share-list-b');
   if(!preShares.length){
-    el.innerHTML = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div>';
+    var empty = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div>';
+    if(elG) elG.innerHTML = empty;
+    if(elB) elB.innerHTML = empty;
     return;
   }
-  el.innerHTML = preShares.map(function(p){
+  var html = preShares.map(function(p){
     var icon = p.side==='신랑측' ? '🤵' : '👰';
     var label = esc(p.person_name||'');
     return '<div style="display:flex;align-items:center;gap:3px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px">'+
       '<span style="flex-shrink:0">'+icon+'</span>'+
       '<span style="flex:1;min-width:0;color:#374151;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</span>'+
       '<span style="font-weight:700;color:#C7A96B;flex-shrink:0;margin-right:2px">'+p.amount+'장</span>'+
-      '<button onclick="editPreShare('+p.id+')" title="수정" style="width:18px;height:18px;background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">✏️</button>'+
       '<button onclick="deletePreShare('+p.id+')" title="삭제" style="width:18px;height:18px;background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">🗑️</button>'+
     '</div>';
   }).join('');
+  if(elG) elG.innerHTML = html;
+  if(elB) elB.innerHTML = html;
 }
+
 // ── 식권 설정 ──
 function saveTotalTickets(){
   totalTickets.groom=Number(document.getElementById('groom-total-ticket').value)||0;
@@ -1176,13 +1183,7 @@ function loadHandover(){
   sv('b-ho-pw',    s.bride_password);
   sv('b-live1',    s.bride_live1);
   sv('b-live2',    s.bride_live2);
-  // PRECHECK 인계 담당자 preset (기존 handover 값 없을 때만)
-  if(!s.groom_handover_name  && s.groom_contact_name)  sv('g-ho-name',  s.groom_contact_name);
-  if(!s.groom_handover_phone && s.groom_contact_phone) sv('g-ho-phone', s.groom_contact_phone);
-  if(!s.bride_handover_name  && s.bride_contact_name)  sv('b-ho-name',  s.bride_contact_name);
-  if(!s.bride_handover_phone && s.bride_contact_phone) sv('b-ho-phone', s.bride_contact_phone);
 }
-  
 function saveHandover(){
   if(!currentSchedule) return;
   clearTimeout(_hoSaveTimer);
@@ -1258,116 +1259,30 @@ function renderFlowerList(){
 }
 
 // ── 운영 메모 ──
-var opsLogsG = [], opsLogsB = [];
-
 async function loadOpsLogs(){
   if(!currentSchedule) return;
-  try {
-    var all = await sb.get('operation_logs',
-      '?schedule_id=eq.'+currentSchedule.id+'&order=created_at.desc');
-    opsLogsG = all.filter(function(l){ return l.side==='신랑측'; });
-    opsLogsB = all.filter(function(l){ return l.side==='신부측'; });
-    renderOpsLogs('g', opsLogsG);
-    renderOpsLogs('b', opsLogsB);
-  } catch(e){ console.error('운영 메모 로드 실패:', e); }
+  try { opsLogs=await sb.get('operation_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`); renderOpsLogs(opsLogs); } catch(e){}
 }
-
-async function addOpsLog(side){
-  var inp = document.getElementById('ops-log-input-' + side);
-  if(!inp) return;
-  var text = inp.value.trim();
-  if(!text || !currentSchedule) return;
-  var now = new Date();
-  var timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  var row = {
-    schedule_id: currentSchedule.id,
-    time_str:    timeStr,
-    content:     text,
-    side:        side==='g' ? '신랑측' : '신부측',
-    created_by:  currentUser.name,
-  };
+async function addOpsLog(){
+  const inp=document.getElementById('ops-log-input');
+  const text=inp.value.trim();
+  if(!text||!currentSchedule) return;
+  const now=new Date();
+  const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const row={schedule_id:currentSchedule.id,time_str:timeStr,content:text,created_by:currentUser.name};
   try {
-    var created = await sb.post('operation_logs', row);
-    var entry = Array.isArray(created) ? created[0] : created;
-    if(side==='g'){ opsLogsG.unshift(entry); renderOpsLogs('g', opsLogsG); }
-    else{           opsLogsB.unshift(entry); renderOpsLogs('b', opsLogsB); }
-    inp.value = '';
+    const created=await sb.post('operation_logs',row);
+    opsLogs.unshift(Array.isArray(created)?created[0]:created);
+    inp.value='';
+    renderOpsLogs(opsLogs);
     showToast('📋 메모가 추가되었습니다');
   } catch(e){ showToast('⚠️ 메모 저장 실패: '+e.message); }
 }
-function renderOpsLogs(side, list){
-  var el = document.getElementById('ops-log-list-' + side);
+function renderOpsLogs(logs){
+  const el=document.getElementById('ops-log-list');
   if(!el) return;
-  if(!list.length){
-    el.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div>';
-    return;
-  }
-  el.innerHTML = list.map(function(l){
-    return '<div style="display:flex;gap:5px;align-items:center;padding:3px 0;border-bottom:1px solid #F5F3F0" id="ops-row-'+l.id+'">' +
-      '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">' + esc(l.time_str||'') + '</span>' +
-      '<span style="font-size:11px;color:#374151;flex:1;min-width:0;word-break:keep-all;line-height:1.4" id="ops-text-'+l.id+'">' + esc(l.content||'') + '</span>' +
-      '<button class="ops-edit-btn" onclick="startOpsEdit('+l.id+',\''+side+'\')" title="수정">✏️</button>' +
-      '<button class="ops-del-btn" onclick="deleteOpsLog('+l.id+',\''+side+'\')" title="삭제">🗑️</button>' +
-    '</div>';
-  }).join('');
-}
-
-function startOpsEdit(id, side){
-  var row = document.getElementById('ops-row-'+id);
-  var textEl = document.getElementById('ops-text-'+id);
-  if(!row || !textEl) return;
-  var current = textEl.textContent;
-  row.innerHTML =
-    '<input class="ops-edit-input" id="ops-edit-inp-'+id+'" value="'+esc(current)+'">' +
-    '<button class="ops-save-btn" onclick="saveOpsEdit('+id+',\''+side+'\')">저장</button>' +
-    '<button class="ops-cancel-btn" onclick="cancelOpsEdit(\''+side+'\')">취소</button>';
-  var inp = document.getElementById('ops-edit-inp-'+id);
-  if(inp){ inp.focus(); inp.select(); }
-}
-
-function cancelOpsEdit(side){
-  if(side==='g') renderOpsLogs('g', opsLogsG);
-  else            renderOpsLogs('b', opsLogsB);
-}
-
-async function saveOpsEdit(id, side){
-  var inp = document.getElementById('ops-edit-inp-'+id);
-  if(!inp) return;
-  var text = inp.value.trim();
-  if(!text){ showToast('⚠️ 내용을 입력해주세요'); return; }
-  try {
-    await sb.patch('operation_logs', id, {content: text});
-    var list = side==='g' ? opsLogsG : opsLogsB;
-    var idx = list.findIndex(function(l){ return l.id===id; });
-    if(idx!==-1) list[idx].content = text;
-    renderOpsLogs(side, list);
-    showToast('✅ 메모가 수정되었습니다');
-  } catch(e){ showToast('⚠️ 수정 실패: '+e.message); }
-}
-
-async function deleteOpsLog(id, side){
-  if(!confirm('메모를 삭제하시겠습니까?')) return;
-  try {
-    const res = await fetch(sb.url('operation_logs','?id=eq.'+id), {method:'DELETE', headers:sb.h});
-    console.log('[DG] deleteOpsLog 응답:', res.status, res.ok);
-    if(!res.ok){
-      const txt = await res.text();
-      console.error('[DG] deleteOpsLog 실패:', txt);
-      showToast('⚠️ 삭제 실패 ('+res.status+'): '+txt.slice(0,80));
-      return;
-    }
-    if(side==='g'){
-      opsLogsG = opsLogsG.filter(function(l){ return l.id!==id; });
-      renderOpsLogs('g', opsLogsG);
-    } else {
-      opsLogsB = opsLogsB.filter(function(l){ return l.id!==id; });
-      renderOpsLogs('b', opsLogsB);
-    }
-    showToast('🗑️ 메모가 삭제되었습니다');
-  } catch(e){
-    console.error('[DG] deleteOpsLog 오류:', e);
-    showToast('⚠️ 삭제 실패: '+e.message);
-  }
+  if(!logs.length){el.innerHTML='<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px 0">메모 없음</div>';return;}
+  el.innerHTML=logs.map(l=>'<div style="display:flex;gap:5px;align-items:baseline;padding:3px 0;border-bottom:1px solid #F5F3F0"><span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">'+esc(l.time_str||'')+'</span><span style="font-size:11px;color:#374151;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(l.content||'')+'</span></div>').join('');
 }
 
 // ── 데이터 로드 ──
@@ -1397,12 +1312,10 @@ function renderStats(){
   const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
   const gExtra=ticketExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
   const bExtra=ticketExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
-  const gPreShare=preShares.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
-  const bPreShare=preShares.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
   const gTotal=totalTickets.groom>0?totalTickets.groom+gExtra:null;
   const bTotal=totalTickets.bride>0?totalTickets.bride+bExtra:null;
-  const gRemain=gTotal!==null?gTotal-gUsed-gPreShare:null;
-  const bRemain=bTotal!==null?bTotal-bUsed-bPreShare:null;
+  const gRemain=gTotal!==null?gTotal-gUsed:null;
+  const bRemain=bTotal!==null?bTotal-bUsed:null;
 
   const se=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   se('stat-total-amount',fmtFull(total));
@@ -1453,7 +1366,6 @@ function renderStats(){
     if(bRemain===null){tksBR.textContent='—';tksBR.style.color='#9CA3AF';tksBR.style.animation='';}
     else{tksBR.textContent=bRemain+'장';tksBR.style.color=bRColor;tksBR.style.animation=bRemain<=5?'blink 0.7s ease-in-out infinite':'';}
   }
-  renderRightList();
 }
 
 // ── 입력 상태 ──
@@ -1469,38 +1381,15 @@ function setPayment(pay){
 }
 function setAmount(amt){
   const map={50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',1000000:'100만'};
-  var inp=document.getElementById('amount-input');
-  if(st.amount===amt){
-    st.amount=0;
-    inp.value='';
-    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));
-  } else {
-    st.amount=amt;
-    inp.value=amt.toLocaleString();
-    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));
-  }
+  if(st.amount===amt){st.amount=0;document.getElementById('amount-input').value='';document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));}
+  else{st.amount=amt;document.getElementById('amount-input').value=amt;document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));}
 }
 function focusCustomAmount(){
   const inp=document.getElementById('amount-input');inp.focus();inp.select();
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
 function onAmountInput(){
-  var inp=document.getElementById('amount-input');
-  var raw=inp.value.replace(/,/g,'');
-  if(raw===''||isNaN(raw)){st.amount=0;return;}
-  var num=Number(raw);
-  st.amount=num;
-  inp.value=num.toLocaleString();
-  // 커서 끝으로
-  setTimeout(function(){ inp.setSelectionRange(inp.value.length,inp.value.length); },0);
-  document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
-}
-  function stepAmount(delta){
-  var inp=document.getElementById('amount-input');
-  var raw=Number((inp.value||'').replace(/,/g,''))||0;
-  var next=Math.max(0, raw+delta);
-  st.amount=next;
-  inp.value=next>0?next.toLocaleString():'';
+  st.amount=Number(document.getElementById('amount-input').value)||0;
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
 function setRelation(rel){
@@ -1525,7 +1414,7 @@ function resetForm(){
 // ── 접수 저장 ──
 async function submitEntry(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
-  const amount=Number((document.getElementById('amount-input').value||'').replace(/,/g,''))||st.amount;
+  const amount=Number(document.getElementById('amount-input').value)||st.amount;
   const row={
     schedule_id:currentSchedule.id,
     side:st.side==='groom'?'신랑측':'신부측',
@@ -1633,97 +1522,15 @@ async function deleteLog(id){
 // ── 대시보드 링크 ──
 function showDashboardLink(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
-  const base=location.origin;
-  const mainEl=document.getElementById('token-url-display');
-  const groomEl=document.getElementById('token-url-groom');
-  const brideEl=document.getElementById('token-url-bride');
-  if(mainEl) mainEl.textContent=`${base}/live.html?t=${currentSchedule.dashboard_token}`;
-  if(groomEl) groomEl.textContent=`${base}/live.html?t=${currentSchedule.groom_token||'(미생성)'}`;
-  if(brideEl) brideEl.textContent=`${base}/live.html?t=${currentSchedule.bride_token||'(미생성)'}`;
+  const url=`${location.origin}/live.html?t=${currentSchedule.dashboard_token}`;
+  document.getElementById('token-url-display').textContent=url;
   document.getElementById('token-modal').style.display='flex';
 }
 function copyDashboardLink(){
   const url=document.getElementById('token-url-display').textContent;
-  navigator.clipboard.writeText(url).then(()=>showToast('🔗 통합 링크 복사됨'));
-}
-function copyGroomLink(){
-  const url=document.getElementById('token-url-groom').textContent;
-  navigator.clipboard.writeText(url).then(()=>showToast('🤵 신랑측 링크 복사됨'));
-}
-function copyBrideLink(){
-  const url=document.getElementById('token-url-bride').textContent;
-  navigator.clipboard.writeText(url).then(()=>showToast('👰 신부측 링크 복사됨'));
-}
-function renderRightList(){
-  var isAdmin = ADMIN_NAMES.includes(currentUser.name);
-  var gLogs = logs.filter(function(l){ return l.side==='신랑측'; });
-  var bLogs = logs.filter(function(l){ return l.side==='신부측'; });
-  var hasG = gLogs.length > 0, hasB = bLogs.length > 0;
-  var panel = document.getElementById('right-split-panel');
-  var gCol  = document.getElementById('right-groom-col');
-  var bCol  = document.getElementById('right-bride-col');
-  if(panel){
-    if(hasG && hasB){ panel.style.gridTemplateColumns='1fr 1fr'; if(gCol)gCol.style.display='flex'; if(bCol)bCol.style.display='flex'; }
-    else if(hasG){    panel.style.gridTemplateColumns='1fr';     if(gCol)gCol.style.display='flex'; if(bCol)bCol.style.display='none'; }
-    else if(hasB){    panel.style.gridTemplateColumns='1fr';     if(gCol)gCol.style.display='none'; if(bCol)bCol.style.display='flex'; }
-    else{             panel.style.gridTemplateColumns='1fr';     if(gCol)gCol.style.display='flex'; if(bCol)bCol.style.display='none'; }
-  }
-  var gAmt = gLogs.reduce(function(s,l){return s+(l.amount||0);},0);
-  var bAmt = bLogs.reduce(function(s,l){return s+(l.amount||0);},0);
-  var gs = document.getElementById('right-groom-sum');
-  var bs = document.getElementById('right-bride-sum');
-  if(gs) gs.textContent = gLogs.length+'건 · '+fmt(gAmt);
-  if(bs) bs.textContent = bLogs.length+'건 · '+fmt(bAmt);
-  var gAmtEl = document.getElementById('stat-groom-amount');
-  var bAmtEl = document.getElementById('stat-bride-amount');
-  if(gAmtEl) gAmtEl.textContent = '신랑 '+fmt(gAmt);
-  if(bAmtEl) bAmtEl.textContent = '신부 '+fmt(bAmt);
-  renderRightCol('right-groom-list', gLogs, isAdmin);
-  renderRightCol('right-bride-list', bLogs, isAdmin);
+  navigator.clipboard.writeText(url).then(()=>showToast('🔗 링크가 복사되었습니다'));
 }
 
-function renderRightCol(elId, sideLogs, isAdmin){
-  var el = document.getElementById(elId);
-  if(!el) return;
-  if(!sideLogs.length){
-    el.innerHTML = '<div style="text-align:center;padding:12px;font-size:11px;color:#9CA3AF">내역 없음</div>';
-    return;
-  }
-  el.innerHTML = sideLogs.map(function(l, i){
-    var num  = sideLogs.length - i;
-    var name = esc(l.guest_name||'—');
-    var rel  = l.relation ? '<span style="color:#9CA3AF;font-size:9px;margin-left:2px">'+esc(l.relation)+'</span>' : '';
-    var amt  = l.amount ? fmt(l.amount) : '<span style="color:#D1D5DB">—</span>';
-    var adultT = l.adult_ticket||0, childT = l.child_ticket||0;
-    var tkt = '';
-    if(adultT>0) tkt += '<span style="background:#FEF3C7;color:#D97706;border-radius:3px;padding:0 3px;font-size:9px;font-weight:700">대'+adultT+'</span>';
-    if(childT>0) tkt += '<span style="background:#EDE9FE;color:#7C3AED;border-radius:3px;padding:0 3px;font-size:9px;font-weight:700;margin-left:1px">소'+childT+'</span>';
-    var payC = l.payment_type==='계좌이체' ? '#7C3AED' : '#059669';
-    var payT = l.payment_type==='계좌이체' ? '계좌' : '현금';
-    var time = l.created_at ? fmtTime(l.created_at) : '';
-    var memo = l.memo ? '<div style="font-size:10px;color:#9CA3AF;margin-left:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(l.memo)+'</div>' : '';
-    var canEdit = isAdmin || l.created_by===currentUser.name;
-    var btns = canEdit
-      ? '<button class="ledger-btn ledger-edit" onclick="openEditModal('+l.id+')">수정</button>'+
-        '<button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>'
-      : '';
-    return '<div class="ledger-item">'+
-      '<div class="ledger-r1">'+
-        '<span class="ledger-num">#'+num+'</span>'+
-        '<span class="ledger-name">'+name+rel+'</span>'+
-        '<span class="ledger-amt">'+amt+'</span>'+
-      '</div>'+
-      memo+
-      '<div class="ledger-r2">'+
-        '<span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;flex-shrink:0">'+payT+'</span>'+
-        (tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+
-        '<span style="flex:1"></span>'+
-        '<span style="font-size:10px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+
-        btns+
-      '</div>'+
-    '</div>';
-  }).join('');
-}
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.style.display='block';
