@@ -1593,7 +1593,7 @@ function renderScheduleList(){
           ${ADMIN_NAMES.includes(currentUser.name)
             ? `<button class="sch-del-btn" onclick="event.stopPropagation();confirmDeleteSch(${s.id})">삭제</button>`
             : ''}
-          <button onclick="event.stopPropagation();openPrecheckModal(${s.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">📋준비</button>
+          <button onclick="event.stopPropagation();openPrecheckModal(${s.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">📋체크</button>
         </div>
       </div>
     </div>`).join('');
@@ -1778,6 +1778,10 @@ function openDetail(id){
             padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer">
           🗑️ 삭제
         </button>` : ''}
+      <button onclick="openPrecheckModal(${id})"
+        style="background:#374151;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+        📋체크
+      </button>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-secondary sm" onclick="closeDetail();openResult(${id})">📊 결과 ${s.result?'수정':'입력'}</button>
@@ -1831,13 +1835,13 @@ async function openPrecheckModal(id){
       <div class="modal-header">
         <button class="x-btn" onclick="closePrecheckModal()">✕</button>
         <div class="modal-brand">Dear Guard · 본식 준비 체크</div>
-        <div class="modal-title">📋준비 링크</div>
+        <div class="modal-title">📋체크 링크</div>
       </div>
       <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
         <div>
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">🤝 통합 체크 링크</div>
           <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${precheckUrl}</div>
-          <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋준비 링크 복사됨'))"
+          <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 체크 링크 복사됨'))"
             style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
             📋 링크 복사
           </button>

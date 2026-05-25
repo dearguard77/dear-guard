@@ -9,11 +9,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Dear Guard">
 <meta name="theme-color" content="#F5F3F0">
-<meta property="og:type"        content="website">
-<meta property="og:title"       content="Dear Guard · 본식 준비 체크" id="og-title">
-<meta property="og:description" content="디어가드 본식 준비 체크 페이지입니다 😊 원활한 예식 운영을 위해 사전 정보를 작성해주세요." id="og-desc">
-<meta property="og:image"       content="https://dear-guard.vercel.app/icon.png">
-<meta property="og:url"         content="" id="og-url">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -165,10 +160,6 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="hdr-info" id="hdr-info">—</div>
     <div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:10px">⏱ 예상 소요시간 약 3~5분</div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:10px">작성해주신 내용 기준으로 당일 운영팀이 준비 예정입니다 😊</div>
-    <div style="background:#FDF8F0;border:1px solid #E8D5B0;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:11px;color:#92400E;line-height:1.6;text-align:left">
-      💡 작성 내용은 자동 저장됩니다 😊<br>
-      <span style="color:#A8893A">모바일 청첩장 링크 복사 등을 위해 잠시 나가셔도 입력 내용은 유지됩니다.</span>
-    </div>
     <div class="progress-wrap">
       <div class="progress-top">
         <span class="progress-label">📋 준비 체크 진행률</span>
@@ -194,11 +185,19 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="section-body open" id="sec-1-body">
       <div id="live-mode-wrap">
         <div class="radio-group" id="live-mode-group">
+          <label class="radio-item" data-val="single" onclick="selectRadio('live-mode-group',this,'single');onLiveModeChange();autoSaveDraft()">
+            <input type="radio" name="live_mode" value="single">
+            <div class="radio-dot"></div>
+            <div>
+              <div class="radio-label">👤 단측 진행</div>
+              <div class="radio-desc">신랑 또는 신부 한 쪽만 진행 · 해당 측 정보만 입력</div>
+            </div>
+          </label>
           <label class="radio-item selected" data-val="combined" onclick="selectRadio('live-mode-group',this,'combined');onLiveModeChange();autoSaveDraft()">
             <input type="radio" name="live_mode" value="combined" checked>
             <div class="radio-dot"></div>
             <div>
-              <div class="radio-label">🤝 통합 장부</div>
+              <div class="radio-label">🤝 양측 통합 장부</div>
               <div class="radio-desc">신랑/신부 장부 함께 표시 · 금액/메모 공유</div>
             </div>
           </label>
@@ -206,13 +205,16 @@ input,select,textarea{font-family:inherit;outline:none}
             <input type="radio" name="live_mode" value="split">
             <div class="radio-dot"></div>
             <div>
-              <div class="radio-label">🔒 개별 분리 장부</div>
+              <div class="radio-label">🔒 양측 분리 장부</div>
               <div class="radio-desc">각 측 장부 완전 분리 · 금액 비공개</div>
             </div>
           </label>
         </div>
         <div id="split-notice" style="display:none;margin-top:10px">
           <div class="info-box pink">🔒 개별 장부 모드입니다.<br>각 측 정보는 서로 공유되지 않습니다.<br><br>※ 원활한 안내를 위해 신청하지 않은 측도 디어가드 카카오톡 채널 추가 후 대화 부탁드립니다 😊</div>
+        </div>
+        <div id="single-notice" style="display:none;margin-top:10px">
+          <div class="info-box gold">👤 단측 진행 모드입니다.<br>해당 측 정보만 입력해주시면 됩니다 😊</div>
         </div>
       </div>
       <!-- 단측이면 이 섹션 숨김 -->
@@ -401,7 +403,7 @@ input,select,textarea{font-family:inherit;outline:none}
               · 현금을 봉투에서 분리 후 계수<br>
               · 5만원권 / 1만원권 등 권종별 정리
             </div>
-            <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:5px">→ 정산 및 확인이 가장 편한 방식 추천</div>
+            <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:5px">→ 권종별로 정리하여 전달받는 방식</div>
           </div>
         </label>
 
@@ -506,7 +508,7 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="section-body" id="sec-10-body">
       <div id="groom-pw-wrap">
         <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측</div>
-        <input class="field-input" id="g_ho_pw" placeholder="예: 123" maxlength="3" oninput="updateProgress();autoSaveDraft()" style="margin-bottom:12px;letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
+        <input class="field-input" id="g_ho_pw" placeholder="예: 1234" oninput="updateProgress();autoSaveDraft()" style="margin-bottom:12px;letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
       </div>
       <div id="bride-pw-wrap">
         <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측</div>
@@ -676,17 +678,6 @@ function renderHeader(){
   const d = new Date((s.date||'')+'T00:00:00');
   const dayStr = s.date ? `${s.date} (${DAYS[d.getDay()]}) · ${(s.time||'').slice(0,5)}` : '';
   document.getElementById('hdr-info').textContent = [dayStr, s.hall||''].filter(Boolean).join(' · ');
-
-  // OG 태그 동적 업데이트
-  const displayName = (g&&b) ? `${g} ♥ ${b}` : g ? `${g} 신랑측` : b ? `${b} 신부측` : 'Dear Guard';
-  const ogTitle = `${displayName} · 본식 준비 체크`;
-  document.title = ogTitle;
-  const ogTitleEl = document.getElementById('og-title');
-  const ogDescEl  = document.getElementById('og-desc');
-  const ogUrlEl   = document.getElementById('og-url');
-  if(ogTitleEl) ogTitleEl.setAttribute('content', ogTitle);
-  if(ogDescEl)  ogDescEl.setAttribute('content', '디어가드 본식 준비 체크 페이지입니다 😊 원활한 예식 운영을 위해 사전 정보를 작성해주세요.');
-  if(ogUrlEl)   ogUrlEl.setAttribute('content', location.href);
 }
 
 // ── 모드 적용 ──
@@ -814,7 +805,38 @@ function toggleDetail(id){
 // ── 장부 방식 변경 ──
 function onLiveModeChange(){
   const val = getRadioVal('live-mode-group');
-  document.getElementById('split-notice').style.display = val==='split' ? 'block' : 'none';
+  document.getElementById('split-notice').style.display  = val==='split'  ? 'block' : 'none';
+  document.getElementById('single-notice').style.display = val==='single' ? 'block' : 'none';
+
+  // 단측 선택 시: sideFilter 기준 반대측 숨김
+  const gEl = document.getElementById('groom-contact-wrap');
+  const bEl = document.getElementById('bride-contact-wrap');
+  const gPw = document.getElementById('groom-pw-wrap');
+  const bPw = document.getElementById('bride-pw-wrap');
+  const gTkt = document.getElementById('ticket_total_groom')?.closest('.field');
+  const bTkt = document.getElementById('ticket_total_bride')?.closest('.field');
+
+  if(val==='single'){
+    // 신부측 토큰으로 접근 시 신랑측 숨김, 그 외는 신부측 숨김
+    if(sideFilter==='bride'){
+      if(gEl)gEl.style.display='none'; if(gPw)gPw.style.display='none';
+      if(gTkt)gTkt.style.display='none';
+      if(bEl)bEl.style.display=''; if(bPw)bPw.style.display='';
+      if(bTkt)bTkt.style.display='';
+    } else {
+      if(bEl)bEl.style.display='none'; if(bPw)bPw.style.display='none';
+      if(bTkt)bTkt.style.display='none';
+      if(gEl)gEl.style.display=''; if(gPw)gPw.style.display='';
+      if(gTkt)gTkt.style.display='';
+    }
+  } else {
+    // 통합/분리: sideFilter 없으면 전체 표시
+    if(!sideFilter){
+      if(gEl)gEl.style.display=''; if(gPw)gPw.style.display='';
+      if(bEl)bEl.style.display=''; if(bPw)bPw.style.display='';
+      if(gTkt)gTkt.style.display=''; if(bTkt)bTkt.style.display='';
+    }
+  }
   updateProgress();
 }
 
@@ -1036,26 +1058,45 @@ async function saveAll(){
   try {
     await sb.patch('schedules', schedule.id, body);
 
-    // 특이사항 → 운영메모 자동 등록
-    const memo = gv('precheck_memo');
-    if(memo){
+    // ── 현장 메모 자동 등록 (precheck 항목 통합) ──
+    try {
       const now = new Date();
       const timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-      // 기존 precheck 메모가 있으면 중복 방지
-      try {
-        const existing = await sb.get('operation_logs',
-          `?schedule_id=eq.${schedule.id}&created_by=eq.precheck&select=id`);
-        if(!existing.length){
-          await sb.post('operation_logs', {
-            schedule_id: schedule.id,
-            time_str: timeStr,
-            content: '[사전체크] '+memo,
-            side: sideFilter==='bride'?'신부측':'신랑측',
-            created_by: 'precheck'
-          });
-        }
-      } catch(e){}
-    }
+
+      const CASH_LABEL = { sealed:'밀봉 전달형', confirmed:'봉투 유지형', sorted:'권종별 정리형' };
+      const RECEIPT_LABEL = { personal:'개인', business:'사업자' };
+
+      const cashMethod    = getRadioVal('cash-group');
+      const giftYn        = getRadioVal('gift-group');
+      const mobileUrl     = gv('mobile_invite_url');
+      const receiptType   = getRadioVal('receipt-type-group');
+      const receiptNum    = gv('cash_receipt_number');
+      const memo          = gv('precheck_memo');
+
+      const lines = ['[사전체크 자동 등록]'];
+      if(cashMethod) lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
+      if(giftYn)     lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}`);
+      if(mobileUrl)  lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
+      if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${RECEIPT_LABEL[receiptType]||''} ${receiptNum||''}`.trim());
+      if(memo)       lines.push(`📝 특이사항: ${memo}`);
+
+      const content = lines.join('\n');
+
+      // 기존 precheck 메모가 있으면 update, 없으면 insert
+      const existing = await sb.get('operation_logs',
+        `?schedule_id=eq.${schedule.id}&created_by=eq.precheck&select=id`);
+      if(existing.length){
+        await sb.patch('operation_logs', existing[0].id, { content, time_str: timeStr });
+      } else {
+        await sb.post('operation_logs', {
+          schedule_id: schedule.id,
+          time_str:    timeStr,
+          content,
+          side:        sideFilter==='bride' ? '신부측' : '신랑측',
+          created_by:  'precheck'
+        });
+      }
+    } catch(e){ console.warn('[DG] 현장메모 등록 실패:', e); }
 
     Object.assign(schedule, body);
     // 저장 완료 시 임시저장 데이터 삭제
