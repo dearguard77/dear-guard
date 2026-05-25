@@ -960,8 +960,8 @@ async function selectSchedule(id){
     if(dateStr){ const d=new Date(dateStr+'T00:00:00'); infoStr=dateStr+' ('+DAYS[d.getDay()]+')'; if(timeStr) infoStr+=' '+timeStr; if(hall) infoStr+=' · '+hall; }
     document.getElementById('top-schedule-info').textContent=infoStr;
     const saved=JSON.parse(localStorage.getItem(`dg_tickets_${id}`)||'{}');
-    totalTickets.groom=saved.groom||0;
-    totalTickets.bride=saved.bride||0;
+    totalTickets.groom=saved.groom||currentSchedule.ticket_total_groom||0;
+    totalTickets.bride=saved.bride||currentSchedule.ticket_total_bride||0;
     sv('groom-total-ticket',totalTickets.groom||'');
     sv('bride-total-ticket',totalTickets.bride||'');
     document.getElementById('schedule-select-screen').style.display='none';
@@ -1177,6 +1177,11 @@ function loadHandover(){
   sv('b-live1',    s.bride_live1);
   sv('b-live2',    s.bride_live2);
 }
+  // PRECHECK 인계 담당자 preset (기존 handover 값 없을 때만)
+  if(!s.groom_handover_name  && s.groom_contact_name)  sv('g-ho-name',  s.groom_contact_name);
+  if(!s.groom_handover_phone && s.groom_contact_phone) sv('g-ho-phone', s.groom_contact_phone);
+  if(!s.bride_handover_name  && s.bride_contact_name)  sv('b-ho-name',  s.bride_contact_name);
+  if(!s.bride_handover_phone && s.bride_contact_phone) sv('b-ho-phone', s.bride_contact_phone);
 function saveHandover(){
   if(!currentSchedule) return;
   clearTimeout(_hoSaveTimer);
