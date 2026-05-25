@@ -508,11 +508,11 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="section-body" id="sec-10-body">
       <div id="groom-pw-wrap">
         <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측</div>
-        <input class="field-input" id="g_ho_pw" placeholder="예: 1234" oninput="updateProgress();autoSaveDraft()" style="margin-bottom:12px;letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
+        <input class="field-input" id="g_ho_pw" placeholder="예: 123" maxlength="3" oninput="updateProgress();autoSaveDraft()" style="margin-bottom:12px;letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
       </div>
       <div id="bride-pw-wrap">
         <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측</div>
-        <input class="field-input" id="b_ho_pw" placeholder="예: 5678" oninput="updateProgress();autoSaveDraft()" style="letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
+        <input class="field-input" id="b_ho_pw" placeholder="예: 567" maxlength="3" oninput="updateProgress();autoSaveDraft()" style="letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
       </div>
     </div>
   </div>
@@ -686,40 +686,34 @@ function applyMode(){
   const mode = s.wedding_mode || '양측';
   const isSingle = mode === '단측';
 
-  // 단측이면 장부 방식 섹션 숨김
+  // 단측 예식이면 STEP1(장부 방식) 섹션 숨김
   if(isSingle){
     document.getElementById('sec-1').style.display = 'none';
     document.getElementById('single-mode-notice').style.display = 'block';
     document.getElementById('live-mode-wrap').style.display = 'none';
-    if(sideFilter==='groom'){
-      const bEl = document.getElementById('bride-contact-wrap');
-      const bPw = document.getElementById('bride-pw-wrap');
-      if(bEl)bEl.style.display='none'; if(bPw)bPw.style.display='none';
-    }
-    if(sideFilter==='bride'){
-      const gEl = document.getElementById('groom-contact-wrap');
-      const gPw = document.getElementById('groom-pw-wrap');
-      if(gEl)gEl.style.display='none'; if(gPw)gPw.style.display='none';
-    }
-    if(!sideFilter){
-      const bEl = document.getElementById('bride-contact-wrap');
-      const bPw = document.getElementById('bride-pw-wrap');
-      if(bEl)bEl.style.display='none'; if(bPw)bPw.style.display='none';
-    }
-  } else {
-    if(sideFilter==='groom'){
-      const bEl = document.getElementById('bride-contact-wrap');
-      const bPw = document.getElementById('bride-pw-wrap');
-      if(bEl)bEl.style.display='none'; if(bPw)bPw.style.display='none';
-      const psS = document.getElementById('ps-side');
-      if(psS){ Array.from(psS.options).forEach(o=>{ if(o.value==='신부측') o.style.display='none'; }); psS.value='신랑측'; }
-    } else if(sideFilter==='bride'){
-      const gEl = document.getElementById('groom-contact-wrap');
-      const gPw = document.getElementById('groom-pw-wrap');
-      if(gEl)gEl.style.display='none'; if(gPw)gPw.style.display='none';
-      const psS = document.getElementById('ps-side');
-      if(psS){ Array.from(psS.options).forEach(o=>{ if(o.value==='신랑측') o.style.display='none'; }); psS.value='신부측'; }
-    }
+  }
+
+  // ── sideFilter 기준으로 반대측 UI 숨김 (wedding_mode, STEP1 선택과 무관하게 항상 적용) ──
+  const gEl  = document.getElementById('groom-contact-wrap');
+  const bEl  = document.getElementById('bride-contact-wrap');
+  const gPw  = document.getElementById('groom-pw-wrap');
+  const bPw  = document.getElementById('bride-pw-wrap');
+  const psS  = document.getElementById('ps-side');
+
+  if(sideFilter === 'groom'){
+    // 신랑측 링크 접속: 신부측 전부 숨김
+    if(bEl)bEl.style.display='none';
+    if(bPw)bPw.style.display='none';
+    if(psS){ Array.from(psS.options).forEach(o=>{ if(o.value==='신부측') o.style.display='none'; }); psS.value='신랑측'; }
+  } else if(sideFilter === 'bride'){
+    // 신부측 링크 접속: 신랑측 전부 숨김
+    if(gEl)gEl.style.display='none';
+    if(gPw)gPw.style.display='none';
+    if(psS){ Array.from(psS.options).forEach(o=>{ if(o.value==='신랑측') o.style.display='none'; }); psS.value='신부측'; }
+  } else if(isSingle && !sideFilter){
+    // 단측 예식 + 통합 토큰: 신부측 숨김 (신랑측 기준)
+    if(bEl)bEl.style.display='none';
+    if(bPw)bPw.style.display='none';
   }
 }
 
@@ -1058,44 +1052,32 @@ async function saveAll(){
   try {
     await sb.patch('schedules', schedule.id, body);
 
-    // ── 현장 메모 자동 등록 (precheck 항목 통합) ──
+    // ── 현장 메모 자동 등록 → schedules.field_memo (index 현장메모) ──
     try {
-      const now = new Date();
-      const timeStr = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-
-      const CASH_LABEL = { sealed:'밀봉 전달형', confirmed:'봉투 유지형', sorted:'권종별 정리형' };
+      const CASH_LABEL    = { sealed:'밀봉 전달형', confirmed:'봉투 유지형', sorted:'권종별 정리형' };
       const RECEIPT_LABEL = { personal:'개인', business:'사업자' };
 
-      const cashMethod    = getRadioVal('cash-group');
-      const giftYn        = getRadioVal('gift-group');
-      const mobileUrl     = gv('mobile_invite_url');
-      const receiptType   = getRadioVal('receipt-type-group');
-      const receiptNum    = gv('cash_receipt_number');
-      const memo          = gv('precheck_memo');
+      const cashMethod  = getRadioVal('cash-group');
+      const giftYn      = getRadioVal('gift-group');
+      const mobileUrl   = gv('mobile_invite_url');
+      const receiptType = getRadioVal('receipt-type-group');
+      const receiptNum  = gv('cash_receipt_number');
+      const memo        = gv('precheck_memo');
 
       const lines = ['[사전체크 자동 등록]'];
-      if(cashMethod) lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
-      if(giftYn)     lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}`);
-      if(mobileUrl)  lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
-      if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${RECEIPT_LABEL[receiptType]||''} ${receiptNum||''}`.trim());
-      if(memo)       lines.push(`📝 특이사항: ${memo}`);
+      if(cashMethod)              lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
+      if(giftYn)                  lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}`);
+      if(mobileUrl)               lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
+      if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${(RECEIPT_LABEL[receiptType]||'')+' '+(receiptNum||'')}`.trim());
+      if(memo)                    lines.push(`📝 특이사항: ${memo}`);
 
-      const content = lines.join('\n');
+      const precheckText = lines.join('\n');
 
-      // 기존 precheck 메모가 있으면 update, 없으면 insert
-      const existing = await sb.get('operation_logs',
-        `?schedule_id=eq.${schedule.id}&created_by=eq.precheck&select=id`);
-      if(existing.length){
-        await sb.patch('operation_logs', existing[0].id, { content, time_str: timeStr });
-      } else {
-        await sb.post('operation_logs', {
-          schedule_id: schedule.id,
-          time_str:    timeStr,
-          content,
-          side:        sideFilter==='bride' ? '신부측' : '신랑측',
-          created_by:  'precheck'
-        });
-      }
+      // 기존 field_memo 가져와서 precheck 항목만 업데이트 (기존 내용 유지)
+      const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
+      const prevFieldMemo = (existing[0]?.field_memo) || {};
+      const newFieldMemo  = { ...prevFieldMemo, precheck: precheckText };
+      await sb.patch('schedules', schedule.id, { field_memo: newFieldMemo });
     } catch(e){ console.warn('[DG] 현장메모 등록 실패:', e); }
 
     Object.assign(schedule, body);
