@@ -366,7 +366,7 @@ input,select,textarea{font-family:inherit;outline:none}
             </div>
             <div class="pw-mini-card">
               <div class="pw-mini-title">🔒 레디백 비번</div>
-              <input id="g-ho-pw" class="pw-mini-inp" placeholder="0000" oninput="saveHandover()">
+              <input id="g-ho-pw" class="pw-mini-inp" placeholder="123" maxlength="3" oninput="saveHandover()">
             </div>
           </div>
         </div>
@@ -426,8 +426,8 @@ input,select,textarea{font-family:inherit;outline:none}
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
             <input id="pre-share-name" placeholder="사회자, 헬퍼, 혼주직접..." type="text"
               style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
-              onkeydown="if(event.key==='Enter')addPreShare()">
-            <button onclick="addPreShare()"
+              onkeydown="if(event.key==='Enter')addPreShare('groom')">
+            <button onclick="addPreShare('groom')"
               style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
           </div>
           <!-- 3줄: 내역 리스트 -->
@@ -450,7 +450,7 @@ input,select,textarea{font-family:inherit;outline:none}
             </div>
             <div class="pw-mini-card">
               <div class="pw-mini-title">🔒 레디백 비번</div>
-              <input id="b-ho-pw" class="pw-mini-inp" placeholder="0000" oninput="saveHandover()">
+              <input id="b-ho-pw" class="pw-mini-inp" placeholder="567" maxlength="3" oninput="saveHandover()">
             </div>
           </div>
         </div>
@@ -487,6 +487,34 @@ input,select,textarea{font-family:inherit;outline:none}
             style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
         </div>
       </div>
+
+        <!-- 🎫 사전 공유 식권 (신부측) -->
+        <div class="ho-section" style="flex-shrink:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 사전 공유 식권</div>
+            <span style="font-size:10px;color:#9CA3AF;font-weight:400">운영메모 함께 기록 권장</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+            <select id="pre-share-side-b"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
+              <option value="신랑측">🤵 신랑</option>
+              <option value="신부측" selected>👰 신부</option>
+            </select>
+            <input id="pre-share-amount-b" placeholder="장수" type="number" min="1"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0"
+              onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name-b').focus()">
+            <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+            <input id="pre-share-name-b" placeholder="사회자, 헬퍼, 혼주직접..." type="text"
+              style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0"
+              onkeydown="if(event.key==='Enter')addPreShare('bride')">
+            <button onclick="addPreShare('bride')"
+              style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+          </div>
+          <div id="pre-share-list-b" style="max-height:80px;overflow-y:auto"></div>
+        </div>
+
       </div><!-- /ho-pane-b -->
 
       <div class="ho-save-indicator" id="ho-save-indicator" style="flex-shrink:0"></div>
@@ -1072,10 +1100,11 @@ async function loadPreShares(){
   }
 }
 
-async function addPreShare(){
-  var sideEl   = document.getElementById('pre-share-side');
-  var nameEl   = document.getElementById('pre-share-name');
-  var amountEl = document.getElementById('pre-share-amount');
+async function addPreShare(side){
+  var suffix   = side==='bride' ? '-b' : '';
+  var sideEl   = document.getElementById('pre-share-side'+suffix);
+  var nameEl   = document.getElementById('pre-share-name'+suffix);
+  var amountEl = document.getElementById('pre-share-amount'+suffix);
 
   if(!sideEl||!nameEl||!amountEl){
     showToast('⚠️ 입력칸을 찾을 수 없습니다'); return;
@@ -1133,13 +1162,8 @@ async function deletePreShare(id){
 }
 
 function renderPreShareList(){
-  var el = document.getElementById('pre-share-list');
-  if(!el) return;
-  if(!preShares.length){
-    el.innerHTML = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div>';
-    return;
-  }
-  el.innerHTML = preShares.map(function(p){
+  var empty = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div>';
+  var html = preShares.length ? preShares.map(function(p){
     var icon = p.side==='신랑측' ? '🤵' : '👰';
     var label = esc(p.person_name||'');
     return '<div style="display:flex;align-items:center;gap:3px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px">'+
@@ -1149,7 +1173,11 @@ function renderPreShareList(){
       '<button onclick="editPreShare('+p.id+')" title="수정" style="width:18px;height:18px;background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">✏️</button>'+
       '<button onclick="deletePreShare('+p.id+')" title="삭제" style="width:18px;height:18px;background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">🗑️</button>'+
     '</div>';
-  }).join('');
+  }).join('') : empty;
+  var elG = document.getElementById('pre-share-list');
+  var elB = document.getElementById('pre-share-list-b');
+  if(elG) elG.innerHTML = html;
+  if(elB) elB.innerHTML = html;
 }
 // ── 식권 설정 ──
 function saveTotalTickets(){
