@@ -1696,7 +1696,13 @@ function openDetail(id){
       const bCP = s.brideContactPhone || '';
       const CASH_LABEL = { sealed:'밀봉전달형', confirmed:'봉투유지형', sorted:'권종별정리형' };
       const hasContact      = !!(hp || gCN || bCN);
-      const hasPrecheckInfo = !!(s.cashMethod || s.giftYn != null || s.mobileInviteUrl || s.precheckMemo || fm.precheck);
+      // fm.precheck: 실제 내용이 있는 경우만
+      const hasFmPrecheck   = !!(fm.precheck && fm.precheck.trim());
+      // 컬럼 기반: null/undefined가 아니라 실제로 값이 입력된 경우만
+      const dgHasVal  = s.dgDisclosed === true || s.dgDisclosed === 'true' || s.dgDisclosed === false || s.dgDisclosed === 'false';
+      const giftHasVal = s.giftYn === true || s.giftYn === 'true' || s.giftYn === false || s.giftYn === 'false';
+      const hasColPrecheck  = !!(s.cashMethod || dgHasVal || giftHasVal || s.mobileInviteUrl || s.precheckMemo);
+      const hasPrecheckInfo = hasFmPrecheck || hasColPrecheck;
       if(!hasContact && !fm.text && !fm.urgent && !hasPrecheckInfo) return '';
       return `<div class="detail-sec">
         <div class="detail-sec-title" style="color:#0369A1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -1722,9 +1728,9 @@ function openDetail(id){
                   ? `<div style="white-space:pre-wrap">${esc(fm.precheck.replace('[사전체크 자동 등록]\n','').replace('[사전체크]\n',''))}</div>`
                   : `
                     ${s.cashMethod ? `<div>정산방식 · <strong>${esc(CASH_LABEL[s.cashMethod]||s.cashMethod)}</strong></div>` : ''}
-                    ${s.dgDisclosed===false||s.dgDisclosed==='false' ? `<div>당일관계 · <strong>${esc(s.dgRelationDesc||'미입력')}</strong></div>`
-                      : s.dgDisclosed===true||s.dgDisclosed==='true' ? `<div>혼주 디어가드 인지 · <strong>완료</strong></div>` : ''}
-                    ${s.giftYn!=null ? `<div>답례품 · <strong>${s.giftYn===true||s.giftYn==='true'?'있음':'없음'}</strong></div>` : ''}
+                    ${dgHasVal && (s.dgDisclosed===false||s.dgDisclosed==='false') ? `<div>당일관계 · <strong>${esc(s.dgRelationDesc||'미입력')}</strong></div>`
+                      : dgHasVal && (s.dgDisclosed===true||s.dgDisclosed==='true') ? `<div>혼주 디어가드 인지 · <strong>완료</strong></div>` : ''}
+                    ${giftHasVal ? `<div>답례품 · <strong>${s.giftYn===true||s.giftYn==='true'?'있음':'없음'}</strong></div>` : ''}
                     ${s.mobileInviteUrl ? `<div>💌 <a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:600">청첩장 링크</a></div>` : ''}
                     ${s.precheckMemo ? `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #BBF7D0">📝 ${esc(s.precheckMemo)}</div>` : ''}
                   `}
@@ -3539,14 +3545,33 @@ function _reminderKey(s){
   return 'photo_closed_' + s.id + '_' + s.date + '_' + (s.time||'') + '_' + (s.frontManager||'') + '_' + (s.backManager||'');
 }
 
-// ── 팝업이 이미 닫힌 상태인지 확인 ──
+// ── 팝업이 이미 닫힌 상태인지 확인 (DB 기준) ──
 function _isReminderClosed(s){
+  // DB 값 우선, sessionStorage는 보조
+  if(s.photoAlertCompleted === true) return true;
   try { return sessionStorage.getItem(_reminderKey(s)) === 'closed'; } catch(e){ return false; }
 }
 
-// ── 팝업 닫힘 처리 ──
+// ── 팝업 닫힘 처리 (sessionStorage만 — 빠른 UI 반응용) ──
 function _markReminderClosed(s){
   try { sessionStorage.setItem(_reminderKey(s), 'closed'); } catch(e){}
+}
+
+// ── 촬영 완료: DB 저장 + 메모리 반영 ──
+async function _completePhotoAlert(s, popup){
+  // 1. 메모리 즉시 반영 (재렌더링에서 팝업 다시 뜨지 않게)
+  s.photoAlertCompleted = true;
+  // 2. sessionStorage 저장 (즉시)
+  _markReminderClosed(s);
+  // 3. 팝업 즉시 제거
+  if(popup && popup.parentNode) popup.remove();
+  // 4. DB 저장 (비동기)
+  try {
+    await sb.patch('schedules', s.id, { photo_alert_completed: true });
+    console.log('[DG] photo_alert_completed DB 저장 완료:', s.id);
+  } catch(e){
+    console.error('[DG] photo_alert_completed 저장 실패:', e);
+  }
 }
 
 function scheduleWeddingReminders(){
@@ -3560,6 +3585,8 @@ function scheduleWeddingReminders(){
 
     mySchedules.forEach(function(s){
       if(!s.time) return;
+      // DB 기준으로 이미 완료된 경우 스킵
+      if(s.photoAlertCompleted === true) return;
       var timeParts = (s.time || '').split(':');
       var h = parseInt(timeParts[0], 10) || 0;
       var m = parseInt(timeParts[1], 10) || 0;
@@ -3662,16 +3689,15 @@ function showPhotoReminder(s){
 
   document.body.appendChild(popup);
 
-  // X 버튼 - 닫힘 처리 + sessionStorage 저장
+  // X 버튼 - sessionStorage만 (재접속 시 다시 뜰 수 있음)
   document.getElementById('photo-reminder-close').onclick = function(){
     _markReminderClosed(s);
     popup.remove();
   };
 
-  // 촬영 완료 버튼 - 닫힘 처리
+  // 촬영 완료 버튼 - DB 저장 (영구 완료 처리)
   document.getElementById('photo-reminder-confirm').onclick = function(){
-    _markReminderClosed(s);
-    popup.remove();
+    _completePhotoAlert(s, popup);
   };
 
   // ⛔ 자동 닫힘 제거 — X 버튼 또는 촬영완료 버튼으로만 닫힘
