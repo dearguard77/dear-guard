@@ -1696,13 +1696,13 @@ function openDetail(id){
       const bCP = s.brideContactPhone || '';
       const CASH_LABEL = { sealed:'밀봉전달형', confirmed:'봉투유지형', sorted:'권종별정리형' };
       const hasContact      = !!(hp || gCN || bCN);
-      // fm.precheck: 실제 내용이 있는 경우만
+      // fm.precheck: 실제 내용이 있는 경우만 (PRECHECK를 실제 제출한 경우)
       const hasFmPrecheck   = !!(fm.precheck && fm.precheck.trim());
-      // 컬럼 기반: null/undefined가 아니라 실제로 값이 입력된 경우만
-      const dgHasVal  = s.dgDisclosed === true || s.dgDisclosed === 'true' || s.dgDisclosed === false || s.dgDisclosed === 'false';
-      const giftHasVal = s.giftYn === true || s.giftYn === 'true' || s.giftYn === false || s.giftYn === 'false';
-      const hasColPrecheck  = !!(s.cashMethod || dgHasVal || giftHasVal || s.mobileInviteUrl || s.precheckMemo);
-      const hasPrecheckInfo = hasFmPrecheck || hasColPrecheck;
+      // 컬럼 기반: fm.precheck가 있을 때만 신뢰 (DB에 잘못 저장된 false 값 방지)
+      const dgHasVal  = hasFmPrecheck && (s.dgDisclosed === true || s.dgDisclosed === 'true' || s.dgDisclosed === false || s.dgDisclosed === 'false');
+      const giftHasVal = hasFmPrecheck && (s.giftYn === true || s.giftYn === 'true' || s.giftYn === false || s.giftYn === 'false');
+      const hasColPrecheck  = hasFmPrecheck && !!(s.cashMethod || dgHasVal || giftHasVal || s.mobileInviteUrl || s.precheckMemo);
+      const hasPrecheckInfo = hasFmPrecheck;
       if(!hasContact && !fm.text && !fm.urgent && !hasPrecheckInfo) return '';
       return `<div class="detail-sec">
         <div class="detail-sec-title" style="color:#0369A1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
