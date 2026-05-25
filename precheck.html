@@ -11,13 +11,13 @@
 <meta name="theme-color" content="#F5F3F0">
 <meta property="og:type"        content="website">
 <meta property="og:site_name"   content="Dear Guard">
-<meta property="og:title"       content="Dear Guard · 본식 준비 체크" id="og-title">
-<meta property="og:description" content="예식 전 필요한 내용을 미리 확인해주세요 😊" id="og-desc">
+<meta property="og:title"       content="Dear Guard · 본식 준비 체크">
+<meta property="og:description" content="예식 전 필요한 내용을 미리 확인해주세요 😊">
 <meta property="og:image"       content="https://dear-guard.vercel.app/icon.png">
-<meta property="og:url"         content="" id="og-url">
+<meta property="og:url"         content="">
 <meta name="twitter:card"       content="summary">
 <meta name="twitter:image"      content="https://dear-guard.vercel.app/icon.png">
-<meta name="twitter:title"      content="Dear Guard · 본식 준비 체크" id="tw-title">
+<meta name="twitter:title"      content="Dear Guard · 본식 준비 체크">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -654,6 +654,25 @@ async function init(){
 
     schedule = rows[0];
 
+    // ── OG title 즉시 처리 (카카오는 JS 실행 전 HTML 읽으므로 최대한 빠르게) ──
+    {
+      const g = (schedule.groom_name||'').trim();
+      const b = (schedule.bride_name||'').trim();
+      const displayName = sideFilter==='groom' ? (g?`${g} 신랑측`:'Dear Guard')
+                        : sideFilter==='bride'  ? (b?`${b} 신부측`:'Dear Guard')
+                        : (g&&b)?`${g} ♥ ${b}`:g||b||'Dear Guard';
+      const pageTitle = `${displayName} · 본식 준비 체크`;
+      document.title = pageTitle;
+      const mOgTitle = document.querySelector('meta[property="og:title"]');
+      const mOgDesc  = document.querySelector('meta[property="og:description"]');
+      const mOgUrl   = document.querySelector('meta[property="og:url"]');
+      const mTwTitle = document.querySelector('meta[name="twitter:title"]');
+      if(mOgTitle) mOgTitle.setAttribute('content', pageTitle);
+      if(mOgDesc)  mOgDesc.setAttribute('content',  '예식 전 필요한 내용을 미리 확인해주세요 😊');
+      if(mOgUrl)   mOgUrl.setAttribute('content',   location.href);
+      if(mTwTitle) mTwTitle.setAttribute('content',  pageTitle);
+    }
+
     // 기존 사전 공유 식권 로드
     try {
       preShares = await sb.get('ticket_additions',
@@ -736,11 +755,9 @@ function applyMode(){
   const mode = s.wedding_mode || '양측';
   const isSingle = mode === '단측';
 
-  // 단측 예식이면 STEP1 숨김
+  // 단측 예식이면 single-mode-notice 표시 (STEP1 자체는 항상 표시)
   if(isSingle){
-    document.getElementById('sec-1').style.display = 'none';
     document.getElementById('single-mode-notice').style.display = 'block';
-    document.getElementById('live-mode-wrap').style.display = 'none';
   }
 
   // 사전 공유 식권 드롭다운 필터
