@@ -1176,12 +1176,13 @@ function loadHandover(){
   sv('b-ho-pw',    s.bride_password);
   sv('b-live1',    s.bride_live1);
   sv('b-live2',    s.bride_live2);
-}
   // PRECHECK 인계 담당자 preset (기존 handover 값 없을 때만)
   if(!s.groom_handover_name  && s.groom_contact_name)  sv('g-ho-name',  s.groom_contact_name);
   if(!s.groom_handover_phone && s.groom_contact_phone) sv('g-ho-phone', s.groom_contact_phone);
   if(!s.bride_handover_name  && s.bride_contact_name)  sv('b-ho-name',  s.bride_contact_name);
   if(!s.bride_handover_phone && s.bride_contact_phone) sv('b-ho-phone', s.bride_contact_phone);
+}
+  
 function saveHandover(){
   if(!currentSchedule) return;
   clearTimeout(_hoSaveTimer);
