@@ -1696,7 +1696,7 @@ function openDetail(id){
       const bCP = s.brideContactPhone || '';
       const CASH_LABEL = { sealed:'밀봉전달형', confirmed:'봉투유지형', sorted:'권종별정리형' };
       const hasContact      = !!(hp || gCN || bCN);
-      const hasPrecheckInfo = !!(s.cashMethod || s.giftYn != null || s.mobileInviteUrl || s.precheckMemo || fm.precheck);
+      const hasPrecheckInfo = !!(s.cashMethod || s.giftYn != null || s.mobileInviteUrl || s.precheckMemo);
       if(!hasContact && !fm.text && !fm.urgent && !hasPrecheckInfo) return '';
       return `<div class="detail-sec">
         <div class="detail-sec-title" style="color:#0369A1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -1723,8 +1723,7 @@ function openDetail(id){
                   : s.dgDisclosed===true||s.dgDisclosed==='true' ? `<div>혼주 디어가드 인지 · <strong>완료</strong></div>` : ''}
                 ${s.giftYn!=null ? `<div>답례품 · <strong>${s.giftYn===true||s.giftYn==='true'?'있음':'없음'}</strong></div>` : ''}
                 ${s.mobileInviteUrl ? `<div>💌 <a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:600">청첩장 링크</a></div>` : ''}
-                ${s.precheckMemo ? `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #BBF7D0">📝 ${esc(s.precheckMemo)}</div>` : ''}
-                ${fm.precheck ? `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #BBF7D0;white-space:pre-wrap;font-size:11px;color:#374151">${esc(fm.precheck)}</div>` : ''}
+                ${s.precheckMemo ? `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #BBF7D0">📝 ${esc(s.precheckMemo)}</div>` : ''}                
               </div>
             </div>` : ''}
         </div>
