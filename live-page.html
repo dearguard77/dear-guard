@@ -11,6 +11,9 @@
 <meta property="og:image:width" content="512">
 <meta property="og:image:height"content="512">
 <meta property="og:url"         content="" id="og-url">
+<meta property="og:url"         content="" id="og-url">
+<meta property="twitter:title"       content="Dear Guard · 실시간 장부">
+<meta property="twitter:description" content="실시간 축의금 접수 현황을 확인하세요.">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -503,11 +506,19 @@ async function init(){
     const _hall=schedule.hall||'';
     document.getElementById('hdr-info-dt').textContent=_dateTime;
     document.getElementById('hdr-info-hall').textContent=_hall;
-    document.title=`${names} · 실시간 장부`;
-    const ogTitle = document.getElementById('og-title');
-    const ogUrl   = document.getElementById('og-url');
-    if(ogTitle) ogTitle.setAttribute('content', names+' · 실시간 장부');
-    if(ogUrl)   ogUrl.setAttribute('content', location.href);
+    const displayTitle = `${names} · 실시간 장부`;
+    const displayDesc  = `${names} 실시간 축의금 접수 현황`;
+    document.title = displayTitle;
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const ogDesc  = document.querySelector('meta[property="og:description"]');
+    const ogUrl   = document.querySelector('meta[property="og:url"]');
+    const twTitle = document.querySelector('meta[property="twitter:title"]');
+    const twDesc  = document.querySelector('meta[property="twitter:description"]');
+    if(ogTitle) ogTitle.setAttribute('content', displayTitle);
+    if(ogDesc)  ogDesc.setAttribute('content',  displayDesc);
+    if(ogUrl)   ogUrl.setAttribute('content',   location.href);
+    if(twTitle) twTitle.setAttribute('content', displayTitle);
+    if(twDesc)  twDesc.setAttribute('content',  displayDesc);
     await loadLogs();
     renderHandover();
     applyWeddingMode();
