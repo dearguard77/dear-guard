@@ -6,7 +6,7 @@
 <link rel="apple-touch-icon" href="https://dear-guard.vercel.app/icon.png">
 <link rel="icon" type="image/png" href="https://dear-guard.vercel.app/icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>디어가드</title>
+<title>Dear Guard 디어가드</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:#F8F7F5;color:#111827;font-size:14px}
@@ -1677,6 +1677,7 @@ function openDetail(id){
         <div class="info-box span"><div class="info-box-lbl">웨딩홀 (업체명)</div><div class="info-box-val">${esc(s.hall)}</div></div>
         <div class="info-box span"><div class="info-box-lbl">홀 이름</div><div class="info-box-val">${esc(s.address)||'-'}</div></div>
         <div class="info-box span"><div class="info-box-lbl">상품구성</div><div class="info-box-val">${esc(s.product)}</div></div>
+        ${s.mobileInviteUrl ? `<div class="info-box span"><div class="info-box-lbl">모바일 청첩장</div><div class="info-box-val"><a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:700;text-decoration:underline">💌 모청 열기</a></div></div>` : ''}
       </div>
     </div>
     <div class="detail-sec">
@@ -1719,7 +1720,6 @@ function openDetail(id){
               ${gCN ? `<div style="font-size:12px;color:#374151">🤵 신랑측 <strong>${esc(gCN)}</strong>${gCP?' · '+esc(gCP):''}</div>` : ''}
               ${bCN ? `<div style="font-size:12px;color:#374151;margin-top:2px">👰 신부측 <strong>${esc(bCN)}</strong>${bCP?' · '+esc(bCP):''}</div>` : ''}
             </div>` : ''}
-          ${fm.text ? `<div style="font-size:13px;color:#111827;white-space:pre-wrap;line-height:1.8">${esc(fm.text)}</div>` : ''}
           ${hasPrecheckInfo ? `
             <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px 12px">
               <div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:6px">📋 사전체크 항목</div>
@@ -1735,7 +1735,9 @@ function openDetail(id){
                     ${s.precheckMemo ? `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #BBF7D0">📝 ${esc(s.precheckMemo)}</div>` : ''}
                   `}
               </div>
-            </div>` : ''}
+              ${fm.text ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #A7F3D0;font-size:13px;color:#111827;white-space:pre-wrap;line-height:1.8">${esc(fm.text)}</div>` : ''}
+            </div>` : `
+            ${fm.text ? `<div style="font-size:13px;color:#111827;white-space:pre-wrap;line-height:1.8">${esc(fm.text)}</div>` : ''}`}
         </div>
       </div>`;
     })()}
@@ -2632,7 +2634,7 @@ async function saveForm(){
     }
   } 
  const isAdminSave = ADMIN_NAMES.includes(currentUser.name);
-  const fieldMemo      = getFieldMemo();
+  const newFieldMemoInput = getFieldMemo();
   const handoverPerson = getHandoverPerson();
   const contractMemo   = isAdminSave
     ? getContractMemo()
@@ -2643,16 +2645,22 @@ async function saveForm(){
     // 매니저: 현장메모 + 인계자 + 체크리스트만 저장 (기존 기본정보 유지)
     const existing = schedules.find(x => x.id === formId);
     if(!existing){ showToast('⚠ 저장할 예식을 찾을 수 없습니다'); return; }
+    // precheck 키 유지 (덮어쓰기 방지 — object merge)
+    const prevFieldMemo = existing.fieldMemo || {};
+    const mergedFieldMemo = { ...prevFieldMemo, ...newFieldMemoInput };
     row = {
-      field_memo:      fieldMemo,
+      field_memo:      mergedFieldMemo,
       handover_person: handoverPerson || null,
       checklist:       formCL,
     };
   } else {
-    // 관리자: 전체 저장
+    // 관리자: 전체 저장 — precheck 키 유지
+    const existing = formId ? schedules.find(x => x.id === formId) : null;
+    const prevFieldMemo = existing?.fieldMemo || {};
+    const mergedFieldMemo = { ...prevFieldMemo, ...newFieldMemoInput };
     row = {
       ...scheduleToRow(v, formNotes, formCL),
-      field_memo:      fieldMemo,
+      field_memo:      mergedFieldMemo,
       admin_memo:      contractMemo,
       handover_person: handoverPerson || null,
     };
