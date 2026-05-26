@@ -9,15 +9,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Dear Guard">
 <meta name="theme-color" content="#F5F3F0">
-<meta property="og:type"        content="website">
-<meta property="og:site_name"   content="Dear Guard">
-<meta property="og:title"       content="Dear Guard · 본식 준비 체크">
-<meta property="og:description" content="예식 전 필요한 내용을 미리 확인해주세요 😊">
-<meta property="og:image"       content="https://dear-guard.vercel.app/icon.png">
-<meta property="og:url"         content="">
-<meta name="twitter:card"       content="summary">
-<meta name="twitter:image"      content="https://dear-guard.vercel.app/icon.png">
-<meta name="twitter:title"      content="Dear Guard · 본식 준비 체크">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -115,12 +106,12 @@ input,select,textarea{font-family:inherit;outline:none}
 .ps-del{width:20px;height:20px;background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;font-size:11px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 
 /* 추가 버튼 행 */
-.add-row{display:flex;align-items:center;gap:6px;margin-top:8px;width:100%;}
-.add-btn{height:34px;padding:0 10px;font-size:11px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
-.add-input-sm{flex:1;min-width:0;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:13px;height:34px;background:#fff;color:var(--text)}
+.add-row{display:flex;align-items:center;gap:6px;margin-top:8px}
+.add-btn{height:34px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
+.add-input-sm{flex:1;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:13px;height:34px;background:#fff;color:var(--text)}
 .add-input-sm:focus{border-color:var(--gold);outline:none}
-.add-select-sm{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0 8px;font-size:12px;height:34px;background:#fff;color:var(--text);cursor:pointer;flex-shrink:0;width:64px}
-.add-num-sm{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0 6px;font-size:13px;font-weight:700;height:34px;background:#fff;color:var(--text);text-align:center;width:46px;flex-shrink:0}
+.add-select-sm{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0 8px;font-size:12px;height:34px;background:#fff;color:var(--text);cursor:pointer;flex-shrink:0;width:72px}
+.add-num-sm{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:0 6px;font-size:13px;font-weight:700;height:34px;background:#fff;color:var(--text);text-align:center;width:52px;flex-shrink:0}
 
 /* 정보 박스 */
 .info-box{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#1D4ED8;line-height:1.6;margin-bottom:12px}
@@ -264,13 +255,9 @@ input,select,textarea{font-family:inherit;outline:none}
         당일 식권을 디어가드에게 전달해주시고,<br>식 종료 후 축의금 및 물품을 인계받으실 분 정보를 입력해주세요 😊<br><br>
         <span style="color:#1D4ED8;font-weight:700">※ 신랑신부 본인 및 혼주(부모님)는 제외 후 작성 부탁드립니다.</span><br>
         <span style="color:#6B7280">예: 친동생 / 가방순이 / 지인 등</span>
-        <br><br>
-        <span style="display:block;font-weight:800;color:#1E40AF;font-size:13px;line-height:1.7">
-        ⚠ 인계자분은 식권을 식 시작 1시간 전에 꼭 축의대로 전달 부탁드립니다.
-        </span>
       </div>
       <div id="groom-contact-wrap">
-        <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측 인계 받으실 분</div>
+        <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측 인계 담당자</div>
         <div class="grid2" style="margin-bottom:8px">
           <div class="field">
             <label class="field-label">성함</label>
@@ -284,7 +271,7 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
       <div id="bride-contact-wrap">
         <div class="divider"></div>
-        <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측 인계 받으실 분</div>
+        <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측 인계 담당자</div>
         <div class="grid2">
           <div class="field">
             <label class="field-label">성함</label>
@@ -491,16 +478,39 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="section-body" id="sec-7-body">
       <div class="radio-group" id="gift-group" style="flex-direction:row;gap:8px">
-        <label class="radio-item" data-val="true" onclick="selectRadio('gift-group',this,'true');updateProgress();autoSaveDraft()" style="flex:1">
+        <label class="radio-item" data-val="true" onclick="selectRadio('gift-group',this,'true');toggleGiftDetail(true);updateProgress();autoSaveDraft()" style="flex:1">
           <input type="radio" name="gift_yn" value="true">
           <div class="radio-dot"></div>
           <div class="radio-label">있음</div>
         </label>
-        <label class="radio-item" data-val="false" onclick="selectRadio('gift-group',this,'false');updateProgress();autoSaveDraft()" style="flex:1">
+        <label class="radio-item" data-val="false" onclick="selectRadio('gift-group',this,'false');toggleGiftDetail(false);updateProgress();autoSaveDraft()" style="flex:1">
           <input type="radio" name="gift_yn" value="false">
           <div class="radio-dot"></div>
           <div class="radio-label">없음</div>
         </label>
+      </div>
+      <div id="gift-detail-wrap" style="display:none;margin-top:12px">
+        <label class="field-label">답례품 전달 방식</label>
+        <div class="radio-group" id="gift-detail-group">
+          <label class="radio-item" data-val="hall"
+            onclick="selectRadio('gift-detail-group',this,'hall');updateProgress();autoSaveDraft()">
+            <input type="radio" name="gift_detail" value="hall">
+            <div class="radio-dot"></div>
+            <div>
+              <div class="radio-label">🏢 홀 답례품 식권 교환형</div>
+              <div class="radio-desc">식권과 1:1 교환 방식</div>
+            </div>
+          </label>
+          <label class="radio-item" data-val="desk"
+            onclick="selectRadio('gift-detail-group',this,'desk');updateProgress();autoSaveDraft()">
+            <input type="radio" name="gift_detail" value="desk">
+            <div class="radio-dot"></div>
+            <div>
+              <div class="radio-label">🎁 축의대 직접 전달형</div>
+              <div class="radio-desc">축의대에서 직접 나눠드려야 하는 경우</div>
+            </div>
+          </label>
+        </div>
       </div>
     </div>
   </div>
@@ -658,25 +668,6 @@ async function init(){
 
     schedule = rows[0];
 
-    // ── OG title 즉시 처리 (카카오는 JS 실행 전 HTML 읽으므로 최대한 빠르게) ──
-    {
-      const g = (schedule.groom_name||'').trim();
-      const b = (schedule.bride_name||'').trim();
-      const displayName = sideFilter==='groom' ? (g?`${g} 신랑측`:'Dear Guard')
-                        : sideFilter==='bride'  ? (b?`${b} 신부측`:'Dear Guard')
-                        : (g&&b)?`${g} ♥ ${b}`:g||b||'Dear Guard';
-      const pageTitle = `${displayName} · 본식 준비 체크`;
-      document.title = pageTitle;
-      const mOgTitle = document.querySelector('meta[property="og:title"]');
-      const mOgDesc  = document.querySelector('meta[property="og:description"]');
-      const mOgUrl   = document.querySelector('meta[property="og:url"]');
-      const mTwTitle = document.querySelector('meta[name="twitter:title"]');
-      if(mOgTitle) mOgTitle.setAttribute('content', pageTitle);
-      if(mOgDesc)  mOgDesc.setAttribute('content',  '예식 전 필요한 내용을 미리 확인해주세요 😊');
-      if(mOgUrl)   mOgUrl.setAttribute('content',   location.href);
-      if(mTwTitle) mTwTitle.setAttribute('content',  pageTitle);
-    }
-
     // 기존 사전 공유 식권 로드
     try {
       preShares = await sb.get('ticket_additions',
@@ -712,21 +703,6 @@ function showError(){
 }
 
 // ── 헤더 렌더 ──
-function updateMetaTag(property, content){
-  // property 또는 name 기준으로 찾기
-  let el = document.querySelector(`meta[property="${property}"]`)
-        || document.querySelector(`meta[name="${property}"]`);
-  if(!el){
-    el = document.createElement('meta');
-    if(property.startsWith('og:') || property.startsWith('twitter:'))
-      el.setAttribute('property', property);
-    else
-      el.setAttribute('name', property);
-    document.head.appendChild(el);
-  }
-  el.setAttribute('content', content);
-}
-
 function renderHeader(){
   const s = schedule;
   const g = (s.groom_name||'').trim(), b = (s.bride_name||'').trim();
@@ -740,17 +716,6 @@ function renderHeader(){
   const d = new Date((s.date||'')+'T00:00:00');
   const dayStr = s.date ? `${s.date} (${DAYS[d.getDay()]}) · ${(s.time||'').slice(0,5)}` : '';
   document.getElementById('hdr-info').textContent = [dayStr, s.hall||''].filter(Boolean).join(' · ');
-
-  // OG / title 동적 업데이트
-  const displayName = (sideFilter==='groom') ? (g ? `${g} 신랑측` : 'Dear Guard')
-                    : (sideFilter==='bride')  ? (b ? `${b} 신부측` : 'Dear Guard')
-                    : (g&&b) ? `${g} ♥ ${b}` : g||b||'Dear Guard';
-  const pageTitle = `${displayName} · 본식 준비 체크`;
-  document.title = pageTitle;
-  updateMetaTag('og:title',       pageTitle);
-  updateMetaTag('og:description', '예식 전 필요한 내용을 미리 확인해주세요 😊');
-  updateMetaTag('og:url',         location.href);
-  updateMetaTag('twitter:title',  pageTitle);
 }
 
 // ── 모드 적용 ──
@@ -759,9 +724,11 @@ function applyMode(){
   const mode = s.wedding_mode || '양측';
   const isSingle = mode === '단측';
 
-  // 단측 예식이면 single-mode-notice 표시 (STEP1 자체는 항상 표시)
+  // 단측 예식이면 STEP1 숨김
   if(isSingle){
+    document.getElementById('sec-1').style.display = 'none';
     document.getElementById('single-mode-notice').style.display = 'block';
+    document.getElementById('live-mode-wrap').style.display = 'none';
   }
 
   // 사전 공유 식권 드롭다운 필터
@@ -806,7 +773,15 @@ function loadExistingData(){
   }
   sv('dg_relation_desc', s.dg_relation_desc);
   // 답례품
-  if(s.gift_yn!=null) selectRadioByVal('gift-group', String(s.gift_yn));
+  if(s.gift_yn!=null){
+    selectRadioByVal('gift-group', String(s.gift_yn));
+    if(s.gift_yn===true || s.gift_yn==='true'){
+      toggleGiftDetail(true);
+    }
+    if(s.gift_detail){
+      selectRadioByVal('gift-detail-group', s.gift_detail);
+    }
+  }
   // 특이사항
   sv('precheck_memo', s.precheck_memo);
   // 비밀번호
@@ -936,6 +911,20 @@ function toggleDgRelation(show){
   document.getElementById('dg-relation-wrap').style.display = show ? 'block' : 'none';
 }
 
+function toggleGiftDetail(show){
+  const wrap = document.getElementById('gift-detail-wrap');
+  if(!wrap) return;
+  wrap.style.display = show ? 'block' : 'none';
+  if(!show){
+    const group = document.getElementById('gift-detail-group');
+    if(group){
+      group.querySelectorAll('.radio-item').forEach(item=>{
+        item.classList.remove('selected');
+      });
+    }
+  }
+}
+
 // ── 사전 공유 식권 ──
 async function addPreSharePc(){
   const side = document.getElementById('ps-side').value;
@@ -1017,6 +1006,7 @@ function autoSaveDraft(){
       dg_disclosed:         getRadioVal('dg-disclosed-group'),
       dg_relation_desc:     gv('dg_relation_desc'),
       gift_yn:              getRadioVal('gift-group'),
+      gift_detail:          getRadioVal('gift-detail-group'),
       precheck_memo:        gv('precheck_memo'),
       g_ho_pw:              gv('g_ho_pw'),
       b_ho_pw:              gv('b_ho_pw'),
@@ -1059,7 +1049,15 @@ function restoreDraft(){
       if(d.dg_disclosed==='false'){ const w=document.getElementById('dg-relation-wrap'); if(w)w.style.display='block'; }
     }
     if(d.dg_relation_desc)    sv('dg_relation_desc',    d.dg_relation_desc);
-    if(d.gift_yn)             selectRadioByVal('gift-group',  d.gift_yn);
+    if(d.gift_yn){
+      selectRadioByVal('gift-group', d.gift_yn);
+      if(d.gift_yn==='true'){
+        toggleGiftDetail(true);
+      }
+    }
+    if(d.gift_detail){
+      selectRadioByVal('gift-detail-group', d.gift_detail);
+    }
     if(d.precheck_memo)       sv('precheck_memo',        d.precheck_memo);
     if(d.g_ho_pw)             sv('g_ho_pw',              d.g_ho_pw);
     if(d.b_ho_pw)             sv('b_ho_pw',              d.b_ho_pw);
@@ -1137,6 +1135,7 @@ async function saveAll(){
     dg_disclosed:         getRadioVal('dg-disclosed-group')==='true',
     dg_relation_desc:     gv('dg_relation_desc'),
     gift_yn:              getRadioVal('gift-group')==='true',
+    gift_detail:          getRadioVal('gift-detail-group'),
     precheck_memo:        gv('precheck_memo'),
     groom_password:       gv('g_ho_pw'),
     bride_password:       gv('b_ho_pw'),
