@@ -274,6 +274,12 @@ input,select,textarea{font-family:inherit;outline:none}
     <button id="sch-tab-upcoming" class="sch-tab-btn sch-tab-active" onclick="setSchTab(&#39;upcoming&#39;)">📅 진행 예정</button>
     <button id="sch-tab-done" class="sch-tab-btn" onclick="setSchTab(&#39;done&#39;)">✅ 진행완료</button>
   </div>
+  <div style="position:relative;margin-bottom:10px">
+    <input id="sch-search" placeholder="🔍 이름 또는 웨딩홀 검색" oninput="renderSchList()"
+      style="width:100%;border:1.5px solid #E0E0E0;border-radius:8px;padding:7px 32px 7px 12px;font-size:13px;color:#111;background:#fff;outline:none;box-sizing:border-box">
+    <button onclick="document.getElementById('sch-search').value='';renderSchList()"
+      style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#9CA3AF;font-size:15px;cursor:pointer;line-height:1">✕</button>
+  </div>
   <div id="schedule-list-wrap"><div class="section-label">다가오는 예식</div><div class="sch-card">
     <div style="flex:1;min-width:0">
       <div class="sch-card-name">💍 이민우 ♥ 순민정</div>
@@ -2263,7 +2269,9 @@ function setSchTab(tab){
 }
 function renderSchList(){
   const wrap=document.getElementById('schedule-list-wrap');
-  const rows=_schTab==='done'?_allSchRows.filter(s=>s.status==='진행완료'):_allSchRows.filter(s=>s.status!=='진행완료');
+  const q=(document.getElementById('sch-search')?.value||'').trim().toLowerCase();
+  let rows=_schTab==='done'?_allSchRows.filter(s=>s.status==='진행완료'):_allSchRows.filter(s=>s.status!=='진행완료');
+  if(q) rows=rows.filter(s=>[(s.groom_name||''),(s.bride_name||''),(s.hall||'')].join(' ').toLowerCase().includes(q));
   if(!rows.length){wrap.innerHTML='<div class="empty-state">'+(_schTab==='done'?'진행완료 예식이 없습니다':'담당 예식이 없습니다')+'</div>';return;}
   const todayRows=rows.filter(s=>s.date===TODAY);
   const upcomRows=rows.filter(s=>s.date>TODAY);
