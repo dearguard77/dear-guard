@@ -1991,13 +1991,13 @@ input,select,textarea{font-family:inherit;outline:none}
           </div>
           <!-- 2줄: 추가 발급 -->
           <div style="display:flex;align-items:center;gap:6px">
-            <select id="add-ticket-side" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:68px">
+            <select id="add-ticket-side" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;background:#fff;flex-shrink:0;width:90px">
               <option value="신랑측">🤵 신랑</option>
               <option value="신부측">👰 신부</option>
             </select>
-            <input id="add-ticket-amount" type="number" placeholder="추가" min="1" autocomplete="off" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:44px;flex-shrink:0" onkeydown="if(event.key===&#39;Enter&#39;)addTicketExtra()">
+            <input id="add-ticket-amount" type="number" placeholder="수량" min="1" autocomplete="off" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:64px;flex-shrink:0" onkeydown="if(event.key===&#39;Enter&#39;)addTicketExtra()">
             <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
-            <button onclick="addTicketExtra()" style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+            <button onclick="addTicketExtra()" style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 9px;font-size:11px;font-weight:700;cursor:pointer;flex:1">추가</button>
           </div>
           <!-- 3줄: 추가 발급 리스트 -->
           <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;border-top:1px solid #F0EDE8;padding-top:3px"></div>
