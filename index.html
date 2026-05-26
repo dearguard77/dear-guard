@@ -1725,13 +1725,34 @@ function openDetail(id){
               <div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:6px">📋 사전체크 항목</div>
               <div style="font-size:12px;color:#374151;line-height:1.9">
                 ${fm.precheck
-                  ? `<div style="white-space:pre-wrap">${esc(fm.precheck.replace('[사전체크 자동 등록]\n','').replace('[사전체크]\n',''))}</div>`
+                  ? (()=>{
+                      // 인계 담당자 블록(📌 인계 담당자 ~ 빈 줄 전까지) 제거
+                      const cleaned = fm.precheck
+                        .replace('[사전체크 자동 등록]\n','')
+                        .replace('[사전체크]\n','')
+                        .split('\n')
+                        .filter(line => {
+                          const t = line.trim();
+                          return !(t.startsWith('📌 인계 담당자') ||
+                                   t.startsWith('🤵 신랑측') ||
+                                   t.startsWith('👰 신부측'));
+                        })
+                        .join('\n')
+                        .trim();
+                      // 💌 모바일 청첩장 줄에서 URL을 클릭형 링크로 변환
+                      const linked = cleaned.replace(
+                        /(💌 모바일 청첩장:\s*)(https?:\/\/\S+)/g,
+                        (_, prefix, url) =>
+                          `${esc(prefix)}<a href="${url}" target="_blank" style="color:#2563EB;font-weight:600;text-decoration:underline">${esc(url)}</a>`
+                      );
+                      return `<div style="white-space:pre-wrap">${linked}</div>`;
+                    })()
                   : `
                     ${s.cashMethod ? `<div>정산방식 · <strong>${esc(CASH_LABEL[s.cashMethod]||s.cashMethod)}</strong></div>` : ''}
                     ${dgHasVal && (s.dgDisclosed===false||s.dgDisclosed==='false') ? `<div>당일관계 · <strong>${esc(s.dgRelationDesc||'미입력')}</strong></div>`
                       : dgHasVal && (s.dgDisclosed===true||s.dgDisclosed==='true') ? `<div>혼주 디어가드 인지 · <strong>완료</strong></div>` : ''}
                     ${giftHasVal ? `<div>답례품 · <strong>${s.giftYn===true||s.giftYn==='true'?'있음':'없음'}</strong></div>` : ''}
-                    ${s.mobileInviteUrl ? `<div>💌 <a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:600">청첩장 링크</a></div>` : ''}
+                    ${s.mobileInviteUrl ? `<div>💌 <a href="${s.mobileInviteUrl}" target="_blank" style="color:#2563EB;font-weight:600;text-decoration:underline">모청 열기</a></div>` : ''}
                     ${s.precheckMemo ? `<div style="margin-top:4px;padding-top:4px;border-top:1px solid #BBF7D0">📝 ${esc(s.precheckMemo)}</div>` : ''}
                   `}
               </div>
