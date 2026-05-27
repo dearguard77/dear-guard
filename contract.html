@@ -529,13 +529,6 @@ function renderInfo(){
 function renderPayment(){
   const s = schedule;
   const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
-  const am = s.admin_memo || {};
-  const discounts = [];
-  if(am.review_discount)  discounts.push('계약 후기 할인');
-  if(am.wedding_discount) discounts.push('본식 후기 할인');
-  if(am.couple_discount)  discounts.push('짝꿍 할인');
-  if(am.friend_discount)  discounts.push('지인 할인');
-  if(am.open_discount)    discounts.push('오픈 할인');
 
   const rows = [
     ['총 계약 금액', s.total_price,   true],
@@ -543,14 +536,9 @@ function renderPayment(){
     ['잔금',         s.balance_price, false],
   ];
 
-  let html = rows.map(([l,v,gold])=> v!=null ? `
+  const html = rows.map(([l,v,gold])=>`
     <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val${gold?' gold':''}">${fmt(v)}</span></div>
-  ` : `
-    <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val">—</span></div>
   `).join('');
-  if(discounts.length){
-    html += `<div class="info-row"><span class="info-lbl">적용 할인</span><span class="info-val" style="color:var(--green)">${esc(discounts.join(', '))}</span></div>`;
-  }
   document.getElementById('payment-rows').innerHTML = html;
 }
 
@@ -744,8 +732,6 @@ function buildPdfDiv(signerName, sigDataUrl, signedAt){
   const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
   const signedAtStr = new Date(signedAt).toLocaleString('ko-KR');
   const am = s.admin_memo || {};
-  const discounts = ['review_discount','wedding_discount','couple_discount','friend_discount','open_discount']
-    .filter(k=>am[k]).map(k=>({'review_discount':'계약 후기 할인','wedding_discount':'본식 후기 할인','couple_discount':'짝꿍 할인','friend_discount':'지인 할인','open_discount':'오픈 할인'}[k]));
 
   const div = document.createElement('div');
   div.id = 'pdf-contract';
@@ -818,7 +804,6 @@ function buildPdfDiv(signerName, sigDataUrl, signedAt){
     ${g?`<div class="pdf-info-row"><span class="pdf-info-lbl">신랑 성함</span><span class="pdf-info-val">${g}</span></div>`:''}
     ${b?`<div class="pdf-info-row"><span class="pdf-info-lbl">신부 성함</span><span class="pdf-info-val">${b}</span></div>`:''}
     <div class="pdf-info-row"><span class="pdf-info-lbl">예상 하객 인원</span><span class="pdf-info-val">${s.guest_count?s.guest_count+'명':'—'}</span></div>
-    ${discounts.length?`<div class="pdf-info-row"><span class="pdf-info-lbl">추가 옵션</span><span class="pdf-info-val">${discounts.join(', ')}</span></div>`:''}
 
     <hr>
 
