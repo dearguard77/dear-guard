@@ -2576,10 +2576,18 @@ function renderPreShareList(){
   if(elB) elB.innerHTML = html;
 }
 // ── 식권 설정 ──
+// 변경 후
 function saveTotalTickets(){
-  totalTickets.groom=Number(document.getElementById('groom-total-ticket').value)||0;
-  totalTickets.bride=Number(document.getElementById('bride-total-ticket').value)||0;
-  if(currentSchedule) localStorage.setItem(`dg_tickets_${currentSchedule.id}`,JSON.stringify(totalTickets));
+  totalTickets.groom = Number(document.getElementById('groom-total-ticket').value)||0;
+  totalTickets.bride = Number(document.getElementById('bride-total-ticket').value)||0;
+  if(currentSchedule){
+    localStorage.setItem(`dg_tickets_${currentSchedule.id}`, JSON.stringify(totalTickets));
+    // Supabase에도 저장 → index에서 읽을 수 있게
+    sb.patch('schedules', currentSchedule.id, {
+      ticket_total_groom: totalTickets.groom || null,
+      ticket_total_bride: totalTickets.bride || null,
+    }).catch(e => console.warn('식권 저장 실패:', e));
+  }
   renderStats();
 }
 
