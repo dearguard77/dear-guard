@@ -1918,7 +1918,7 @@ async function openPrecheckModal(id){
   }
 
   const base = location.origin;
-  const precheckUrl = `${base}/precheck.html?t=${s.dashboardToken}`;
+  const precheckUrl = `${base}/api/precheck?t=${s.dashboardToken}&d=${s.date || Date.now()}`;
 
   const existing = document.getElementById('precheck-modal');
   if(existing) existing.remove();
