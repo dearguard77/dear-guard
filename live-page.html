@@ -6,7 +6,9 @@
 <title>Dear Guard · 실시간 장부</title>
 <meta property="og:type"        content="website">
 <meta property="og:title"       content="Dear Guard · 실시간 장부" id="og-title">
-<meta property="og:description" content="실시간 축의금 접수 현황을 확인하세요.">
+<meta property="og:description" content="디어가드 스마트 축의 운영 시스템" id="og-desc">
+<meta name="twitter:title"      content="Dear Guard · 실시간 장부" id="tw-title">
+<meta name="twitter:description" content="디어가드 스마트 축의 운영 시스템" id="tw-desc">
 <meta property="og:image"       content="https://dear-guard.vercel.app/icon.png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height"content="512">
@@ -477,10 +479,35 @@ async function init(){
   const token=getToken();
   if(!token){showError();return;}
   try{
-    const rows=await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}`);
+    // 1) dashboard_token으로 먼저 조회
+    let rows=await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}`);
+    let viewSide='both'; // both | groom | bride
+
+    // 2) 없으면 groom_token 조회
+    if(!rows.length){
+      rows=await sb.get('schedules',`?groom_token=eq.${encodeURIComponent(token)}`);
+      if(rows.length) viewSide='groom';
+    }
+    // 3) 없으면 bride_token 조회
+    if(!rows.length){
+      rows=await sb.get('schedules',`?bride_token=eq.${encodeURIComponent(token)}`);
+      if(rows.length) viewSide='bride';
+    }
+
     if(!rows.length) throw new Error('not found');
     schedule=rows[0];
     const g=(schedule.groom_name||'').trim(),b=(schedule.bride_name||'').trim();
+
+    // 토큰 기준 이름 조합
+    let displayTitle;
+    if(viewSide==='groom')       displayTitle = g ? `${g} 신랑측 실시간 장부` : '신랑측 실시간 장부';
+    else if(viewSide==='bride')  displayTitle = b ? `${b} 신부측 실시간 장부` : '신부측 실시간 장부';
+    else {
+      const names=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:schedule.hall||'—';
+      displayTitle = `${names} · 실시간 장부`;
+    }
+    const displayDesc = '디어가드 스마트 축의 운영 시스템';
+
     const names=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:schedule.hall||'—';
     se('hdr-names',names);
     const _d=new Date((schedule.date||'')+'T00:00:00');
@@ -490,12 +517,16 @@ async function init(){
     const _hall=schedule.hall||'';
     document.getElementById('hdr-info-dt').textContent=_dateTime;
     document.getElementById('hdr-info-hall').textContent=_hall;
-    document.title=`${names} · 실시간 장부`;
-    // OG 태그 동적 갱신 (카카오톡 미리보기)
-    const ogTitle = document.getElementById('og-title');
-    const ogUrl   = document.getElementById('og-url');
-    if(ogTitle) ogTitle.setAttribute('content', names+' · 실시간 장부');
-    if(ogUrl)   ogUrl.setAttribute('content', location.href);
+
+    // OG/title 일괄 업데이트
+    document.title = displayTitle;
+    const setMeta = (id,val)=>{ const el=document.getElementById(id); if(el) el.setAttribute('content',val); };
+    setMeta('og-title',  displayTitle);
+    setMeta('og-desc',   displayDesc);
+    setMeta('tw-title',  displayTitle);
+    setMeta('tw-desc',   displayDesc);
+    setMeta('og-url',    location.href);
+
     await loadLogs();
     renderHandover();
     applyWeddingMode();
