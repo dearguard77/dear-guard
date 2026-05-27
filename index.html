@@ -2006,7 +2006,7 @@ async function openContractModal(id){
   }
 
   const base = location.origin;
-  const contractUrl = `${base}/contract.html?t=${s.contractToken}`;
+  const contractUrl = `${base}/api/contract?t=${s.contractToken}`;
 
   const existing = document.getElementById('contract-modal');
   if(existing) existing.remove();
