@@ -754,7 +754,8 @@ function loadExistingData(){
   // 장부 방식
   const lm = s.live_mode || 'combined';
   selectRadioByVal('live-mode-group', lm);
-  if(lm==='split') document.getElementById('split-notice').style.display='block';
+  if(lm==='split')  document.getElementById('split-notice').style.display='block';
+  if(lm==='single') document.getElementById('single-notice').style.display='block';
   // 담당자
   sv('groom_contact_name',  s.groom_contact_name);
   sv('groom_contact_phone', s.groom_contact_phone);
@@ -1037,6 +1038,7 @@ function restoreDraft(){
 
     if(d.live_mode)           selectRadioByVal('live-mode-group', d.live_mode);
     if(d.live_mode==='split'){ const n=document.getElementById('split-notice'); if(n)n.style.display='block'; }
+    if(d.live_mode==='single'){ const n=document.getElementById('single-notice'); if(n)n.style.display='block'; }
     if(d.groom_contact_name)  sv('groom_contact_name',  d.groom_contact_name);
     if(d.groom_contact_phone) sv('groom_contact_phone', d.groom_contact_phone);
     if(d.bride_contact_name)  sv('bride_contact_name',  d.bride_contact_name);
