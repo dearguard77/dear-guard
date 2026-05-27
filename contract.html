@@ -53,10 +53,10 @@ input,select,textarea{font-family:inherit;outline:none}
 .hdr-brand{font-family:Georgia,serif;font-size:11px;color:var(--gold);letter-spacing:2.5px;font-weight:700;margin-bottom:10px;opacity:.8}
 .hdr-couple{font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1.2;margin-bottom:6px}
 .hdr-info{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px}
-.hdr-sub{font-size:12px;color:var(--gold2);font-weight:600}
+.hdr-sub{font-size:12px;color:var(--gold2);font-weight:600;margin-bottom:14px}
 
 /* 진행 바 */
-.progress-wrap{background:var(--bg3);border-top:1px solid var(--border);padding:10px 16px;margin:0 -16px -18px}
+.progress-wrap{background:var(--bg3);border-top:1px solid var(--border);padding:12px 16px;margin:0 -16px -18px}
 .progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .progress-label{font-size:11px;font-weight:700;color:var(--text2)}
 .progress-pct{font-size:11px;font-weight:800;color:var(--gold)}
@@ -744,8 +744,8 @@ function buildPdfDiv(signerName, sigDataUrl, signedAt){
   div.innerHTML = `
   <style>
     #pdf-contract * { box-sizing:border-box; font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
-    #pdf-contract .pdf-page { width:794px; min-height:1123px; padding:56px 80px; background:#fff; }
-    #pdf-contract .pdf-header { background:#C7A96B; padding:14px 80px; display:flex; align-items:center; gap:10px; }
+    #pdf-contract .pdf-page { width:794px; min-height:1123px; padding:60px 90px; background:#fff; }
+    #pdf-contract .pdf-header { background:#C7A96B; padding:14px 90px; display:flex; align-items:center; gap:10px; }
     #pdf-contract .pdf-header-logo { font-family:Georgia,serif; font-size:18px; font-weight:700; color:#fff; letter-spacing:3px; }
     #pdf-contract .pdf-header-sub { font-size:11px; color:rgba(255,255,255,.8); margin-top:2px; }
     #pdf-contract .pdf-title { font-size:22px; font-weight:900; color:#111827; margin-bottom:4px; margin-top:28px; }
