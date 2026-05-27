@@ -528,12 +528,7 @@ function renderInfo(){
 // ── 결제 정보 렌더 ──
 function renderPayment(){
   const s = schedule;
-  const rows = [
-    ['총 계약 금액', s.total_price, true],
-    ['계약금',       s.total_price&&s.net_profit ? s.total_price - s.net_profit : null, false],
-    ['잔금',         s.net_profit, false],
-  ];
-  // admin_memo에서 할인 항목 체크 여부
+  const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
   const am = s.admin_memo || {};
   const discounts = [];
   if(am.review_discount)  discounts.push('계약 후기 할인');
@@ -542,13 +537,21 @@ function renderPayment(){
   if(am.friend_discount)  discounts.push('지인 할인');
   if(am.open_discount)    discounts.push('오픈 할인');
 
+  const rows = [
+    ['총 계약 금액', s.total_price,   true],
+    ['계약금',       s.deposit_price, false],
+    ['잔금',         s.balance_price, false],
+  ];
+
   let html = rows.map(([l,v,gold])=> v!=null ? `
     <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val${gold?' gold':''}">${fmt(v)}</span></div>
-  ` : '').join('');
+  ` : `
+    <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val">—</span></div>
+  `).join('');
   if(discounts.length){
     html += `<div class="info-row"><span class="info-lbl">적용 할인</span><span class="info-val" style="color:var(--green)">${esc(discounts.join(', '))}</span></div>`;
   }
-  document.getElementById('payment-rows').innerHTML = html || '<div style="font-size:12px;color:var(--text3);padding:4px 0">금액 정보 미입력</div>';
+  document.getElementById('payment-rows').innerHTML = html;
 }
 
 // ── 섹션 토글 ──
