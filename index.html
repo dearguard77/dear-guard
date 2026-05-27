@@ -2875,10 +2875,12 @@ async function saveForm(){
 }
 
 // ─── RESULT MODAL ─────────────────────────────────────────────────────────────
-function openResult(id){
+async function openResult(id){
   resultId=id;
   const s=schedules.find(x=>x.id===id); if(!s) return;
   document.getElementById('rm-title').textContent=`📊 ${coupleName(s)}`;
+
+  // 기존 저장값 먼저 세팅
   document.getElementById('r-guests').value=s.result?.totalGuests||'';
   document.getElementById('r-amount').value=s.result?.totalAmount?Math.round(s.result.totalAmount/10000):'';
   document.getElementById('r-ticket-used').value=s.result?.ticketUsed||'';
@@ -2887,6 +2889,49 @@ function openResult(id){
   updateAmountPreview();
   document.getElementById('result-modal').style.display='flex';
   document.body.style.overflow='hidden';
+
+  // contribution 데이터 자동 계산 후 덮어쓰기
+  try {
+    const [logs, tickets] = await Promise.all([
+      sb.get('contribution_logs', `?schedule_id=eq.${id}`),
+      sb.get('ticket_additions',  `?schedule_id=eq.${id}`)
+    ]);
+
+    // 1. 총 접수 인원
+    const totalGuests = logs.length;
+
+    // 2. 총 축의금 (만원 단위)
+    const totalAmount = Math.round(
+      logs.reduce((sum, l) => sum + (l.amount || 0), 0) / 10000
+    );
+
+    // 3. 사용 식권 = 현장 사용 + 사전 공유
+    const usedOnsite   = logs.reduce((sum, l) => sum + (l.adult_ticket||0) + (l.child_ticket||0), 0);
+    const usedPreShare = tickets
+      .filter(t => t.type === 'pre_share')
+      .reduce((sum, t) => sum + (t.amount||0), 0);
+    const ticketUsed = usedOnsite + usedPreShare;
+
+    // 4. 잔여 식권 = (초기 식권 + 추가 발급) - 사용 식권
+    const extraAdded = tickets
+      .filter(t => t.type === 'extra')
+      .reduce((sum, t) => sum + (t.amount||0), 0);
+    const groomTotal = (s.ticketTotalGroom || 0) + tickets.filter(t=>t.type==='extra'&&t.side==='신랑측').reduce((sum,t)=>sum+(t.amount||0),0);
+    const brideTotal = (s.ticketTotalBride || 0) + tickets.filter(t=>t.type==='extra'&&t.side==='신부측').reduce((sum,t)=>sum+(t.amount||0),0);
+    const initTotal  = groomTotal + brideTotal;
+    const ticketRemain = initTotal > 0 ? initTotal - ticketUsed : '';
+
+    // 자동 채우기 (수동 수정 가능)
+    document.getElementById('r-guests').value      = totalGuests || '';
+    document.getElementById('r-amount').value      = totalAmount || '';
+    document.getElementById('r-ticket-used').value = ticketUsed  || '';
+    document.getElementById('r-ticket-rem').value  = ticketRemain !== '' ? ticketRemain : '';
+    updateAmountPreview();
+
+  } catch(e){
+    console.warn('[DG] 결과 자동계산 실패:', e);
+    // 실패 시 기존 저장값 유지 — 아무것도 안 함
+  }
 }
 function closeResult(){ document.getElementById('result-modal').style.display='none'; document.body.style.overflow=''; }
 function updateAmountPreview(){
