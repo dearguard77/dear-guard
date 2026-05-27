@@ -973,17 +973,25 @@ async function generatePDF(signerName, sigDataUrl, signedAt){
 
     const { jsPDF } = window.jspdf;
     const imgData = canvas.toDataURL('image/jpeg', 0.92);
-    const drawW = 190; // 좌우 여백 각 10mm (A4 210mm 기준)
-    const drawX = 10;  // 왼쪽 여백 10mm
-    const drawH = (canvas.height / canvas.width) * drawW; // 비율 유지 높이
-    const pageH = 297;
+
+    // A4 기준 (mm)
+    const pageW   = 210;
+    const pageH   = 297;
+    const marginX = 10;  // 좌우 여백
+    const marginY = 12;  // 상하 여백 — 페이지 잘림 방지
+    const drawW   = pageW - marginX * 2;          // 190mm
+    const drawH   = (canvas.height / canvas.width) * drawW; // 비율 유지 전체 높이
+    const contentH = pageH - marginY * 2;         // 한 페이지에 들어갈 이미지 높이
 
     const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    let posY = 0;
-    while(posY < drawH){
-      if(posY > 0) doc.addPage();
-      doc.addImage(imgData, 'JPEG', drawX, -posY, drawW, drawH);
-      posY += pageH;
+    let srcY = 0; // 이미지에서 현재 잘라낼 시작 위치 (mm)
+    let isFirst = true;
+    while(srcY < drawH){
+      if(!isFirst) doc.addPage();
+      isFirst = false;
+      // 이 페이지에서 이미지를 marginY 아래에 배치하고, srcY만큼 올려서 연속되게 표시
+      doc.addImage(imgData, 'JPEG', marginX, marginY - srcY, drawW, drawH);
+      srcY += contentH;
     }
 
     // 다운로드 (모바일/PC 통합)
