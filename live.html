@@ -194,6 +194,17 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
     -webkit-box-orient:vertical;
   }
 }
+@media(max-width:900px){
+  #tbl-ctrl{flex-wrap:wrap;gap:6px}
+  #tbl-ctrl .tbl-ctrl-title{flex-shrink:0}
+  #tbl-ctrl #tab-bar{flex:1;min-width:0}
+  #tbl-ctrl .tbl-ctrl-title,
+  #tbl-ctrl #tab-bar{order:1}
+  #tbl-ctrl #f-pay{order:2;flex:0 0 auto}
+  #tbl-ctrl #f-search{order:2;flex:1;min-width:0;width:auto}
+  #tbl-ctrl span[style*="flex:1"]{display:none}
+  #tbl-ctrl #tbl-cnt{order:1;margin-left:auto}
+}
 </style>
 </head>
 <body>
