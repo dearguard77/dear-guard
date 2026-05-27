@@ -1079,6 +1079,11 @@ function rowToSchedule(row){
     precheckMemo:      row.precheck_memo       || '',
     precheckStatus:    row.precheck_status     || '',
     liveMode:          row.live_mode           || '',
+    contractToken:     row.contract_token      || '',
+    contractSigned:    row.contract_signed     || false,
+    contractSignedAt:  row.contract_signed_at  || '',
+    contractSigner:    row.contract_signer     || '',
+    contractPdfUrl:    row.contract_pdf_url    || '',
   };
 }
 
@@ -1607,6 +1612,7 @@ function renderScheduleList(){
           ${ADMIN_NAMES.includes(currentUser.name)
             ? `<button class="sch-del-btn" onclick="event.stopPropagation();confirmDeleteSch(${s.id})">삭제</button>`
             : ''}
+          <button onclick="event.stopPropagation();openContractModal(${s.id})" style="background:#111827;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">📝계약</button>
           <button onclick="event.stopPropagation();openPrecheckModal(${s.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">📋체크</button>
         </div>
       </div>
@@ -1661,7 +1667,7 @@ function openDetail(id){
   detailId=id;
   const s=schedules.find(x=>x.id===id); if(!s) return;
   document.getElementById('dm-title').textContent=`${sideIcon(s)} ${coupleName(s)}`;
-  document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>`;
+  document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>${s.contractSigned?'<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📝 계약완료</span>':'<span style="background:#FEF9C3;color:#92400E;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">⏳ 계약대기</span>'}`;
 
   const canEdit=currentUser.canEdit||s.frontManager===currentUser.name||s.backManager===currentUser.name;
 
@@ -1848,6 +1854,10 @@ function openDetail(id){
             padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer">
           🗑️ 삭제
         </button>` : ''}
+      <button onclick="openContractModal(${id})"
+        style="background:#111827;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+        📝계약
+      </button>
       <button onclick="openPrecheckModal(${id})"
         style="background:#374151;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
         📋체크
@@ -1928,6 +1938,74 @@ async function openPrecheckModal(id){
 
 function closePrecheckModal(){
   const modal = document.getElementById('precheck-modal');
+  if(modal) modal.remove();
+  document.body.style.overflow = '';
+}
+
+// ── 계약서 링크 모달 ──
+async function openContractModal(id){
+  let s = schedules.find(x => x.id === id);
+  if(!s) return;
+
+  // contract_token 없으면 생성
+  if(!s.contractToken){
+    const ct = 'C_' + Math.random().toString(36).slice(2,10).toUpperCase();
+    try {
+      await sb.patch('schedules', id, { contract_token: ct });
+      s.contractToken = ct;
+    } catch(e){ showToast('⚠️ 토큰 생성 실패: '+e.message); return; }
+  }
+
+  const base = location.origin;
+  const contractUrl = `${base}/contract.html?t=${s.contractToken}`;
+
+  const existing = document.getElementById('contract-modal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'contract-modal';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal.onclick = function(e){ if(e.target===modal) closeContractModal(); };
+
+  const signedBadge = s.contractSigned
+    ? `<div style="margin-top:8px;padding:8px 12px;background:#ECFDF5;border-radius:8px;font-size:12px;color:#065F46;font-weight:700">✅ 계약 완료 · ${s.contractSigner||''} · ${s.contractSignedAt ? new Date(s.contractSignedAt).toLocaleString('ko-KR') : ''}</div>`
+    : `<div style="margin-top:8px;padding:8px 12px;background:#FEF3C7;border-radius:8px;font-size:12px;color:#92400E;font-weight:700">⏳ 서명 대기 중</div>`;
+
+  const pdfBtn = s.contractSigned && s.contractPdfUrl
+    ? `<a href="${s.contractPdfUrl}" target="_blank" style="display:block;width:100%;background:#059669;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;margin-top:8px">📄 서명된 PDF 보기</a>`
+    : '';
+
+  modal.innerHTML = `
+    <div class="modal-box sm" style="max-width:400px">
+      <div class="modal-header">
+        <button class="x-btn" onclick="closeContractModal()">✕</button>
+        <div class="modal-brand">Dear Guard · 전자계약서</div>
+        <div class="modal-title">📝 계약 링크</div>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+        ${signedBadge}
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">📝 전자계약 링크</div>
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${contractUrl}</div>
+          <button onclick="navigator.clipboard.writeText('${contractUrl}').then(()=>showToast('📝 계약 링크 복사됨'))"
+            style="width:100%;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            📝 계약 링크 복사
+          </button>
+          ${pdfBtn}
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeContractModal()">닫기</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeContractModal(){
+  const modal = document.getElementById('contract-modal');
   if(modal) modal.remove();
   document.body.style.overflow = '';
 }
