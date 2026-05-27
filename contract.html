@@ -558,6 +558,10 @@ function toggleSection(id){
   const isOpen = body.classList.contains('open');
   body.classList.toggle('open',!isOpen);
   if(toggle) toggle.classList.toggle('open',!isOpen);
+  // 서명 섹션 열릴 때 캔버스 크기 재설정
+  if(id==='sec-sign' && !isOpen){
+    setTimeout(resizeCanvas, 50);
+  }
 }
 
 // ── 조항 accordion ──
@@ -611,13 +615,9 @@ function updateAllAgreeDot(){
 // ── 서명 패드 ──
 function initSignaturePad(){
   const canvas = document.getElementById('sig-canvas');
-  // 캔버스 크기 설정
-  const ratio = Math.max(window.devicePixelRatio || 1, 1);
-  canvas.width  = canvas.offsetWidth  * ratio;
-  canvas.height = 160 * ratio;
-  canvas.getContext('2d').scale(ratio, ratio);
-  canvas.style.height = '160px';
+  if(!canvas) return;
 
+  // SignaturePad 먼저 생성 (크기는 resizeCanvas에서)
   signaturePad = new SignaturePad(canvas, {
     backgroundColor: 'rgba(255,255,255,0)',
     penColor: '#111827',
@@ -628,6 +628,23 @@ function initSignaturePad(){
     document.getElementById('sig-hint').classList.add('hidden');
   });
   signaturePad.addEventListener('afterUpdateStroke', ()=> updateProgress());
+
+  // 초기 크기 설정 (이미 열려있을 경우 대비)
+  resizeCanvas();
+}
+
+function resizeCanvas(){
+  const canvas = document.getElementById('sig-canvas');
+  if(!canvas || !signaturePad) return;
+  // 부모가 display:none 이면 offsetWidth=0 → 건너뜀
+  if(canvas.offsetWidth === 0) return;
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  const data = signaturePad.toData();
+  canvas.width  = canvas.offsetWidth * ratio;
+  canvas.height = 160 * ratio;
+  canvas.style.height = '160px';
+  canvas.getContext('2d').scale(ratio, ratio);
+  signaturePad.fromData(data);
 }
 
 function clearSignature(){
@@ -827,17 +844,7 @@ function showToast(msg){
 }
 
 // 캔버스 리사이즈 대응
-window.addEventListener('resize', ()=>{
-  if(!signaturePad) return;
-  const canvas = document.getElementById('sig-canvas');
-  const ratio = Math.max(window.devicePixelRatio||1,1);
-  const data = signaturePad.toData();
-  canvas.width  = canvas.offsetWidth * ratio;
-  canvas.height = 160 * ratio;
-  canvas.getContext('2d').scale(ratio,ratio);
-  canvas.style.height = '160px';
-  signaturePad.fromData(data);
-});
+window.addEventListener('resize', ()=>{ resizeCanvas(); });
 
 init();
 </script>
