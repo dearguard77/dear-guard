@@ -3061,9 +3061,9 @@ function showDashboardLink(){
   const mainEl=document.getElementById('token-url-display');
   const groomEl=document.getElementById('token-url-groom');
   const brideEl=document.getElementById('token-url-bride');
-  if(mainEl) mainEl.textContent=`${base}/live.html?t=${currentSchedule.dashboard_token}`;
-  if(groomEl) groomEl.textContent=`${base}/live.html?t=${currentSchedule.groom_token||'(미생성)'}`;
-  if(brideEl) brideEl.textContent=`${base}/live.html?t=${currentSchedule.bride_token||'(미생성)'}`;
+  if(mainEl) mainEl.textContent=`${base}/api/live?t=${currentSchedule.dashboard_token}&d=${currentSchedule.date||Date.now()}`;
+if(groomEl) groomEl.textContent=`${base}/api/live?t=${currentSchedule.groom_token||'(미생성)'}&d=${currentSchedule.date||Date.now()}`;
+if(brideEl) brideEl.textContent=`${base}/api/live?t=${currentSchedule.bride_token||'(미생성)'}&d=${currentSchedule.date||Date.now()}`;
   document.getElementById('token-modal').style.display='flex';
 }
 function copyDashboardLink(){
