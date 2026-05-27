@@ -23,6 +23,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -728,125 +729,247 @@ async function submitContract(){
   }
 }
 
-// ── PDF 생성 (jsPDF) ──
+// ── PDF 전용 hidden div 빌드 ──
+function buildPdfDiv(signerName, sigDataUrl, signedAt){
+  const s = schedule;
+  const g = (s.groom_name||'').trim(), b = (s.bride_name||'').trim();
+  const couple = (g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:s.hall||'—';
+  const DAYS=['일','월','화','수','목','금','토'];
+  const dObj = new Date((s.date||'')+'T00:00:00');
+  const dateStr = s.date?`${s.date} (${DAYS[dObj.getDay()]}) ${(s.time||'').slice(0,5)}`:'—';
+  const hall = [s.hall, s.address].filter(Boolean).join(' ') || '—';
+  const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
+  const signedAtStr = new Date(signedAt).toLocaleString('ko-KR');
+  const am = s.admin_memo || {};
+  const discounts = ['review_discount','wedding_discount','couple_discount','friend_discount','open_discount']
+    .filter(k=>am[k]).map(k=>({'review_discount':'계약 후기 할인','wedding_discount':'본식 후기 할인','couple_discount':'짝꿍 할인','friend_discount':'지인 할인','open_discount':'오픈 할인'}[k]));
+
+  const div = document.createElement('div');
+  div.id = 'pdf-contract';
+  div.style.cssText = [
+    'position:fixed','top:0','left:-9999px','width:794px',
+    'background:#fff','font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif',
+    'color:#111827','font-size:13px','line-height:1.8','z-index:-1','padding:0',
+  ].join(';');
+
+  div.innerHTML = `
+  <style>
+    #pdf-contract * { box-sizing:border-box; font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+    #pdf-contract .pdf-page { width:794px; min-height:1123px; padding:56px 64px; background:#fff; }
+    #pdf-contract .pdf-header { background:#C7A96B; padding:14px 64px; display:flex; align-items:center; gap:10px; }
+    #pdf-contract .pdf-header-logo { font-family:Georgia,serif; font-size:18px; font-weight:700; color:#fff; letter-spacing:3px; }
+    #pdf-contract .pdf-header-sub { font-size:11px; color:rgba(255,255,255,.8); margin-top:2px; }
+    #pdf-contract .pdf-title { font-size:22px; font-weight:900; color:#111827; margin-bottom:4px; margin-top:28px; }
+    #pdf-contract .pdf-couple { font-size:17px; font-weight:800; color:#C7A96B; margin-bottom:6px; }
+    #pdf-contract .pdf-meta { font-size:12px; color:#6B7280; margin-bottom:4px; }
+    #pdf-contract .pdf-desc { font-size:12px; color:#374151; margin:14px 0 24px; line-height:1.8; }
+    #pdf-contract hr { border:none; border-top:1.5px solid #E8E2D9; margin:20px 0; }
+    #pdf-contract .pdf-section-title { font-size:15px; font-weight:800; color:#111827; margin-bottom:14px; padding-bottom:6px; border-bottom:2px solid #E8E2D9; }
+    #pdf-contract .pdf-info-row { display:flex; padding:7px 0; border-bottom:1px solid #F5F3F0; font-size:13px; }
+    #pdf-contract .pdf-info-row:last-child { border-bottom:none; }
+    #pdf-contract .pdf-info-lbl { color:#6B7280; width:140px; flex-shrink:0; }
+    #pdf-contract .pdf-info-val { font-weight:700; color:#111827; flex:1; }
+    #pdf-contract .pdf-info-val.gold { color:#C7A96B; }
+    #pdf-contract .pdf-clause-title { font-size:13px; font-weight:800; color:#111827; margin:14px 0 6px; }
+    #pdf-contract .pdf-clause-item { font-size:12px; color:#374151; padding-left:14px; position:relative; margin-bottom:5px; line-height:1.7; }
+    #pdf-contract .pdf-clause-item::before { content:'①②③④⑤⑥⑦⑧'; position:absolute; left:0; color:#C7A96B; }
+    #pdf-contract .pdf-clause-num { position:absolute; left:0; color:#C7A96B; font-size:11px; }
+    #pdf-contract .pdf-refund { width:100%; border-collapse:collapse; margin:10px 0; font-size:12px; }
+    #pdf-contract .pdf-refund th { background:#F9F7F4; padding:7px 12px; border:1px solid #E8E2D9; font-weight:700; color:#374151; text-align:left; }
+    #pdf-contract .pdf-refund td { padding:7px 12px; border:1px solid #E8E2D9; color:#111827; }
+    #pdf-contract .pdf-agree-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border:1.5px solid #E8E2D9; border-radius:6px; margin-bottom:6px; background:#F9F7F4; font-size:13px; font-weight:700; color:#111827; }
+    #pdf-contract .pdf-agree-check { color:#059669; font-size:15px; }
+    #pdf-contract .pdf-sign-box { display:flex; justify-content:flex-end; gap:48px; margin-top:28px; }
+    #pdf-contract .pdf-sign-col { text-align:center; }
+    #pdf-contract .pdf-sign-party { font-size:11px; color:#6B7280; margin-bottom:6px; }
+    #pdf-contract .pdf-sign-name { font-size:14px; font-weight:800; color:#111827; margin-bottom:4px; }
+    #pdf-contract .pdf-sign-img-wrap { width:160px; height:60px; border-bottom:1.5px solid #111827; margin:0 auto; display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px; }
+    #pdf-contract .pdf-sign-img-wrap img { max-height:56px; max-width:150px; object-fit:contain; }
+    #pdf-contract .pdf-sign-date { font-size:11px; color:#6B7280; margin-top:6px; }
+    #pdf-contract .pdf-footer { margin-top:36px; padding-top:14px; border-top:1px solid #E8E2D9; font-size:10px; color:#9CA3AF; text-align:center; line-height:1.8; }
+    #pdf-contract .pdf-notice { background:#F9F7F4; border-left:3px solid #C7A96B; padding:10px 14px; font-size:11px; color:#6B7280; line-height:1.7; margin:10px 0; }
+  </style>
+
+  <!-- 헤더 -->
+  <div class="pdf-header">
+    <div>
+      <div class="pdf-header-logo">DEAR GUARD</div>
+      <div class="pdf-header-sub">웨딩 운영 서비스</div>
+    </div>
+  </div>
+
+  <div class="pdf-page">
+    <div class="pdf-title">디어가드 서비스 이용 계약 및 운영 안내</div>
+    <div class="pdf-couple">${couple}</div>
+    <div class="pdf-meta">📅 ${dateStr}</div>
+    <div class="pdf-meta">🏛 ${hall}</div>
+    <div class="pdf-desc">디어가드는 축의금이라는 소중한 마음을 보다 안전하고 투명하게 관리하기 위해, 아래와 같은 운영 원칙을 기준으로 서비스를 제공합니다.<br>아래 내용을 충분히 확인하신 후 계약 및 서비스 이용 부탁드립니다.</div>
+
+    <hr>
+
+    <!-- 예약 정보 -->
+    <div class="pdf-section-title">예약 정보</div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">상품 구성</span><span class="pdf-info-val">${s.product||'—'}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">예식 날짜 / 시간</span><span class="pdf-info-val">${dateStr}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">예식장 및 홀</span><span class="pdf-info-val">${hall}</span></div>
+    ${g?`<div class="pdf-info-row"><span class="pdf-info-lbl">신랑 성함</span><span class="pdf-info-val">${g}</span></div>`:''}
+    ${b?`<div class="pdf-info-row"><span class="pdf-info-lbl">신부 성함</span><span class="pdf-info-val">${b}</span></div>`:''}
+    <div class="pdf-info-row"><span class="pdf-info-lbl">예상 하객 인원</span><span class="pdf-info-val">${s.guest_count?s.guest_count+'명':'—'}</span></div>
+    ${discounts.length?`<div class="pdf-info-row"><span class="pdf-info-lbl">추가 옵션</span><span class="pdf-info-val">${discounts.join(', ')}</span></div>`:''}
+
+    <hr>
+
+    <!-- 결제 정보 -->
+    <div class="pdf-section-title">결제 정보</div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">총 계약 금액</span><span class="pdf-info-val gold">${fmt(s.total_price)}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">계약금</span><span class="pdf-info-val">${s.total_price&&s.net_profit?fmt(s.total_price-s.net_profit):'—'}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">잔금</span><span class="pdf-info-val">${fmt(s.net_profit)}</span></div>
+    <div class="pdf-notice">※ 본 계약서는 배상 범위 및 책임 기준을 명확히 하기 위해 정가 기준으로 작성됩니다.<br>※ 계약 후기 할인, 짝꿍 할인 등 프로모션 혜택은 조건 충족 시 잔금 결제 금액에서 차감 적용됩니다.</div>
+
+    <hr>
+
+    <!-- 계약 조항 -->
+    <div class="pdf-section-title">1. 개인정보 수집 및 이용</div>
+    ${['서비스 진행을 위해 고객님의 성함, 연락처, 예식 정보 등의 개인정보를 수집 및 이용합니다.',
+       '수집된 정보는 서비스 운영 목적 외에는 사용되지 않으며, 본식 종료 후 1개월간 내부 보관 후 안전하게 삭제 처리됩니다.',
+       '수집된 정보는 서비스 진행 과정에서 작성되는 장부, 촬영 영상 및 기타 기록 자료는 서비스 운영 및 사고 예방 목적에 한하여 사용됩니다.'
+      ].map((t,i)=>`<div class="pdf-clause-item"><span class="pdf-clause-num">①②③`[i]+'</span>'+t+'</div>').join('')}
+
+    <div class="pdf-section-title">2. 예약 확정 안내</div>
+    ${['예약은 계약금 입금 완료 순으로 최종 확정됩니다.',
+       '잔금은 본식 7일 전까지 완납해주셔야 하며, 사전 인터뷰 진행 시 함께 안내드리고 있습니다.',
+       '잔금 미납으로 인해 서비스 진행이 불가능한 경우, 해당 일정은 자동 취소 처리되며 계약금은 환불되지 않습니다.'
+      ].map((t,i)=>`<div class="pdf-clause-item"><span class="pdf-clause-num">${['①','②','③'][i]}</span>${t}</div>`).join('')}
+
+    <div class="pdf-section-title">3. 서비스 운영 안내</div>
+    ${['디어가드는 단기 아르바이트 인력을 사용하지 않으며, 대표 및 정식 등록된 운영 매니저로만 현장 운영을 진행합니다.',
+       '예식 당일에는 하객 응대, 축의금 접수, 실시간 장부 기록 및 최종 인계까지 전 과정을 운영 기준에 따라 진행합니다.',
+       '축의금은 사전 협의된 인계자에게만 전달 가능하며, 현장 상황에 따른 임의 인계 변경은 제한될 수 있습니다.',
+       '축의금 및 장부는 인계 시 고객 또는 사전 지정 인계자의 확인 후 전달되며, 인계 완료 이후 발생하는 분실 및 차액에 대해서는 책임지지 않습니다.',
+       '신청 측 예상 하객이 200명 이상인 경우, 원활한 접수 진행을 위해 추가 인력 옵션이 필수 적용될 수 있으며, 관련 비용은 사전 안내 후 진행됩니다.'
+      ].map((t,i)=>`<div class="pdf-clause-item"><span class="pdf-clause-num">${['①','②','③','④','⑤'][i]}</span>${t}</div>`).join('')}
+
+    <div class="pdf-section-title">4. 촬영 및 장부 운영 안내</div>
+    ${['디어가드는 축의금 사고 예방 및 기록 보관 목적을 위해 현장 촬영을 진행할 수 있습니다.',
+       '촬영 영상은 고객 전용 비공개 링크로만 제공되며, 제공된 링크의 외부 공유는 권장되지 않습니다.',
+       '축의 장부 및 공유 링크는 본식 후 1개월간 제공되며, 이후 개인정보 보호를 위해 자동 삭제 처리됩니다.',
+       '영상 및 장부 자료는 내부 보관 기간 종료 후 안전하게 삭제 처리됩니다.'
+      ].map((t,i)=>`<div class="pdf-clause-item"><span class="pdf-clause-num">${['①','②','③','④'][i]}</span>${t}</div>`).join('')}
+
+    <div class="pdf-section-title">5. 할인 및 프로모션 규정</div>
+    ${['계약 후기 할인은 계약일 기준 7일 이내 후기 작성 및 링크 전달 시 적용됩니다.',
+       '본식 후기 할인(페이백)은 본식일 기준 1개월 이내 작성 시 적용되며, 모든 후기는 최소 6개월 이상 유지되어야 합니다.',
+       '후기 삭제 또는 비공개 처리 시 할인 적용이 제한될 수 있으며, 필요 시 별도 정산 요청이 진행될 수 있습니다.',
+       '작성된 후기, 상담 내용 일부 및 현장 사진은 개인정보 비식별 처리 후 디어가드 홍보 콘텐츠로 활용될 수 있습니다.',
+       '짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.',
+       '모든 할인 및 프로모션은 중복 적용이 제한될 수 있으며, 내부 운영 기준에 따라 변동될 수 있습니다.'
+      ].map((t,i)=>`<div class="pdf-clause-item"><span class="pdf-clause-num">${['①','②','③','④','⑤','⑥'][i]}</span>${t}</div>`).join('')}
+
+    <div class="pdf-section-title">6. 일정 변경 및 환불 규정</div>
+    ${['예식 일정 변경은 1회 가능합니다. (기존 예약 상황 및 운영 일정에 따라 변경이 어려울 수 있습니다.)',
+       '일정 변경 요청 시 변경 희망 날짜에 디어가드 운영이 불가능한 경우, 기존 계약은 취소로 간주되며 아래 환불 규정에 따라 처리됩니다.'
+      ].map((t,i)=>`<div class="pdf-clause-item"><span class="pdf-clause-num">${['①','②'][i]}</span>${t}</div>`).join('')}
+    <table class="pdf-refund">
+      <thead><tr><th>취소 시점</th><th>환불 기준</th></tr></thead>
+      <tbody>
+        <tr><td>계약일로부터 3일 이내</td><td style="color:#059669;font-weight:700">전액 환불</td></tr>
+        <tr><td>계약일로부터 7일 이내</td><td>총 금액의 10% 공제 후 환불</td></tr>
+        <tr><td>계약일로부터 14일 이내</td><td>총 금액의 20% 공제 후 환불</td></tr>
+        <tr><td>계약일로부터 14일 초과</td><td style="color:#DC2626;font-weight:700">환불 불가</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pdf-section-title">7. 책임 범위 및 기타 안내</div>
+    ${['디어가드는 계약된 축의 접수 및 관리 업무 범위 내에서 서비스를 제공합니다.',
+       '사전 협의되지 않은 귀중품 및 개인 물품은 별도 관리 대상에 포함되지 않습니다.',
+       '현장 상황에 따른 불가피한 운영 변수에 대해서는 디어가드의 고의 또는 중대한 과실이 없는 한 책임이 제한될 수 있습니다.',
+       '천재지변, 사고, 교통 통제, 재난 등 불가항력적인 상황 발생 시 서비스 일정이 일부 변경될 수 있으며, 이 경우 고객님과 즉시 소통 후 가능한 최선의 조치를 진행합니다.',
+       '업체 사유로 본식 참여가 어려운 경우, 대체 업체 선정 및 발생 비용은 디어가드에서 전액 부담합니다.'
+      ].map((t,i)=>`<div class="pdf-clause-item"><span class="pdf-clause-num">${['①','②','③','④','⑤'][i]}</span>${t}</div>`).join('')}
+
+    <hr>
+
+    <!-- 동의 -->
+    <div class="pdf-section-title">동의 확인</div>
+    <div class="pdf-agree-item"><span class="pdf-agree-check">☑</span> 계약 내용을 모두 확인했습니다.</div>
+    <div class="pdf-agree-item"><span class="pdf-agree-check">☑</span> 환불 규정을 확인했습니다.</div>
+    <div class="pdf-agree-item"><span class="pdf-agree-check">☑</span> 개인정보 수집 및 이용에 동의합니다.</div>
+    <div class="pdf-agree-item"><span class="pdf-agree-check">☑</span> 서비스 운영 안내 및 책임 범위를 확인했습니다.</div>
+
+    <div style="margin-top:16px;font-size:13px;font-weight:800;color:#111827">위 계약 내용을 모두 확인하였으며 이에 동의합니다. ☑</div>
+
+    <hr>
+
+    <!-- 서명 -->
+    <div class="pdf-sign-box">
+      <div class="pdf-sign-col">
+        <div class="pdf-sign-party">계약자</div>
+        <div class="pdf-sign-name">${signerName}</div>
+        <div class="pdf-sign-img-wrap">
+          ${sigDataUrl?`<img src="${sigDataUrl}" alt="서명">`:''}
+        </div>
+        <div class="pdf-sign-date">${signedAtStr}</div>
+      </div>
+      <div class="pdf-sign-col">
+        <div class="pdf-sign-party">디어가드</div>
+        <div class="pdf-sign-name">강성주</div>
+        <div class="pdf-sign-img-wrap"></div>
+        <div class="pdf-sign-date">${signedAtStr}</div>
+      </div>
+    </div>
+
+    <div class="pdf-footer">
+      본 문서는 전자서명법에 따라 직접 자필 서명과 동일한 법적 효력을 가집니다.<br>
+      Dear Guard | dear-guard.vercel.app | 생성일시: ${signedAtStr}
+    </div>
+  </div>`;
+
+  return div;
+}
+
+// ── PDF 생성 (html2canvas → jsPDF) ──
 async function generatePDF(signerName, sigDataUrl, signedAt){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  showToast('📄 계약서 생성 중...');
 
-  // 한글 폰트 없이 기본 폰트 사용
-  const w = 210, margin = 20;
-  let y = 20;
-
-  const line = (text, size=10, bold=false, color=[17,24,39])=>{
-    doc.setFontSize(size);
-    doc.setFont('helvetica', bold?'bold':'normal');
-    doc.setTextColor(...color);
-    doc.text(text, margin, y);
-    y += size * 0.5 + 2;
-  };
-  const hr = ()=>{ doc.setDrawColor(232,226,217); doc.line(margin,y,w-margin,y); y+=5; };
-  const gap = (n=4)=>{ y+=n; };
-
-  // 헤더
-  doc.setFillColor(199,169,107);
-  doc.rect(0,0,w,12,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(9); doc.setFont('helvetica','bold');
-  doc.text('DEAR GUARD', margin, 8);
-
-  y = 22;
-  line('Dear Guard - Electronic Contract', 14, true, [17,24,39]);
-  gap(2);
-
-  const g=(schedule.groom_name||'').trim(), b=(schedule.bride_name||'').trim();
-  const couple = (g&&b)?`${g} x ${b}`:g||b||'—';
-  line(couple, 12, true, [199,169,107]);
-  gap(2);
-
-  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const dObj = new Date((schedule.date||'')+'T00:00:00');
-  const dateStr = schedule.date?`${schedule.date} (${DAYS[dObj.getDay()]}) ${(schedule.time||'').slice(0,5)}`:'—';
-  line(dateStr, 10, false, [107,114,128]);
-  line([schedule.hall, schedule.address].filter(Boolean).join(' | ')||'—', 10, false, [107,114,128]);
-
-  hr(); gap(2);
-  line('[Reservation Info]', 11, true);
-  gap(2);
-  const infoItems = [
-    `Product: ${schedule.product||'—'}`,
-    `Date: ${dateStr}`,
-    `Venue: ${schedule.hall||'—'}`,
-    `Hall: ${schedule.address||'—'}`,
-    `Guests: ${schedule.guest_count||'—'}`,
-  ];
-  infoItems.forEach(t=>{ line(`  ${t}`, 9); });
-
-  hr(); gap(2);
-  line('[Payment Info]', 11, true);
-  gap(2);
-  if(schedule.total_price) line(`  Total: ${Number(schedule.total_price).toLocaleString()} KRW`, 9, true, [199,169,107]);
-  if(schedule.net_profit)  line(`  Balance: ${Number(schedule.net_profit).toLocaleString()} KRW`, 9);
-
-  hr(); gap(2);
-  line('[Agreement]', 11, true);
-  gap(2);
-  ['All contract contents confirmed','Refund policy confirmed','Personal info collection agreed','Service operation guidelines confirmed']
-    .forEach(t=>{ line(`  [V] ${t}`, 9, false, [5,150,105]); });
-
-  hr(); gap(4);
-  line('[Electronic Signature]', 11, true);
-  gap(2);
-  line(`Signer: ${signerName}`, 10);
-  line(`Signed at: ${new Date(signedAt).toLocaleString('ko-KR')}`, 9, false, [107,114,128]);
-  gap(4);
-
-  // 서명 이미지
-  try {
-    doc.addImage(sigDataUrl, 'PNG', margin, y, 60, 25);
-    y += 30;
-  } catch(e){}
-
-  doc.setFontSize(8); doc.setTextColor(156,163,175);
-  doc.text('This document is an electronic contract with legal effect equivalent to a handwritten signature.', margin, y+8);
-  doc.text(`Dear Guard  |  Generated: ${new Date().toLocaleString('ko-KR')}`, margin, y+14);
-
-  // 파일명 한글화: 디어가드 계약서 (이름) (날짜)
-  const g2=(schedule.groom_name||'').trim(), b2=(schedule.bride_name||'').trim();
-  const nameStr = g2||b2||'고객';
+  const g = (schedule.groom_name||'').trim(), b = (schedule.bride_name||'').trim();
+  const nameStr = g||b||'고객';
   const dateForFile = (schedule.date||'').replace(/-/g,'');
   const filename = `디어가드 계약서 ${nameStr} ${dateForFile}.pdf`;
 
-  // iOS/카카오 인앱 대응: base64 data URI → 새 탭 열기
-  const pdfDataUri = doc.output('datauristring');
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+  // hidden div 생성 및 DOM 삽입
+  const pdfDiv = buildPdfDiv(signerName, sigDataUrl, signedAt);
+  document.body.appendChild(pdfDiv);
 
-  if(isIOS || isKakao){
-    // iOS / 카카오 인앱: 새 탭에서 PDF 열기 (직접 저장 유도)
-    const newTab = window.open();
-    if(newTab){
-      newTab.document.write(`
-        <html><head><meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>${filename}</title>
-        <style>body{margin:0;background:#222;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif}
-        p{color:#fff;font-size:14px;margin:12px;text-align:center;line-height:1.8}
-        a{display:inline-block;margin-top:8px;background:#C7A96B;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px}
-        iframe{width:100vw;height:80vh;border:none}</style></head>
-        <body>
-        <p>📄 계약서 PDF<br><small>아이폰은 길게 눌러 저장하거나<br>상단 공유 버튼으로 저장하세요</small></p>
-        <a href="${pdfDataUri}" download="${filename}">⬇️ PDF 저장</a>
-        <br><br>
-        <iframe src="${pdfDataUri}"></iframe>
-        </body></html>
-      `);
-      newTab.document.close();
-    } else {
-      // 팝업 차단된 경우 현재 탭에서 열기
-      location.href = pdfDataUri;
+  // 폰트 로드 대기
+  await document.fonts.ready;
+  await new Promise(r=>setTimeout(r,300));
+
+  try {
+    const canvas = await html2canvas(pdfDiv, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: 794,
+      scrollX: 0,
+      scrollY: 0,
+    });
+
+    const { jsPDF } = window.jspdf;
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const imgW = 210; // A4 mm
+    const imgH = (canvas.height / canvas.width) * imgW;
+    const pageH = 297;
+
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    let posY = 0;
+    while(posY < imgH){
+      if(posY > 0) doc.addPage();
+      doc.addImage(imgData, 'JPEG', 0, -posY, imgW, imgH);
+      posY += pageH;
     }
-  } else {
-    // Android / PC: blob URL + a 태그 클릭
+
+    // 다운로드 (모바일/PC 통합)
     const pdfBlob = doc.output('blob');
     const blobUrl = URL.createObjectURL(pdfBlob);
     const a = document.createElement('a');
@@ -854,7 +977,14 @@ async function generatePDF(signerName, sigDataUrl, signedAt){
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(blobUrl); }, 1000);
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(blobUrl); }, 1500);
+
+    showToast('✅ PDF 저장 완료');
+  } catch(e){
+    console.error('[DG] PDF 생성 실패:', e);
+    showToast('⚠️ PDF 생성 실패: '+e.message);
+  } finally {
+    document.body.removeChild(pdfDiv);
   }
 }
 
