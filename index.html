@@ -785,6 +785,14 @@
             <input class="form-input" id="f-total-price" type="number" placeholder="500000" oninput="calcSettlement()">
           </div>
           <div class="form-field">
+            <label class="form-label">계약금 (원)</label>
+            <input class="form-input" id="f-deposit-price" type="number" placeholder="150000">
+          </div>
+          <div class="form-field">
+            <label class="form-label">잔금 (원)</label>
+            <input class="form-input" id="f-balance-price" type="number" placeholder="350000">
+          </div>
+          <div class="form-field">
             <label class="form-label">지역 구분</label>
             <select class="form-input" id="f-labor-region" onchange="calcSettlement()">
               <option value="대전">대전 (인당 90,000원)</option>
@@ -1052,6 +1060,8 @@ function rowToSchedule(row){
     notes:        Array.isArray(row.notes)    ? row.notes    : (row.notes    ? JSON.parse(row.notes)    : []),
     checklist:    row.checklist && typeof row.checklist === 'object' ? {...BLANK_CL(),...row.checklist} : BLANK_CL(),
     totalPrice:   row.total_price  || null,
+    depositPrice: row.deposit_price || null,
+    balancePrice: row.balance_price || null,
     laborRegion:  row.labor_region || '대전',
     laborCount:   row.labor_count  || null,
     laborCost:    row.labor_cost   || null,
@@ -1107,6 +1117,8 @@ function scheduleToRow(v, notes, cl){
     notes:         notes,
     checklist:     cl,
     total_price:   v.totalPrice   || null,
+    deposit_price: v.depositPrice || null,
+    balance_price: v.balancePrice || null,
     labor_region:  v.laborRegion  || null,
     labor_count:   v.laborCount   || null,
     labor_cost:    v.laborCost    || null,
@@ -2183,6 +2195,8 @@ function openForm(id){
   FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
   if(ADMIN_NAMES.includes(currentUser.name)){
     document.getElementById('f-total-price').value  = s?.totalPrice  || '';
+    document.getElementById('f-deposit-price').value = s?.depositPrice || '';
+    document.getElementById('f-balance-price').value = s?.balancePrice || '';
     document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
     document.getElementById('f-labor-count').value  = s?.laborCount  || '';
     calcSettlement();
@@ -2332,7 +2346,9 @@ function getFormValues(){
 
   // 정산 정보 (관리자 전용)
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
-  const totalPrice  = isAdmin ? (Number(document.getElementById('f-total-price')?.value)  || null) : undefined;
+  const totalPrice   = isAdmin ? (Number(document.getElementById('f-total-price')?.value)   || null) : undefined;
+  const depositPrice = isAdmin ? (Number(document.getElementById('f-deposit-price')?.value) || null) : undefined;
+  const balancePrice = isAdmin ? (Number(document.getElementById('f-balance-price')?.value) || null) : undefined;
   const laborRegion = isAdmin ? (document.getElementById('f-labor-region')?.value         || null) : undefined;
   const laborCount  = isAdmin ? (Number(document.getElementById('f-labor-count')?.value)  || null) : undefined;
   const laborCost   = isAdmin ? calcLaborCost()  : undefined;
@@ -2354,6 +2370,8 @@ function getFormValues(){
     frontManager,
     backManager,
     totalPrice,
+    depositPrice,
+    balancePrice,
     laborRegion,
     laborCount,
     laborCost,

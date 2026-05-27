@@ -747,9 +747,9 @@ function buildPdfDiv(signerName, sigDataUrl, signedAt){
   const div = document.createElement('div');
   div.id = 'pdf-contract';
   div.style.cssText = [
-    'position:fixed','top:0','left:-9999px','width:794px',
+    'position:absolute','top:0','left:0','width:794px',
     'background:#fff','font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif',
-    'color:#111827','font-size:13px','line-height:1.8','z-index:-1','padding:0',
+    'color:#111827','font-size:13px','line-height:1.8','z-index:-9999','visibility:hidden',
   ].join(';');
 
   div.innerHTML = `
@@ -822,8 +822,8 @@ function buildPdfDiv(signerName, sigDataUrl, signedAt){
     <!-- 결제 정보 -->
     <div class="pdf-section-title">결제 정보</div>
     <div class="pdf-info-row"><span class="pdf-info-lbl">총 계약 금액</span><span class="pdf-info-val gold">${fmt(s.total_price)}</span></div>
-    <div class="pdf-info-row"><span class="pdf-info-lbl">계약금</span><span class="pdf-info-val">${s.total_price&&s.net_profit?fmt(s.total_price-s.net_profit):'—'}</span></div>
-    <div class="pdf-info-row"><span class="pdf-info-lbl">잔금</span><span class="pdf-info-val">${fmt(s.net_profit)}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">계약금</span><span class="pdf-info-val">${fmt(s.deposit_price)}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">잔금</span><span class="pdf-info-val">${fmt(s.balance_price)}</span></div>
     <div class="pdf-notice">※ 본 계약서는 배상 범위 및 책임 기준을 명확히 하기 위해 정가 기준으로 작성됩니다.<br>※ 계약 후기 할인, 짝꿍 할인 등 프로모션 혜택은 조건 충족 시 잔금 결제 금액에서 차감 적용됩니다.</div>
 
     <hr>
@@ -948,11 +948,15 @@ async function generatePDF(signerName, sigDataUrl, signedAt){
     const canvas = await html2canvas(pdfDiv, {
       scale: 2,
       useCORS: true,
-      allowTaint: true,
+      allowTaint: false,
       backgroundColor: '#ffffff',
       width: 794,
-      scrollX: 0,
-      scrollY: 0,
+      windowWidth: 794,
+      logging: false,
+      onclone: (doc) => {
+        const el = doc.getElementById('pdf-contract');
+        if(el){ el.style.visibility='visible'; el.style.position='relative'; }
+      }
     });
 
     const { jsPDF } = window.jspdf;
