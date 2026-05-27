@@ -2955,6 +2955,8 @@ async function saveResult(){
   try {
     await sb.patch('schedules', resultId, { result, checklist: s.checklist });
     s.result = result;
+    // schedules 전체 재로드 후 렌더 (메모리 불일치 방지)
+    await loadSchedules();
     closeResult(); renderAll(); showToast('📊 결과보고가 저장되었습니다');
   } catch(e){
     console.error('결과보고 저장 실패:', e);
