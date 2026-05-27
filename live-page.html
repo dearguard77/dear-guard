@@ -195,15 +195,12 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
   }
 }
 @media(max-width:900px){
-  #tbl-ctrl{flex-wrap:wrap;gap:6px}
-  #tbl-ctrl .tbl-ctrl-title{flex-shrink:0}
-  #tbl-ctrl #tab-bar{flex:1;min-width:0}
-  #tbl-ctrl .tbl-ctrl-title,
-  #tbl-ctrl #tab-bar{order:1}
-  #tbl-ctrl #f-pay{order:2;flex:0 0 auto}
-  #tbl-ctrl #f-search{order:2;flex:1;min-width:0;width:auto}
-  #tbl-ctrl span[style*="flex:1"]{display:none}
-  #tbl-ctrl #tbl-cnt{order:1;margin-left:auto}
+  #tbl-ctrl{flex-wrap:wrap;gap:4px 6px;align-items:center}
+  #tbl-filter-row{display:flex;align-items:center;gap:6px;width:100%;min-width:0}
+  #tbl-filter-row .ctrl-select{flex:0 0 auto}
+  #tbl-filter-row .ctrl-input{flex:1;min-width:0;width:auto}
+  #tbl-filter-row span[style*="flex:1"]{display:none}
+  #tbl-filter-row #tbl-cnt{white-space:nowrap}
 }
 </style>
 </head>
@@ -359,14 +356,16 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
           <button class="ctrl-tab"    id="tab-groom" onclick="setListTab('groom')">🤵 신랑</button>
           <button class="ctrl-tab"    id="tab-bride" onclick="setListTab('bride')">👰 신부</button>
         </div>
-        <select class="ctrl-select" id="f-pay" onchange="renderList()">
-          <option value="">전체</option>
-          <option value="현금">💵 현금</option>
-          <option value="계좌이체">📱 계좌이체</option>
-        </select>
-        <input class="ctrl-input" id="f-search" placeholder="🔍 이름 검색" oninput="renderList()">
-        <span style="flex:1"></span>
-        <span style="font-size:14px;font-weight:700;color:var(--text)" id="tbl-cnt"></span>
+        <div id="tbl-filter-row">
+          <select class="ctrl-select" id="f-pay" onchange="renderList()">
+            <option value="">전체</option>
+            <option value="현금">💵 현금</option>
+            <option value="계좌이체">📱 계좌이체</option>
+          </select>
+          <input class="ctrl-input" id="f-search" placeholder="🔍 이름 검색" oninput="renderList()">
+          <span style="flex:1"></span>
+          <span style="font-size:14px;font-weight:700;color:var(--text)" id="tbl-cnt"></span>
+        </div>
       </div>
 
       <!-- 단일 테이블 헤더 (단측/통합) -->
