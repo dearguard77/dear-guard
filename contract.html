@@ -12,7 +12,7 @@
 <meta property="og:type"        content="website">
 <meta property="og:site_name"   content="Dear Guard">
 <meta property="og:title"       content="Dear Guard · 전자계약서" id="og-title">
-<meta property="og:description" content="디어가드 서비스 이용 전자계약서입니다. 확인 후 서명 부탁드립니다 😊">
+<meta property="og:description" content="디어가드 전자 계약 시스템" id="og-desc">
 <meta property="og:image"       content="https://dear-guard.vercel.app/logo.png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height"content="512">
@@ -20,6 +20,7 @@
 <meta name="twitter:card"       content="summary">
 <meta name="twitter:image"      content="https://dear-guard.vercel.app/logo.png">
 <meta name="twitter:title"      content="Dear Guard · 전자계약서" id="tw-title">
+<meta name="twitter:description" content="디어가드 전자 계약 시스템" id="tw-desc">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -496,11 +497,15 @@ function renderHeader(){
   const dayStr = s.date?`${s.date} (${DAYS[d.getDay()]}) · ${(s.time||'').slice(0,5)}`:'';
   document.getElementById('hdr-info').textContent = [dayStr, s.hall, s.address].filter(Boolean).join(' · ');
   // OG 메타 업데이트
+  const displayDesc = '디어가드 전자 계약 시스템';
   const pageTitle = `${couple} · 전자계약서`;
   document.title = pageTitle;
-  const ogTitle = document.getElementById('og-title'); if(ogTitle) ogTitle.setAttribute('content', pageTitle);
-  const twTitle = document.getElementById('tw-title'); if(twTitle) twTitle.setAttribute('content', pageTitle);
-  const ogUrl   = document.getElementById('og-url');   if(ogUrl)   ogUrl.setAttribute('content', location.href);
+  const setMeta = (id,val)=>{ const el=document.getElementById(id); if(el) el.setAttribute('content',val); };
+  setMeta('og-title', pageTitle);
+  setMeta('og-desc',  displayDesc);
+  setMeta('tw-title', pageTitle);
+  setMeta('tw-desc',  displayDesc);
+  setMeta('og-url',   location.href);
 }
 
 // ── 예약 정보 렌더 ──
