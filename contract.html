@@ -816,15 +816,46 @@ async function generatePDF(signerName, sigDataUrl, signedAt){
   const dateForFile = (schedule.date||'').replace(/-/g,'');
   const filename = `디어가드 계약서 ${nameStr} ${dateForFile}.pdf`;
 
-  // 모바일/PC 모두 대응하는 다운로드 방식
-  const pdfBlob = doc.output('blob');
-  const blobUrl = URL.createObjectURL(pdfBlob);
-  const a = document.createElement('a');
-  a.href = blobUrl;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(blobUrl); }, 1000);
+  // iOS/카카오 인앱 대응: base64 data URI → 새 탭 열기
+  const pdfDataUri = doc.output('datauristring');
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+
+  if(isIOS || isKakao){
+    // iOS / 카카오 인앱: 새 탭에서 PDF 열기 (직접 저장 유도)
+    const newTab = window.open();
+    if(newTab){
+      newTab.document.write(`
+        <html><head><meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>${filename}</title>
+        <style>body{margin:0;background:#222;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif}
+        p{color:#fff;font-size:14px;margin:12px;text-align:center;line-height:1.8}
+        a{display:inline-block;margin-top:8px;background:#C7A96B;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px}
+        iframe{width:100vw;height:80vh;border:none}</style></head>
+        <body>
+        <p>📄 계약서 PDF<br><small>아이폰은 길게 눌러 저장하거나<br>상단 공유 버튼으로 저장하세요</small></p>
+        <a href="${pdfDataUri}" download="${filename}">⬇️ PDF 저장</a>
+        <br><br>
+        <iframe src="${pdfDataUri}"></iframe>
+        </body></html>
+      `);
+      newTab.document.close();
+    } else {
+      // 팝업 차단된 경우 현재 탭에서 열기
+      location.href = pdfDataUri;
+    }
+  } else {
+    // Android / PC: blob URL + a 태그 클릭
+    const pdfBlob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(blobUrl); }, 1000);
+  }
 }
 
 // ── PDF 재다운로드 ──
