@@ -2942,19 +2942,12 @@ function updateAmountPreview(){
 }
 
 async function saveResult(){
-  const s=schedules.find(x=>x.id===resultId); if(!s) return;
-  const result={
-    totalGuests:  Number(document.getElementById('r-guests').value)||0,
-    totalAmount:  (Number(document.getElementById('r-amount').value)||0)*10000,
-    ticketUsed:   Number(document.getElementById('r-ticket-used').value)||0,
-    ticketRemain: Number(document.getElementById('r-ticket-rem').value)||0,
-    notes:        document.getElementById('r-notes').value,
-  };
-  s.checklist.report=true;
-
+  ...
   try {
     await sb.patch('schedules', resultId, { result, checklist: s.checklist });
     s.result = result;
+    // schedules 전체 재로드 후 렌더 (메모리 불일치 방지)
+    await loadSchedules();
     closeResult(); renderAll(); showToast('📊 결과보고가 저장되었습니다');
   } catch(e){
     console.error('결과보고 저장 실패:', e);
