@@ -1182,6 +1182,30 @@ async function saveAll(){
       if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${(RECEIPT_LABEL[receiptType]||'')+' '+(receiptNum||'')}`.trim());
       if(memo)                    lines.push(`📝 특이사항: ${memo}`);
 
+      // STEP3: 식권 정보
+      const ticketGuarantee  = gv('ticket_guarantee');
+      const ticketGroom      = gv('ticket_total_groom');
+      const ticketBride      = gv('ticket_total_bride');
+      const ticketExtraLimit = gv('ticket_extra_limit');
+      const ticketStamp      = getRadioVal('stamp-group');
+      if(ticketGuarantee || ticketGroom || ticketBride || ticketExtraLimit || ticketStamp){
+        lines.push('🎫 식권 정보');
+        if(ticketGuarantee)  lines.push(`· 전체 보증인원: ${ticketGuarantee}명`);
+        if(ticketGroom)      lines.push(`· 신랑측 식권: ${ticketGroom}장`);
+        if(ticketBride)      lines.push(`· 신부측 식권: ${ticketBride}장`);
+        if(ticketExtraLimit) lines.push(`· 추가 발권 가능: ${ticketExtraLimit}장`);
+        if(ticketStamp)      lines.push(`· 식권 도장: ${ticketStamp==='true'?'전달함':'전달안함'}`);
+      }
+
+      // STEP4: 사전 전달 식권
+      if(preShares && preShares.length){
+        lines.push('🎟️ 사전 전달 식권');
+        preShares.forEach(p=>{
+          const icon = p.side==='신랑측'?'🤵':'👰';
+          lines.push(`· ${icon} ${p.side} ${p.person_name||''} ${p.amount}장`);
+        });
+      }
+
       const precheckText = lines.join('\n');
 
       // 기존 field_memo 가져와서 precheck 항목만 업데이트 (기존 내용 유지)
