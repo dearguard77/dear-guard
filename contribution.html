@@ -3033,8 +3033,9 @@ function renderLedgerCol(elId,sideLogs,isAdmin){
   const el=document.getElementById(elId);
   if(!el) return;
   if(!sideLogs.length){el.innerHTML='<div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">내역 없음</div>';return;}
-  el.innerHTML=sideLogs.map((l,i)=>{
-    const num=l.seq||sideLogs.length-i;
+  const sorted=sideLogs.slice().sort((a,b)=>(b.seq||0)-(a.seq||0));
+  el.innerHTML=sorted.map((l,i)=>{
+    const num=l.seq||sorted.length-i;
     const name=esc(l.guest_name||'—');
     const rel=l.relation?'<span style="color:#9CA3AF;font-size:9px;margin-left:3px">'+esc(l.relation)+'</span>':'';
     const amt=l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>';
@@ -3155,8 +3156,9 @@ function renderRightCol(elId, sideLogs, isAdmin){
     el.innerHTML = '<div style="text-align:center;padding:12px;font-size:11px;color:#9CA3AF">내역 없음</div>';
     return;
   }
-  el.innerHTML = sideLogs.map(function(l, i){
-    var num  = l.seq || sideLogs.length - i;
+  var sorted = sideLogs.slice().sort(function(a,b){ return (b.seq||0)-(a.seq||0); });
+  el.innerHTML = sorted.map(function(l, i){
+    var num  = l.seq || sorted.length - i;
     var name = esc(l.guest_name||'—');
     var rel  = l.relation ? '<span style="color:#9CA3AF;font-size:9px;margin-left:2px">'+esc(l.relation)+'</span>' : '';
     var amt  = l.amount ? fmt(l.amount) : '<span style="color:#D1D5DB">—</span>';
