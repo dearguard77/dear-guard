@@ -2393,6 +2393,7 @@ async function selectSchedule(id){
     document.getElementById('main-screen').style.display='flex';
     document.body.style.overflow='hidden';
     await loadLogs();
+    await initSeqIfNeeded();
     await loadTicketExtras();
     await loadPreShares();
     loadOpsLogs();
@@ -2809,6 +2810,23 @@ async function loadLogs(){
   try { logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`); renderStats(); renderFullList(); } catch(e){ console.error('logs 로드 실패:',e); }
 }
 
+async function initSeqIfNeeded(){
+  if(!currentSchedule) return;
+  const unset = logs.filter(l=>!l.seq);
+  if(!unset.length) return;
+  const sides = ['신랑측','신부측'];
+  for(const side of sides){
+    const sideAll = logs.filter(l=>l.side===side).slice().sort((a,b)=>a.created_at>b.created_at?1:-1);
+    for(let i=0;i<sideAll.length;i++){
+      if(!sideAll[i].seq){
+        await sb.patch('contribution_logs',sideAll[i].id,{seq:i+1});
+        sideAll[i].seq=i+1;
+      }
+    }
+  }
+  console.log('[DG] seq 초기화 완료');
+}
+
 // ── 실시간 구독 ──
 function subscribeRealtime(){
   const ws=new WebSocket(`wss://fmvomfjmkbklhaaapkbk.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`);
@@ -2959,9 +2977,11 @@ function resetForm(){
 async function submitEntry(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
   const amount=Number((document.getElementById('amount-input').value||'').replace(/,/g,''))||st.amount;
+  const _side = st.side==='groom'?'신랑측':'신부측';
+  const _sideMaxSeq = logs.filter(l=>l.side===_side).reduce((m,l)=>Math.max(m,l.seq||0),0);
   const row={
     schedule_id:currentSchedule.id,
-    side:st.side==='groom'?'신랑측':'신부측',
+    side:_side,
     payment_type:st.payment==='cash'?'현금':'계좌이체',
     guest_name:document.getElementById('guest-name').value.trim()||null,
     relation:st.relation||null,
@@ -2970,6 +2990,7 @@ async function submitEntry(){
     child_ticket:st.childTicket||0,
     memo:document.getElementById('memo-input').value.trim()||null,
     created_by:currentUser.name,
+    seq:_sideMaxSeq+1,
   };
   try {
     const created=await sb.post('contribution_logs',row);
@@ -3013,7 +3034,7 @@ function renderLedgerCol(elId,sideLogs,isAdmin){
   if(!el) return;
   if(!sideLogs.length){el.innerHTML='<div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">내역 없음</div>';return;}
   el.innerHTML=sideLogs.map((l,i)=>{
-    const num=sideLogs.length-i;
+    const num=l.seq||sideLogs.length-i;
     const name=esc(l.guest_name||'—');
     const rel=l.relation?'<span style="color:#9CA3AF;font-size:9px;margin-left:3px">'+esc(l.relation)+'</span>':'';
     const amt=l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>';
@@ -3026,7 +3047,7 @@ function renderLedgerCol(elId,sideLogs,isAdmin){
     const time=l.created_at?fmtTime(l.created_at):'';
     const memo=l.memo?'<div class="ledger-memo">'+esc(l.memo)+'</div>':'';
     const canEdit=isAdmin||l.created_by===currentUser.name;
-    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+l.id+')">수정</button><button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>':'';
+    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+l.id+')">수정</button><button class="ledger-btn" style="background:#FEF9EC;color:#C7A96B;border:none;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button><button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>':'';
     return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:11px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
   }).join('');
 }
@@ -3055,9 +3076,21 @@ async function saveEdit(){
 async function deleteLog(id){
   if(!confirm('해당 접수 내역을 삭제하시겠습니까?')) return;
   try {
+    const target = logs.find(x=>x.id===id);
     const r=await fetch(sb.url('contribution_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h});
     if(!r.ok){showToast('⚠️ 삭제 실패 ('+r.status+')');return;}
     logs=logs.filter(x=>x.id!==id);
+
+    // 삭제된 항목 이후 같은 side 번호 -1 당기기
+    if(target && target.seq){
+      const toShift = logs.filter(l=>l.side===target.side && (l.seq||0)>target.seq);
+      await Promise.all(toShift.map(l=>
+        sb.patch('contribution_logs',l.id,{seq:(l.seq||0)-1}).then(()=>{ l.seq=(l.seq||0)-1; })
+      ));
+      // 이력 기록 (내부용)
+      _logReindex(target.side, `${target.seq}번 삭제 → 이후 번호 -1 당김`);
+    }
+
     renderStats();renderFullList();
     showToast('🗑️ 삭제되었습니다');
   } catch(e){ showToast('⚠️ 삭제 실패: '+e.message); }
@@ -3123,7 +3156,7 @@ function renderRightCol(elId, sideLogs, isAdmin){
     return;
   }
   el.innerHTML = sideLogs.map(function(l, i){
-    var num  = sideLogs.length - i;
+    var num  = l.seq || sideLogs.length - i;
     var name = esc(l.guest_name||'—');
     var rel  = l.relation ? '<span style="color:#9CA3AF;font-size:9px;margin-left:2px">'+esc(l.relation)+'</span>' : '';
     var amt  = l.amount ? fmt(l.amount) : '<span style="color:#D1D5DB">—</span>';
@@ -3156,6 +3189,79 @@ function renderRightCol(elId, sideLogs, isAdmin){
       '</div>'+
     '</div>';
   }).join('');
+}
+  // ── 번호 끼워넣기 ──
+function openReindexModal(id){
+  const l = logs.find(x=>x.id===id);
+  if(!l) return;
+  const sideLogs = logs.filter(x=>x.side===l.side);
+  const currentSeq = l.seq || 0;
+  const maxSeq = sideLogs.reduce((m,x)=>Math.max(m,x.seq||0),0);
+  const newSeqStr = prompt(
+    `[${l.side}] 현재 번호: ${currentSeq}번\n이동할 번호를 입력하세요 (1 ~ ${maxSeq}):`,
+    String(currentSeq)
+  );
+  if(newSeqStr===null) return;
+  const newSeq = parseInt(newSeqStr);
+  if(isNaN(newSeq)||newSeq<1||newSeq>maxSeq){
+    showToast(`⚠️ 1 ~ ${maxSeq} 사이 번호를 입력하세요`); return;
+  }
+  if(newSeq===currentSeq){ showToast('이미 같은 번호입니다'); return; }
+
+  const sideLabel = l.side;
+  const affectFrom = Math.min(currentSeq, newSeq);
+  const affectTo   = Math.max(currentSeq, newSeq);
+  const msg = `[${sideLabel}] ${currentSeq}번 → ${newSeq}번으로 이동하시겠습니까?\n` +
+    `기존 ${affectFrom}~${affectTo}번 항목이 자동 재정렬됩니다.`;
+  if(!confirm(msg)) return;
+  reindexInsert(id, newSeq, l.side, currentSeq);
+}
+
+async function reindexInsert(id, newSeq, side, oldSeq){
+  try {
+    const sideLogs = logs.filter(l=>l.side===side);
+    const patches = [];
+
+    if(newSeq < oldSeq){
+      // 앞으로 이동: newSeq ~ oldSeq-1 항목 +1
+      sideLogs.filter(l=>l.id!==id && (l.seq||0)>=newSeq && (l.seq||0)<oldSeq)
+        .forEach(l=>patches.push({id:l.id, seq:(l.seq||0)+1}));
+    } else {
+      // 뒤로 이동: oldSeq+1 ~ newSeq 항목 -1
+      sideLogs.filter(l=>l.id!==id && (l.seq||0)>oldSeq && (l.seq||0)<=newSeq)
+        .forEach(l=>patches.push({id:l.id, seq:(l.seq||0)-1}));
+    }
+
+    // DB 일괄 patch
+    await Promise.all(patches.map(p=>
+      sb.patch('contribution_logs',p.id,{seq:p.seq})
+    ));
+    await sb.patch('contribution_logs',id,{seq:newSeq});
+
+    // 메모리 반영
+    patches.forEach(p=>{ const t=logs.find(l=>l.id===p.id); if(t) t.seq=p.seq; });
+    const target=logs.find(l=>l.id===id);
+    if(target) target.seq=newSeq;
+
+    // 이력 기록 (내부용)
+    _logReindex(side, `${oldSeq}번 → ${newSeq}번 이동 (영향 ${patches.length}건)`);
+
+    renderStats(); renderFullList();
+    showToast(`✅ ${side} ${oldSeq}번 → ${newSeq}번 이동 완료`);
+  } catch(e){ showToast('⚠️ 번호 수정 실패: '+e.message); }
+}
+
+function _logReindex(side, content){
+  if(!currentSchedule||!currentUser) return;
+  const now=new Date();
+  const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  sb.post('operation_logs',{
+    schedule_id: currentSchedule.id,
+    time_str:    timeStr,
+    content:     '[번호수정] '+content,
+    side:        '_internal',
+    created_by:  currentUser.name,
+  }).catch(()=>{});
 }
 function showToast(msg){
   const t=document.getElementById('toast');
