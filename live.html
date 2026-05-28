@@ -736,12 +736,12 @@ function renderList(){
     se('bride-sum',bF.length+'건 · '+fmtFull(bAmt));
     const gEl=document.getElementById('groom-list');
     const bEl=document.getElementById('bride-list');
-    const gFS=applySideSort(gF,'groom');
+    const gFS=applySideSort(gF,'groom').slice().sort((a,b)=>(b.seq||0)-(a.seq||0));
     if(gEl)gEl.innerHTML=gFS.length?gFS.map((l,i)=>{
       const num=l.seq||gFS.length-i;
       return buildRow(l,false,i,gFS.length,num);
     }).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
-    const bFS=applySideSort(bF,'bride');
+    const bFS=applySideSort(bF,'bride').slice().sort((a,b)=>(b.seq||0)-(a.seq||0));
     if(bEl)bEl.innerHTML=bFS.length?bFS.map((l,i)=>{
       const num=l.seq||bFS.length-i;
       return buildRow(l,false,i,bFS.length,num);
