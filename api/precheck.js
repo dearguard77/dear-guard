@@ -4,13 +4,20 @@ const LOGO_URL          = 'https://dear-guard.vercel.app/logo.png';
 const BASE_URL          = 'https://dear-guard.vercel.app';
 
 async function fetchSchedule(token) {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/schedules?precheck_token=eq.${encodeURIComponent(token)}&select=groom_name,bride_name,hall,wedding_mode&limit=1`,
-    { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
-  );
-  if (!res.ok) return null;
-  const rows = await res.json();
-  return rows.length ? rows[0] : null;
+  const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
+  const select = 'select=groom_name,bride_name,hall,wedding_mode&limit=1';
+  const t = encodeURIComponent(token);
+
+  for (const col of ['dashboard_token', 'groom_token', 'bride_token']) {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/schedules?${col}=eq.${t}&${select}`,
+      { headers }
+    );
+    if (!res.ok) continue;
+    const rows = await res.json();
+    if (rows.length) return rows[0];
+  }
+  return null;
 }
 
 function buildTitle(s) {
