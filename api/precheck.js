@@ -51,7 +51,6 @@ export default async function handler(req) {
 
   const schedule = token ? await fetchSchedule(token) : null;
   const ogTitle  = schedule ? buildTitle(schedule) : 'Dear Guard · 본식 준비 체크';
-  const debugInfo = schedule ? JSON.stringify(schedule) : 'null';
   const ogDesc   = '디어가드 본식 준비 체크리스트';
   const pageUrl  = `${BASE_URL}/api/precheck?t=${encodeURIComponent(token)}`;
 
