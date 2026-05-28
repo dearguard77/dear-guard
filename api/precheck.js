@@ -75,7 +75,7 @@ export default async function handler(req) {
 <meta http-equiv="refresh" content="0;url=${pageUrl}">
 <script>location.replace("${pageUrl}");</script>
 </head>
-<body><!-- DEBUG: ${debugInfo} --></body>
+<body></body>
 </html>`;
 
   return new Response(html, {
