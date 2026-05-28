@@ -723,13 +723,25 @@ function renderHeader(){
   const s = schedule;
   const g = (s.groom_name||'').trim(), b = (s.bride_name||'').trim();
   let names, displayTitle;
-  if(sideFilter==='groom'){
-    names = g ? `🤵 ${g} 신랑측` : '—';
-    displayTitle = g ? `${g} 신랑측 본식 준비 체크` : 'Dear Guard · 본식 준비 체크';
-  } else if(sideFilter==='bride'){
-    names = b ? `👰 ${b} 신부측` : '—';
-    displayTitle = b ? `${b} 신부측 본식 준비 체크` : 'Dear Guard · 본식 준비 체크';
+  const isSingleMode = (schedule && schedule.wedding_mode === '단측');
+  if(isSingleMode){
+    // 단측: 진행측 이름 + 신랑측/신부측
+    if(g && !b){
+      names = `🤵 ${g} 신랑측`;
+      displayTitle = `${g} 신랑측 본식 준비 체크`;
+    } else if(b && !g){
+      names = `👰 ${b} 신부측`;
+      displayTitle = `${b} 신부측 본식 준비 체크`;
+    } else if(g){
+      // 양쪽 이름 다 있어도 단측이면 신랑 우선
+      names = `🤵 ${g} 신랑측`;
+      displayTitle = `${g} 신랑측 본식 준비 체크`;
+    } else {
+      names = '—';
+      displayTitle = 'Dear Guard · 본식 준비 체크';
+    }
   } else {
+    // 양측: 신랑♥신부
     names = (g&&b) ? `${g} ♥ ${b}` : g||b||'—';
     displayTitle = (g&&b) ? `${g} ♥ ${b} 본식 준비 체크` : (g||b) ? `${g||b} 본식 준비 체크` : 'Dear Guard · 본식 준비 체크';
   }
