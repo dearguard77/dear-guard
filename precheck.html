@@ -1249,7 +1249,12 @@ async function saveAll(){
       }
 
       if(cashMethod)              lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
-      if(giftYn)                  lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}`);
+      const giftDetail = getRadioVal('gift-detail-group');
+      const GIFT_DETAIL_LABEL = { hall:'홀 답례품 식권 교환형', desk:'축의대 직접 전달형' };
+      if(giftYn){
+        const giftDetailStr = (giftYn==='true' && giftDetail) ? ` · ${GIFT_DETAIL_LABEL[giftDetail]||giftDetail}` : '';
+        lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}${giftDetailStr}`);
+      }
       if(mobileUrl)               lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
       if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${(RECEIPT_LABEL[receiptType]||'')+' '+(receiptNum||'')}`.trim());
       if(memo)                    lines.push(`📝 특이사항: ${memo}`);
