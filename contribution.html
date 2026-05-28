@@ -3171,6 +3171,7 @@ function renderRightCol(elId, sideLogs, isAdmin){
     var canEdit = isAdmin || l.created_by===currentUser.name;
     var btns = canEdit
       ? '<button class="ledger-btn ledger-edit" onclick="openEditModal('+l.id+')">수정</button>'+
+        '<button class="ledger-btn" style="background:#FEF9EC;color:#C7A96B;border:none;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button>'+
         '<button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>'
       : '';
     return '<div class="ledger-item">'+
