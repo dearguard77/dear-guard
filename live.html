@@ -6,7 +6,9 @@
 <title>Dear Guard · 실시간 장부</title>
 <meta property="og:type"        content="website">
 <meta property="og:title"       content="Dear Guard · 실시간 장부" id="og-title">
-<meta property="og:description" content="실시간 축의금 접수 현황을 확인하세요.">
+<meta property="og:description" content="디어가드 스마트 축의 운영 시스템" id="og-desc">
+<meta name="twitter:title"      content="Dear Guard · 실시간 장부" id="tw-title">
+<meta name="twitter:description" content="디어가드 스마트 축의 운영 시스템" id="tw-desc">
 <meta property="og:image"       content="https://dear-guard.vercel.app/icon.png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height"content="512">
@@ -195,15 +197,12 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
   }
 }
 @media(max-width:900px){
-  #tbl-ctrl{flex-wrap:wrap;gap:6px}
-  #tbl-ctrl .tbl-ctrl-title{flex-shrink:0}
-  #tbl-ctrl #tab-bar{flex:1;min-width:0}
-  #tbl-ctrl .tbl-ctrl-title,
-  #tbl-ctrl #tab-bar{order:1}
-  #tbl-ctrl #f-pay{order:2;flex:0 0 auto}
-  #tbl-ctrl #f-search{order:2;flex:1;min-width:0;width:auto}
-  #tbl-ctrl span[style*="flex:1"]{display:none}
-  #tbl-ctrl #tbl-cnt{order:1;margin-left:auto}
+  #tbl-ctrl{flex-wrap:wrap;gap:4px 6px;align-items:center}
+  #tbl-filter-row{display:flex;align-items:center;gap:6px;width:100%;min-width:0}
+  #tbl-filter-row .ctrl-select{flex:0 0 auto}
+  #tbl-filter-row .ctrl-input{flex:1;min-width:0;width:auto}
+  #tbl-filter-row span[style*="flex:1"]{display:none}
+  #tbl-filter-row #tbl-cnt{white-space:nowrap}
 }
 </style>
 </head>
@@ -359,14 +358,16 @@ html,body{height:100%;background:var(--bg);font-family:"Apple SD Gothic Neo","Ma
           <button class="ctrl-tab"    id="tab-groom" onclick="setListTab('groom')">🤵 신랑</button>
           <button class="ctrl-tab"    id="tab-bride" onclick="setListTab('bride')">👰 신부</button>
         </div>
-        <select class="ctrl-select" id="f-pay" onchange="renderList()">
-          <option value="">전체</option>
-          <option value="현금">💵 현금</option>
-          <option value="계좌이체">📱 계좌이체</option>
-        </select>
-        <input class="ctrl-input" id="f-search" placeholder="🔍 이름 검색" oninput="renderList()">
-        <span style="flex:1"></span>
-        <span style="font-size:14px;font-weight:700;color:var(--text)" id="tbl-cnt"></span>
+        <div id="tbl-filter-row">
+          <select class="ctrl-select" id="f-pay" onchange="renderList()">
+            <option value="">전체</option>
+            <option value="현금">💵 현금</option>
+            <option value="계좌이체">📱 계좌이체</option>
+          </select>
+          <input class="ctrl-input" id="f-search" placeholder="🔍 이름 검색" oninput="renderList()">
+          <span style="flex:1"></span>
+          <span style="font-size:14px;font-weight:700;color:var(--text)" id="tbl-cnt"></span>
+        </div>
       </div>
 
       <!-- 단일 테이블 헤더 (단측/통합) -->
@@ -478,10 +479,35 @@ async function init(){
   const token=getToken();
   if(!token){showError();return;}
   try{
-    const rows=await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}`);
+    // 1) dashboard_token으로 먼저 조회
+    let rows=await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}`);
+    let viewSide='both'; // both | groom | bride
+
+    // 2) 없으면 groom_token 조회
+    if(!rows.length){
+      rows=await sb.get('schedules',`?groom_token=eq.${encodeURIComponent(token)}`);
+      if(rows.length) viewSide='groom';
+    }
+    // 3) 없으면 bride_token 조회
+    if(!rows.length){
+      rows=await sb.get('schedules',`?bride_token=eq.${encodeURIComponent(token)}`);
+      if(rows.length) viewSide='bride';
+    }
+
     if(!rows.length) throw new Error('not found');
     schedule=rows[0];
     const g=(schedule.groom_name||'').trim(),b=(schedule.bride_name||'').trim();
+
+    // 토큰 기준 이름 조합
+    let displayTitle;
+    if(viewSide==='groom')       displayTitle = g ? `${g} 신랑측 실시간 장부` : '신랑측 실시간 장부';
+    else if(viewSide==='bride')  displayTitle = b ? `${b} 신부측 실시간 장부` : '신부측 실시간 장부';
+    else {
+      const names=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:schedule.hall||'—';
+      displayTitle = `${names} · 실시간 장부`;
+    }
+    const displayDesc = '디어가드 스마트 축의 운영 시스템';
+
     const names=(g&&b)?`${g} ♥ ${b}`:g?`${g} 신랑측`:b?`${b} 신부측`:schedule.hall||'—';
     se('hdr-names',names);
     const _d=new Date((schedule.date||'')+'T00:00:00');
@@ -491,12 +517,16 @@ async function init(){
     const _hall=schedule.hall||'';
     document.getElementById('hdr-info-dt').textContent=_dateTime;
     document.getElementById('hdr-info-hall').textContent=_hall;
-    document.title=`${names} · 실시간 장부`;
-    // OG 태그 동적 갱신 (카카오톡 미리보기)
-    const ogTitle = document.getElementById('og-title');
-    const ogUrl   = document.getElementById('og-url');
-    if(ogTitle) ogTitle.setAttribute('content', names+' · 실시간 장부');
-    if(ogUrl)   ogUrl.setAttribute('content', location.href);
+
+    // OG/title 일괄 업데이트
+    document.title = displayTitle;
+    const setMeta = (id,val)=>{ const el=document.getElementById(id); if(el) el.setAttribute('content',val); };
+    setMeta('og-title',  displayTitle);
+    setMeta('og-desc',   displayDesc);
+    setMeta('tw-title',  displayTitle);
+    setMeta('tw-desc',   displayDesc);
+    setMeta('og-url',    location.href);
+
     await loadLogs();
     renderHandover();
     applyWeddingMode();
