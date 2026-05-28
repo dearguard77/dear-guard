@@ -685,7 +685,7 @@ function getFiltered(side){
 
 // ── 행 빌드 ──
 function buildRow(l,showSide,sideIndex,sideTotal,overrideNum){
-  const num = overrideNum !== undefined ? overrideNum : (sideIndex !== undefined ? sideTotal - sideIndex : logs.length - logs.indexOf(l));
+  const num = overrideNum !== undefined ? overrideNum : (l.seq || (sideIndex !== undefined ? sideTotal - sideIndex : logs.length - logs.indexOf(l)));
   const isNew=newIds.has(l.id);
   const adultT=l.adult_ticket||0,childT=l.child_ticket||0;
   const tktHtml=(adultT>0?`<span class="badge-adult">대${adultT}</span>`:'')+
@@ -737,15 +737,13 @@ function renderList(){
     const gEl=document.getElementById('groom-list');
     const bEl=document.getElementById('bride-list');
     const gFS=applySideSort(gF,'groom');
-    const gIsAsc=(_groomSideSort==='num_asc'||_groomSideSort==='name_asc');
     if(gEl)gEl.innerHTML=gFS.length?gFS.map((l,i)=>{
-      const num=gIsAsc?i+1:gFS.length-i;
+      const num=l.seq||gFS.length-i;
       return buildRow(l,false,i,gFS.length,num);
     }).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
     const bFS=applySideSort(bF,'bride');
-    const bIsAsc=(_brideSideSort==='num_asc'||_brideSideSort==='name_asc');
     if(bEl)bEl.innerHTML=bFS.length?bFS.map((l,i)=>{
-      const num=bIsAsc?i+1:bFS.length-i;
+      const num=l.seq||bFS.length-i;
       return buildRow(l,false,i,bFS.length,num);
     }).join(''):`<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">접수 내역 없음</div>`;
   } else {
@@ -790,6 +788,7 @@ function renderOpsList(){
   }
   const gLogs=opsLogs.filter(l=>l.side==='신랑측');
   const bLogs=opsLogs.filter(l=>l.side==='신부측');
+  // _internal(번호수정이력)은 고객화면에 노출하지 않음
 
   function buildRows(list){
     if(!list.length) return '<div style="font-size:11px;color:var(--text3);padding:3px 0 5px">없음</div>';
@@ -1085,10 +1084,10 @@ function downloadExcel(){
     header.push('메모','접수시간');
 
     const rows=[header];
-    const reversed=[...list].reverse();
-    reversed.forEach((l,i)=>{
+    const sorted=[...list].sort((a,b)=>(a.seq||999999)-(b.seq||999999));
+    sorted.forEach((l,i)=>{
       const row=[
-        i+1,
+        l.seq||i+1,
         l.payment_type||'',
         l.guest_name||'',
         l.relation||'',
