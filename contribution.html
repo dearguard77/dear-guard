@@ -2736,7 +2736,7 @@ function renderOpsLogs(side, list){
     el.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div>';
     return;
   }
-  el.innerHTML = list.map(function(l){
+  el.innerHTML = list.filter(function(l){ return l.side!=='_internal'; }).map(function(l){
     return '<div style="display:flex;gap:5px;align-items:center;padding:3px 0;border-bottom:1px solid #F5F3F0" id="ops-row-'+l.id+'">' +
       '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">' + esc(l.time_str||'') + '</span>' +
       '<span style="font-size:11px;color:#374151;flex:1;min-width:0;word-break:keep-all;line-height:1.4" id="ops-text-'+l.id+'">' + esc(l.content||'') + '</span>' +
