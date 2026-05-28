@@ -29,7 +29,7 @@ export default async function handler(req) {
   const schedule = token ? await fetchSchedule(token) : null;
   const ogTitle  = schedule ? buildTitle(schedule) : 'Dear Guard · 본식 준비 체크';
   const ogDesc   = '디어가드 본식 준비 체크리스트';
-  const pageUrl  = `${BASE_URL}/precheck.html?t=${encodeURIComponent(token)}`;
+  const pageUrl  = `${BASE_URL}/api/precheck?t=${encodeURIComponent(token)}`;
 
   const html = `<!DOCTYPE html>
 <html lang="ko">
