@@ -23,9 +23,6 @@ async function fetchSchedule(token) {
 function buildTitle(s) {
   const g = (s.groom_name || '').trim();
   const b = (s.bride_name  || '').trim();
-  const mode = s.wedding_mode || '양측';
-
-  // D-day 계산
   let dStr = '';
   if (s.date) {
     const today = new Date();
@@ -34,14 +31,9 @@ function buildTitle(s) {
     const diff = Math.round((weddingDay - today) / (1000 * 60 * 60 * 24));
     dStr = diff === 0 ? ' · D-Day' : diff > 0 ? ` · D-${diff}` : ` · D+${Math.abs(diff)}`;
   }
-
-  if (mode === '단측') {
-    if (g) return `💍 ${g} 신랑측 본식${dStr}`;
-    if (b) return `💍 ${b} 신부측 본식${dStr}`;
-    return 'Dear Guard · 본식 준비 체크';
-  }
-  if (g && b) return `💍 ${g} ♥ ${b} 본식${dStr}`;
-  if (g || b) return `💍 ${g || b} 본식${dStr}`;
+  if (g && !b) return `💍 ${g} 신랑측 본식${dStr}`;
+  if (b && !g) return `💍 ${b} 신부측 본식${dStr}`;
+  if (g && b)  return `💍 ${g} ♥ ${b} 본식${dStr}`;
   return 'Dear Guard · 본식 준비 체크';
 }
 
