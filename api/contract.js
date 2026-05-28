@@ -16,8 +16,10 @@ async function fetchSchedule(token) {
 function buildTitle(s) {
   const g = (s.groom_name || '').trim();
   const b = (s.bride_name  || '').trim();
-  if (g && b) return `${g} ♥ ${b} 전자계약서`;
-  return (g || b) ? `${g || b} 전자계약서` : 'Dear Guard · 전자계약서';
+  if (g && !b) return `💍 ${g} 신랑측 전자계약서`;
+  if (b && !g) return `💍 ${b} 신부측 전자계약서`;
+  if (g && b)  return `💍 ${g} ♥ ${b} 전자계약서`;
+  return 'Dear Guard · 전자계약서';
 }
 
 export default async function handler(req) {
