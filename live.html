@@ -793,14 +793,25 @@ function applyWeddingMode(){
     if(ticketDetail) ticketDetail.style.display='none';
     if(ticketSingle) ticketSingle.style.display='flex';
   } else {
-    if(summary) summary.classList.remove('single-mode');
+    // ★ 개별 토큰 접속이면 single-mode 적용 (1줄 3칸 레이아웃)
+    const isSingleView = currentViewSide==='groom' || currentViewSide==='bride';
+    if(summary){
+      if(isSingleView) summary.classList.add('single-mode');
+      else summary.classList.remove('single-mode');
+    }
     // ★ 개별 토큰이면 반대측 요약 카드 숨김
     if(gCard) gCard.style.display=currentViewSide==='bride'?'none':'';
     if(bCard) bCard.style.display=currentViewSide==='groom'?'none':'';
     if(groomWrap) groomWrap.style.display=currentViewSide==='bride'?'none':'';
     if(brideWrap) brideWrap.style.display=currentViewSide==='groom'?'none':'';
-    if(totalCard){totalCard.style.gridRow='span 2';totalCard.style.justifyContent='space-between';}
-    if(ticketCard) ticketCard.style.gridColumn='span 2';
+    if(isSingleView){
+      // single-mode: 총축의금 span 제거, 식권 span 제거 → 1줄 3칸
+      if(totalCard){totalCard.style.gridRow='';totalCard.style.justifyContent='center';}
+      if(ticketCard){ticketCard.style.gridColumn='';}
+    } else {
+      if(totalCard){totalCard.style.gridRow='span 2';totalCard.style.justifyContent='space-between';}
+      if(ticketCard) ticketCard.style.gridColumn='span 2';
+    }
   }
 }
 function showUpdBadge(){
