@@ -691,8 +691,9 @@ async function init(){
 
     renderHeader();
     applyMode();
-    loadExistingData();
-    restoreDraft(); // localStorage 임시저장 복원 (DB 데이터 위에 덮어쓰기)
+    loadExistingData();      // 3순위: schedules 기존 저장값
+    restoreFromDB();         // 1순위: DB draft (카카오 인앱 이탈 복원)
+    restoreDraft();          // 2순위: localStorage (더 최신일 때만 덮어씀)
     renderPreShareList();
 
     // 잠금 여부
@@ -1015,41 +1016,115 @@ function renderPreShareList(){
   if(s4) s4.textContent = preShares.length+'건 등록됨';
 }
 
-// ── 자동저장 (localStorage) ──
+// ── 자동저장 (localStorage + DB draft) ──
+let _draftTimer = null;
+
 function getDraftKey(){
   return schedule ? `precheck_draft_${schedule.id}` : null;
+}
+
+function _collectDraft(){
+  return {
+    live_mode:            getRadioVal('live-mode-group'),
+    groom_contact_name:   gv('groom_contact_name'),
+    groom_contact_phone:  gv('groom_contact_phone'),
+    bride_contact_name:   gv('bride_contact_name'),
+    bride_contact_phone:  gv('bride_contact_phone'),
+    ticket_guarantee:     gv('ticket_guarantee'),
+    ticket_total_groom:   gv('ticket_total_groom'),
+    ticket_total_bride:   gv('ticket_total_bride'),
+    ticket_extra_limit:   gv('ticket_extra_limit'),
+    ticket_stamp:         getRadioVal('stamp-group'),
+    cash_method:          getRadioVal('cash-group'),
+    dg_disclosed:         getRadioVal('dg-disclosed-group'),
+    dg_relation_desc:     gv('dg_relation_desc'),
+    gift_yn:              getRadioVal('gift-group'),
+    gift_detail:          getRadioVal('gift-detail-group'),
+    precheck_memo:        gv('precheck_memo'),
+    g_ho_pw:              gv('g_ho_pw'),
+    b_ho_pw:              gv('b_ho_pw'),
+    mobile_invite_url:    gv('mobile_invite_url'),
+    cash_receipt_type:    getRadioVal('receipt-type-group'),
+    cash_receipt_number:  gv('cash_receipt_number'),
+  };
 }
 
 function autoSaveDraft(){
   const key = getDraftKey();
   if(!key || !schedule) return;
+
+  // localStorage 즉시 저장
   try {
-    const draft = {
-      live_mode:            getRadioVal('live-mode-group'),
-      groom_contact_name:   gv('groom_contact_name'),
-      groom_contact_phone:  gv('groom_contact_phone'),
-      bride_contact_name:   gv('bride_contact_name'),
-      bride_contact_phone:  gv('bride_contact_phone'),
-      ticket_guarantee:     gv('ticket_guarantee'),
-      ticket_total_groom:   gv('ticket_total_groom'),
-      ticket_total_bride:   gv('ticket_total_bride'),
-      ticket_extra_limit:   gv('ticket_extra_limit'),
-      ticket_stamp:         getRadioVal('stamp-group'),
-      cash_method:          getRadioVal('cash-group'),
-      dg_disclosed:         getRadioVal('dg-disclosed-group'),
-      dg_relation_desc:     gv('dg_relation_desc'),
-      gift_yn:              getRadioVal('gift-group'),
-      gift_detail:          getRadioVal('gift-detail-group'),
-      precheck_memo:        gv('precheck_memo'),
-      g_ho_pw:              gv('g_ho_pw'),
-      b_ho_pw:              gv('b_ho_pw'),
-      mobile_invite_url:    gv('mobile_invite_url'),
-      cash_receipt_type:    getRadioVal('receipt-type-group'),
-      cash_receipt_number:  gv('cash_receipt_number'),
-      _savedAt:             Date.now(),
-    };
+    const draft = _collectDraft();
+    draft._savedAt = Date.now();
     localStorage.setItem(key, JSON.stringify(draft));
   } catch(e){}
+
+  // DB draft는 1000ms debounce 후 저장
+  clearTimeout(_draftTimer);
+  _draftTimer = setTimeout(() => saveDraftToDB(), 1000);
+}
+
+async function saveDraftToDB(){
+  if(!schedule) return;
+  try {
+    const draft = _collectDraft();
+    await sb.patch('schedules', schedule.id, {
+      precheck_draft: draft,
+      draft_updated_at: new Date().toISOString(),
+    });
+  } catch(e){
+    console.warn('[DG] draft DB 저장 실패:', e);
+  }
+}
+
+function _applyDraft(d){
+  if(!d || typeof d !== 'object') return;
+  if(d.live_mode)           selectRadioByVal('live-mode-group', d.live_mode);
+  if(d.live_mode==='split'){ const n=document.getElementById('split-notice'); if(n)n.style.display='block'; }
+  if(d.live_mode==='single'){ const n=document.getElementById('single-notice'); if(n)n.style.display='block'; }
+  if(d.groom_contact_name)  sv('groom_contact_name',  d.groom_contact_name);
+  if(d.groom_contact_phone) sv('groom_contact_phone', d.groom_contact_phone);
+  if(d.bride_contact_name)  sv('bride_contact_name',  d.bride_contact_name);
+  if(d.bride_contact_phone) sv('bride_contact_phone', d.bride_contact_phone);
+  if(d.ticket_guarantee)    sv('ticket_guarantee',    d.ticket_guarantee);
+  if(d.ticket_total_groom)  sv('ticket_total_groom',  d.ticket_total_groom);
+  if(d.ticket_total_bride)  sv('ticket_total_bride',  d.ticket_total_bride);
+  if(d.ticket_extra_limit)  sv('ticket_extra_limit',  d.ticket_extra_limit);
+  if(d.ticket_stamp)        selectRadioByVal('stamp-group', d.ticket_stamp);
+  if(d.cash_method)         selectRadioByVal('cash-group',  d.cash_method);
+  if(d.dg_disclosed){
+    selectRadioByVal('dg-disclosed-group', d.dg_disclosed);
+    if(d.dg_disclosed==='false'){ const w=document.getElementById('dg-relation-wrap'); if(w)w.style.display='block'; }
+  }
+  if(d.dg_relation_desc)    sv('dg_relation_desc',    d.dg_relation_desc);
+  if(d.gift_yn){
+    selectRadioByVal('gift-group', d.gift_yn);
+    if(d.gift_yn==='true') toggleGiftDetail(true);
+  }
+  if(d.gift_detail)         selectRadioByVal('gift-detail-group', d.gift_detail);
+  if(d.precheck_memo)       sv('precheck_memo',        d.precheck_memo);
+  if(d.g_ho_pw)             sv('g_ho_pw',              d.g_ho_pw);
+  if(d.b_ho_pw)             sv('b_ho_pw',              d.b_ho_pw);
+  if(d.mobile_invite_url)   sv('mobile_invite_url',    d.mobile_invite_url);
+  if(d.cash_receipt_type)   selectRadioByVal('receipt-type-group', d.cash_receipt_type);
+  if(d.cash_receipt_number) sv('cash_receipt_number',  d.cash_receipt_number);
+  updateProgress();
+}
+
+function restoreFromDB(){
+  if(!schedule || !schedule.precheck_draft) return;
+  const d = schedule.precheck_draft;
+  if(!d || typeof d !== 'object') return;
+
+  // DB와 localStorage 중 더 최신 것 선택
+  const key = getDraftKey();
+  let lsTime = 0;
+  try { const ls = JSON.parse(localStorage.getItem(key)||'{}'); lsTime = ls._savedAt||0; } catch(e){}
+  const dbTime = schedule.draft_updated_at ? new Date(schedule.draft_updated_at).getTime() : 0;
+
+  // DB가 더 최신이면 DB로 복원 (이후 restoreDraft가 ls로 덮어쓸 수 있음)
+  if(dbTime >= lsTime) _applyDraft(d);
 }
 
 function restoreDraft(){
@@ -1059,47 +1134,13 @@ function restoreDraft(){
     const raw = localStorage.getItem(key);
     if(!raw) return;
     const d = JSON.parse(raw);
-
-    // 24시간 초과 시 폐기
     if(d._savedAt && Date.now() - d._savedAt > 86400000){
       localStorage.removeItem(key); return;
     }
 
-    if(d.live_mode)           selectRadioByVal('live-mode-group', d.live_mode);
-    if(d.live_mode==='split'){ const n=document.getElementById('split-notice'); if(n)n.style.display='block'; }
-    if(d.live_mode==='single'){ const n=document.getElementById('single-notice'); if(n)n.style.display='block'; }
-    if(d.groom_contact_name)  sv('groom_contact_name',  d.groom_contact_name);
-    if(d.groom_contact_phone) sv('groom_contact_phone', d.groom_contact_phone);
-    if(d.bride_contact_name)  sv('bride_contact_name',  d.bride_contact_name);
-    if(d.bride_contact_phone) sv('bride_contact_phone', d.bride_contact_phone);
-    if(d.ticket_guarantee)    sv('ticket_guarantee',    d.ticket_guarantee);
-    if(d.ticket_total_groom)  sv('ticket_total_groom',  d.ticket_total_groom);
-    if(d.ticket_total_bride)  sv('ticket_total_bride',  d.ticket_total_bride);
-    if(d.ticket_extra_limit)  sv('ticket_extra_limit',  d.ticket_extra_limit);
-    if(d.ticket_stamp)        selectRadioByVal('stamp-group', d.ticket_stamp);
-    if(d.cash_method)         selectRadioByVal('cash-group',  d.cash_method);
-    if(d.dg_disclosed){
-      selectRadioByVal('dg-disclosed-group', d.dg_disclosed);
-      if(d.dg_disclosed==='false'){ const w=document.getElementById('dg-relation-wrap'); if(w)w.style.display='block'; }
-    }
-    if(d.dg_relation_desc)    sv('dg_relation_desc',    d.dg_relation_desc);
-    if(d.gift_yn){
-      selectRadioByVal('gift-group', d.gift_yn);
-      if(d.gift_yn==='true'){
-        toggleGiftDetail(true);
-      }
-    }
-    if(d.gift_detail){
-      selectRadioByVal('gift-detail-group', d.gift_detail);
-    }
-    if(d.precheck_memo)       sv('precheck_memo',        d.precheck_memo);
-    if(d.g_ho_pw)             sv('g_ho_pw',              d.g_ho_pw);
-    if(d.b_ho_pw)             sv('b_ho_pw',              d.b_ho_pw);
-    if(d.mobile_invite_url)   sv('mobile_invite_url',    d.mobile_invite_url);
-    if(d.cash_receipt_type)   selectRadioByVal('receipt-type-group', d.cash_receipt_type);
-    if(d.cash_receipt_number) sv('cash_receipt_number',  d.cash_receipt_number);
-
-    updateProgress();
+    // localStorage가 DB보다 최신일 때만 덮어씀
+    const dbTime = schedule && schedule.draft_updated_at ? new Date(schedule.draft_updated_at).getTime() : 0;
+    if((d._savedAt||0) >= dbTime) _applyDraft(d);
   } catch(e){}
 }
 
@@ -1247,8 +1288,9 @@ async function saveAll(){
     } catch(e){ console.warn('[DG] 현장메모 등록 실패:', e); }
 
     Object.assign(schedule, body);
-    // 저장 완료 시 임시저장 데이터 삭제
+    // 저장 완료 시 임시저장 데이터 삭제 (localStorage + DB draft)
     try { const k=getDraftKey(); if(k) localStorage.removeItem(k); } catch(e){}
+    sb.patch('schedules', schedule.id, { precheck_draft: null, draft_updated_at: null }).catch(()=>{});
     showToast('✅ 저장되었습니다!');
     setTimeout(()=>{
       document.getElementById('app').style.display='none';
