@@ -5,7 +5,7 @@ const BASE_URL          = 'https://dear-guard.vercel.app';
 
 async function fetchSchedule(token) {
   const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
-  const select = 'select=groom_name,bride_name,hall,wedding_mode&limit=1';
+  const select = 'select=groom_name,bride_name,hall,wedding_mode,date&limit=1';
   const t = encodeURIComponent(token);
 
   for (const col of ['dashboard_token', 'groom_token', 'bride_token']) {
@@ -24,9 +24,25 @@ function buildTitle(s) {
   const g = (s.groom_name || '').trim();
   const b = (s.bride_name  || '').trim();
   const mode = s.wedding_mode || '양측';
-  if (mode === '단측') return g ? `${g} 신랑측 본식 준비 체크` : b ? `${b} 신부측 본식 준비 체크` : 'Dear Guard · 본식 준비 체크';
-  if (g && b) return `${g} ♥ ${b} 본식 준비 체크`;
-  return (g || b) ? `${g || b} 본식 준비 체크` : 'Dear Guard · 본식 준비 체크';
+
+  // D-day 계산
+  let dStr = '';
+  if (s.date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const weddingDay = new Date(s.date + 'T00:00:00');
+    const diff = Math.round((weddingDay - today) / (1000 * 60 * 60 * 24));
+    dStr = diff === 0 ? ' · D-Day' : diff > 0 ? ` · D-${diff}` : ` · D+${Math.abs(diff)}`;
+  }
+
+  if (mode === '단측') {
+    if (g) return `💍 ${g} 신랑측 본식${dStr}`;
+    if (b) return `💍 ${b} 신부측 본식${dStr}`;
+    return 'Dear Guard · 본식 준비 체크';
+  }
+  if (g && b) return `💍 ${g} ♥ ${b} 본식${dStr}`;
+  if (g || b) return `💍 ${g || b} 본식${dStr}`;
+  return 'Dear Guard · 본식 준비 체크';
 }
 
 export default async function handler(req) {
