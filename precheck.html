@@ -696,11 +696,9 @@ async function init(){
     restoreDraft();          // 2순위: localStorage (더 최신일 때만 덮어씀)
     renderPreShareList();
 
-    // 잠금 여부
-    if(schedule.precheck_locked){
-      document.getElementById('locked-notice').style.display='block';
-      document.getElementById('save-btn').disabled = true;
-      document.getElementById('save-btn').textContent = '🔒 운영팀 확인 완료 (수정 불가)';
+    // 잠금 여부 (자동잠금 + 수동잠금 + 강제해제 통합)
+    if(calcIsLocked()){
+      applyLockUI();
     }
 
     document.getElementById('loading').style.display='none';
@@ -1187,11 +1185,38 @@ function updateProgress(){
   document.getElementById('progress-pct').textContent = pct+'%';
   document.getElementById('progress-fill').style.width = pct+'%';
 }
+// ── 사전체크 잠금 판단 ──
+function calcIsLocked(){
+  if(!schedule) return false;
+  if(schedule.precheck_force_unlock) return false; // 강제 해제 우선
+  if(schedule.precheck_locked) return true;        // 수동 잠금
+  if(!schedule.date) return false;
+  const lockDate = new Date(schedule.date + 'T00:00:00');
+  lockDate.setDate(lockDate.getDate() - 2);        // 예식 2일 전
+  return new Date() >= lockDate;
+}
+
+function applyLockUI(){
+  // 배너
+  document.getElementById('locked-notice').style.display = 'block';
+  document.getElementById('locked-notice').textContent =
+    '🔒 체크리스트가 마감되었습니다. 변경사항은 디어가드 카카오톡으로 문의해주세요.';
+  // 저장 버튼
+  document.getElementById('save-btn').disabled = true;
+  document.getElementById('save-btn').textContent = '🔒 마감된 체크리스트입니다';
+  // 모든 입력 필드 비활성화
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    el.disabled = true;
+    el.style.background = '#F3F4F6';
+    el.style.color = '#9CA3AF';
+    el.style.cursor = 'not-allowed';
+  });
+}
 
 // ── 전체 저장 ──
 async function saveAll(){
   if(!schedule){ showToast('⚠️ 예식 정보가 없습니다'); return; }
-  if(schedule.precheck_locked){ showToast('🔒 운영팀이 확인 완료한 항목입니다'); return; }
+  if(calcIsLocked()){ showToast('🔒 마감된 체크리스트입니다. 카카오톡으로 문의해주세요.'); return; }
 
   // 모바일 청첩장 필수 검사
   if(!gv('mobile_invite_url')){
