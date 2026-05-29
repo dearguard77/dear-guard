@@ -1766,8 +1766,10 @@ function openDetail(id){
                         .filter(line => {
                           const t = line.trim();
                           return !(t.startsWith('📌 인계 담당자') ||
-                                   t.startsWith('🤵 신랑측') ||
-                                   t.startsWith('👰 신부측'));
+                                   t === '🤵 신랑측' ||
+                                   t === '👰 신부측' ||
+                                   (t.startsWith('🤵 신랑측') && !t.includes(':')) ||
+                                   (t.startsWith('👰 신부측') && !t.includes(':')));
                         })
                         .join('\n')
                         .trim();
