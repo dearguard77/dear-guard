@@ -205,8 +205,8 @@ input,select,textarea{font-family:inherit;outline:none}
               <div class="radio-desc">신랑 또는 신부 한 쪽만 진행 · 해당 측 정보만 입력</div>
             </div>
           </label>
-          <label class="radio-item selected" data-val="combined" onclick="selectRadio('live-mode-group',this,'combined');onLiveModeChange();autoSaveDraft()">
-            <input type="radio" name="live_mode" value="combined" checked>
+          <label class="radio-item" data-val="combined" onclick="selectRadio('live-mode-group',this,'combined');onLiveModeChange();autoSaveDraft()">
+            <input type="radio" name="live_mode" value="combined">
             <div class="radio-dot"></div>
             <div>
               <div class="radio-label">🤝 양측 통합 장부</div>
@@ -767,14 +767,7 @@ function applyMode(){
   const mode = s.wedding_mode || '양측';
   const isSingle = mode === '단측';
 
-  // 단측 예식이면 STEP1 숨김
-  if(isSingle){
-    document.getElementById('sec-1').style.display = 'none';
-    document.getElementById('single-mode-notice').style.display = 'block';
-    document.getElementById('live-mode-wrap').style.display = 'none';
-  }
-
-  // 사전 공유 식권 드롭다운 필터
+    // 사전 공유 식권 드롭다운 필터
   const psS = document.getElementById('ps-side');
   if(psS && sideFilter === 'groom'){
     Array.from(psS.options).forEach(o=>{ if(o.value==='신부측') o.style.display='none'; });
@@ -792,8 +785,8 @@ function applyMode(){
 function loadExistingData(){
   const s = schedule;
   // 장부 방식
-  const lm = s.live_mode || 'combined';
-  selectRadioByVal('live-mode-group', lm);
+  const lm = s.live_mode || '';
+  if(lm) selectRadioByVal('live-mode-group', lm);
   if(lm==='split')  document.getElementById('split-notice').style.display='block';
   if(lm==='single') document.getElementById('single-notice').style.display='block';
   // 담당자
@@ -1157,8 +1150,13 @@ function restoreDraft(){
 // ── 진행률 ──
 function updateProgress(){
   const checks = [
-    // STEP 1: 장부 방식 선택
-    () => !!getRadioVal('live-mode-group') || (schedule && schedule.wedding_mode==='단측'),
+    // STEP 1: 장부 방식 선택 (단측이면 신랑/신부측도 선택해야 완료)
+    () => {
+      const mode = getRadioVal('live-mode-group');
+      if(!mode) return false;
+      if(mode === 'single') return !!(sideFilter || singleSideChoice);
+      return true;
+    },
     // STEP 2: 담당자 연락처 (신랑 또는 신부 중 하나 이상)
     () => !!(gv('groom_contact_name') || gv('bride_contact_name')),
     // STEP 3: 식권 정보 (신랑 또는 신부 식권 수량 + 도장 선택)
@@ -1226,11 +1224,27 @@ async function saveAll(){
     return;
   }
 
+  // 장부 방식 미선택 검사
+  const liveMode = getRadioVal('live-mode-group');
+  if(!liveMode){
+    alert('장부 방식을 선택해주세요.');
+    const sec1body = document.getElementById('sec-1-body');
+    if(sec1body && !sec1body.classList.contains('open')) toggleSection('sec-1');
+    document.getElementById('sec-1').scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  // 단측 진행 시 신랑/신부측 미선택 검사
+  if(liveMode === 'single' && !sideFilter && !singleSideChoice){
+    alert('단측 진행 시 신랑측/신부측을 선택해주세요.');
+    const sec1body = document.getElementById('sec-1-body');
+    if(sec1body && !sec1body.classList.contains('open')) toggleSection('sec-1');
+    document.getElementById('sec-1').scrollIntoView({behavior:'smooth'});
+    return;
+  }
+
   const btn = document.getElementById('save-btn');
   btn.disabled = true;
   btn.textContent = '저장 중...';
-
-  const liveMode = getRadioVal('live-mode-group') || 'combined';
 
   // schedules 업데이트
   const body = {
@@ -1255,6 +1269,7 @@ async function saveAll(){
     cash_receipt_type:    getRadioVal('receipt-type-group'),
     cash_receipt_number:  gv('cash_receipt_number'),
     precheck_status:      'submitted',
+    single_side:          (liveMode === 'single') ? (sideFilter || singleSideChoice || null) : null,
   };
 
   try {
