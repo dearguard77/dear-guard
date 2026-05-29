@@ -1093,8 +1093,10 @@ function rowToSchedule(row){
     dgRelationDesc:    row.dg_relation_desc    || '',
     giftYn:            row.gift_yn,
     mobileInviteUrl:   row.mobile_invite_url   || '',
-    precheckMemo:      row.precheck_memo       || '',
-    precheckStatus:    row.precheck_status     || '',
+    precheckMemo:         row.precheck_memo          || '',
+    precheckStatus:       row.precheck_status        || '',
+    precheckLocked:       row.precheck_locked        || false,
+    precheckForceUnlock:  row.precheck_force_unlock  || false,
     liveMode:          row.live_mode           || '',
     contractToken:     row.contract_token      || '',
     contractSigned:    row.contract_signed     || false,
@@ -1951,6 +1953,30 @@ async function openPrecheckModal(id){
             </button>
           </div>
         </div>
+        <div style="border-top:1px solid #E5E7EB;padding-top:12px">
+          <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">🔒 사전체크 잠금 관리</div>
+          <div id="precheck-lock-status" style="font-size:12px;margin-bottom:8px;font-weight:600;color:${
+            s.precheckForceUnlock ? '#059669' : s.precheckLocked ? '#DC2626' : '#6B7280'
+          }">${
+            s.precheckForceUnlock ? '🛡 강제 열기 중 (자동잠금 무시)' :
+            s.precheckLocked ? '🔴 수동 잠금 중' : '🟢 열려 있음'
+          }</div>
+          <div style="display:flex;gap:6px">
+            <button onclick="setPrecheckLock(${id}, true, false)"
+              style="flex:1;background:#DC2626;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
+              🔒 수동 잠금
+            </button>
+            <button onclick="setPrecheckLock(${id}, false, false)"
+              style="flex:1;background:#6B7280;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
+              🔓 잠금 해제
+            </button>
+            <button onclick="setPrecheckLock(${id}, false, true)"
+              style="flex:1;background:#059669;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
+              🛡 강제 열기
+            </button>
+          </div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:6px">강제 열기: 자동잠금일이 지나도 임시로 수정 허용</div>
+        </div>
       </div>
       <div class="modal-footer" style="justify-content:flex-end">
         <button class="btn btn-ghost" onclick="closePrecheckModal()">닫기</button>
@@ -1965,6 +1991,25 @@ function closePrecheckModal(){
   const modal = document.getElementById('precheck-modal');
   if(modal) modal.remove();
   document.body.style.overflow = '';
+}
+
+async function setPrecheckLock(id, locked, forceUnlock){
+  try{
+    await sb.patch('schedules', id, {
+      precheck_locked:       locked,
+      precheck_force_unlock: forceUnlock,
+    });
+    const s = schedules.find(x => x.id === id);
+    if(s){ s.precheckLocked = locked; s.precheckForceUnlock = forceUnlock; }
+    const statusEl = document.getElementById('precheck-lock-status');
+    if(statusEl){
+      statusEl.textContent = forceUnlock ? '🛡 강제 열기 중 (자동잠금 무시)' : locked ? '🔴 수동 잠금 중' : '🟢 열려 있음';
+      statusEl.style.color  = forceUnlock ? '#059669' : locked ? '#DC2626' : '#6B7280';
+    }
+    showToast(forceUnlock ? '🛡 강제 열기 완료' : locked ? '🔒 수동 잠금 완료' : '🔓 잠금 해제 완료');
+  }catch(e){
+    showToast('⚠️ 처리 실패: ' + e.message);
+  }
 }
 
 function copyPrecheckGuide(precheckUrl){
