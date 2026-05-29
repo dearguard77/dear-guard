@@ -1312,8 +1312,10 @@ async function saveAll(){
       if(memo)                    lines.push(`📝 특이사항: ${memo}`);
 
       // 레디백 비밀번호
-      const gPw = body.groom_password;
-      const bPw = body.bride_password;
+      const gPwEl = document.getElementById('g_ho_pw');
+      const bPwEl = document.getElementById('b_ho_pw');
+      const gPw = (gPwEl && gPwEl.value) ? gPwEl.value.trim() : '';
+      const bPw = (bPwEl && bPwEl.value) ? bPwEl.value.trim() : '';
       if(gPw || bPw){
         lines.push('🔒 레디백 비밀번호');
         if(gPw) lines.push(`🤵 신랑측: ${gPw}`);
