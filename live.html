@@ -870,30 +870,34 @@ function downloadExcel(){
   if(currentViewSide!=='groom') summaryRows.push(makeSummaryRow('신부측',bL));
   if(gOps.length){summaryRows.push([]);summaryRows.push(['[신랑측 운영메모]']);summaryRows.push(['시간','내용']);gOps.forEach(l=>summaryRows.push([l.time_str||'',l.content||'']));}
   if(bOps.length){summaryRows.push([]);summaryRows.push(['[신부측 운영메모]']);summaryRows.push(['시간','내용']);bOps.forEach(l=>summaryRows.push([l.time_str||'',l.content||'']));}
+  summaryRows.push([]);
+  summaryRows.push(['※ 안내사항']);
+  summaryRows.push(['※ 관계는 디어가드가 직접 입력하는 값이 아니며, 필요한 경우 신랑·신부님이 별도로 확인·정리해 주세요.']);
+  summaryRows.push(['   예: 친구, 직장동료, 친척, 부모님 지인']);
   const ws0=XLSX.utils.aoa_to_sheet(summaryRows);
   ws0['!cols']=[{wch:12},{wch:8},{wch:14},{wch:10},{wch:10}];
   XLSX.utils.book_append_sheet(wb,ws0,'전체 요약');
   function makeSideSheet(list){
-    const header=['번호','결제방식','하객이름','관계','금액(원)','대인식권'];
+    const header=['번호','결제방식','하객이름','금액(원)','대인식권'];
     if(hasChild) header.push('소인식권');
-    header.push('메모','접수시간');
+    header.push('메모','관계','접수시간');
     const rows=[header];
     const sorted=[...list].sort((a,b)=>(a.seq||999999)-(b.seq||999999));
     sorted.forEach((l,i)=>{
-      const row=[l.seq||i+1,l.payment_type||'',l.guest_name||'',l.relation||'',money(l.amount||0),l.adult_ticket||0];
+      const row=[l.seq||i+1,l.payment_type||'',l.guest_name||'',money(l.amount||0),l.adult_ticket||0];
       if(hasChild) row.push(l.child_ticket||0);
-      row.push(l.memo||'',l.created_at?fmtTime(l.created_at):'');
+      row.push(l.memo||'',l.relation||'',l.created_at?fmtTime(l.created_at):'');
       rows.push(row);
     });
     rows.push([]);
-    const sumRow=['합계','','','',money(list.reduce((s,l)=>s+(l.amount||0),0)),list.reduce((s,l)=>s+(l.adult_ticket||0),0)];
+    const sumRow=['합계','','',money(list.reduce((s,l)=>s+(l.amount||0),0)),list.reduce((s,l)=>s+(l.adult_ticket||0),0)];
     if(hasChild) sumRow.push(list.reduce((s,l)=>s+(l.child_ticket||0),0));
-    sumRow.push('','');
+    sumRow.push('','','');
     rows.push(sumRow);
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    const cols=[{wch:6},{wch:10},{wch:12},{wch:8},{wch:12},{wch:8}];
+    const cols=[{wch:6},{wch:10},{wch:12},{wch:12},{wch:8}];
     if(hasChild) cols.push({wch:8});
-    cols.push({wch:20},{wch:8});
+    cols.push({wch:20},{wch:10},{wch:8});
     ws['!cols']=cols;
     const lastCol=String.fromCharCode(64+header.length);
     ws['!autofilter']={ref:'A1:'+lastCol+'1'};
