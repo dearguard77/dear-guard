@@ -149,6 +149,17 @@ input,select,textarea{font-family:inherit;outline:none}
 /* 토스트 */
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)}
 
+/* [수정4] 현금영수증 아코디언 토글 */
+.receipt-accordion-btn{display:flex;align-items:center;justify-content:space-between;width:100%;background:var(--gold-bg);border:1px solid #E8D5B0;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;font-weight:700;color:#92400E;cursor:pointer;margin-bottom:0;text-align:left}
+.receipt-accordion-btn .acc-arrow{font-size:11px;transition:transform .2s;flex-shrink:0;margin-left:8px}
+.receipt-accordion-btn.open .acc-arrow{transform:rotate(180deg)}
+.receipt-accordion-body{display:none;margin-top:0;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);font-size:12px;color:var(--text2);line-height:1.8}
+.receipt-accordion-body.open{display:block}
+
+/* [수정1] 단측 진행 진행측 선택 필수 강조 */
+.single-side-required{background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;color:#DC2626;font-weight:700;margin-bottom:8px;display:none}
+.single-side-required.show{display:block}
+
 @media(min-width:481px){
   #app,#complete-screen{border-left:1px solid var(--border);border-right:1px solid var(--border);min-height:100vh}
   #save-bar>div{max-width:480px;margin:0 auto}
@@ -197,6 +208,7 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="section-body open" id="sec-1-body">
       <div id="live-mode-wrap">
         <div class="radio-group" id="live-mode-group">
+          <!-- [수정1] 단측 진행: 클릭 즉시 아래에 진행측 선택 노출 -->
           <label class="radio-item" data-val="single" onclick="selectRadio('live-mode-group',this,'single');onLiveModeChange();autoSaveDraft()">
             <input type="radio" name="live_mode" value="single">
             <div class="radio-dot"></div>
@@ -205,6 +217,29 @@ input,select,textarea{font-family:inherit;outline:none}
               <div class="radio-desc">신랑 또는 신부 한 쪽만 진행 · 해당 측 정보만 입력</div>
             </div>
           </label>
+
+          <!-- [수정1] 단측 진행 선택 즉시 바로 아래에 진행측 선택 노출 -->
+          <div id="single-side-wrap" style="display:none;padding:10px 12px;background:var(--gold-bg);border:1.5px solid #E8D5B0;border-radius:var(--radius-sm);">
+            <div class="info-box gold" style="margin-bottom:10px">👤 단측 진행 모드입니다.<br>해당 측 정보만 입력해주시면 됩니다 😊</div>
+            <!-- 필수 선택 안내 -->
+            <div class="single-side-required" id="single-side-required">⚠️ 단측 진행 시 반드시 진행 측을 선택해주세요.</div>
+            <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">진행 측을 선택해주세요 <span style="color:#EF4444">*</span></div>
+            <div style="display:flex;gap:8px">
+              <label class="radio-item" id="single-groom-btn" data-val="groom"
+                onclick="selectSingleSide('groom')"
+                style="flex:1;cursor:pointer;border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 12px">
+                <input type="radio" name="single_side" value="groom" style="display:none">
+                <div style="font-size:14px;font-weight:700;color:#2563EB">🤵 신랑측</div>
+              </label>
+              <label class="radio-item" id="single-bride-btn" data-val="bride"
+                onclick="selectSingleSide('bride')"
+                style="flex:1;cursor:pointer;border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 12px">
+                <input type="radio" name="single_side" value="bride" style="display:none">
+                <div style="font-size:14px;font-weight:700;color:#DB2777">👰 신부측</div>
+              </label>
+            </div>
+          </div>
+
           <label class="radio-item" data-val="combined" onclick="selectRadio('live-mode-group',this,'combined');onLiveModeChange();autoSaveDraft()">
             <input type="radio" name="live_mode" value="combined">
             <div class="radio-dot"></div>
@@ -224,24 +259,6 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div id="split-notice" style="display:none;margin-top:10px">
           <div class="info-box pink">🔒 개별 장부 모드입니다.<br>각 측 정보는 서로 공유되지 않습니다.<br><br>※ 원활한 안내를 위해 신청하지 않은 측도 디어가드 카카오톡 채널 추가 후 대화 부탁드립니다 😊</div>
-        </div>
-        <div id="single-notice" style="display:none;margin-top:10px">
-          <div class="info-box gold" style="margin-bottom:10px">👤 단측 진행 모드입니다.<br>해당 측 정보만 입력해주시면 됩니다 😊</div>
-          <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">진행 측을 선택해주세요</div>
-          <div style="display:flex;gap:8px">
-            <label class="radio-item" id="single-groom-btn" data-val="groom"
-              onclick="selectSingleSide('groom')"
-              style="flex:1;cursor:pointer;border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 12px">
-              <input type="radio" name="single_side" value="groom" style="display:none">
-              <div style="font-size:14px;font-weight:700;color:#2563EB">🤵 신랑측</div>
-            </label>
-            <label class="radio-item" id="single-bride-btn" data-val="bride"
-              onclick="selectSingleSide('bride')"
-              style="flex:1;cursor:pointer;border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 12px">
-              <input type="radio" name="single_side" value="bride" style="display:none">
-              <div style="font-size:14px;font-weight:700;color:#DB2777">👰 신부측</div>
-            </label>
-          </div>
         </div>
       </div>
       <!-- 단측이면 이 섹션 숨김 -->
@@ -317,16 +334,63 @@ input,select,textarea{font-family:inherit;outline:none}
         <label class="field-label">전체 보증인원</label>
         <input class="field-input" id="ticket_guarantee" type="number" placeholder="예: 200" oninput="updateProgress();autoSaveDraft()">
       </div>
-      <div class="grid2" style="margin-bottom:12px">
+
+      <!-- 신랑측 식권 -->
+      <div style="margin-bottom:12px">
         <div class="field">
           <label class="field-label" style="color:#2563EB">🤵 신랑측 식권 수량</label>
           <input class="field-input" id="ticket_total_groom" type="number" placeholder="예: 110" oninput="updateProgress();autoSaveDraft()">
         </div>
+        <!-- [수정2] 신랑측 소인 식권 여부 -->
+        <div class="field" style="margin-top:6px">
+          <label class="field-label" style="color:#2563EB">🤵 신랑측 소인 식권 여부</label>
+          <div class="radio-group" id="child-groom-yn-group" style="flex-direction:row;gap:8px">
+            <label class="radio-item" data-val="true" onclick="selectRadio('child-groom-yn-group',this,'true');toggleChildTicket('groom',true);updateProgress();autoSaveDraft()" style="flex:1">
+              <input type="radio" name="child_groom_yn" value="true">
+              <div class="radio-dot"></div>
+              <div class="radio-label">있음</div>
+            </label>
+            <label class="radio-item" data-val="false" onclick="selectRadio('child-groom-yn-group',this,'false');toggleChildTicket('groom',false);updateProgress();autoSaveDraft()" style="flex:1">
+              <input type="radio" name="child_groom_yn" value="false">
+              <div class="radio-dot"></div>
+              <div class="radio-label">없음</div>
+            </label>
+          </div>
+        </div>
+        <div id="child-groom-amount-wrap" style="display:none;margin-top:6px">
+          <label class="field-label" style="color:#2563EB">🤵 신랑측 소인 식권 수량</label>
+          <input class="field-input" id="ticket_child_groom" type="number" placeholder="예: 10" oninput="updateProgress();autoSaveDraft()">
+        </div>
+      </div>
+
+      <!-- 신부측 식권 -->
+      <div style="margin-bottom:12px">
         <div class="field">
           <label class="field-label" style="color:#DB2777">👰 신부측 식권 수량</label>
           <input class="field-input" id="ticket_total_bride" type="number" placeholder="예: 100" oninput="updateProgress();autoSaveDraft()">
         </div>
+        <!-- [수정2] 신부측 소인 식권 여부 -->
+        <div class="field" style="margin-top:6px">
+          <label class="field-label" style="color:#DB2777">👰 신부측 소인 식권 여부</label>
+          <div class="radio-group" id="child-bride-yn-group" style="flex-direction:row;gap:8px">
+            <label class="radio-item" data-val="true" onclick="selectRadio('child-bride-yn-group',this,'true');toggleChildTicket('bride',true);updateProgress();autoSaveDraft()" style="flex:1">
+              <input type="radio" name="child_bride_yn" value="true">
+              <div class="radio-dot"></div>
+              <div class="radio-label">있음</div>
+            </label>
+            <label class="radio-item" data-val="false" onclick="selectRadio('child-bride-yn-group',this,'false');toggleChildTicket('bride',false);updateProgress();autoSaveDraft()" style="flex:1">
+              <input type="radio" name="child_bride_yn" value="false">
+              <div class="radio-dot"></div>
+              <div class="radio-label">없음</div>
+            </label>
+          </div>
+        </div>
+        <div id="child-bride-amount-wrap" style="display:none;margin-top:6px">
+          <label class="field-label" style="color:#DB2777">👰 신부측 소인 식권 수량</label>
+          <input class="field-input" id="ticket_child_bride" type="number" placeholder="예: 5" oninput="updateProgress();autoSaveDraft()">
+        </div>
       </div>
+
       <div class="field">
         <label class="field-label">추가 발권 가능 범위</label>
         <input class="field-input" id="ticket_extra_limit" type="number" placeholder="예: 20 (초과 발권 가능 장수)" oninput="updateProgress();autoSaveDraft()">
@@ -365,7 +429,6 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="section-body" id="sec-4-body">
       <div class="info-box" style="margin-bottom:12px">식권을 미리 전달드려야 하는 분들을 작성해주세요 😊<br><span style="color:#6B7280">예: 사회자 2장 / 헬퍼 1장 / 스냅작가 2장</span></div>
       <div id="pre-share-list-pc" class="pre-share-list"></div>
-      <!-- 입력 행 -->
       <div class="add-row" style="margin-top:10px">
         <select class="add-select-sm" id="ps-side">
           <option value="신랑측">🤵 신랑</option>
@@ -391,8 +454,6 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="section-body" id="sec-5-body">
       <div class="radio-group" id="cash-group">
-
-        <!-- ① 밀봉 전달형 -->
         <label class="radio-item" data-val="sealed" onclick="selectRadio('cash-group',this,'sealed');updateProgress();autoSaveDraft()">
           <input type="radio" name="cash_method" value="sealed">
           <div class="radio-dot" style="margin-top:2px;flex-shrink:0"></div>
@@ -406,8 +467,6 @@ input,select,textarea{font-family:inherit;outline:none}
             <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:5px">→ 금액 확인 없이 그대로 전달받고 싶은 경우 추천</div>
           </div>
         </label>
-
-        <!-- ② 봉투 유지형 -->
         <label class="radio-item" data-val="confirmed" onclick="selectRadio('cash-group',this,'confirmed');updateProgress();autoSaveDraft()">
           <input type="radio" name="cash_method" value="confirmed">
           <div class="radio-dot" style="margin-top:2px;flex-shrink:0"></div>
@@ -421,8 +480,6 @@ input,select,textarea{font-family:inherit;outline:none}
             <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:5px">→ 금액 확인은 필요하지만 봉투도 함께 보관하고 싶은 경우 추천</div>
           </div>
         </label>
-
-        <!-- ③ 권종별 정리형 -->
         <label class="radio-item" data-val="sorted" onclick="selectRadio('cash-group',this,'sorted');updateProgress();autoSaveDraft()">
           <input type="radio" name="cash_method" value="sorted">
           <div class="radio-dot" style="margin-top:2px;flex-shrink:0"></div>
@@ -436,7 +493,6 @@ input,select,textarea{font-family:inherit;outline:none}
             <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:5px">→ 권종별로 정리하여 전달받는 방식</div>
           </div>
         </label>
-
       </div>
       <div class="detail-toggle" onclick="toggleDetail('cash-tip')" style="margin-top:10px">
         ℹ️ 보통 어떤 방식을 많이 선택하나요?
@@ -547,7 +603,7 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
   </div>
 
-  <!-- ⑨ 레디백 비밀번호 (구 STEP10, STEP9 삭제로 번호 이동) -->
+  <!-- ⑨ 레디백 비밀번호 -->
   <div class="section" id="sec-10">
     <div class="section-hdr" onclick="toggleSection('sec-10')">
       <div class="section-icon">🔒</div>
@@ -586,19 +642,67 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
   </div>
 
-  <!-- ⑪ 현금영수증 -->
+  <!-- [수정3] ⑪ 본식 후기 작성 예정 (STEP 11 신규) -->
+  <div class="section" id="sec-review">
+    <div class="section-hdr" onclick="toggleSection('sec-review')">
+      <div class="section-icon">✍️</div>
+      <div class="section-meta">
+        <div class="section-num">STEP 11</div>
+        <div class="section-title">본식 후기 작성 예정</div>
+        <div class="section-status" id="sec-review-status">선택해주세요</div>
+      </div>
+      <div class="section-toggle" id="sec-review-toggle">▼</div>
+    </div>
+    <div class="section-body" id="sec-review-body">
+      <div class="info-box green" style="margin-bottom:12px">
+        본식 후기 작성 시 후기 페이백이 가능합니다 😊<br>
+        후기 작성 예정 여부를 선택해주세요.
+      </div>
+      <div class="radio-group" id="review-planned-group" style="flex-direction:row;gap:8px">
+        <label class="radio-item" data-val="true" onclick="selectRadio('review-planned-group',this,'true');updateProgress();autoSaveDraft()" style="flex:1">
+          <input type="radio" name="review_planned" value="true">
+          <div class="radio-dot"></div>
+          <div class="radio-label">예</div>
+        </label>
+        <label class="radio-item" data-val="false" onclick="selectRadio('review-planned-group',this,'false');updateProgress();autoSaveDraft()" style="flex:1">
+          <input type="radio" name="review_planned" value="false">
+          <div class="radio-dot"></div>
+          <div class="radio-label">아니오</div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- [수정4] ⑫ 현금영수증 (STEP 12로 이동 + 아코디언 안내문) -->
   <div class="section" id="sec-12">
     <div class="section-hdr" onclick="toggleSection('sec-12')">
       <div class="section-icon">🧾</div>
       <div class="section-meta">
-        <div class="section-num">STEP 11</div>
+        <div class="section-num">STEP 12</div>
         <div class="section-title">현금영수증</div>
         <div class="section-status" id="sec-12-status">해당 없으면 건너뛰세요</div>
       </div>
       <div class="section-toggle" id="sec-12-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-12-body">
-      <div class="info-box gold" style="margin-bottom:12px">현금영수증은 잔금 납부 후 발행됩니다 😊</div>
+      <!-- [수정4] 아코디언 형태 안내문 (초기 접힘) -->
+      <div style="margin-bottom:12px">
+        <button class="receipt-accordion-btn" id="receipt-acc-btn" onclick="toggleReceiptAccordion()">
+          <span>📌 현금영수증 안내 (꼭 읽어주세요)</span>
+          <span class="acc-arrow">▼</span>
+        </button>
+        <div class="receipt-accordion-body" id="receipt-acc-body">
+          현금영수증은 잔금 납부 후 발행됩니다 😊<br><br>
+          다만 후기 페이백 적용을 원하시는 경우,<br>
+          현금영수증은 후기 페이백 금액을 제외한<br>
+          실 결제 금액 기준으로 발행됩니다.<br><br>
+          후기 페이백 적용을 원하시는 경우<br>
+          본식 종료 후 1개월 이내<br>
+          후기 링크를 디어가드 카카오톡 채널로 전달 부탁드립니다.<br><br>
+          후기 링크가 전달되지 않을 경우<br>
+          페이백 적용이 어려울 수 있습니다.
+        </div>
+      </div>
       <div class="field">
         <label class="field-label">구분</label>
         <div class="radio-group" id="receipt-type-group" style="flex-direction:row;gap:8px">
@@ -644,6 +748,9 @@ input,select,textarea{font-family:inherit;outline:none}
   ⚠️ Supabase 신규 컬럼 추가 필요 (최초 1회):
   ALTER TABLE schedules ADD COLUMN IF NOT EXISTS ticket_total_groom integer;
   ALTER TABLE schedules ADD COLUMN IF NOT EXISTS ticket_total_bride integer;
+  ALTER TABLE schedules ADD COLUMN IF NOT EXISTS ticket_child_groom integer;
+  ALTER TABLE schedules ADD COLUMN IF NOT EXISTS ticket_child_bride integer;
+  ALTER TABLE schedules ADD COLUMN IF NOT EXISTS review_planned boolean;
 */
 const SUPABASE_URL      = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
@@ -656,7 +763,7 @@ const sb = {
 };
 
 let schedule = null;
-let sideFilter = null; // null=통합, 'groom', 'bride'
+let sideFilter = null;
 let preShares = [];
 
 const getToken = () => new URLSearchParams(location.search).get('t') || '';
@@ -683,7 +790,6 @@ async function init(){
 
     schedule = rows[0];
 
-    // 기존 사전 공유 식권 로드
     try {
       preShares = await sb.get('ticket_additions',
         `?schedule_id=eq.${schedule.id}&type=eq.pre_share&order=created_at.asc`);
@@ -691,12 +797,11 @@ async function init(){
 
     renderHeader();
     applyMode();
-    loadExistingData();      // 3순위: schedules 기존 저장값
-    restoreFromDB();         // 1순위: DB draft (카카오 인앱 이탈 복원)
-    restoreDraft();          // 2순위: localStorage (더 최신일 때만 덮어씀)
+    loadExistingData();
+    restoreFromDB();
+    restoreDraft();
     renderPreShareList();
 
-    // 잠금 여부 (자동잠금 + 수동잠금 + 강제해제 통합)
     if(calcIsLocked()){
       applyLockUI();
     }
@@ -723,7 +828,6 @@ function renderHeader(){
   let names, displayTitle;
   const isSingleMode = (schedule && schedule.wedding_mode === '단측');
   if(isSingleMode){
-    // 단측: 진행측 이름 + 신랑측/신부측
     if(g && !b){
       names = `🤵 ${g} 신랑측`;
       displayTitle = `${g} 신랑측 본식 준비 체크`;
@@ -731,7 +835,6 @@ function renderHeader(){
       names = `👰 ${b} 신부측`;
       displayTitle = `${b} 신부측 본식 준비 체크`;
     } else if(g){
-      // 양쪽 이름 다 있어도 단측이면 신랑 우선
       names = `🤵 ${g} 신랑측`;
       displayTitle = `${g} 신랑측 본식 준비 체크`;
     } else {
@@ -739,7 +842,6 @@ function renderHeader(){
       displayTitle = 'Dear Guard · 본식 준비 체크';
     }
   } else {
-    // 양측: 신랑♥신부
     names = (g&&b) ? `${g} ♥ ${b}` : g||b||'—';
     displayTitle = (g&&b) ? `${g} ♥ ${b} 본식 준비 체크` : (g||b) ? `${g||b} 본식 준비 체크` : 'Dear Guard · 본식 준비 체크';
   }
@@ -750,7 +852,6 @@ function renderHeader(){
   const dayStr = s.date ? `${s.date} (${DAYS[d.getDay()]}) · ${(s.time||'').slice(0,5)}` : '';
   document.getElementById('hdr-info').textContent = [dayStr, s.hall||''].filter(Boolean).join(' · ');
 
-  // OG/title 업데이트
   const displayDesc = '디어가드 본식 준비 체크리스트';
   document.title = displayTitle;
   const setMeta = (id,val)=>{ const el=document.getElementById(id); if(el) el.setAttribute('content',val); };
@@ -764,10 +865,6 @@ function renderHeader(){
 // ── 모드 적용 ──
 function applyMode(){
   const s = schedule;
-  const mode = s.wedding_mode || '양측';
-  const isSingle = mode === '단측';
-
-    // 사전 공유 식권 드롭다운 필터
   const psS = document.getElementById('ps-side');
   if(psS && sideFilter === 'groom'){
     Array.from(psS.options).forEach(o=>{ if(o.value==='신부측') o.style.display='none'; });
@@ -776,32 +873,49 @@ function applyMode(){
     Array.from(psS.options).forEach(o=>{ if(o.value==='신랑측') o.style.display='none'; });
     psS.value = '신부측';
   }
-
-  // 담당자/비밀번호 숨김은 applySingleSideUI에 위임
   applySingleSideUI();
 }
 
 // ── 기존 데이터 로드 ──
 function loadExistingData(){
   const s = schedule;
-  // 장부 방식
   const lm = s.live_mode || '';
   if(lm) selectRadioByVal('live-mode-group', lm);
   if(lm==='split')  document.getElementById('split-notice').style.display='block';
-  if(lm==='single') document.getElementById('single-notice').style.display='block';
-  // 담당자
+  if(lm==='single'){
+    document.getElementById('single-side-wrap').style.display='block';
+    // 기존 저장된 single_side 복원
+    if(s.single_side){
+      singleSideChoice = s.single_side;
+      selectSingleSide(s.single_side);
+    }
+  }
   sv('groom_contact_name',  s.groom_contact_name);
   sv('groom_contact_phone', s.groom_contact_phone);
   sv('bride_contact_name',  s.bride_contact_name);
   sv('bride_contact_phone', s.bride_contact_phone);
-  // 식권
   sv('ticket_total_groom', s.ticket_total_groom);
   sv('ticket_total_bride', s.ticket_total_bride);
   sv('ticket_extra_limit', s.ticket_extra_limit);
+  // [수정2] 소인 식권 로드
+  if(s.ticket_child_groom != null){
+    const hasChild = s.ticket_child_groom > 0;
+    selectRadioByVal('child-groom-yn-group', hasChild ? 'true' : 'false');
+    if(hasChild){
+      document.getElementById('child-groom-amount-wrap').style.display='block';
+      sv('ticket_child_groom', s.ticket_child_groom);
+    }
+  }
+  if(s.ticket_child_bride != null){
+    const hasChild = s.ticket_child_bride > 0;
+    selectRadioByVal('child-bride-yn-group', hasChild ? 'true' : 'false');
+    if(hasChild){
+      document.getElementById('child-bride-amount-wrap').style.display='block';
+      sv('ticket_child_bride', s.ticket_child_bride);
+    }
+  }
   if(s.ticket_stamp!=null) selectRadioByVal('stamp-group', String(s.ticket_stamp));
-  // 축의금
   if(s.cash_method) selectRadioByVal('cash-group', s.cash_method);
-  // 관계
   if(s.dg_disclosed!=null){
     selectRadioByVal('dg-disclosed-group', String(s.dg_disclosed));
     if(s.dg_disclosed===false || s.dg_disclosed==='false'){
@@ -809,24 +923,18 @@ function loadExistingData(){
     }
   }
   sv('dg_relation_desc', s.dg_relation_desc);
-  // 답례품
   if(s.gift_yn!=null){
     selectRadioByVal('gift-group', String(s.gift_yn));
-    if(s.gift_yn===true || s.gift_yn==='true'){
-      toggleGiftDetail(true);
-    }
-    if(s.gift_detail){
-      selectRadioByVal('gift-detail-group', s.gift_detail);
-    }
+    if(s.gift_yn===true || s.gift_yn==='true') toggleGiftDetail(true);
+    if(s.gift_detail) selectRadioByVal('gift-detail-group', s.gift_detail);
   }
-  // 특이사항
   sv('precheck_memo', s.precheck_memo);
-  // 비밀번호
   sv('g_ho_pw', s.groom_password);
   sv('b_ho_pw', s.bride_password);
-  // 모바일 청첩장
   sv('mobile_invite_url', s.mobile_invite_url);
-  // 현금영수증
+  // [수정3] 후기 작성 예정 로드
+  if(s.review_planned != null) selectRadioByVal('review-planned-group', String(s.review_planned));
+  // STEP 12 현금영수증
   if(s.cash_receipt_type) selectRadioByVal('receipt-type-group', s.cash_receipt_type);
   sv('cash_receipt_number', s.cash_receipt_number);
 }
@@ -869,27 +977,45 @@ function toggleDetail(id){
   if(el) el.classList.toggle('open');
 }
 
+// [수정4] 현금영수증 아코디언 토글
+function toggleReceiptAccordion(){
+  const btn  = document.getElementById('receipt-acc-btn');
+  const body = document.getElementById('receipt-acc-body');
+  if(!btn || !body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+
+// [수정2] 소인 식권 표시/숨김
+function toggleChildTicket(side, show){
+  const wrapId = side === 'groom' ? 'child-groom-amount-wrap' : 'child-bride-amount-wrap';
+  const inputId = side === 'groom' ? 'ticket_child_groom' : 'ticket_child_bride';
+  const wrap = document.getElementById(wrapId);
+  if(wrap) wrap.style.display = show ? 'block' : 'none';
+  if(!show){
+    const inp = document.getElementById(inputId);
+    if(inp) inp.value = '';
+  }
+}
+
 // ── 장부 방식 변경 ──
-// 단측 진행 시 고객이 직접 선택한 측 저장
-let singleSideChoice = null; // 'groom' | 'bride' | null
+let singleSideChoice = null;
 
 function selectSingleSide(side){
   singleSideChoice = side;
-  // 버튼 스타일 업데이트
   const gBtn = document.getElementById('single-groom-btn');
   const bBtn = document.getElementById('single-bride-btn');
-  if(gBtn) gBtn.style.borderColor = side==='groom' ? '#2563EB' : '#E5E7EB';
-  if(gBtn) gBtn.style.background  = side==='groom' ? '#EFF6FF' : '';
-  if(bBtn) bBtn.style.borderColor = side==='bride' ? '#DB2777' : '#E5E7EB';
-  if(bBtn) bBtn.style.background  = side==='bride' ? '#FDF2F8' : '';
+  if(gBtn){ gBtn.style.borderColor = side==='groom' ? '#2563EB' : '#E5E7EB'; gBtn.style.background = side==='groom' ? '#EFF6FF' : ''; }
+  if(bBtn){ bBtn.style.borderColor = side==='bride' ? '#DB2777' : '#E5E7EB'; bBtn.style.background = side==='bride' ? '#FDF2F8' : ''; }
+  // 선택 완료 시 필수 안내 숨김
+  const req = document.getElementById('single-side-required');
+  if(req) req.classList.remove('show');
   applySingleSideUI();
   autoSaveDraft();
 }
 
 function applySingleSideUI(){
-  // 단측 진행 시 노출 측 결정:
-  //   1) sideFilter(토큰 기반) 우선
-  //   2) 없으면 고객이 직접 선택한 singleSideChoice 사용
   const effectiveSide = sideFilter || singleSideChoice;
   const val = getRadioVal('live-mode-group');
 
@@ -897,7 +1023,6 @@ function applySingleSideUI(){
   const bEl = document.getElementById('bride-contact-wrap');
   const gPw = document.getElementById('groom-pw-wrap');
   const bPw = document.getElementById('bride-pw-wrap');
-  // 식권은 항상 양측 표시 — 숨기지 않음
 
   if(val === 'single'){
     if(effectiveSide === 'bride'){
@@ -911,14 +1036,12 @@ function applySingleSideUI(){
       if(gEl) gEl.style.display = '';
       if(gPw) gPw.style.display = '';
     } else {
-      // 아직 측 미선택: 양쪽 모두 표시 (선택 유도)
       if(gEl) gEl.style.display = '';
       if(bEl) bEl.style.display = '';
       if(gPw) gPw.style.display = '';
       if(bPw) bPw.style.display = '';
     }
   } else {
-    // 통합/분리: sideFilter 기준만 적용
     if(sideFilter === 'groom'){
       if(bEl) bEl.style.display = 'none'; if(bPw) bPw.style.display = 'none';
       if(gEl) gEl.style.display = '';     if(gPw) gPw.style.display = '';
@@ -926,19 +1049,26 @@ function applySingleSideUI(){
       if(gEl) gEl.style.display = 'none'; if(gPw) gPw.style.display = 'none';
       if(bEl) bEl.style.display = '';     if(bPw) bPw.style.display = '';
     } else {
-      // 통합 토큰: 양측 모두 표시
       if(gEl) gEl.style.display = ''; if(gPw) gPw.style.display = '';
       if(bEl) bEl.style.display = ''; if(bPw) bPw.style.display = '';
     }
   }
 }
 
+// [수정1] 장부 방식 변경 - 단측 즉시 노출, 양측 시 숨김
 function onLiveModeChange(){
   const val = getRadioVal('live-mode-group');
-  document.getElementById('split-notice').style.display  = val==='split'  ? 'block' : 'none';
-  document.getElementById('single-notice').style.display = val==='single' ? 'block' : 'none';
+  // single-side-wrap: 단측 선택 시만 노출
+  const singleWrap = document.getElementById('single-side-wrap');
+  if(singleWrap) singleWrap.style.display = val === 'single' ? 'block' : 'none';
+  // split-notice: 분리 선택 시만 노출
+  document.getElementById('split-notice').style.display = val === 'split' ? 'block' : 'none';
   // 단측 선택 해제 시 초기화
-  if(val !== 'single') singleSideChoice = null;
+  if(val !== 'single'){
+    singleSideChoice = null;
+    const req = document.getElementById('single-side-required');
+    if(req) req.classList.remove('show');
+  }
   applySingleSideUI();
   updateProgress();
 }
@@ -954,11 +1084,7 @@ function toggleGiftDetail(show){
   wrap.style.display = show ? 'block' : 'none';
   if(!show){
     const group = document.getElementById('gift-detail-group');
-    if(group){
-      group.querySelectorAll('.radio-item').forEach(item=>{
-        item.classList.remove('selected');
-      });
-    }
+    if(group) group.querySelectorAll('.radio-item').forEach(item => item.classList.remove('selected'));
   }
 }
 
@@ -1026,9 +1152,11 @@ function getDraftKey(){
   return schedule ? `precheck_draft_${schedule.id}` : null;
 }
 
+// [수정5] draft에 신규 필드 반영
 function _collectDraft(){
   return {
     live_mode:            getRadioVal('live-mode-group'),
+    single_side_choice:   singleSideChoice,
     groom_contact_name:   gv('groom_contact_name'),
     groom_contact_phone:  gv('groom_contact_phone'),
     bride_contact_name:   gv('bride_contact_name'),
@@ -1036,6 +1164,10 @@ function _collectDraft(){
     ticket_guarantee:     gv('ticket_guarantee'),
     ticket_total_groom:   gv('ticket_total_groom'),
     ticket_total_bride:   gv('ticket_total_bride'),
+    ticket_child_groom_yn: getRadioVal('child-groom-yn-group'),
+    ticket_child_groom:   gv('ticket_child_groom'),
+    ticket_child_bride_yn: getRadioVal('child-bride-yn-group'),
+    ticket_child_bride:   gv('ticket_child_bride'),
     ticket_extra_limit:   gv('ticket_extra_limit'),
     ticket_stamp:         getRadioVal('stamp-group'),
     cash_method:          getRadioVal('cash-group'),
@@ -1047,6 +1179,7 @@ function _collectDraft(){
     g_ho_pw:              gv('g_ho_pw'),
     b_ho_pw:              gv('b_ho_pw'),
     mobile_invite_url:    gv('mobile_invite_url'),
+    review_planned:       getRadioVal('review-planned-group'),
     cash_receipt_type:    getRadioVal('receipt-type-group'),
     cash_receipt_number:  gv('cash_receipt_number'),
   };
@@ -1055,15 +1188,11 @@ function _collectDraft(){
 function autoSaveDraft(){
   const key = getDraftKey();
   if(!key || !schedule) return;
-
-  // localStorage 즉시 저장
   try {
     const draft = _collectDraft();
     draft._savedAt = Date.now();
     localStorage.setItem(key, JSON.stringify(draft));
   } catch(e){}
-
-  // DB draft는 1000ms debounce 후 저장
   clearTimeout(_draftTimer);
   _draftTimer = setTimeout(() => saveDraftToDB(), 1000);
 }
@@ -1076,16 +1205,23 @@ async function saveDraftToDB(){
       precheck_draft: draft,
       draft_updated_at: new Date().toISOString(),
     });
-  } catch(e){
-    console.warn('[DG] draft DB 저장 실패:', e);
-  }
+  } catch(e){ console.warn('[DG] draft DB 저장 실패:', e); }
 }
 
+// [수정5] draft 복원 시 신규 필드 포함
 function _applyDraft(d){
   if(!d || typeof d !== 'object') return;
-  if(d.live_mode)           selectRadioByVal('live-mode-group', d.live_mode);
-  if(d.live_mode==='split'){ const n=document.getElementById('split-notice'); if(n)n.style.display='block'; }
-  if(d.live_mode==='single'){ const n=document.getElementById('single-notice'); if(n)n.style.display='block'; }
+  if(d.live_mode){
+    selectRadioByVal('live-mode-group', d.live_mode);
+    if(d.live_mode==='split'){ const n=document.getElementById('split-notice'); if(n)n.style.display='block'; }
+    if(d.live_mode==='single'){
+      const sw=document.getElementById('single-side-wrap'); if(sw)sw.style.display='block';
+      if(d.single_side_choice){
+        singleSideChoice = d.single_side_choice;
+        selectSingleSide(d.single_side_choice);
+      }
+    }
+  }
   if(d.groom_contact_name)  sv('groom_contact_name',  d.groom_contact_name);
   if(d.groom_contact_phone) sv('groom_contact_phone', d.groom_contact_phone);
   if(d.bride_contact_name)  sv('bride_contact_name',  d.bride_contact_name);
@@ -1093,6 +1229,21 @@ function _applyDraft(d){
   if(d.ticket_guarantee)    sv('ticket_guarantee',    d.ticket_guarantee);
   if(d.ticket_total_groom)  sv('ticket_total_groom',  d.ticket_total_groom);
   if(d.ticket_total_bride)  sv('ticket_total_bride',  d.ticket_total_bride);
+  // 소인 식권 복원
+  if(d.ticket_child_groom_yn){
+    selectRadioByVal('child-groom-yn-group', d.ticket_child_groom_yn);
+    if(d.ticket_child_groom_yn === 'true'){
+      document.getElementById('child-groom-amount-wrap').style.display='block';
+      if(d.ticket_child_groom) sv('ticket_child_groom', d.ticket_child_groom);
+    }
+  }
+  if(d.ticket_child_bride_yn){
+    selectRadioByVal('child-bride-yn-group', d.ticket_child_bride_yn);
+    if(d.ticket_child_bride_yn === 'true'){
+      document.getElementById('child-bride-amount-wrap').style.display='block';
+      if(d.ticket_child_bride) sv('ticket_child_bride', d.ticket_child_bride);
+    }
+  }
   if(d.ticket_extra_limit)  sv('ticket_extra_limit',  d.ticket_extra_limit);
   if(d.ticket_stamp)        selectRadioByVal('stamp-group', d.ticket_stamp);
   if(d.cash_method)         selectRadioByVal('cash-group',  d.cash_method);
@@ -1110,6 +1261,8 @@ function _applyDraft(d){
   if(d.g_ho_pw)             sv('g_ho_pw',              d.g_ho_pw);
   if(d.b_ho_pw)             sv('b_ho_pw',              d.b_ho_pw);
   if(d.mobile_invite_url)   sv('mobile_invite_url',    d.mobile_invite_url);
+  // 후기 작성 예정 복원
+  if(d.review_planned)      selectRadioByVal('review-planned-group', d.review_planned);
   if(d.cash_receipt_type)   selectRadioByVal('receipt-type-group', d.cash_receipt_type);
   if(d.cash_receipt_number) sv('cash_receipt_number',  d.cash_receipt_number);
   updateProgress();
@@ -1119,14 +1272,10 @@ function restoreFromDB(){
   if(!schedule || !schedule.precheck_draft) return;
   const d = schedule.precheck_draft;
   if(!d || typeof d !== 'object') return;
-
-  // DB와 localStorage 중 더 최신 것 선택
   const key = getDraftKey();
   let lsTime = 0;
   try { const ls = JSON.parse(localStorage.getItem(key)||'{}'); lsTime = ls._savedAt||0; } catch(e){}
   const dbTime = schedule.draft_updated_at ? new Date(schedule.draft_updated_at).getTime() : 0;
-
-  // DB가 더 최신이면 DB로 복원 (이후 restoreDraft가 ls로 덮어쓸 수 있음)
   if(dbTime >= lsTime) _applyDraft(d);
 }
 
@@ -1140,28 +1289,26 @@ function restoreDraft(){
     if(d._savedAt && Date.now() - d._savedAt > 86400000){
       localStorage.removeItem(key); return;
     }
-
-    // localStorage가 DB보다 최신일 때만 덮어씀
     const dbTime = schedule && schedule.draft_updated_at ? new Date(schedule.draft_updated_at).getTime() : 0;
     if((d._savedAt||0) >= dbTime) _applyDraft(d);
   } catch(e){}
 }
 
-// ── 진행률 ──
+// [수정6] 진행률 - 12개 STEP 반영
 function updateProgress(){
   const checks = [
-    // STEP 1: 장부 방식 선택 (단측이면 신랑/신부측도 선택해야 완료)
+    // STEP 1: 장부 방식 선택 (단측이면 진행측도 선택해야)
     () => {
       const mode = getRadioVal('live-mode-group');
       if(!mode) return false;
       if(mode === 'single') return !!(sideFilter || singleSideChoice);
       return true;
     },
-    // STEP 2: 담당자 연락처 (신랑 또는 신부 중 하나 이상)
+    // STEP 2: 담당자 연락처
     () => !!(gv('groom_contact_name') || gv('bride_contact_name')),
-    // STEP 3: 식권 정보 (신랑 또는 신부 식권 수량 + 도장 선택)
+    // STEP 3: 식권 정보
     () => !!(gv('ticket_total_groom') || gv('ticket_total_bride')) && !!getRadioVal('stamp-group'),
-    // STEP 4: 사전 전달 식권 (선택 항목 — 항상 완료로 처리)
+    // STEP 4: 사전 전달 식권 (선택)
     () => true,
     // STEP 5: 축의금 보관 방식
     () => !!getRadioVal('cash-group'),
@@ -1169,13 +1316,15 @@ function updateProgress(){
     () => !!getRadioVal('dg-disclosed-group'),
     // STEP 7: 답례품
     () => !!getRadioVal('gift-group'),
-    // STEP 8: 특이사항 (선택 항목 — 항상 완료로 처리)
+    // STEP 8: 특이사항 (선택)
     () => true,
-    // STEP 9: 레디백 비밀번호 (신랑 또는 신부 중 하나 이상)
+    // STEP 9: 레디백 비밀번호
     () => !!(gv('g_ho_pw') || gv('b_ho_pw')),
-    // STEP 10: 모바일 청첩장 (필수)
+    // STEP 10: 모바일 청첩장
     () => !!gv('mobile_invite_url'),
-    // STEP 11: 현금영수증 (선택 항목 — 항상 완료로 처리)
+    // STEP 11: 본식 후기 작성 예정
+    () => !!getRadioVal('review-planned-group'),
+    // STEP 12: 현금영수증 (선택)
     () => true,
   ];
   const done = checks.filter(c=>c()).length;
@@ -1183,26 +1332,24 @@ function updateProgress(){
   document.getElementById('progress-pct').textContent = pct+'%';
   document.getElementById('progress-fill').style.width = pct+'%';
 }
-// ── 사전체크 잠금 판단 ──
+
+// ── 잠금 판단 ──
 function calcIsLocked(){
   if(!schedule) return false;
-  if(schedule.precheck_force_unlock) return false; // 강제 해제 우선
-  if(schedule.precheck_locked) return true;        // 수동 잠금
+  if(schedule.precheck_force_unlock) return false;
+  if(schedule.precheck_locked) return true;
   if(!schedule.date) return false;
   const lockDate = new Date(schedule.date + 'T00:00:00');
-  lockDate.setDate(lockDate.getDate() - 2);        // 예식 2일 전
+  lockDate.setDate(lockDate.getDate() - 2);
   return new Date() >= lockDate;
 }
 
 function applyLockUI(){
-  // 배너
   document.getElementById('locked-notice').style.display = 'block';
   document.getElementById('locked-notice').textContent =
     '🔒 체크리스트가 마감되었습니다. 변경사항은 디어가드 카카오톡으로 문의해주세요.';
-  // 저장 버튼
   document.getElementById('save-btn').disabled = true;
   document.getElementById('save-btn').textContent = '🔒 마감된 체크리스트입니다';
-  // 모든 입력 필드 비활성화
   document.querySelectorAll('input, select, textarea').forEach(el => {
     el.disabled = true;
     el.style.background = '#F3F4F6';
@@ -1216,7 +1363,6 @@ async function saveAll(){
   if(!schedule){ showToast('⚠️ 예식 정보가 없습니다'); return; }
   if(calcIsLocked()){ showToast('🔒 마감된 체크리스트입니다. 카카오톡으로 문의해주세요.'); return; }
 
-  // 모바일 청첩장 필수 검사
   if(!gv('mobile_invite_url')){
     alert('모바일 청첩장 링크를 입력해주세요.');
     toggleSection('sec-11');
@@ -1224,7 +1370,6 @@ async function saveAll(){
     return;
   }
 
-  // 장부 방식 미선택 검사
   const liveMode = getRadioVal('live-mode-group');
   if(!liveMode){
     alert('장부 방식을 선택해주세요.');
@@ -1233,12 +1378,13 @@ async function saveAll(){
     document.getElementById('sec-1').scrollIntoView({behavior:'smooth'});
     return;
   }
-  // 단측 진행 시 신랑/신부측 미선택 검사
+  // [수정1] 단측 필수 검증 - 필수 안내 강조 표시
   if(liveMode === 'single' && !sideFilter && !singleSideChoice){
-    alert('단측 진행 시 신랑측/신부측을 선택해주세요.');
+    const req = document.getElementById('single-side-required');
+    if(req) req.classList.add('show');
     const sec1body = document.getElementById('sec-1-body');
     if(sec1body && !sec1body.classList.contains('open')) toggleSection('sec-1');
-    document.getElementById('sec-1').scrollIntoView({behavior:'smooth'});
+    document.getElementById('single-side-wrap').scrollIntoView({behavior:'smooth'});
     return;
   }
 
@@ -1246,7 +1392,7 @@ async function saveAll(){
   btn.disabled = true;
   btn.textContent = '저장 중...';
 
-  // schedules 업데이트
+  // [수정5] body에 신규 필드 반영
   const body = {
     live_mode:            liveMode,
     groom_contact_name:   gv('groom_contact_name'),
@@ -1255,6 +1401,8 @@ async function saveAll(){
     bride_contact_phone:  gv('bride_contact_phone'),
     ticket_total_groom:   parseInt(gv('ticket_total_groom'))||null,
     ticket_total_bride:   parseInt(gv('ticket_total_bride'))||null,
+    ticket_child_groom:   getRadioVal('child-groom-yn-group')==='true' ? (parseInt(gv('ticket_child_groom'))||0) : 0,
+    ticket_child_bride:   getRadioVal('child-bride-yn-group')==='true' ? (parseInt(gv('ticket_child_bride'))||0) : 0,
     ticket_extra_limit:   parseInt(gv('ticket_extra_limit'))||null,
     ticket_stamp:         getRadioVal('stamp-group')==='true',
     cash_method:          getRadioVal('cash-group'),
@@ -1266,6 +1414,7 @@ async function saveAll(){
     groom_password:       gv('g_ho_pw'),
     bride_password:       gv('b_ho_pw'),
     mobile_invite_url:    gv('mobile_invite_url'),
+    review_planned:       getRadioVal('review-planned-group') === 'true' ? true : (getRadioVal('review-planned-group') === 'false' ? false : null),
     cash_receipt_type:    getRadioVal('receipt-type-group'),
     cash_receipt_number:  gv('cash_receipt_number'),
     precheck_status:      'submitted',
@@ -1275,7 +1424,7 @@ async function saveAll(){
   try {
     await sb.patch('schedules', schedule.id, body);
 
-    // ── 현장 메모 자동 등록 → schedules.field_memo (index 현장메모) ──
+    // ── 현장 메모 자동 등록 ──
     try {
       const CASH_LABEL    = { sealed:'밀봉 전달형', confirmed:'봉투 유지형', sorted:'권종별 정리형' };
       const RECEIPT_LABEL = { personal:'개인', business:'사업자' };
@@ -1286,6 +1435,8 @@ async function saveAll(){
       const receiptType = getRadioVal('receipt-type-group');
       const receiptNum  = gv('cash_receipt_number');
       const memo        = gv('precheck_memo');
+      // [수정5] 후기 작성 예정
+      const reviewPlanned = getRadioVal('review-planned-group');
 
       const lines = ['[사전체크 자동 등록]'];
 
@@ -1300,16 +1451,19 @@ async function saveAll(){
         if(bContactName) lines.push(`👰 신부측 ${bContactName}${bContactPhone?' / '+bContactPhone:''}`);
       }
 
-      if(cashMethod)              lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
+      if(cashMethod) lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
       const giftDetail = getRadioVal('gift-detail-group');
       const GIFT_DETAIL_LABEL = { hall:'홀 답례품 식권 교환형', desk:'축의대 직접 전달형' };
       if(giftYn){
         const giftDetailStr = (giftYn==='true' && giftDetail) ? ` · ${GIFT_DETAIL_LABEL[giftDetail]||giftDetail}` : '';
         lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}${giftDetailStr}`);
       }
-      if(mobileUrl)               lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
+      if(mobileUrl) lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
       if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${(RECEIPT_LABEL[receiptType]||'')+' '+(receiptNum||'')}`.trim());
-      if(memo)                    lines.push(`📝 특이사항: ${memo}`);
+      if(memo) lines.push(`📝 특이사항: ${memo}`);
+
+      // [수정3] 후기 작성 예정 → 현장 메모
+      if(reviewPlanned) lines.push(`✍️ 본식 후기 작성 예정: ${reviewPlanned==='true'?'예':'아니오'}`);
 
       // 레디백 비밀번호
       const gPwEl = document.getElementById('g_ho_pw');
@@ -1322,17 +1476,26 @@ async function saveAll(){
         if(bPw) lines.push(`👰 신부측: ${bPw}`);
       }
 
-      // STEP3: 식권 정보
+      // STEP3: 식권 정보 + [수정2] 소인 식권 (있을 때만)
       const ticketGuarantee  = gv('ticket_guarantee');
       const ticketGroom      = gv('ticket_total_groom');
       const ticketBride      = gv('ticket_total_bride');
       const ticketExtraLimit = gv('ticket_extra_limit');
       const ticketStamp      = getRadioVal('stamp-group');
+      const childGroomYn     = getRadioVal('child-groom-yn-group');
+      const childGroomAmt    = gv('ticket_child_groom');
+      const childBrideYn     = getRadioVal('child-bride-yn-group');
+      const childBrideAmt    = gv('ticket_child_bride');
+
       if(ticketGuarantee || ticketGroom || ticketBride || ticketExtraLimit || ticketStamp){
         lines.push('🎫 식권 정보');
         if(ticketGuarantee)  lines.push(`· 전체 보증인원: ${ticketGuarantee}명`);
         if(ticketGroom)      lines.push(`· 신랑측 식권: ${ticketGroom}장`);
+        // [수정2] 소인 식권: 있을 때만 출력
+        if(childGroomYn === 'true' && childGroomAmt) lines.push(`· 신랑측 소인 식권: ${childGroomAmt}장`);
         if(ticketBride)      lines.push(`· 신부측 식권: ${ticketBride}장`);
+        // [수정2] 소인 식권: 있을 때만 출력
+        if(childBrideYn === 'true' && childBrideAmt) lines.push(`· 신부측 소인 식권: ${childBrideAmt}장`);
         if(ticketExtraLimit) lines.push(`· 추가 발권 가능: ${ticketExtraLimit}장`);
         if(ticketStamp)      lines.push(`· 식권 도장: ${ticketStamp==='true'?'전달함':'전달안함'}`);
       }
@@ -1348,7 +1511,6 @@ async function saveAll(){
 
       const precheckText = lines.join('\n');
 
-      // 기존 field_memo 가져와서 precheck 항목만 업데이트 (기존 내용 유지)
       const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
       const prevFieldMemo = (existing[0]?.field_memo) || {};
       const newFieldMemo  = { ...prevFieldMemo, precheck: precheckText };
@@ -1356,7 +1518,6 @@ async function saveAll(){
     } catch(e){ console.warn('[DG] 현장메모 등록 실패:', e); }
 
     Object.assign(schedule, body);
-    // 저장 완료 시 임시저장 데이터 삭제 (localStorage + DB draft)
     try { const k=getDraftKey(); if(k) localStorage.removeItem(k); } catch(e){}
     sb.patch('schedules', schedule.id, { precheck_draft: null, draft_updated_at: null }).catch(()=>{});
     showToast('✅ 저장되었습니다!');
