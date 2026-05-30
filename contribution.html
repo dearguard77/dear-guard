@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)https://dear-guard.vercel.app/contribution.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -214,13 +213,11 @@ input,select,textarea{font-family:inherit;outline:none}
 .edit-btns{display:flex;gap:7px;margin-top:14px}
 .edit-save{flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
 .edit-cancel{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;min-width:72px}
-  /* 운영메모 수정/삭제 버튼 */
   .ops-edit-btn{width:22px;height:22px;background:#EFF6FF;color:#2563EB;border:none;border-radius:5px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0}
   .ops-del-btn{width:22px;height:22px;background:#FEF2F2;color:#DC2626;border:none;border-radius:5px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0}
   .ops-save-btn{height:22px;background:#C7A96B;color:#fff;border:none;border-radius:5px;padding:0 7px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
   .ops-cancel-btn{height:22px;background:#F3F4F6;color:#6B7280;border:none;border-radius:5px;padding:0 7px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0}
   .ops-edit-input{border:1.5px solid #C7A96B;border-radius:5px;padding:2px 6px;font-size:11px;color:#111;background:#fff;flex:1;min-width:0;font-family:inherit;height:22px}
-  /* 금액 버튼 파스텔 컬러 */
 .amt-btn-5  {background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8}
 .amt-btn-10 {background:#F0FDF4;border-color:#BBF7D0;color:#15803D}
 .amt-btn-15 {background:#FEFCE8;border-color:#FDE68A;color:#A16207}
@@ -244,7 +241,7 @@ input,select,textarea{font-family:inherit;outline:none}
 <body style="overflow: hidden;">
 
 <!-- 로그인 -->
-<div id="login-screen" style="display: none;">
+<div id="login-screen" style="display: flex;">
   <div class="login-box">
     <div class="login-logo">Dear Guard</div>
     <div class="login-sub">축의 접수 시스템</div>
@@ -254,7 +251,7 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="login-field">
       <label class="login-label">비밀번호</label>
-      <input class="login-input" id="login-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+      <input class="login-input" id="login-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="login-err" id="login-err"></div>
@@ -271,8 +268,8 @@ input,select,textarea{font-family:inherit;outline:none}
     <button class="btn-sm" onclick="doLogout()">로그아웃</button>
   </div>
   <div style="display:flex;gap:6px;margin-bottom:12px">
-    <button id="sch-tab-upcoming" class="sch-tab-btn sch-tab-active" onclick="setSchTab(&#39;upcoming&#39;)">📅 진행 예정</button>
-    <button id="sch-tab-done" class="sch-tab-btn" onclick="setSchTab(&#39;done&#39;)">✅ 진행완료</button>
+    <button id="sch-tab-upcoming" class="sch-tab-btn sch-tab-active" onclick="setSchTab('upcoming')">📅 진행 예정</button>
+    <button id="sch-tab-done" class="sch-tab-btn" onclick="setSchTab('done')">✅ 진행완료</button>
   </div>
   <div style="position:relative;margin-bottom:10px">
     <input id="sch-search" placeholder="🔍 이름 또는 웨딩홀 검색" oninput="renderSchList()"
@@ -280,1462 +277,38 @@ input,select,textarea{font-family:inherit;outline:none}
     <button onclick="document.getElementById('sch-search').value='';renderSchList()"
       style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#9CA3AF;font-size:15px;cursor:pointer;line-height:1">✕</button>
   </div>
-  <div id="schedule-list-wrap"><div class="section-label">다가오는 예식</div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이민우 ♥ 순민정</div>
-      <div class="sch-card-info">2026-05-30 · 12:00 · 서천 아름다운웨딩</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(11,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(11,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#3B82F620;color:#3B82F6">최종준비완료</span>
-      <button onclick="selectSchedule(11)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 강단비 신부측</div>
-      <div class="sch-card-info">2026-05-31 · 12:00 · 천안 비렌티웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(68,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #D97706;background:#D9770620;color:#D97706;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(68,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#3B82F620;color:#3B82F6">최종준비완료</span>
-      <button onclick="selectSchedule(68)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 남인휘 신부측</div>
-      <div class="sch-card-info">2026-05-31 · 14:30 · 당진 설악웨딩타운</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(73,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(73,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#3B82F620;color:#3B82F6">최종준비완료</span>
-      <button onclick="selectSchedule(73)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 신정민 신부측</div>
-      <div class="sch-card-info">2026-06-06 · 12:00 · 청주 아모르아트</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(20,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(20,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(20)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 원경모 신랑측</div>
-      <div class="sch-card-info">2026-06-06 · 16:00 · 천안 비렌티웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(100,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(100,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(100)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 신랑님 ♥ 손민희</div>
-      <div class="sch-card-info">2026-06-13 · 10:30 · 대전 씨엘드포레</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(21,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(21,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(21)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 정승하 신랑측</div>
-      <div class="sch-card-info">2026-06-14 · 13:00 · 천안 비렌티웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(74,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(74,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(74)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 황인태 ♥ 우나금</div>
-      <div class="sch-card-info">2026-06-20 · 12:00 · 대전 라비에벨웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(84,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(84,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(84)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 전우진 ♥ 임효정</div>
-      <div class="sch-card-info">2026-06-20 · 16:20 · 대전 팔레드오페라</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(22,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(22,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(22)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 황숙영 신부측</div>
-      <div class="sch-card-info">2026-06-21 · 13:10 · 청주 더빈컨벤션</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(23,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(23,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(23)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 오지나 신부측</div>
-      <div class="sch-card-info">2026-06-27 · 13:00 · 천안 비렌티웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(24,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(24,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(24)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김형식 ♥ 박지수</div>
-      <div class="sch-card-info">2026-06-27 · 14:00 · 대전 마리드엘</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(25,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(25,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(25)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 송민지 신부측</div>
-      <div class="sch-card-info">2026-06-28 · 11:00 · 천안 더포레웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(110,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(110,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(110)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 신영서 신부측</div>
-      <div class="sch-card-info">2026-07-04 · 11:00 · 대전 BMK웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(108,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(108,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(108)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 박상익 신랑측</div>
-      <div class="sch-card-info">2026-07-04 · 11:30 · 천안 CA웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(26,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(26,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(26)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김택중 ♥ 김다솜</div>
-      <div class="sch-card-info">2026-07-04 · 14:00 · 대전 메리비아포레</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(58,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(58,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(58)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이선화 신부측</div>
-      <div class="sch-card-info">2026-07-05 · 11:00 · 대전 라비에벨</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(57,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(57,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(57)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 강보람 신부측</div>
-      <div class="sch-card-info">2026-07-12 · 12:00 · 대전 라도무스웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(103,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(103,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(103)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 서주형 ♥ 김은지</div>
-      <div class="sch-card-info">2026-07-18 · 11:30 · 청주 아모르아트</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(93,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(93,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(93)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 문남청 ♥ 라영은</div>
-      <div class="sch-card-info">2026-07-25 · 11:30 · 천안 티웨딩</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(27,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(27,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(27)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 나은미 신부측</div>
-      <div class="sch-card-info">2026-08-02 · 11:20 · 대전 팔레드오페라</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(102,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(102,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(102)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김성민 ♥ 한소린</div>
-      <div class="sch-card-info">2026-08-15 · 14:50 · 대전 ICC호텔</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(66,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(66,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(66)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 남하현 신랑측</div>
-      <div class="sch-card-info">2026-08-22 · 12:00 · 대전 에스가든웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(99,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(99,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(99)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 전희경 신부측</div>
-      <div class="sch-card-info">2026-08-29 · 16:00 · 천안 비렌티웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(28,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(28,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(28)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이병호 ♥ 이은지</div>
-      <div class="sch-card-info">2026-08-29 · 16:00 · 청주 에스가든</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(89,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(89,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(89)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 유경훈 ♥ 윤보라</div>
-      <div class="sch-card-info">2026-08-30 · 12:30 · 천안 비렌티웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(97,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(97,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(97)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 임연지 신부측</div>
-      <div class="sch-card-info">2026-09-05 · 12:00 · 대전 에스가든</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(29,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(29,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(29)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 조현 신부측</div>
-      <div class="sch-card-info">2026-09-05 · 17:30 · 천안 비렌티웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(78,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(78,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(78)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이수민 ♥ 하혜지</div>
-      <div class="sch-card-info">2026-09-05 · 18:00 · 대전 라비에벨</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(30,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(30,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(30)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 강성주 ♥ 전수연</div>
-      <div class="sch-card-info">2026-09-12 · 13:10 · 대전 루이비스컨벤션</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(105,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(105,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(105)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 류주원 신부측</div>
-      <div class="sch-card-info">2026-09-19 · 13:20 · 당진 설악웨딩타운</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(31,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(31,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(31)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 고수민 신부측</div>
-      <div class="sch-card-info">2026-10-03 · 14:00 · 천안 CA웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(32,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(32,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(32)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 전승원 ♥ 신부님</div>
-      <div class="sch-card-info">2026-10-04 · 11:00 · 대전 씨엘드포레</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(33,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(33,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(33)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 박의관 ♥ 권다은</div>
-      <div class="sch-card-info">2026-10-10 · 13:50 · 제천 그랜드컨벤션</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(77,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(77,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(77)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 인유리 신부측</div>
-      <div class="sch-card-info">2026-10-17 · 11:00 · 대전 씨엘드레브</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(35,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(35,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(35)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김영현 ♥ 박정민</div>
-      <div class="sch-card-info">2026-10-17 · 12:00 · 대전 라도무스</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(111,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(111,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(111)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김민지 신부측</div>
-      <div class="sch-card-info">2026-10-17 · 17:30 · 천안 티웨딩</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(104,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(104,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(104)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 한승연 신부측</div>
-      <div class="sch-card-info">2026-10-25 · 11:00 · 천안 비렌티웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(54,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(54,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(54)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김민지 신부측</div>
-      <div class="sch-card-info">2026-11-01 · 12:00 · 아산 호서웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(36,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(36,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(36)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김예진 신부측</div>
-      <div class="sch-card-info">2026-11-07 · 12:20 · 대전 루이비스</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(37,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(37,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(37)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김다혜 신부측</div>
-      <div class="sch-card-info">2026-11-08 · 14:00 · 대전 마리드엘</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(38,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(38,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(38)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이창희 신부측</div>
-      <div class="sch-card-info">2026-11-14 · 11:00 · 대전 라포르테</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(55,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(55,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(55)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 서주연 신부측</div>
-      <div class="sch-card-info">2026-11-15 · 11:00 · 청주 트리웨딩</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(39,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(39,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(39)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 신랑님 ♥ 순선의</div>
-      <div class="sch-card-info">2026-11-15 · 12:00 · 청주 메리다컨벤션</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(40,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(40,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(40)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김미경 신부측</div>
-      <div class="sch-card-info">2026-11-21 · 11:00 · 대전 선샤인웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(41,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(41,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(41)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 박다혜 신부측</div>
-      <div class="sch-card-info">2026-11-22 · 11:00 · 진천 포레스트한울</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(88,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(88,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(88)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 권윤선 신부측</div>
-      <div class="sch-card-info">2026-11-28 · 11:30 · 청주 아모르아트</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(43,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(43,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(43)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 염동선 ♥ 정아련</div>
-      <div class="sch-card-info">2026-11-28 · 12:30 · 논산 노블레스웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(79,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(79,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(79)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 박창현 ♥ 이가윤</div>
-      <div class="sch-card-info">2026-11-28 · 16:00 · 대전 라비에벨</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(42,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(42,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(42)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 문정훈 신랑측</div>
-      <div class="sch-card-info">2026-11-29 · 11:00 · 청주 트리웨딩</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(44,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(44,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(44)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 성열범 ♥ 심가은</div>
-      <div class="sch-card-info">2026-12-06 · 11:00 · 청주 에스가든</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(46,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(46,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(46)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 손지윤 신부측</div>
-      <div class="sch-card-info">2026-12-06 · 13:00 · 대전 씨엘드포레</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(45,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(45,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(45)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 황혜정 신부측</div>
-      <div class="sch-card-info">2026-12-19 · 16:00 · 대전 BMK웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(47,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(47,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(47)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 정재성 신랑측</div>
-      <div class="sch-card-info">2026-12-20 · 12:40 · 대전 팔레드오페라</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(48,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(48,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(48)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이의수 신랑측</div>
-      <div class="sch-card-info">2027-01-02 · 14:00 · 대전 더시그너스</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(49,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(49,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(49)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 추소연 신부측</div>
-      <div class="sch-card-info">2027-01-09 · 11:00 · 대전 라도무스웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(112,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(112,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(112)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이진 ♥ 신은지</div>
-      <div class="sch-card-info">2027-01-23 · 12:00 · 예산 더센트럴웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(69,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(69,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(69)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 장소담 신부측</div>
-      <div class="sch-card-info">2027-02-13 · 13:00 · 청주 아모르아트</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(70,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(70,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(70)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 박민규 ♥ 김예진</div>
-      <div class="sch-card-info">2027-02-20 · 12:00 · 대전 씨엘드레브</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(85,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(85,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(85)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 은유정 신부측</div>
-      <div class="sch-card-info">2027-02-21 · 11:30 · 청주 벨리스웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(50,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(50,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(50)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 고대량 ♥ 음별이</div>
-      <div class="sch-card-info">2027-02-21 · 17:00 · 대전 라도무스</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(90,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(90,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(90)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 정영훈 ♥ 이연재</div>
-      <div class="sch-card-info">2027-03-14 · 11:00 · 대전 BMK웨딩홀</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(71,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(71,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(71)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 양현민 ♥ 봉다빈</div>
-      <div class="sch-card-info">2027-04-10 · 11:50 · 천안 티웨딩</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(76,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(76,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(76)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이은주 신부측</div>
-      <div class="sch-card-info">2027-04-17 · 11:00 · 대전 팔레드오페라</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(67,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(67,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(67)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 이지섭 ♥ 강선미</div>
-      <div class="sch-card-info">2027-05-15 · 15:00 · 대전 씨엘드포레</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(80,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(80,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#EF444420;color:#EF4444">긴급확인</span>
-      <button onclick="selectSchedule(80)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김유식 ♥ 백지연</div>
-      <div class="sch-card-info">2027-05-23 · 13:00 · 대전 씨엘드레브</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(51,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(51,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#EF444420;color:#EF4444">긴급확인</span>
-      <button onclick="selectSchedule(51)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 권수경 신부측</div>
-      <div class="sch-card-info">2027-06-05 · 13:00 · 청주 메리다컨벤션</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(109,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(109,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(109)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 임지상 ♥ 정은지</div>
-      <div class="sch-card-info">2027-06-19 · 11:00 · 대전 유성컨벤션</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(94,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(94,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#EF444420;color:#EF4444">긴급확인</span>
-      <button onclick="selectSchedule(94)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 김예지 신부측</div>
-      <div class="sch-card-info">2027-06-26 · 11:40 · 대전팔레드오페라</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(113,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(113,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(113)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 오상미 신부측</div>
-      <div class="sch-card-info">2027-06-26 · 12:00 · 대전 씨엘드레브</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(87,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(87,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(87)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div><div class="sch-card">
-    <div style="flex:1;min-width:0">
-      <div class="sch-card-name">💍 장세은 신부측</div>
-      <div class="sch-card-info">2027-11-13 · 12:00 · 대전 씨엘드레브</div>
-      <div style="display:flex;gap:5px;margin-top:7px;align-items:center">
-        <span style="font-size:10px;color:#9CA3AF;font-weight:600">예식 모드:</span>
-        
-          <button onclick="event.stopPropagation();setWeddingMode(86,this,&#39;단측&#39;)" data-mode="단측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #E0E0E0;background:#F5F5F5;color:#6B7280;cursor:pointer">
-            🤵 단측
-          </button>
-          <button onclick="event.stopPropagation();setWeddingMode(86,this,&#39;양측&#39;)" data-mode="양측" style="border-radius:12px;padding:3px 9px;font-size:10px;font-weight:700;border:1.5px solid #2563EB;background:#2563EB20;color:#2563EB;cursor:pointer">
-            🤵👰 양측
-          </button>
-      </div>
-    </div>
-    <div class="sch-card-right" style="flex-direction:column;align-items:flex-end;gap:5px">
-      
-      <span class="status-badge" style="background:#6B728020;color:#6B7280">계약완료</span>
-      <button onclick="selectSchedule(86)" style="background:#C7A96B;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">선택 →</button>
-    </div>
-  </div></div>
+  <div id="schedule-list-wrap"></div>
 </div>
 
-<!-- 메인 -->
-<div id="main-screen" style="display: flex;">
+<!-- 메인 [수정1: display:none으로 변경] -->
+<div id="main-screen" style="display: none;">
   <div id="top-bar">
   <div id="top-bar-inner">
     <div style="display:flex;align-items:center;gap:10px">
       <img src="logo.png" alt="Dear Guard" style="height:28px;width:auto;object-fit:contain;display:block">
       <span style="color:#E0E0E0">|</span>
       <div style="display:flex;flex-direction:column;gap:1px">
-        <span class="top-sch" id="top-schedule-name" style="font-size:14px;font-weight:800;color:#111;line-height:1.2">이민우 ♥ 순민정</span>
-        <span id="top-schedule-info" style="font-size:11px;color:#9CA3AF;line-height:1.2">2026-05-30 (토) 12:00 · 서천 아름다운웨딩</span>
+        <!-- [수정2,3: 하드코딩된 예식명/날짜 제거] -->
+        <span class="top-sch" id="top-schedule-name" style="font-size:14px;font-weight:800;color:#111;line-height:1.2"></span>
+        <span id="top-schedule-info" style="font-size:11px;color:#9CA3AF;line-height:1.2"></span>
       </div>
     </div>
-    <!-- 식권 운영 패널 (상단 이동) -->
     <div id="ticket-panel-top" style="display:flex;align-items:stretch;gap:6px;flex:1;margin:0 12px;min-width:0">
-
-      <!-- 식권 현황 -->
       <div style="background:#F9F8F6;border:1px solid #E0E0E0;border-radius:7px;padding:4px 10px;display:flex;align-items:center;gap:12px;flex-shrink:0">
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-size:10px;font-weight:700;color:#2563EB">🤵</span>
           <span style="font-size:10px;color:#9CA3AF">총 <span style="font-weight:700;color:#374151" id="tks-g-total">미설정</span></span>
           <span style="font-size:10px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-g-used">0장</span></span>
-          <span style="font-size:10px;color:#9CA3AF">잔여 <span style="font-weight: 900; color: rgb(156, 163, 175);" id="tks-g-remain">—</span></span>
+          <span style="font-size:10px;color:#9CA3AF">잔여 <span style="font-weight:900;color:rgb(156,163,175);" id="tks-g-remain">—</span></span>
         </div>
         <div style="width:1px;height:16px;background:#E0E0E0"></div>
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-size:10px;font-weight:700;color:#DB2777">👰</span>
           <span style="font-size:10px;color:#9CA3AF">총 <span style="font-weight:700;color:#374151" id="tks-b-total">미설정</span></span>
           <span style="font-size:10px;color:#9CA3AF">사용 <span style="font-weight:700;color:#374151" id="tks-b-used">0장</span></span>
-          <span style="font-size:10px;color:#9CA3AF">잔여 <span style="font-weight: 900; color: rgb(156, 163, 175);" id="tks-b-remain">—</span></span>
+          <span style="font-size:10px;color:#9CA3AF">잔여 <span style="font-weight:900;color:rgb(156,163,175);" id="tks-b-remain">—</span></span>
         </div>
       </div>
-
-      <!-- 초기 식권 설정 -->
       <div style="background:#F9F8F6;border:1px solid #E0E0E0;border-radius:7px;padding:4px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0">
         <span style="font-size:10px;color:#9CA3AF;font-weight:700">초기</span>
         <span style="font-size:10px;color:#2563EB">🤵</span>
@@ -1745,11 +318,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="신부" min="0" oninput="saveTotalTickets()" style="width:44px;height:22px;font-size:11px;padding:0 4px;text-align:center">
         <span style="font-size:10px;color:#9CA3AF">장</span>
       </div>
-
-          
-
     </div>
-
     <div class="top-right">
       <button class="topbtn topbtn-ghost" onclick="goSelectSchedule()">예식 변경</button>
       <button class="topbtn topbtn-gold" onclick="showDashboardLink()">📱 대시보드</button>
@@ -1766,24 +335,19 @@ input,select,textarea{font-family:inherit;outline:none}
       <div style="font-size:11px;font-weight:800;color:#C7A96B;letter-spacing:1px;padding:4px 0 6px;text-align:center;border-bottom:1px solid #E8E5E1;margin-bottom:4px;flex-shrink:0">
         📦 인계 정보
       </div>
-
-      <!-- 탭 버튼 -->
       <div class="ho-tab-bar">
-        <button class="ho-tab-btn on-groom" id="ho-tab-g" onclick="setHoTab(&#39;g&#39;)">🤵 신랑측</button>
-        <button class="ho-tab-btn" id="ho-tab-b" onclick="setHoTab(&#39;b&#39;)">👰 신부측</button>
+        <button class="ho-tab-btn on-groom" id="ho-tab-g" onclick="setHoTab('g')">🤵 신랑측</button>
+        <button class="ho-tab-btn" id="ho-tab-b" onclick="setHoTab('b')">👰 신부측</button>
       </div>
 
       <!-- 🤵 신랑측 패널 -->
       <div class="ho-pane active" id="ho-pane-g">
-
         <div class="ho-section">
           <div class="ho-section-title" style="color:#2563EB">인계자 정보</div>
           <div style="display:flex;gap:8px;align-items:stretch">
             <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
-              <div><div class="ho-label">성함</div>
-                <input id="g-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
-              <div><div class="ho-label">연락처</div>
-                <input id="g-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
+              <div><div class="ho-label">성함</div><input id="g-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
+              <div><div class="ho-label">연락처</div><input id="g-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
             </div>
             <div class="pw-mini-card">
               <div class="pw-mini-title">🔒 레디백 비번</div>
@@ -1791,72 +355,54 @@ input,select,textarea{font-family:inherit;outline:none}
             </div>
           </div>
         </div>
-
         <div class="ho-section">
           <div class="ho-section-title">인계 물품</div>
-          <textarea id="g-ho-items" class="ho-textarea" rows="3" placeholder="· 레디백
-· 방명록
-· 남은 식권" oninput="saveHandover()"></textarea>
+          <textarea id="g-ho-items" class="ho-textarea" rows="3" placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권" oninput="saveHandover()"></textarea>
         </div>
-
-        
         <div class="ho-section">
           <div class="ho-section-title">📹 LIVE 링크</div>
           <div style="display:flex;flex-direction:column;gap:5px">
-            <div><div class="ho-label">LIVE 1</div>
-              <input id="g-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
-            <div><div class="ho-label">LIVE 2</div>
-              <input id="g-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+            <div><div class="ho-label">LIVE 1</div><input id="g-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+            <div><div class="ho-label">LIVE 2</div><input id="g-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
           </div>
         </div>
-
-        <!-- 🤵 신랑측 운영메모 -->
         <div class="ho-section" style="flex-shrink:0">
           <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
           <div id="ops-log-list-g" style="max-height:80px;overflow-y:auto;margin-bottom:5px"><div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div></div>
-        <div style="display:flex;gap:4px">
-          <input id="ops-log-input-g" class="ho-input" placeholder="신랑측 특이사항..." style="font-size:11px;padding:4px 8px;flex:1" onkeydown="if(event.key===&#39;Enter&#39;)addOpsLog(&#39;g&#39;)">
-          <button onclick="addOpsLog(&#39;g&#39;)" style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
+          <div style="display:flex;gap:4px">
+            <input id="ops-log-input-g" class="ho-input" placeholder="신랑측 특이사항..." style="font-size:11px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addOpsLog('g')">
+            <button onclick="addOpsLog('g')" style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
+          </div>
         </div>
-    </div>
-
-        <!-- 🎫 사전 공유 식권 -->
         <div class="ho-section" style="flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 사전 공유 식권</div>
             <span style="font-size:10px;color:#9CA3AF;font-weight:400">운영메모 함께 기록 권장</span>
           </div>
-          <!-- 1줄: 측 + 장수 -->
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
             <select id="pre-share-side" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
               <option value="신랑측">🤵 신랑</option>
               <option value="신부측">👰 신부</option>
             </select>
-            <input id="pre-share-amount" placeholder="장수" type="number" min="1" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0" onkeydown="if(event.key===&#39;Enter&#39;)document.getElementById(&#39;pre-share-name&#39;).focus()">
+            <input id="pre-share-amount" placeholder="장수" type="number" min="1" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0" onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name').focus()">
             <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
           </div>
-          <!-- 2줄: 이름 + 추가버튼 -->
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
-            <input id="pre-share-name" placeholder="사회자, 헬퍼, 혼주직접..." type="text" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0" onkeydown="if(event.key===&#39;Enter&#39;)addPreShare(&#39;groom&#39;)">
-            <button onclick="addPreShare(&#39;groom&#39;)" style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+            <input id="pre-share-name" placeholder="사회자, 헬퍼, 혼주직접..." type="text" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')addPreShare('groom')">
+            <button onclick="addPreShare('groom')" style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
           </div>
-          <!-- 3줄: 내역 리스트 -->
           <div id="pre-share-list" style="max-height:80px;overflow-y:auto"><div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div></div>
         </div>
-
       </div><!-- /ho-pane-g -->
 
       <!-- 👰 신부측 패널 -->
       <div class="ho-pane" id="ho-pane-b">
-
         <div class="ho-section">
           <div class="ho-section-title" style="color:#DB2777">인계자 정보</div>
           <div style="display:flex;gap:8px;align-items:stretch">
             <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
-              <div><div class="ho-label">성함</div>
-                <input id="b-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
-              <div><div class="ho-label">연락처</div>
-                <input id="b-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
+              <div><div class="ho-label">성함</div><input id="b-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
+              <div><div class="ho-label">연락처</div><input id="b-ho-phone" class="ho-input" placeholder="010-0000-0000" oninput="saveHandover()"></div>
             </div>
             <div class="pw-mini-card">
               <div class="pw-mini-title">🔒 레디백 비번</div>
@@ -1864,36 +410,25 @@ input,select,textarea{font-family:inherit;outline:none}
             </div>
           </div>
         </div>
-
         <div class="ho-section">
           <div class="ho-section-title">인계 물품</div>
-          <textarea id="b-ho-items" class="ho-textarea" rows="3" placeholder="· 레디백
-· 방명록
-· 남은 식권" oninput="saveHandover()"></textarea>
+          <textarea id="b-ho-items" class="ho-textarea" rows="3" placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권" oninput="saveHandover()"></textarea>
         </div>
-
-        
         <div class="ho-section">
           <div class="ho-section-title">📹 LIVE 링크</div>
           <div style="display:flex;flex-direction:column;gap:5px">
-            <div><div class="ho-label">LIVE 1</div>
-              <input id="b-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
-            <div><div class="ho-label">LIVE 2</div>
-              <input id="b-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+            <div><div class="ho-label">LIVE 1</div><input id="b-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+            <div><div class="ho-label">LIVE 2</div><input id="b-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
           </div>
         </div>
-
-      <!-- 👰 신부측 운영메모 -->
-      <div class="ho-section" style="flex-shrink:0">
-        <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
-        <div id="ops-log-list-b" style="max-height:80px;overflow-y:auto;margin-bottom:5px"><div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div></div>
-        <div style="display:flex;gap:4px">
-          <input id="ops-log-input-b" class="ho-input" placeholder="신부측 특이사항..." style="font-size:11px;padding:4px 8px;flex:1" onkeydown="if(event.key===&#39;Enter&#39;)addOpsLog(&#39;b&#39;)">
-          <button onclick="addOpsLog(&#39;b&#39;)" style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
+        <div class="ho-section" style="flex-shrink:0">
+          <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
+          <div id="ops-log-list-b" style="max-height:80px;overflow-y:auto;margin-bottom:5px"><div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div></div>
+          <div style="display:flex;gap:4px">
+            <input id="ops-log-input-b" class="ho-input" placeholder="신부측 특이사항..." style="font-size:11px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addOpsLog('b')">
+            <button onclick="addOpsLog('b')" style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
+          </div>
         </div>
-      </div>
-
-        <!-- 🎫 사전 공유 식권 (신부측) -->
         <div class="ho-section" style="flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 사전 공유 식권</div>
@@ -1902,18 +437,17 @@ input,select,textarea{font-family:inherit;outline:none}
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
             <select id="pre-share-side-b" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
               <option value="신랑측">🤵 신랑</option>
-              <option value="신부측" selected="">👰 신부</option>
+              <option value="신부측" selected>👰 신부</option>
             </select>
-            <input id="pre-share-amount-b" placeholder="장수" type="number" min="1" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0" onkeydown="if(event.key===&#39;Enter&#39;)document.getElementById(&#39;pre-share-name-b&#39;).focus()">
+            <input id="pre-share-amount-b" placeholder="장수" type="number" min="1" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0" onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name-b').focus()">
             <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
-            <input id="pre-share-name-b" placeholder="사회자, 헬퍼, 혼주직접..." type="text" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0" onkeydown="if(event.key===&#39;Enter&#39;)addPreShare(&#39;bride&#39;)">
-            <button onclick="addPreShare(&#39;bride&#39;)" style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
+            <input id="pre-share-name-b" placeholder="사회자, 헬퍼, 혼주직접..." type="text" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')addPreShare('bride')">
+            <button onclick="addPreShare('bride')" style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
           </div>
           <div id="pre-share-list-b" style="max-height:80px;overflow-y:auto"><div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div></div>
         </div>
-
       </div><!-- /ho-pane-b -->
 
       <div class="ho-save-indicator" id="ho-save-indicator" style="flex-shrink:0"></div>
@@ -1922,26 +456,23 @@ input,select,textarea{font-family:inherit;outline:none}
     <!-- ② 중앙: 입력 + 리스트 -->
     <div id="center-panel">
     <div id="input-panel">
-      
-      <!-- 접수 측 + 결제 방식 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
         <div class="card" style="padding:5px 8px">
           <div class="card-title" style="margin-bottom:5px">접수 측</div>
           <div class="tog-group" style="gap:5px">
-            <button class="tog-btn tog-blue" id="side-groom" onclick="setSide(&#39;groom&#39;)" style="white-space:nowrap;font-size:12px">🤵 신랑측</button>
-            <button class="tog-btn" id="side-bride" onclick="setSide(&#39;bride&#39;)" style="white-space:nowrap;font-size:12px">👰 신부측</button>
+            <button class="tog-btn tog-blue" id="side-groom" onclick="setSide('groom')" style="white-space:nowrap;font-size:12px">🤵 신랑측</button>
+            <button class="tog-btn" id="side-bride" onclick="setSide('bride')" style="white-space:nowrap;font-size:12px">👰 신부측</button>
           </div>
         </div>
         <div class="card" style="padding:5px 8px">
           <div class="card-title" style="margin-bottom:5px">결제 방식</div>
           <div class="tog-group" style="gap:5px">
-            <button class="tog-btn tog-dark" id="pay-cash" onclick="setPayment(&#39;cash&#39;)" style="white-space:nowrap;font-size:12px">💵 현금</button>
-            <button class="tog-btn" id="pay-transfer" onclick="setPayment(&#39;transfer&#39;)" style="white-space:nowrap;font-size:12px">📱 계좌이체</button>
+            <button class="tog-btn tog-dark" id="pay-cash" onclick="setPayment('cash')" style="white-space:nowrap;font-size:12px">💵 현금</button>
+            <button class="tog-btn" id="pay-transfer" onclick="setPayment('transfer')" style="white-space:nowrap;font-size:12px">📱 계좌이체</button>
           </div>
         </div>
       </div>
 
-      <!-- 하객 이름 + 접수완료 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름</div>
         <div style="display:flex;align-items:center;gap:6px">
@@ -1950,7 +481,6 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 금액 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">2️⃣ 금액</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:4px">
@@ -1973,45 +503,40 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
       </div>
 
-      <!-- 식권 -->
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">3️⃣ 식권</div>
         <div style="display:flex;flex-direction:column;gap:5px">
-          <!-- 1줄: 대인 / 소인 카운터 -->
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">대인</span>
             <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
-              <button onclick="changeTicket(&#39;adult&#39;,-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+              <button onclick="changeTicket('adult',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
               <span id="adult-ticket-val" style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">1</span>
-              <button onclick="changeTicket(&#39;adult&#39;,1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
+              <button onclick="changeTicket('adult',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
             </div>
             <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
             <div style="width:1px;height:20px;background:#E0E0E0;flex-shrink:0"></div>
             <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">소인</span>
             <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
-              <button onclick="changeTicket(&#39;child&#39;,-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+              <button onclick="changeTicket('child',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
               <span id="child-ticket-val" style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">0</span>
-              <button onclick="changeTicket(&#39;child&#39;,1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
+              <button onclick="changeTicket('child',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
             </div>
             <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
           </div>
-          <!-- 2줄: 추가 식권 발급 -->
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:10px;color:#6B7280;font-weight:700;flex-shrink:0;white-space:nowrap">추가 발급</span>
             <select id="add-ticket-side" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;background:#fff;flex-shrink:0;width:90px">
               <option value="신랑측">🤵 신랑</option>
               <option value="신부측">👰 신부</option>
             </select>
-            <input id="add-ticket-amount" type="number" placeholder="수량" min="1" autocomplete="off" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:64px;flex-shrink:0" onkeydown="if(event.key===&#39;Enter&#39;)addTicketExtra()">
+            <input id="add-ticket-amount" type="number" placeholder="수량" min="1" autocomplete="off" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:64px;flex-shrink:0" onkeydown="if(event.key==='Enter')addTicketExtra()">
             <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
             <button onclick="addTicketExtra()" style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 16px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
           </div>
-          <!-- 3줄: 추가 발급 리스트 -->
           <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;border-top:1px solid #F0EDE8;padding-top:3px"></div>
         </div>
       </div>
 
-      <!-- 메모 -->
       <div class="card" style="padding:5px 8px">
         <input class="form-input" id="memo-input" placeholder="📝 메모 (선택)" style="font-size:12px;padding:4px 8px">
       </div>
@@ -2020,7 +545,6 @@ input,select,textarea{font-family:inherit;outline:none}
 
     </div><!-- /input-panel -->
 
-    <!-- 신랑/신부 분리 접수 리스트 -->
     <div id="split-list-panel" style="grid-template-columns: 1fr;">
       <div class="split-list-col groom-col" id="groom-list-col" style="display: flex;">
         <div class="split-col-hdr">
@@ -2045,59 +569,48 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     </div><!-- /center-panel -->
 
-    <!-- ③ 오른쪽: 현황 -->
     <!-- ③ 오른쪽: 실시간 장부 리스트 -->
-<div id="stats-panel" style="background:#F4F2EF;border-left:1px solid #DCDCDC;overflow:hidden;padding:0;display:flex;flex-direction:column;height:100%;flex-shrink:0">
-
-  <!-- 요약 헤더 (한 줄) -->
-  <div style="background:#fff;border-bottom:1px solid #E0E0E0;padding:5px 10px;flex-shrink:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <span style="font-size:11px;font-weight:800;color:#C7A96B" id="stat-total-amount">0원</span>
-    <span style="font-size:10px;color:#9CA3AF" id="stat-total-count">총 0건</span>
-    <span style="font-size:10px;color:#9CA3AF">·</span>
-    <span style="font-size:10px;color:#3B82F6;font-weight:700" id="stat-groom-amount">신랑 0원</span>
-    <span style="font-size:10px;color:#EC4899;font-weight:700" id="stat-bride-amount">신부 0원</span>
-    <span style="flex:1"></span>
-    <span style="font-size:10px;color:#6B7280">💵 <span id="stat-cash">0건</span></span>
-    <span style="font-size:10px;color:#6B7280">📱 <span id="stat-transfer">0건</span></span>
-  </div>
-
-  <!-- 식권 요약 한 줄 -->
-  <div style="background:#F9F8F6;border-bottom:1px solid #E0E0E0;padding:4px 10px;flex-shrink:0;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-    <span style="font-size:10px;color:#2563EB;font-weight:700">🤵 식권</span>
-    <span style="font-size:10px;color:#6B7280">총 <span style="font-weight:700;color:#374151" id="g-total-tkt">미설정</span></span>
-    <span style="font-size:10px;color:#6B7280">사용 <span style="font-weight:700" id="g-used-tkt">0장</span></span>
-    <span style="font-size:10px;color:#6B7280">잔여 <span style="font-weight: 800; color: rgb(156, 163, 175);" id="g-remain-tkt">—</span></span>
-    <span style="font-size:10px;color:#059669;font-weight:700" id="g-extra-tkt">—</span>
-    <span style="color:#E0E0E0;font-size:10px">|</span>
-    <span style="font-size:10px;color:#DB2777;font-weight:700">👰 식권</span>
-    <span style="font-size:10px;color:#6B7280">총 <span style="font-weight:700;color:#374151" id="b-total-tkt">미설정</span></span>
-    <span style="font-size:10px;color:#6B7280">사용 <span style="font-weight:700" id="b-used-tkt">0장</span></span>
-    <span style="font-size:10px;color:#6B7280">잔여 <span style="font-weight: 800; color: rgb(156, 163, 175);" id="b-remain-tkt">—</span></span>
-    <span style="font-size:10px;color:#059669;font-weight:700" id="b-extra-tkt">—</span>
-  </div>
-
-  <!-- 장부 리스트 (신랑/신부 분할) -->
-  <div id="right-split-panel" style="flex: 1 1 0%; overflow: hidden; display: grid; grid-template-columns: 1fr; min-height: 0px;">
-
-    <div id="right-groom-col" style="display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #E0E0E0;background:#FAFEFF">
-      <div style="padding:5px 8px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:#EFF6FF">
-        <span style="font-size:11px;font-weight:800;color:#2563EB">🤵 신랑측</span>
-        <span style="font-size:10px;color:#9CA3AF" id="right-groom-sum">0건 · 0원</span>
+    <div id="stats-panel" style="background:#F4F2EF;border-left:1px solid #DCDCDC;overflow:hidden;padding:0;display:flex;flex-direction:column;height:100%;flex-shrink:0">
+      <div style="background:#fff;border-bottom:1px solid #E0E0E0;padding:5px 10px;flex-shrink:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:800;color:#C7A96B" id="stat-total-amount">0원</span>
+        <span style="font-size:10px;color:#9CA3AF" id="stat-total-count">총 0건</span>
+        <span style="font-size:10px;color:#9CA3AF">·</span>
+        <span style="font-size:10px;color:#3B82F6;font-weight:700" id="stat-groom-amount">신랑 0원</span>
+        <span style="font-size:10px;color:#EC4899;font-weight:700" id="stat-bride-amount">신부 0원</span>
+        <span style="flex:1"></span>
+        <span style="font-size:10px;color:#6B7280">💵 <span id="stat-cash">0건</span></span>
+        <span style="font-size:10px;color:#6B7280">📱 <span id="stat-transfer">0건</span></span>
       </div>
-      <div id="right-groom-list" style="overflow-y:auto;flex:1;min-height:0"><div style="text-align:center;padding:12px;font-size:11px;color:#9CA3AF">내역 없음</div></div>
-    </div>
-
-    <div id="right-bride-col" style="display: none; flex-direction: column; overflow: hidden; background: rgb(255, 249, 253);">
-      <div style="padding:5px 8px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:#FDF0F7">
-        <span style="font-size:11px;font-weight:800;color:#DB2777">👰 신부측</span>
-        <span style="font-size:10px;color:#9CA3AF" id="right-bride-sum">0건 · 0원</span>
+      <div style="background:#F9F8F6;border-bottom:1px solid #E0E0E0;padding:4px 10px;flex-shrink:0;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:10px;color:#2563EB;font-weight:700">🤵 식권</span>
+        <span style="font-size:10px;color:#6B7280">총 <span style="font-weight:700;color:#374151" id="g-total-tkt">미설정</span></span>
+        <span style="font-size:10px;color:#6B7280">사용 <span style="font-weight:700" id="g-used-tkt">0장</span></span>
+        <span style="font-size:10px;color:#6B7280">잔여 <span style="font-weight:800;color:rgb(156,163,175);" id="g-remain-tkt">—</span></span>
+        <span style="font-size:10px;color:#059669;font-weight:700" id="g-extra-tkt">—</span>
+        <span style="color:#E0E0E0;font-size:10px">|</span>
+        <span style="font-size:10px;color:#DB2777;font-weight:700">👰 식권</span>
+        <span style="font-size:10px;color:#6B7280">총 <span style="font-weight:700;color:#374151" id="b-total-tkt">미설정</span></span>
+        <span style="font-size:10px;color:#6B7280">사용 <span style="font-weight:700" id="b-used-tkt">0장</span></span>
+        <span style="font-size:10px;color:#6B7280">잔여 <span style="font-weight:800;color:rgb(156,163,175);" id="b-remain-tkt">—</span></span>
+        <span style="font-size:10px;color:#059669;font-weight:700" id="b-extra-tkt">—</span>
       </div>
-      <div id="right-bride-list" style="overflow-y:auto;flex:1;min-height:0"><div style="text-align:center;padding:12px;font-size:11px;color:#9CA3AF">내역 없음</div></div>
-    </div>
-
-  </div>
-
-</div><!-- /stats-panel -->
+      <div id="right-split-panel" style="flex:1 1 0%;overflow:hidden;display:grid;grid-template-columns:1fr;min-height:0px;">
+        <div id="right-groom-col" style="display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #E0E0E0;background:#FAFEFF">
+          <div style="padding:5px 8px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:#EFF6FF">
+            <span style="font-size:11px;font-weight:800;color:#2563EB">🤵 신랑측</span>
+            <span style="font-size:10px;color:#9CA3AF" id="right-groom-sum">0건 · 0원</span>
+          </div>
+          <div id="right-groom-list" style="overflow-y:auto;flex:1;min-height:0"><div style="text-align:center;padding:12px;font-size:11px;color:#9CA3AF">내역 없음</div></div>
+        </div>
+        <div id="right-bride-col" style="display:none;flex-direction:column;overflow:hidden;background:rgb(255,249,253);">
+          <div style="padding:5px 8px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:#FDF0F7">
+            <span style="font-size:11px;font-weight:800;color:#DB2777">👰 신부측</span>
+            <span style="font-size:10px;color:#9CA3AF" id="right-bride-sum">0건 · 0원</span>
+          </div>
+          <div id="right-bride-list" style="overflow-y:auto;flex:1;min-height:0"><div style="text-align:center;padding:12px;font-size:11px;color:#9CA3AF">내역 없음</div></div>
+        </div>
+      </div>
+    </div><!-- /stats-panel -->
   </div><!-- /main-body -->
   </div><!-- /main-body-outer -->
 </div><!-- /main-screen -->
@@ -2125,10 +638,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </select>
       </div>
     </div>
-    <div class="edit-row">
-      <div class="edit-lbl">하객 이름</div>
-      <input id="edit-name" class="edit-inp" placeholder="이름 (선택)">
-    </div>
+    <div class="edit-row"><div class="edit-lbl">하객 이름</div><input id="edit-name" class="edit-inp" placeholder="이름 (선택)"></div>
     <div class="edit-grid2">
       <div class="edit-row">
         <div class="edit-lbl">관계</div>
@@ -2142,25 +652,13 @@ input,select,textarea{font-family:inherit;outline:none}
           <option value="기타">기타</option>
         </select>
       </div>
-      <div class="edit-row">
-        <div class="edit-lbl">금액 (원)</div>
-        <input id="edit-amount" class="edit-inp" type="number" placeholder="0" step="10000">
-      </div>
+      <div class="edit-row"><div class="edit-lbl">금액 (원)</div><input id="edit-amount" class="edit-inp" type="number" placeholder="0" step="10000"></div>
     </div>
     <div class="edit-grid2">
-      <div class="edit-row">
-        <div class="edit-lbl">대인 식권</div>
-        <input id="edit-adult" class="edit-inp" type="number" placeholder="0" min="0">
-      </div>
-      <div class="edit-row">
-        <div class="edit-lbl">소인 식권</div>
-        <input id="edit-child" class="edit-inp" type="number" placeholder="0" min="0">
-      </div>
+      <div class="edit-row"><div class="edit-lbl">대인 식권</div><input id="edit-adult" class="edit-inp" type="number" placeholder="0" min="0"></div>
+      <div class="edit-row"><div class="edit-lbl">소인 식권</div><input id="edit-child" class="edit-inp" type="number" placeholder="0" min="0"></div>
     </div>
-    <div class="edit-row">
-      <div class="edit-lbl">메모</div>
-      <input id="edit-memo" class="edit-inp" placeholder="메모 (선택)">
-    </div>
+    <div class="edit-row"><div class="edit-lbl">메모</div><input id="edit-memo" class="edit-inp" placeholder="메모 (선택)"></div>
     <div class="edit-btns">
       <button class="edit-cancel" onclick="closeEditModal()">취소</button>
       <button class="edit-save" onclick="saveEdit()">💾 저장</button>
@@ -2171,24 +669,18 @@ input,select,textarea{font-family:inherit;outline:none}
 <div id="token-modal">
   <div class="token-box" style="max-width:380px;max-height:90vh;overflow-y:auto">
     <div class="token-title">📱 대시보드 링크</div>
-
-    <!-- 양측 통합 -->
     <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#374151">🤝 양측 통합 링크</div>
     <div class="token-url" id="token-url-display">—</div>
     <button class="token-copy-btn" onclick="copyDashboardLink()" style="margin-bottom:14px">🔗 통합 링크 복사</button>
-
-    <!-- 분리 링크 -->
     <div style="border-top:1px solid #E5E7EB;padding-top:12px">
       <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#2563EB">🤵 신랑측 전용 링크</div>
       <div class="token-url" id="token-url-groom" style="border-color:#BFDBFE;color:#1D4ED8;margin-bottom:8px">—</div>
       <button class="token-copy-btn" onclick="copyGroomLink()" style="background:#2563EB;margin-bottom:12px">🤵 신랑측 링크 복사</button>
-
       <div class="token-sub" style="margin-bottom:4px;text-align:left;font-weight:700;color:#DB2777">👰 신부측 전용 링크</div>
       <div class="token-url" id="token-url-bride" style="border-color:#FBCFE8;color:#9D174D;margin-bottom:8px">—</div>
       <button class="token-copy-btn" onclick="copyBrideLink()" style="background:#DB2777;margin-bottom:12px">👰 신부측 링크 복사</button>
     </div>
-
-    <button class="token-close-btn" onclick="document.getElementById(&#39;token-modal&#39;).style.display=&#39;none&#39;">닫기</button>
+    <button class="token-close-btn" onclick="document.getElementById('token-modal').style.display='none'">닫기</button>
   </div>
 </div>
 
@@ -2231,7 +723,6 @@ const fmtTime=iso=>{ const d=new Date(iso); return String(d.getHours()).padStart
 const gv=id=>{ const el=document.getElementById(id); return el?el.value.trim()||null:null; };
 const sv=(id,v)=>{ const el=document.getElementById(id); if(el&&v!=null)el.value=v; };
 
-// ── 측별 탭 ──
 function setHoTab(side){
   document.getElementById('ho-tab-g').className='ho-tab-btn'+(side==='g'?' on-groom':'');
   document.getElementById('ho-tab-b').className='ho-tab-btn'+(side==='b'?' on-bride':'');
@@ -2239,7 +730,6 @@ function setHoTab(side){
   document.getElementById('ho-pane-b').className='ho-pane'+(side==='b'?' active':'');
 }
 
-// ── 로그인 ──
 function initLogin(){
   const sel=document.getElementById('login-name');
   sel.innerHTML='<option value="">— 이름을 선택하세요 —</option>'+USERS.map(u=>`<option value="${u.id}">${u.name} (${u.role})</option>`).join('');
@@ -2260,7 +750,6 @@ function doLogin(){
 }
 function doLogout(){ localStorage.removeItem('dg_contrib_user'); location.reload(); }
 
-// ── 예식 선택 ──
 var _schTab='upcoming', _allSchRows=[];
 function setSchTab(tab){
   _schTab=tab;
@@ -2364,7 +853,6 @@ async function selectSchedule(id){
         currentSchedule.dashboard_token=token;
       } catch(e){ console.warn('[DG] 토큰 생성 실패:',e); }
     }
-    // 신랑/신부 분리 토큰
     if(!currentSchedule.groom_token || !currentSchedule.bride_token){
       try {
         const gt='G_'+Math.random().toString(36).slice(2,10).toUpperCase();
@@ -2402,12 +890,10 @@ async function selectSchedule(id){
   } catch(e){ console.error('[DG] 예식 로드 실패:',e); showToast('⚠️ 예식 로드 실패: '+e.message); }
 }
 
-// ── 추가 식권 ──
 async function loadTicketExtras(){
   if(!currentSchedule) return;
   try {
-    ticketExtras=await sb.get('ticket_additions',
-      '?schedule_id=eq.'+currentSchedule.id+'&type=eq.extra&order=created_at.asc');
+    ticketExtras=await sb.get('ticket_additions','?schedule_id=eq.'+currentSchedule.id+'&type=eq.extra&order=created_at.asc');
     renderTicketExtraList();
     renderStats();
   } catch(e){ console.error('[DG] loadTicketExtras 오류:', e); }
@@ -2423,10 +909,7 @@ async function addTicketExtra(){
     document.getElementById('add-ticket-amount').value='';
     renderTicketExtraList(); renderStats();
     showToast('✅ 추가 식권 '+amount+'장 등록됨');
-  } catch(e){
-    console.error('[DG] addTicketExtra 오류:', e);
-    showToast('⚠️ 저장 실패: '+e.message);
-  }
+  } catch(e){ console.error('[DG] addTicketExtra 오류:', e); showToast('⚠️ 저장 실패: '+e.message); }
 }
 async function deleteTicketExtra(id){
   if(!confirm('추가 식권 기록을 삭제하시겠습니까?')) return;
@@ -2435,130 +918,77 @@ async function deleteTicketExtra(id){
 function renderTicketExtraList(){
   const el=document.getElementById('ticket-extra-list');
   if(!el) return;
-  if(!ticketExtras.length){
-    el.innerHTML='';
-    return;
-  }
+  if(!ticketExtras.length){ el.innerHTML=''; return; }
   el.innerHTML=ticketExtras.map(t=>{
     const icon=t.side==='신랑측'?'🤵':'👰';
     const time=t.created_at?fmtTime(t.created_at):'';
-    return '<div class="tkt-extra-item">'+
-      '<span>'+icon+'</span>'+
-      '<span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span>'+
-      '<span style="flex:1"></span>'+
-      '<span style="color:#C7A96B;flex-shrink:0;font-size:10px">'+time+'</span>'+
-      '<button onclick="deleteTicketExtra('+t.id+')" title="삭제" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1;margin-left:3px">✕</button>'+
-    '</div>';
+    return '<div class="tkt-extra-item"><span>'+icon+'</span><span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span><span style="flex:1"></span><span style="color:#C7A96B;flex-shrink:0;font-size:10px">'+time+'</span><button onclick="deleteTicketExtra('+t.id+')" title="삭제" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1;margin-left:3px">✕</button></div>';
   }).join('');
 }
-// ── 사전 공유 식권 ──
-var preShares = [];
 
+var preShares = [];
 async function loadPreShares(){
   if(!currentSchedule) return;
   try {
-    preShares = await sb.get('ticket_additions',
-      '?schedule_id=eq.'+currentSchedule.id+'&type=eq.pre_share&order=created_at.asc');
+    preShares = await sb.get('ticket_additions','?schedule_id=eq.'+currentSchedule.id+'&type=eq.pre_share&order=created_at.asc');
     renderPreShareList();
     renderStats();
   } catch(e){ console.error('사전 공유 식권 로드 실패:', e); }
 }
-  async function editPreShare(id){
+async function editPreShare(id){
   var p = preShares.find(function(x){ return x.id===id; });
   if(!p) return;
-
   var newName = prompt('이름 수정:', p.person_name||'');
   if(newName===null) return;
   newName = newName.trim();
   if(!newName){ showToast('⚠️ 이름을 입력해주세요'); return; }
-
   var newAmountStr = prompt('장수 수정:', String(p.amount||1));
   if(newAmountStr===null) return;
   var newAmount = parseInt(newAmountStr)||0;
   if(newAmount < 1){ showToast('⚠️ 1장 이상 입력해주세요'); return; }
-
   try {
-    var res = await fetch(sb.url('ticket_additions','?id=eq.'+id), {
-      method: 'PATCH',
-      headers: {...sb.h, 'Prefer': 'return=representation'},
-      body: JSON.stringify({person_name: newName, amount: newAmount})
-    });
+    var res = await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify({person_name:newName,amount:newAmount})});
     if(!res.ok) throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
     var idx = preShares.findIndex(function(x){ return x.id===id; });
-    if(idx!==-1){
-      preShares[idx].person_name = newName;
-      preShares[idx].amount      = newAmount;
-    }
-    renderPreShareList();
-    renderStats();
+    if(idx!==-1){ preShares[idx].person_name=newName; preShares[idx].amount=newAmount; }
+    renderPreShareList(); renderStats();
     showToast('✅ 수정되었습니다');
-  } catch(e){
-    console.error('[DG] editPreShare 오류:', e);
-    showToast('⚠️ 수정 실패: '+e.message);
-  }
+  } catch(e){ console.error('[DG] editPreShare 오류:', e); showToast('⚠️ 수정 실패: '+e.message); }
 }
-
 async function addPreShare(side){
-  var suffix   = side==='bride' ? '-b' : '';
-  var sideEl   = document.getElementById('pre-share-side'+suffix);
-  var nameEl   = document.getElementById('pre-share-name'+suffix);
+  var suffix = side==='bride' ? '-b' : '';
+  var sideEl = document.getElementById('pre-share-side'+suffix);
+  var nameEl = document.getElementById('pre-share-name'+suffix);
   var amountEl = document.getElementById('pre-share-amount'+suffix);
-
-  if(!sideEl||!nameEl||!amountEl){
-    showToast('⚠️ 입력칸을 찾을 수 없습니다'); return;
-  }
-
-  var side   = sideEl.value;
-  var name   = nameEl.value.trim();
+  if(!sideEl||!nameEl||!amountEl){ showToast('⚠️ 입력칸을 찾을 수 없습니다'); return; }
+  var sideVal = sideEl.value;
+  var name = nameEl.value.trim();
   var amount = parseInt(amountEl.value)||0;
-
   if(!name){ showToast('⚠️ 이름을 입력해주세요'); nameEl.focus(); return; }
   if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); amountEl.focus(); return; }
   if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
-
-  var row = {
-    schedule_id: currentSchedule.id,
-    side:        side,
-    amount:      amount,
-    person_name: name,
-    type:        'pre_share',
-    created_by:  currentUser.name,
-  };
-
+  var row = {schedule_id:currentSchedule.id,side:sideVal,amount:amount,person_name:name,type:'pre_share',created_by:currentUser.name};
   try {
-    var res = await fetch(sb.url('ticket_additions'), {
-      method: 'POST',
-      headers: {...sb.h, 'Prefer': 'return=representation'},
-      body: JSON.stringify(row)
-    });
+    var res = await fetch(sb.url('ticket_additions'), {method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(row)});
     var resText = await res.text();
-    console.log('[DG] addPreShare 응답:', res.status, resText);
     if(!res.ok) throw new Error('HTTP '+res.status+': '+resText.slice(0,200));
     var created = JSON.parse(resText);
     var entry = Array.isArray(created) ? created[0] : created;
     preShares.push(entry);
-    nameEl.value   = '';
-    amountEl.value = '';
-    renderPreShareList();
-    renderStats();
+    nameEl.value=''; amountEl.value='';
+    renderPreShareList(); renderStats();
     showToast('🎫 사전 공유 식권 '+amount+'장 등록됨');
-  } catch(e){
-    console.error('[DG] addPreShare 오류:', e);
-    showToast('⚠️ 저장 실패: '+e.message);
-  }
+  } catch(e){ console.error('[DG] addPreShare 오류:', e); showToast('⚠️ 저장 실패: '+e.message); }
 }
-
 async function deletePreShare(id){
   if(!confirm('사전 공유 식권을 삭제하시겠습니까?')) return;
   try {
     await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'DELETE', headers:sb.h});
     preShares = preShares.filter(function(x){ return x.id !== id; });
-    renderPreShareList();
-    renderStats();
+    renderPreShareList(); renderStats();
     showToast('🗑️ 삭제되었습니다');
   } catch(e){ showToast('⚠️ 삭제 실패'); }
 }
-
 function renderPreShareList(){
   var empty = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div>';
   var html = preShares.length ? preShares.map(function(p){
@@ -2577,14 +1007,12 @@ function renderPreShareList(){
   if(elG) elG.innerHTML = html;
   if(elB) elB.innerHTML = html;
 }
-// ── 식권 설정 ──
-// 변경 후
+
 function saveTotalTickets(){
   totalTickets.groom = Number(document.getElementById('groom-total-ticket').value)||0;
   totalTickets.bride = Number(document.getElementById('bride-total-ticket').value)||0;
   if(currentSchedule){
     localStorage.setItem(`dg_tickets_${currentSchedule.id}`, JSON.stringify(totalTickets));
-    // Supabase에도 저장 → index에서 읽을 수 있게
     sb.patch('schedules', currentSchedule.id, {
       ticket_total_groom: totalTickets.groom || null,
       ticket_total_bride: totalTickets.bride || null,
@@ -2593,7 +1021,6 @@ function saveTotalTickets(){
   renderStats();
 }
 
-// ── 인계 정보 ──
 var _hoSaveTimer=null;
 function loadHandover(){
   if(!currentSchedule) return;
@@ -2610,13 +1037,11 @@ function loadHandover(){
   sv('b-ho-pw',    s.bride_password);
   sv('b-live1',    s.bride_live1);
   sv('b-live2',    s.bride_live2);
-  // PRECHECK 인계 담당자 preset (기존 handover 값 없을 때만)
   if(!s.groom_handover_name  && s.groom_contact_name)  sv('g-ho-name',  s.groom_contact_name);
   if(!s.groom_handover_phone && s.groom_contact_phone) sv('g-ho-phone', s.groom_contact_phone);
   if(!s.bride_handover_name  && s.bride_contact_name)  sv('b-ho-name',  s.bride_contact_name);
   if(!s.bride_handover_phone && s.bride_contact_phone) sv('b-ho-phone', s.bride_contact_phone);
 }
-  
 function saveHandover(){
   if(!currentSchedule) return;
   clearTimeout(_hoSaveTimer);
@@ -2645,67 +1070,17 @@ function saveHandover(){
   },800);
 }
 
-// ── 화환/축기 ──
-async function loadFlowerLogs(){
-  if(!currentSchedule) return;
-  try { flowerLogs=await sb.get('flower_logs','?schedule_id=eq.'+currentSchedule.id+'&order=created_at.desc'); renderFlowerList(); } catch(e){}
-}
-function focusFlowerMsg(){ document.getElementById('flower-msg').focus(); }
-async function addFlower(){
-  const sender=document.getElementById('flower-sender').value.trim();
-  if(!sender){showToast('⚠️ 보낸 분 이름을 입력해주세요');return;}
-  if(!currentSchedule) return;
-  const now=new Date();
-  const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  const row={schedule_id:currentSchedule.id,time_str:timeStr,side:document.getElementById('flower-side').value,type:document.getElementById('flower-type').value,sender,message:document.getElementById('flower-msg').value.trim()||null,created_by:currentUser.name};
-  try {
-    const created=await sb.post('flower_logs',row);
-    flowerLogs.unshift(Array.isArray(created)?created[0]:created);
-    document.getElementById('flower-sender').value='';
-    document.getElementById('flower-msg').value='';
-    renderFlowerList();
-    showToast('💐 '+row.type+' 기록이 추가되었습니다');
-  } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
-}
-async function deleteFlower(id){
-  try { await fetch(sb.url('flower_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h}); flowerLogs=flowerLogs.filter(f=>f.id!==id); renderFlowerList(); } catch(e){ showToast('⚠️ 삭제 실패'); }
-}
-function renderFlowerList(){
-  const html=flowerLogs.length?flowerLogs.map(f=>{
-    const icon=f.type==='화환'?'💐':'🎏';
-    const sc=f.side==='신랑측'?'#3B82F6':'#EC4899';
-    return '<div style="display:flex;align-items:flex-start;gap:6px;padding:6px 0;border-bottom:1px solid #F0EDE8">'+
-      '<span style="font-size:14px;flex-shrink:0">'+icon+'</span>'+
-      '<div style="flex:1;min-width:0">'+
-        '<div style="font-size:12px;font-weight:700;color:#111">'+esc(f.sender)+'<span style="font-size:10px;font-weight:600;color:'+sc+';margin-left:5px">'+esc(f.side)+'</span><span style="font-size:10px;color:#9CA3AF;margin-left:4px">'+esc(f.type)+'</span></div>'+
-        (f.message?'<div style="font-size:11px;color:#6B7280;margin-top:1px">"'+esc(f.message)+'"</div>':'')+
-      '</div>'+
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">'+
-        '<span style="font-size:10px;color:#C7A96B">'+esc(f.time_str||'')+'</span>'+
-        '<button onclick="deleteFlower('+f.id+')" style="font-size:10px;color:#9CA3AF;background:none;border:none;cursor:pointer;padding:0">✕</button>'+
-      '</div></div>';
-  }).join(''):'<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px 0">아직 기록이 없습니다</div>';
-  const el=document.getElementById('flower-list');
-  const el2=document.getElementById('flower-list-b');
-  if(el) el.innerHTML=html;
-  if(el2) el2.innerHTML=html;
-}
-
-// ── 운영 메모 ──
 var opsLogsG = [], opsLogsB = [];
-
 async function loadOpsLogs(){
   if(!currentSchedule) return;
   try {
-    var all = await sb.get('operation_logs',
-      '?schedule_id=eq.'+currentSchedule.id+'&order=created_at.desc');
+    var all = await sb.get('operation_logs','?schedule_id=eq.'+currentSchedule.id+'&order=created_at.desc');
     opsLogsG = all.filter(function(l){ return l.side==='신랑측'; });
     opsLogsB = all.filter(function(l){ return l.side==='신부측'; });
     renderOpsLogs('g', opsLogsG);
     renderOpsLogs('b', opsLogsB);
   } catch(e){ console.error('운영 메모 로드 실패:', e); }
 }
-
 async function addOpsLog(side){
   var inp = document.getElementById('ops-log-input-' + side);
   if(!inp) return;
@@ -2713,13 +1088,7 @@ async function addOpsLog(side){
   if(!text || !currentSchedule) return;
   var now = new Date();
   var timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  var row = {
-    schedule_id: currentSchedule.id,
-    time_str:    timeStr,
-    content:     text,
-    side:        side==='g' ? '신랑측' : '신부측',
-    created_by:  currentUser.name,
-  };
+  var row = {schedule_id:currentSchedule.id,time_str:timeStr,content:text,side:side==='g'?'신랑측':'신부측',created_by:currentUser.name};
   try {
     var created = await sb.post('operation_logs', row);
     var entry = Array.isArray(created) ? created[0] : created;
@@ -2732,20 +1101,16 @@ async function addOpsLog(side){
 function renderOpsLogs(side, list){
   var el = document.getElementById('ops-log-list-' + side);
   if(!el) return;
-  if(!list.length){
-    el.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div>';
-    return;
-  }
+  if(!list.length){ el.innerHTML = '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div>'; return; }
   el.innerHTML = list.filter(function(l){ return l.side!=='_internal'; }).map(function(l){
-    return '<div style="display:flex;gap:5px;align-items:center;padding:3px 0;border-bottom:1px solid #F5F3F0" id="ops-row-'+l.id+'">' +
-      '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">' + esc(l.time_str||'') + '</span>' +
-      '<span style="font-size:11px;color:#374151;flex:1;min-width:0;word-break:keep-all;line-height:1.4" id="ops-text-'+l.id+'">' + esc(l.content||'') + '</span>' +
-      '<button class="ops-edit-btn" onclick="startOpsEdit('+l.id+',\''+side+'\')" title="수정">✏️</button>' +
-      '<button class="ops-del-btn" onclick="deleteOpsLog('+l.id+',\''+side+'\')" title="삭제">🗑️</button>' +
+    return '<div style="display:flex;gap:5px;align-items:center;padding:3px 0;border-bottom:1px solid #F5F3F0" id="ops-row-'+l.id+'">'+
+      '<span style="font-size:10px;color:#C7A96B;font-weight:700;white-space:nowrap;flex-shrink:0">'+esc(l.time_str||'')+'</span>'+
+      '<span style="font-size:11px;color:#374151;flex:1;min-width:0;word-break:keep-all;line-height:1.4" id="ops-text-'+l.id+'">'+esc(l.content||'')+'</span>'+
+      '<button class="ops-edit-btn" onclick="startOpsEdit('+l.id+',\''+side+'\')" title="수정">✏️</button>'+
+      '<button class="ops-del-btn" onclick="deleteOpsLog('+l.id+',\''+side+'\')" title="삭제">🗑️</button>'+
     '</div>';
   }).join('');
 }
-
 function startOpsEdit(id, side){
   var row = document.getElementById('ops-row-'+id);
   var textEl = document.getElementById('ops-text-'+id);
@@ -2758,12 +1123,10 @@ function startOpsEdit(id, side){
   var inp = document.getElementById('ops-edit-inp-'+id);
   if(inp){ inp.focus(); inp.select(); }
 }
-
 function cancelOpsEdit(side){
   if(side==='g') renderOpsLogs('g', opsLogsG);
   else            renderOpsLogs('b', opsLogsB);
 }
-
 async function saveOpsEdit(id, side){
   var inp = document.getElementById('ops-edit-inp-'+id);
   if(!inp) return;
@@ -2778,38 +1141,21 @@ async function saveOpsEdit(id, side){
     showToast('✅ 메모가 수정되었습니다');
   } catch(e){ showToast('⚠️ 수정 실패: '+e.message); }
 }
-
 async function deleteOpsLog(id, side){
   if(!confirm('메모를 삭제하시겠습니까?')) return;
   try {
     const res = await fetch(sb.url('operation_logs','?id=eq.'+id), {method:'DELETE', headers:sb.h});
-    console.log('[DG] deleteOpsLog 응답:', res.status, res.ok);
-    if(!res.ok){
-      const txt = await res.text();
-      console.error('[DG] deleteOpsLog 실패:', txt);
-      showToast('⚠️ 삭제 실패 ('+res.status+'): '+txt.slice(0,80));
-      return;
-    }
-    if(side==='g'){
-      opsLogsG = opsLogsG.filter(function(l){ return l.id!==id; });
-      renderOpsLogs('g', opsLogsG);
-    } else {
-      opsLogsB = opsLogsB.filter(function(l){ return l.id!==id; });
-      renderOpsLogs('b', opsLogsB);
-    }
+    if(!res.ok){ const txt=await res.text(); showToast('⚠️ 삭제 실패 ('+res.status+'): '+txt.slice(0,80)); return; }
+    if(side==='g'){ opsLogsG=opsLogsG.filter(function(l){return l.id!==id;}); renderOpsLogs('g',opsLogsG); }
+    else{ opsLogsB=opsLogsB.filter(function(l){return l.id!==id;}); renderOpsLogs('b',opsLogsB); }
     showToast('🗑️ 메모가 삭제되었습니다');
-  } catch(e){
-    console.error('[DG] deleteOpsLog 오류:', e);
-    showToast('⚠️ 삭제 실패: '+e.message);
-  }
+  } catch(e){ console.error('[DG] deleteOpsLog 오류:', e); showToast('⚠️ 삭제 실패: '+e.message); }
 }
 
-// ── 데이터 로드 ──
 async function loadLogs(){
   if(!currentSchedule) return;
   try { logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`); renderStats(); renderFullList(); } catch(e){ console.error('logs 로드 실패:',e); }
 }
-
 async function initSeqIfNeeded(){
   if(!currentSchedule) return;
   const unset = logs.filter(l=>!l.seq);
@@ -2818,16 +1164,12 @@ async function initSeqIfNeeded(){
   for(const side of sides){
     const sideAll = logs.filter(l=>l.side===side).slice().sort((a,b)=>a.created_at>b.created_at?1:-1);
     for(let i=0;i<sideAll.length;i++){
-      if(!sideAll[i].seq){
-        await sb.patch('contribution_logs',sideAll[i].id,{seq:i+1});
-        sideAll[i].seq=i+1;
-      }
+      if(!sideAll[i].seq){ await sb.patch('contribution_logs',sideAll[i].id,{seq:i+1}); sideAll[i].seq=i+1; }
     }
   }
   console.log('[DG] seq 초기화 완료');
 }
 
-// ── 실시간 구독 ──
 function subscribeRealtime(){
   const ws=new WebSocket(`wss://fmvomfjmkbklhaaapkbk.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`);
   ws.onopen=()=>ws.send(JSON.stringify({topic:`realtime:public:contribution_logs:schedule_id=eq.${currentSchedule.id}`,event:'phx_join',payload:{},ref:'1'}));
@@ -2835,7 +1177,6 @@ function subscribeRealtime(){
   ws.onclose=()=>setTimeout(subscribeRealtime,3000);
 }
 
-// ── 통계 렌더 ──
 function renderStats(){
   const total=logs.reduce((s,l)=>s+(l.amount||0),0);
   const gL=logs.filter(l=>l.side==='신랑측');
@@ -2854,7 +1195,6 @@ function renderStats(){
   const bTotal=totalTickets.bride>0?totalTickets.bride+bExtra:null;
   const gRemain=gTotal!==null?gTotal-gUsed-gPreShare:null;
   const bRemain=bTotal!==null?bTotal-bUsed-bPreShare:null;
-
   const se=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   se('stat-total-amount',fmtFull(total));
   se('stat-total-count','총 '+logs.length+'건');
@@ -2864,32 +1204,24 @@ function renderStats(){
   se('stat-bride-count',bL.length+'건');
   se('stat-cash',cashCnt+'건');
   se('stat-transfer',transCnt+'건');
-
-  // 신랑 식권
   se('g-total-tkt',gTotal!==null?(totalTickets.groom+'장'+(gExtra>0?' +추가'+gExtra:'')):'미설정');
   se('g-used-tkt',gUsed+'장');
   se('g-used-tkt2',gUsed);
   se('g-extra-tkt',gExtra>0?'+'+gExtra+'장':'—');
   const gREl=document.getElementById('g-remain-tkt');
   const gR2El=document.getElementById('g-remain-tkt2');
-  const gRVal=gRemain===null?'—':String(gRemain);
   const gRColor=gRemain===null?'#9CA3AF':gRemain<=10?'#DC2626':gRemain<=20?'#D97706':'#059669';
   if(gREl){gREl.textContent=gRemain===null?'—':gRemain+'장';gREl.style.color=gRColor;}
-  if(gR2El){gR2El.textContent=gRVal;gR2El.style.color=gRColor;}
-
-  // 신부 식권
+  if(gR2El){gR2El.textContent=gRemain===null?'—':String(gRemain);gR2El.style.color=gRColor;}
   se('b-total-tkt',bTotal!==null?(totalTickets.bride+'장'+(bExtra>0?' +추가'+bExtra:'')):'미설정');
   se('b-used-tkt',bUsed+'장');
   se('b-used-tkt2',bUsed);
   se('b-extra-tkt',bExtra>0?'+'+bExtra+'장':'—');
   const bREl=document.getElementById('b-remain-tkt');
   const bR2El=document.getElementById('b-remain-tkt2');
-  const bRVal=bRemain===null?'—':String(bRemain);
   const bRColor=bRemain===null?'#9CA3AF':bRemain<=10?'#DC2626':bRemain<=20?'#D97706':'#059669';
   if(bREl){bREl.textContent=bRemain===null?'—':bRemain+'장';bREl.style.color=bRColor;}
-  if(bR2El){bR2El.textContent=bRVal;bR2El.style.color=bRColor;}
-
-  // 상단 실시간 카드
+  if(bR2El){bR2El.textContent=bRemain===null?'—':String(bRemain);bR2El.style.color=bRColor;}
   se('tks-g-total',gTotal!==null?gTotal+'장':'미설정');
   se('tks-g-used',gUsed+'장');
   const tksGR=document.getElementById('tks-g-remain');
@@ -2907,7 +1239,6 @@ function renderStats(){
   renderRightList();
 }
 
-// ── 입력 상태 ──
 function setSide(side){
   st.side=side;
   document.getElementById('side-groom').className='tog-btn'+(side==='groom'?' tog-blue':'');
@@ -2921,15 +1252,8 @@ function setPayment(pay){
 function setAmount(amt){
   const map={50000:'5만',100000:'10만',150000:'15만',200000:'20만',300000:'30만',500000:'50만',1000000:'100만'};
   var inp=document.getElementById('amount-input');
-  if(st.amount===amt){
-    st.amount=0;
-    inp.value='';
-    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active'));
-  } else {
-    st.amount=amt;
-    inp.value=amt.toLocaleString();
-    document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt]));
-  }
+  if(st.amount===amt){ st.amount=0; inp.value=''; document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('amt-active')); }
+  else { st.amount=amt; inp.value=amt.toLocaleString(); document.querySelectorAll('.amt-btn').forEach(b=>b.classList.toggle('amt-active',b.textContent===map[amt])); }
 }
 function focusCustomAmount(){
   const inp=document.getElementById('amount-input');inp.focus();inp.select();
@@ -2942,11 +1266,10 @@ function onAmountInput(){
   var num=Number(raw);
   st.amount=num;
   inp.value=num.toLocaleString();
-  // 커서 끝으로
   setTimeout(function(){ inp.setSelectionRange(inp.value.length,inp.value.length); },0);
   document.querySelectorAll('.amt-btn:not(.amt-custom)').forEach(b=>b.classList.remove('amt-active'));
 }
-  function stepAmount(delta){
+function stepAmount(delta){
   var inp=document.getElementById('amount-input');
   var raw=Number((inp.value||'').replace(/,/g,''))||0;
   var next=Math.max(0, raw+delta);
@@ -2973,9 +1296,9 @@ function resetForm(){
   document.querySelectorAll('.rel-btn').forEach(b=>b.classList.remove('rel-active'));
 }
 
-// ── 접수 저장 ──
+// ── 접수 저장 ── [수정4: currentSchedule 없을때 goSelectSchedule 호출]
 async function submitEntry(){
-  if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
+  if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');goSelectSchedule();return;}
   const amount=Number((document.getElementById('amount-input').value||'').replace(/,/g,''))||st.amount;
   const _side = st.side==='groom'?'신랑측':'신부측';
   const _sideMaxSeq = logs.filter(l=>l.side===_side).reduce((m,l)=>Math.max(m,l.seq||0),0);
@@ -3001,7 +1324,6 @@ async function submitEntry(){
   } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
 }
 
-// ── 전체 장부 리스트 ──
 function renderFullList(){
   const isAdmin=ADMIN_NAMES.includes(currentUser.name);
   const searchG=((document.getElementById('log-search-groom')||{}).value||'').trim().toLowerCase();
@@ -3053,7 +1375,6 @@ function renderLedgerCol(elId,sideLogs,isAdmin){
   }).join('');
 }
 
-// ── 수정/삭제 ──
 function openEditModal(id){
   const l=logs.find(x=>x.id===id);
   if(!l) return;
@@ -3081,23 +1402,16 @@ async function deleteLog(id){
     const r=await fetch(sb.url('contribution_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h});
     if(!r.ok){showToast('⚠️ 삭제 실패 ('+r.status+')');return;}
     logs=logs.filter(x=>x.id!==id);
-
-    // 삭제된 항목 이후 같은 side 번호 -1 당기기
     if(target && target.seq){
       const toShift = logs.filter(l=>l.side===target.side && (l.seq||0)>target.seq);
-      await Promise.all(toShift.map(l=>
-        sb.patch('contribution_logs',l.id,{seq:(l.seq||0)-1}).then(()=>{ l.seq=(l.seq||0)-1; })
-      ));
-      // 이력 기록 (내부용)
+      await Promise.all(toShift.map(l=>sb.patch('contribution_logs',l.id,{seq:(l.seq||0)-1}).then(()=>{l.seq=(l.seq||0)-1;})));
       _logReindex(target.side, `${target.seq}번 삭제 → 이후 번호 -1 당김`);
     }
-
     renderStats();renderFullList();
     showToast('🗑️ 삭제되었습니다');
   } catch(e){ showToast('⚠️ 삭제 실패: '+e.message); }
 }
 
-// ── 대시보드 링크 ──
 function showDashboardLink(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');return;}
   const base=location.origin;
@@ -3105,22 +1419,14 @@ function showDashboardLink(){
   const groomEl=document.getElementById('token-url-groom');
   const brideEl=document.getElementById('token-url-bride');
   if(mainEl) mainEl.textContent=`${base}/api/live?t=${currentSchedule.dashboard_token}&d=${currentSchedule.date||Date.now()}`;
-if(groomEl) groomEl.textContent=`${base}/api/live?t=${currentSchedule.groom_token||'(미생성)'}&d=${currentSchedule.date||Date.now()}`;
-if(brideEl) brideEl.textContent=`${base}/api/live?t=${currentSchedule.bride_token||'(미생성)'}&d=${currentSchedule.date||Date.now()}`;
+  if(groomEl) groomEl.textContent=`${base}/api/live?t=${currentSchedule.groom_token||'(미생성)'}&d=${currentSchedule.date||Date.now()}`;
+  if(brideEl) brideEl.textContent=`${base}/api/live?t=${currentSchedule.bride_token||'(미생성)'}&d=${currentSchedule.date||Date.now()}`;
   document.getElementById('token-modal').style.display='flex';
 }
-function copyDashboardLink(){
-  const url=document.getElementById('token-url-display').textContent;
-  navigator.clipboard.writeText(url).then(()=>showToast('🔗 통합 링크 복사됨'));
-}
-function copyGroomLink(){
-  const url=document.getElementById('token-url-groom').textContent;
-  navigator.clipboard.writeText(url).then(()=>showToast('🤵 신랑측 링크 복사됨'));
-}
-function copyBrideLink(){
-  const url=document.getElementById('token-url-bride').textContent;
-  navigator.clipboard.writeText(url).then(()=>showToast('👰 신부측 링크 복사됨'));
-}
+function copyDashboardLink(){ const url=document.getElementById('token-url-display').textContent; navigator.clipboard.writeText(url).then(()=>showToast('🔗 통합 링크 복사됨')); }
+function copyGroomLink(){ const url=document.getElementById('token-url-groom').textContent; navigator.clipboard.writeText(url).then(()=>showToast('🤵 신랑측 링크 복사됨')); }
+function copyBrideLink(){ const url=document.getElementById('token-url-bride').textContent; navigator.clipboard.writeText(url).then(()=>showToast('👰 신부측 링크 복사됨')); }
+
 function renderRightList(){
   var isAdmin = ADMIN_NAMES.includes(currentUser.name);
   var gLogs = logs.filter(function(l){ return l.side==='신랑측'; });
@@ -3148,14 +1454,10 @@ function renderRightList(){
   renderRightCol('right-groom-list', gLogs, isAdmin);
   renderRightCol('right-bride-list', bLogs, isAdmin);
 }
-
 function renderRightCol(elId, sideLogs, isAdmin){
   var el = document.getElementById(elId);
   if(!el) return;
-  if(!sideLogs.length){
-    el.innerHTML = '<div style="text-align:center;padding:12px;font-size:11px;color:#9CA3AF">내역 없음</div>';
-    return;
-  }
+  if(!sideLogs.length){ el.innerHTML = '<div style="text-align:center;padding:12px;font-size:11px;color:#9CA3AF">내역 없음</div>'; return; }
   var sorted = sideLogs.slice().sort(function(a,b){ return (b.seq||0)-(a.seq||0); });
   el.innerHTML = sorted.map(function(l, i){
     var num  = l.seq || sorted.length - i;
@@ -3176,96 +1478,52 @@ function renderRightCol(elId, sideLogs, isAdmin){
         '<button class="ledger-btn" style="background:#FEF9EC;color:#C7A96B;border:none;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button>'+
         '<button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>'
       : '';
-    return '<div class="ledger-item">'+
-      '<div class="ledger-r1">'+
-        '<span class="ledger-num">#'+num+'</span>'+
-        '<span class="ledger-name">'+name+rel+'</span>'+
-        '<span class="ledger-amt">'+amt+'</span>'+
-      '</div>'+
-      memo+
-      '<div class="ledger-r2">'+
-        '<span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;flex-shrink:0">'+payT+'</span>'+
-        (tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+
-        '<span style="flex:1"></span>'+
-        '<span style="font-size:10px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+
-        btns+
-      '</div>'+
-    '</div>';
+    return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:10px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
   }).join('');
 }
-  // ── 번호 끼워넣기 ──
+
 function openReindexModal(id){
   const l = logs.find(x=>x.id===id);
   if(!l) return;
   const sideLogs = logs.filter(x=>x.side===l.side);
   const currentSeq = l.seq || 0;
   const maxSeq = sideLogs.reduce((m,x)=>Math.max(m,x.seq||0),0);
-  const newSeqStr = prompt(
-    `[${l.side}] 현재 번호: ${currentSeq}번\n이동할 번호를 입력하세요 (1 ~ ${maxSeq}):`,
-    String(currentSeq)
-  );
+  const newSeqStr = prompt(`[${l.side}] 현재 번호: ${currentSeq}번\n이동할 번호를 입력하세요 (1 ~ ${maxSeq}):`, String(currentSeq));
   if(newSeqStr===null) return;
   const newSeq = parseInt(newSeqStr);
-  if(isNaN(newSeq)||newSeq<1||newSeq>maxSeq){
-    showToast(`⚠️ 1 ~ ${maxSeq} 사이 번호를 입력하세요`); return;
-  }
+  if(isNaN(newSeq)||newSeq<1||newSeq>maxSeq){ showToast(`⚠️ 1 ~ ${maxSeq} 사이 번호를 입력하세요`); return; }
   if(newSeq===currentSeq){ showToast('이미 같은 번호입니다'); return; }
-
-  const sideLabel = l.side;
   const affectFrom = Math.min(currentSeq, newSeq);
   const affectTo   = Math.max(currentSeq, newSeq);
-  const msg = `[${sideLabel}] ${currentSeq}번 → ${newSeq}번으로 이동하시겠습니까?\n` +
-    `기존 ${affectFrom}~${affectTo}번 항목이 자동 재정렬됩니다.`;
-  if(!confirm(msg)) return;
+  if(!confirm(`[${l.side}] ${currentSeq}번 → ${newSeq}번으로 이동하시겠습니까?\n기존 ${affectFrom}~${affectTo}번 항목이 자동 재정렬됩니다.`)) return;
   reindexInsert(id, newSeq, l.side, currentSeq);
 }
-
 async function reindexInsert(id, newSeq, side, oldSeq){
   try {
     const sideLogs = logs.filter(l=>l.side===side);
     const patches = [];
-
     if(newSeq < oldSeq){
-      // 앞으로 이동: newSeq ~ oldSeq-1 항목 +1
-      sideLogs.filter(l=>l.id!==id && (l.seq||0)>=newSeq && (l.seq||0)<oldSeq)
-        .forEach(l=>patches.push({id:l.id, seq:(l.seq||0)+1}));
+      sideLogs.filter(l=>l.id!==id && (l.seq||0)>=newSeq && (l.seq||0)<oldSeq).forEach(l=>patches.push({id:l.id,seq:(l.seq||0)+1}));
     } else {
-      // 뒤로 이동: oldSeq+1 ~ newSeq 항목 -1
-      sideLogs.filter(l=>l.id!==id && (l.seq||0)>oldSeq && (l.seq||0)<=newSeq)
-        .forEach(l=>patches.push({id:l.id, seq:(l.seq||0)-1}));
+      sideLogs.filter(l=>l.id!==id && (l.seq||0)>oldSeq && (l.seq||0)<=newSeq).forEach(l=>patches.push({id:l.id,seq:(l.seq||0)-1}));
     }
-
-    // DB 일괄 patch
-    await Promise.all(patches.map(p=>
-      sb.patch('contribution_logs',p.id,{seq:p.seq})
-    ));
+    await Promise.all(patches.map(p=>sb.patch('contribution_logs',p.id,{seq:p.seq})));
     await sb.patch('contribution_logs',id,{seq:newSeq});
-
-    // 메모리 반영
     patches.forEach(p=>{ const t=logs.find(l=>l.id===p.id); if(t) t.seq=p.seq; });
     const target=logs.find(l=>l.id===id);
     if(target) target.seq=newSeq;
-
-    // 이력 기록 (내부용)
     _logReindex(side, `${oldSeq}번 → ${newSeq}번 이동 (영향 ${patches.length}건)`);
-
     renderStats(); renderFullList();
     showToast(`✅ ${side} ${oldSeq}번 → ${newSeq}번 이동 완료`);
   } catch(e){ showToast('⚠️ 번호 수정 실패: '+e.message); }
 }
-
 function _logReindex(side, content){
   if(!currentSchedule||!currentUser) return;
   const now=new Date();
   const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  sb.post('operation_logs',{
-    schedule_id: currentSchedule.id,
-    time_str:    timeStr,
-    content:     '[번호수정] '+content,
-    side:        '_internal',
-    created_by:  currentUser.name,
-  }).catch(()=>{});
+  sb.post('operation_logs',{schedule_id:currentSchedule.id,time_str:timeStr,content:'[번호수정] '+content,side:'_internal',created_by:currentUser.name}).catch(()=>{});
 }
+
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.style.display='block';
@@ -3274,15 +1532,21 @@ function showToast(msg){
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEditModal();});
 
+// [수정5: init() - localStorage 없을때 login-screen 명시적으로 보여주기]
 (function init(){
   initLogin();
   const saved=localStorage.getItem('dg_contrib_user');
   if(saved){
     const user=USERS.find(u=>u.id===Number(saved));
-    if(user){currentUser=user;document.getElementById('login-screen').style.display='none';goSelectSchedule();}
+    if(user){
+      currentUser=user;
+      document.getElementById('login-screen').style.display='none';
+      goSelectSchedule();
+      return;
+    }
   }
+  document.getElementById('login-screen').style.display='flex';
 })();
 </script>
 
-
-</body><whale-quicksearch translate="no" style="visibility: visible;"><template shadowrootmode="closed"><style></style><div class="anchor"></div><div class="quicksearch" data-version="25904bb4"></div></template></whale-quicksearch></html>
+</body></html>
