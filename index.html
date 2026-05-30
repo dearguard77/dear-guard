@@ -2465,7 +2465,48 @@ function calcSettlement(){
     prev.style.display = 'none';
   }
 }
+// ─── 계약참고 프리셋 → 정산정보 자동 계산 ──────────────────────────────────
+function syncContractMemoToSettlement(){
+  const product = document.getElementById('f-product')?.value || '';
+  const is4team = product === '4인 2팀';
 
+  // 상품구성별 정가 / 계약금 기준
+  const BASE_PRICE   = is4team ? 700000 : 400000;
+  const DEPOSIT      = is4team ? 200000 : 150000;
+
+  // 자동 계산에 반영할 할인 항목과 금액
+  const DISCOUNT_MAP = {
+    open_discount:    50000,
+    couple_discount:  10000,
+    review_discount:  10000,
+    wedding_discount: 20000,
+    fast_discount:    20000,
+    thread_discount:  10000
+  };
+
+  // 체크된 할인 합산
+  let totalDiscount = 0;
+  Object.entries(DISCOUNT_MAP).forEach(([key, amount]) => {
+    if(formContractMemo[key]) totalDiscount += amount;
+  });
+
+  const totalPrice   = BASE_PRICE - totalDiscount;
+  const balancePrice = totalPrice - DEPOSIT;
+
+  // 정산정보 탭 입력칸에 반영
+  const totalEl   = document.getElementById('f-total-price');
+  const depositEl = document.getElementById('f-deposit-price');
+  const balanceEl = document.getElementById('f-balance-price');
+  if(totalEl)   totalEl.value   = totalPrice;
+  if(depositEl) depositEl.value = DEPOSIT;
+  if(balanceEl) balanceEl.value = balancePrice;
+
+  // 순수익 미리보기 갱신
+  calcSettlement();
+}
+
+// DOM에서 직접 값을 읽음 (항상 DOM에 존재하므로 안전)
+function getFormValues(){
 // DOM에서 직접 값을 읽음 (항상 DOM에 존재하므로 안전)
 function getFormValues(){
   // 시간 select 조합
@@ -2592,12 +2633,13 @@ function autoSetArrival(){
 }
  // ─── 현장메모 / 계약참고메모 ──────────────────────────────────────────────────
 const CONTRACT_CHECKS = [
-  { key:'open_discount',    label:'오픈 할인'     },
-  { key:'review_discount',  label:'계약후기 할인' },
-  { key:'wedding_discount', label:'본식후기 할인' },
-  { key:'couple_discount',  label:'짝꿍 할인'     },
-  { key:'thread_discount',  label:'스레드 할인'   },
-  { key:'friend_discount',  label:'지인 할인'     },
+  { key:'open_discount',    label:'오픈 할인 (-5만)'     },
+  { key:'review_discount',  label:'계약후기 할인 (-1만)' },
+  { key:'wedding_discount', label:'본식후기 할인 (-2만)' },
+  { key:'couple_discount',  label:'짝꿍 할인 (-1만)'     },
+  { key:'fast_discount',    label:'빠른계약 할인 (-2만)' },
+  { key:'thread_discount',  label:'스레드 할인 (-1만)'   },
+  { key:'friend_discount',  label:'지인 할인'            },
 ];
 
 let formFieldMemo    = {};
@@ -2608,7 +2650,7 @@ function renderContractChecks(){
   el.innerHTML = CONTRACT_CHECKS.map(c => `
     <label style="display:flex;align-items:center;gap:7px;background:#FAF5FF;border:1px solid #E9D5FF;
       border-radius:8px;padding:8px 10px;cursor:pointer">
-      <input type="checkbox" ${formContractMemo[c.key]?'checked':''} onchange="formContractMemo['${c.key}']=this.checked"
+      <input type="checkbox" ${formContractMemo[c.key]?'checked':''} onchange="formContractMemo['${c.key}']=this.checked;syncContractMemoToSettlement()"
         style="width:15px;height:15px;accent-color:#7C3AED;flex-shrink:0">
       <span style="font-size:12px;color:#7C3AED;font-weight:600">${c.label}</span>
     </label>`).join('');
@@ -2717,6 +2759,8 @@ function updateManagerFields(){
     document.getElementById('f-back2').value  = '';
   }
   renderManagerPreview();
+  // 상품구성 변경 시 정산 자동 재계산 (관리자만)
+  if(ADMIN_NAMES.includes(currentUser.name)) syncContractMemoToSettlement();
 }
 
 function renderManagerPreview(){
@@ -3190,7 +3234,8 @@ function renderUnavailList(){
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:700;color:#111827">${esc(u.managerName)}</div>
-        <div style="font-size:12px;color:#6B7280;margin-top:2px">
+        <div style="font-size:12px;color:#6B7280;margin-top:2px">${esc(s.date)} · ${esc(s.hall)} · ${esc(s.laborRegion||'-')} ${s.laborCount||0}명</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:3px">👥 ${esc(s.frontManager||'-')} / ${esc(s.backManager||'-')}</div>
           ${getDateWithDay(u.date)} ·
           <span style="${UV_STYLE[u.unavailableType]||UV_STYLE.all_day};border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700">
             [${UV_BADGE[u.unavailableType]||'종일'}] 불가
