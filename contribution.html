@@ -318,38 +318,12 @@ input,select,textarea{font-family:inherit;outline:none}
         <input class="tkt-setup-inp" id="bride-total-ticket" type="number" placeholder="신부" min="0" oninput="saveTotalTickets()" style="width:44px;height:22px;font-size:11px;padding:0 4px;text-align:center">
         <span style="font-size:10px;color:#9CA3AF">장</span>
       </div>
-      <!-- 소인 토글 버튼 -->
-      <button id="child-ticket-toggle-btn" onclick="toggleChildTicketPanel()"
-        style="height:26px;background:#F3F4F6;border:1px solid #E0E0E0;border-radius:6px;padding:0 8px;font-size:10px;font-weight:600;color:#6B7280;cursor:pointer;flex-shrink:0;white-space:nowrap;align-self:center">
-        소인 보기 ▾
-      </button>
     </div>
     <div class="top-right">
       <button class="topbtn topbtn-ghost" onclick="goSelectSchedule()">예식 변경</button>
       <button class="topbtn topbtn-gold" onclick="showDashboardLink()">📱 대시보드</button>
       <button class="topbtn topbtn-ghost" onclick="doLogout()">로그아웃</button>
     </div>
-  </div>
-  <!-- 소인식권 펼침 패널 (기본 숨김) -->
-  <div id="child-ticket-panel" style="display:none;background:#F4F2EF;border-bottom:1px solid #E0E0E0;padding:5px 14px;flex-wrap:wrap;align-items:center;gap:10px;font-size:10px;color:#6B7280">
-    <span style="font-weight:700;color:#2563EB">🤵 소인</span>
-    <span>총 <span style="font-weight:700;color:#374151" id="g-child-total">0장</span></span>
-    <span>사용 <span style="font-weight:700" id="g-child-used">0장</span></span>
-    <span>잔여 <span style="font-weight:800;color:#374151" id="g-child-remain">0장</span></span>
-    <span style="color:#E0E0E0;margin:0 2px">|</span>
-    <span style="font-weight:700;color:#DB2777">👰 소인</span>
-    <span>총 <span style="font-weight:700;color:#374151" id="b-child-total">0장</span></span>
-    <span>사용 <span style="font-weight:700" id="b-child-used">0장</span></span>
-    <span>잔여 <span style="font-weight:800;color:#374151" id="b-child-remain">0장</span></span>
-    <span style="color:#E0E0E0;margin:0 2px">|</span>
-    <span style="color:#9CA3AF;font-weight:700">초기설정</span>
-    <span style="color:#2563EB">🤵</span>
-    <input id="groom-child-ticket" type="number" placeholder="신랑소인" min="0" oninput="saveTotalTickets()"
-      style="width:54px;height:22px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;text-align:center;background:#fff">
-    <span style="color:#DB2777">👰</span>
-    <input id="bride-child-ticket" type="number" placeholder="신부소인" min="0" oninput="saveTotalTickets()"
-      style="width:54px;height:22px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;text-align:center;background:#fff">
-    <span>장</span>
   </div>
   </div>
 
@@ -1211,8 +1185,8 @@ function renderStats(){
   const bAmt=bL.reduce((s,l)=>s+(l.amount||0),0);
   const cashCnt=logs.filter(l=>l.payment_type==='현금').length;
   const transCnt=logs.filter(l=>l.payment_type==='계좌이체').length;
-  const gUsed=gL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
-  const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+  const gUsed=gL.reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0),0);
   const gExtra=ticketExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
   const bExtra=ticketExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
   const gPreShare=preShares.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
@@ -1550,14 +1524,6 @@ function _logReindex(side, content){
   sb.post('operation_logs',{schedule_id:currentSchedule.id,time_str:timeStr,content:'[번호수정] '+content,side:'_internal',created_by:currentUser.name}).catch(()=>{});
 }
 
-function toggleChildTicketPanel(){
-  const panel=document.getElementById('child-ticket-panel');
-  const btn=document.getElementById('child-ticket-toggle-btn');
-  if(!panel||!btn) return;
-  const isOpen=panel.style.display==='flex';
-  panel.style.display=isOpen?'none':'flex';
-  btn.textContent=isOpen?'소인 보기 ▾':'소인 숨기기 ▴';
-}
 
 function showToast(msg){
   const t=document.getElementById('toast');
