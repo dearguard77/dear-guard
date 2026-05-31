@@ -426,30 +426,15 @@
       <div id="today-list"></div>
     </div>
     <div class="stats-grid" id="stats-grid"></div>
-
-    <!-- 짝꿍코드 조회 — 관리자 전용 -->
-    <div id="couple-code-section" style="display:none;margin-bottom:20px">
-      <div class="sec-header" style="margin-bottom:10px">
-        <h2>👥 짝꿍코드 조회</h2>
-        <span>관리자 전용</span>
-      </div>
-      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:20px 22px">
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <input id="couple-code-input" class="form-input"
-            placeholder="예) 전수연9787 또는 수연9787"
-            style="flex:1;font-size:14px"
-            onkeydown="if(event.key==='Enter') searchCoupleCode()">
-          <button onclick="searchCoupleCode()"
-            style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
-            조회
-          </button>
-        </div>
-        <div id="couple-code-result"></div>
-      </div>
-    </div>
-
     <div class="sec-header" style="margin-top:8px"><h2>다가오는 일정</h2><span>D-7 이내</span></div>
     <div id="upcoming-list"></div>
+
+    <!-- 본식 준비 체크 & 잔금 확인 알림 카드 -->
+    <div class="sec-header" style="margin-top:20px">
+      <h2>&#x1F4B0; 본식 준비 체크 &amp; 잔금 확인</h2>
+      <span>D-8 ~ D-10</span>
+    </div>
+    <div id="precheck-reminder-list"></div>
   </div>
 
   <!-- CALENDAR TAB -->
@@ -1375,10 +1360,6 @@ function renderNav(){
   const navManualBtn = document.getElementById('nav-manual-btn');
   if(bnavManual)   bnavManual.style.display   = isAdmin ? 'none'  : 'flex';
   if(navManualBtn) navManualBtn.style.display  = isAdmin ? 'none'  : 'block';
-
-  // 짝꿍코드 조회 — 관리자만 표시
-  const coupleSection = document.getElementById('couple-code-section');
-  if(coupleSection) coupleSection.style.display = isAdmin ? 'block' : 'none';
 }
 
 function renderUserDrop(){
@@ -1400,6 +1381,7 @@ function renderAll(){
   renderStats();
   renderToday();
   renderUpcoming();
+  renderPrecheckReminder();
   renderCalendar();
   renderScheduleList();
 }
@@ -1517,6 +1499,65 @@ function renderUpcoming(){
         ${!s.checklist.interview?'<span style="font-size:10px;color:#8B5CF6;font-weight:600">🎙️ 인터뷰필요</span>':''}
       </div>
     </div>`;
+  }).join('');
+}
+
+function renderPrecheckReminder(){
+  const el = document.getElementById('precheck-reminder-list');
+  if(!el) return;
+
+  // D-8 ~ D-10 예식만 추출 (visible()로 권한 필터 적용)
+  const list = visible().filter(s => {
+    const diff = Math.ceil((new Date(s.date) - new Date(TODAY)) / 86400000);
+    return diff >= 8 && diff <= 10;
+  }).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  if(!list.length){
+    el.innerHTML = '<div class="empty-state">확인할 예식이 없습니다 😊</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(s => {
+    const diff = Math.ceil((new Date(s.date) - new Date(TODAY)) / 86400000);
+    const dday = `D-${diff}`;
+
+    // 상태 배지
+    const precheckDone = s.precheckStatus === 'submitted';
+    const balanceDone  = !!s.checklist.balance;
+
+    const precheckBadge = precheckDone
+      ? `<span style="font-size:10px;font-weight:700;color:#059669;background:#ECFDF5;border-radius:6px;padding:2px 7px">✅ 체크완료</span>`
+      : `<span style="font-size:10px;font-weight:700;color:#D97706;background:#FFFBEB;border-radius:6px;padding:2px 7px">📋 체크 전</span>`;
+
+    const balanceBadge = balanceDone
+      ? `<span style="font-size:10px;font-weight:700;color:#059669;background:#ECFDF5;border-radius:6px;padding:2px 7px">✅ 잔금완료</span>`
+      : `<span style="font-size:10px;font-weight:700;color:#F59E0B;background:#FEF3C7;border-radius:6px;padding:2px 7px">💰 잔금확인</span>`;
+
+    return `
+      <div onclick="openDetail(${s.id})" style="
+        background:#FFFDF5;border:1px solid #FDE68A;border-radius:12px;
+        padding:12px 16px;margin-bottom:8px;cursor:pointer;
+        display:flex;align-items:center;gap:12px;
+        transition:background .15s"
+        onmouseover="this.style.background='#FEF9E7'"
+        onmouseout="this.style.background='#FFFDF5'">
+        <div style="min-width:40px;text-align:center;flex-shrink:0">
+          <div style="font-size:15px;line-height:1;margin-bottom:2px">${sideIcon(s)}</div>
+          <div style="font-size:11px;font-weight:800;color:#D97706">${dday}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${esc(coupleName(s))}
+          </div>
+          <div style="font-size:11px;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${getDateWithDay(s.date)} · ${esc(s.time)} · ${esc(s.hall)}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          ${precheckBadge}
+          ${balanceBadge}
+        </div>
+      </div>`;
   }).join('');
 }
 
@@ -1997,18 +2038,14 @@ async function openPrecheckModal(id){
         <div>
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">🤝 통합 체크 링크</div>
           <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${precheckUrl}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px">
             <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 체크 링크 복사됨'))"
-              style="flex:1;min-width:100px;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+              style="flex:1;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               📋 링크 복사
             </button>
             <button onclick="copyPrecheckGuide('${precheckUrl}')"
-              style="flex:1;min-width:100px;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+              style="flex:1;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               💬 안내문 복사
-            </button>
-            <button onclick="copyBalanceGuide(${id})"
-              style="flex:1;min-width:100px;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
-              💰 잔금 안내
             </button>
           </div>
         </div>
@@ -2093,30 +2130,6 @@ ${precheckUrl}
 
 이후 변경사항은 카카오톡으로 편하게 말씀 주세요!`;
   navigator.clipboard.writeText(text).then(() => showToast('✅ 본식 준비 안내가 복사되었습니다'));
-}
-
-function copyBalanceGuide(id){
-  const s = schedules.find(x => x.id === id);
-  if(!s) return;
-  const balance = Number(s.balancePrice) || 0;
-  if(!balance){
-    showToast('⚠️ 정산정보 탭에 잔금을 먼저 입력해주세요');
-    return;
-  }
-  const text = `또한 현재 잔금은
-${balance.toLocaleString()}원 남아 있으시며,
-
-신한은행 강성주(디어가드)
-110-591-596356 으로 입금 부탁드립니다 😊
-
-현금영수증은 체크리스트 내 적어주신 번호로 진행되며,
-당일 발행 후 홈택스 조회는 다음날부터 가능하십니다 :)
-
-작성 중 궁금하신 부분은
-언제든 편하게 말씀 주세요 🤍`;
-  navigator.clipboard.writeText(text)
-    .then(() => showToast('✅ 잔금 안내가 복사되었습니다'))
-    .catch(() => showToast('⚠️ 복사 실패: 브라우저 권한을 확인해주세요'));
 }
 
 // ── 계약서 링크 모달 ──
@@ -4169,164 +4182,6 @@ function showPhotoReminder(s){
   // ⛔ 자동 닫힘 제거 — X 버튼 또는 촬영완료 버튼으로만 닫힘
 }
 
-
-// ════════════════════════════════════════════════════════════
-//  👥  짝꿍코드 조회 기능
-// ════════════════════════════════════════════════════════════
-
-function searchCoupleCode(){
-  const raw = (document.getElementById('couple-code-input')?.value || '').trim();
-  if(!raw){ showToast('짝꿍코드를 입력해주세요'); return; }
-
-  // 입력에서 숫자 4자리(뒷자리)와 이름 부분 분리
-  const numMatch = raw.match(/(\d{4})$/);
-  if(!numMatch){ showToast('올바른 형식으로 입력해주세요 (예: 전수연9787)'); return; }
-
-  const last4  = numMatch[1];                        // "9787"
-  const nameRaw = raw.slice(0, raw.length - 4).trim(); // "전수연" 또는 "수연"
-
-  const resultEl = document.getElementById('couple-code-result');
-  if(!resultEl) return;
-
-  // schedules에서 코드 주인 찾기
-  // 비교: groomName/brideName 과 groomPhone/bridePhone 뒷 4자리
-  // 성 포함(전체이름) 또는 성 제외(이름만) 둘 다 허용
-  function nameMatches(fullName, inputName){
-    if(!fullName || !inputName) return false;
-    if(fullName === inputName) return true;          // 전체이름 일치
-    // 성 제외 비교: fullName에서 첫 글자(성) 제거
-    if(fullName.length > 1 && fullName.slice(1) === inputName) return true;
-    return false;
-  }
-
-  function phone4(phone){
-    const digits = (phone || '').replace(/\D/g,'');
-    return digits.slice(-4);
-  }
-
-  let matched = null;    // { schedule, side: 'groom'|'bride', name, phone }
-  for(const s of schedules){
-    // 신랑측 비교
-    if(nameMatches(s.groomName, nameRaw) && phone4(s.groomPhone) === last4){
-      matched = { schedule: s, side: 'groom', name: s.groomName, phone: s.groomPhone };
-      break;
-    }
-    // 신부측 비교
-    if(nameMatches(s.brideName, nameRaw) && phone4(s.bridePhone) === last4){
-      matched = { schedule: s, side: 'bride', name: s.brideName, phone: s.bridePhone };
-      break;
-    }
-  }
-
-  if(!matched){
-    resultEl.innerHTML = `
-      <div style="background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:12px;padding:16px 18px;text-align:center">
-        <div style="font-size:20px;margin-bottom:8px">❌</div>
-        <div style="font-size:14px;font-weight:700;color:#DC2626;margin-bottom:4px">코드를 찾을 수 없습니다</div>
-        <div style="font-size:12px;color:#9CA3AF">이름 또는 연락처를 다시 확인해주세요</div>
-      </div>`;
-    return;
-  }
-
-  const s   = matched.schedule;
-  const am  = s.adminMemo || {};
-  const used = !!am.couple_discount;
-
-  // 사용 고객 찾기 — couple_discount가 적용된 예식에서 코드 주인이 notes에 기록된 경우
-  // 사용처: 해당 예식(matched)의 adminMemo.couple_discount 가 true이면 자기 코드가 이미 적용된 것
-  // → "사용됨" 상태
-  const statusHtml = used
-    ? `<div style="background:#FEF2F2;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:#DC2626;display:inline-flex;align-items:center;gap:6px">❌ 이미 사용됨</div>`
-    : `<div style="background:#ECFDF5;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:6px">✅ 사용 가능</div>`;
-
-  // 안내문 텍스트를 전역변수에 저장 → onclick 인라인 문자열 충돌 방지
-  _coupleGuideText = used
-    ? `안녕하세요 신부님 😊\n확인해보니 해당 짝꿍코드는 이미 사용된 코드로 확인됩니다 🥹\n짝꿍할인은 코드당 1회만 사용 가능하여 적용이 어려운 점 양해 부탁드립니다 🙏`
-    : `안녕하세요 신부님 😊\n짝꿍코드 확인 결과 적용 가능하십니다!\n짝꿍할인 1만원 적용 도와드릴 예정이며, 잔금에서 차감 반영해드리겠습니다 🤍`;
-
-  const applyBtnHtml = !used ? `
-    <button onclick="applyCoupleDiscount(${s.id})"
-      style="flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
-      🎁 짝꿍할인 적용
-    </button>` : '';
-
-  resultEl.innerHTML = `
-    <div style="background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:12px;padding:16px 18px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div style="background:#fff;border-radius:8px;padding:10px 12px">
-          <div style="font-size:10px;color:#9CA3AF;margin-bottom:3px">코드 주인</div>
-          <div style="font-size:14px;font-weight:700;color:#111827">${esc(matched.name)}</div>
-          <div style="font-size:11px;color:#9CA3AF">${matched.side === 'groom' ? '신랑측' : '신부측'}</div>
-        </div>
-        <div style="background:#fff;border-radius:8px;padding:10px 12px">
-          <div style="font-size:10px;color:#9CA3AF;margin-bottom:3px">예식일</div>
-          <div style="font-size:14px;font-weight:700;color:#111827">${esc(s.date)}</div>
-          <div style="font-size:11px;color:#9CA3AF">${esc(s.hall)}</div>
-        </div>
-        <div style="background:#fff;border-radius:8px;padding:10px 12px;grid-column:1/-1">
-          <div style="font-size:10px;color:#9CA3AF;margin-bottom:3px">현재 상태</div>
-          ${statusHtml}
-        </div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button onclick="copyCoupleGuide()"
-          style="flex:1;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
-          💬 안내문 복사
-        </button>
-        ${applyBtnHtml}
-      </div>
-    </div>`;
-}
-
-// 안내문 텍스트 임시 저장 전역변수
-let _coupleGuideText = '';
-
-function copyCoupleGuide(){
-  if(!_coupleGuideText){ showToast('먼저 코드를 조회해주세요'); return; }
-  navigator.clipboard.writeText(_coupleGuideText)
-    .then(() => showToast('✅ 안내문이 복사되었습니다'))
-    .catch(() => showToast('⚠️ 복사 실패: 브라우저 권한을 확인해주세요'));
-}
-
-async function applyCoupleDiscount(schId){
-  const s = schedules.find(x => x.id === schId);
-  if(!s){ showToast('예식을 찾을 수 없습니다'); return; }
-  if((s.adminMemo || {}).couple_discount){
-    showToast('이미 짝꿍할인이 적용되어 있습니다'); return;
-  }
-  if(!confirm(`${s.date} ${s.groomName||s.brideName||s.hall}\n\n짝꿍할인(-10,000원)을 적용하시겠습니까?`)) return;
-
-  // adminMemo 업데이트
-  const newAdminMemo = { ...(s.adminMemo || {}), couple_discount: true };
-
-  // 정산정보 자동 반영
-  // totalPrice에서 1만원 차감, balancePrice는 newTotal - depositPrice로 재계산
-  const newTotalPrice   = (s.totalPrice   != null) ? s.totalPrice   - 10000 : null;
-  const depositPrice    = s.depositPrice  || 0;
-  const newBalancePrice = (newTotalPrice  != null) ? newTotalPrice - depositPrice : null;
-  const laborCost       = s.laborCost     || 0;
-  const recalcNet       = (newTotalPrice  != null) ? newTotalPrice - laborCost   : null;
-
-  const patchBody = {
-    admin_memo:   newAdminMemo,
-    total_price:  newTotalPrice,
-    balance_price: newBalancePrice,
-    net_profit:   recalcNet,
-  };
-
-  try {
-    const updated = await sb.patch('schedules', schId, patchBody);
-    const newS = rowToSchedule(Array.isArray(updated) ? updated[0] : updated);
-    const idx  = schedules.findIndex(x => x.id === schId);
-    if(idx !== -1) schedules[idx] = newS;
-    showToast('🎁 짝꿍할인이 적용되었습니다');
-    // 조회 결과 갱신
-    searchCoupleCode();
-  } catch(e){
-    console.error('짝꿍할인 적용 실패:', e);
-    showToast('⚠️ 적용 실패: ' + e.message);
-  }
-}
 
 // ─── START ────────────────────────────────────────────────────────────────────
 init();
