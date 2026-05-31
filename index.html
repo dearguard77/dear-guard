@@ -1971,14 +1971,18 @@ async function openPrecheckModal(id){
         <div>
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">🤝 통합 체크 링크</div>
           <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${precheckUrl}</div>
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 체크 링크 복사됨'))"
-              style="flex:1;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+              style="flex:1;min-width:100px;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               📋 링크 복사
             </button>
             <button onclick="copyPrecheckGuide('${precheckUrl}')"
-              style="flex:1;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+              style="flex:1;min-width:100px;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               💬 안내문 복사
+            </button>
+            <button onclick="copyBalanceGuide(${id})"
+              style="flex:1;min-width:100px;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+              💰 잔금 안내
             </button>
           </div>
         </div>
@@ -2063,6 +2067,30 @@ ${precheckUrl}
 
 이후 변경사항은 카카오톡으로 편하게 말씀 주세요!`;
   navigator.clipboard.writeText(text).then(() => showToast('✅ 본식 준비 안내가 복사되었습니다'));
+}
+
+function copyBalanceGuide(id){
+  const s = schedules.find(x => x.id === id);
+  if(!s) return;
+  const balance = Number(s.balancePrice) || 0;
+  if(!balance){
+    showToast('⚠️ 정산정보 탭에 잔금을 먼저 입력해주세요');
+    return;
+  }
+  const text = `또한 현재 잔금은
+${balance.toLocaleString()}원 남아 있으시며,
+
+신한은행 강성주(디어가드)
+110-591-596356 으로 입금 부탁드립니다 😊
+
+현금영수증은 체크리스트 내 적어주신 번호로 진행되며,
+당일 발행 후 홈택스 조회는 다음날부터 가능하십니다 :)
+
+작성 중 궁금하신 부분은
+언제든 편하게 말씀 주세요 🤍`;
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('✅ 잔금 안내가 복사되었습니다'))
+    .catch(() => showToast('⚠️ 복사 실패: 브라우저 권한을 확인해주세요'));
 }
 
 // ── 계약서 링크 모달 ──
