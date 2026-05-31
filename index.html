@@ -3315,14 +3315,12 @@ function openUnavailForm(id, presetDate){
   // 매니저 select — 관리자는 전체, 일반 매니저는 본인만
   const manSel = document.getElementById('uv-manager');
   if(ADMIN_NAMES.includes(currentUser.name)){
-    document.getElementById('f-total-price').value   = s?.totalPrice   || '';
-    document.getElementById('f-deposit-price').value = s?.depositPrice || '';
-    document.getElementById('f-balance-price').value = s?.balancePrice || '';
-    document.getElementById('f-labor-region').value  = s?.laborRegion  || '대전';
-    document.getElementById('f-labor-count').value   = s?.laborCount   || '';
-    // 신규 등록이거나 기존 금액값이 모두 비어있을 때만 기본값 세팅
-    applyProductPricePreset(false);
-    calcSettlement();
+    manSel.innerHTML = '<option value="">— 선택 —</option>'
+      + USERS.map(u => `<option value="${esc(u.name)}"${uv?.managerName===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
+    manSel.disabled = false;
+  } else {
+    manSel.innerHTML = `<option value="${esc(currentUser.name)}" selected>${esc(currentUser.name)}</option>`;
+    manSel.disabled = true;
   }
 
   document.getElementById('uv-date').value = uv?.date || presetDate || '';
