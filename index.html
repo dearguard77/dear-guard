@@ -4239,7 +4239,8 @@ function searchCoupleCode(){
     ? `<div style="background:#FEF2F2;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:#DC2626;display:inline-flex;align-items:center;gap:6px">❌ 이미 사용됨</div>`
     : `<div style="background:#ECFDF5;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:6px">✅ 사용 가능</div>`;
 
-  const guideText = used
+  // 안내문 텍스트를 전역변수에 저장 → onclick 인라인 문자열 충돌 방지
+  _coupleGuideText = used
     ? `안녕하세요 신부님 😊\n확인해보니 해당 짝꿍코드는 이미 사용된 코드로 확인됩니다 🥹\n짝꿍할인은 코드당 1회만 사용 가능하여 적용이 어려운 점 양해 부탁드립니다 🙏`
     : `안녕하세요 신부님 😊\n짝꿍코드 확인 결과 적용 가능하십니다!\n짝꿍할인 1만원 적용 도와드릴 예정이며, 계약 진행 시 함께 반영해드리겠습니다 🤍`;
 
@@ -4262,21 +4263,29 @@ function searchCoupleCode(){
           <div style="font-size:14px;font-weight:700;color:#111827">${esc(s.date)}</div>
           <div style="font-size:11px;color:#9CA3AF">${esc(s.hall)}</div>
         </div>
-        <div style="background:#fff;border-radius:8px;padding:10px 12px;grid-column:1/-1;display:flex;align-items:center;justify-content:space-between">
-          <div>
-            <div style="font-size:10px;color:#9CA3AF;margin-bottom:3px">현재 상태</div>
-            ${statusHtml}
-          </div>
+        <div style="background:#fff;border-radius:8px;padding:10px 12px;grid-column:1/-1">
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:3px">현재 상태</div>
+          ${statusHtml}
         </div>
       </div>
       <div style="display:flex;gap:8px">
-        <button onclick="navigator.clipboard.writeText(${JSON.stringify(guideText)}).then(()=>showToast('✅ 안내문이 복사되었습니다'))"
+        <button onclick="copyCoupleGuide()"
           style="flex:1;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
           💬 안내문 복사
         </button>
         ${applyBtnHtml}
       </div>
     </div>`;
+}
+
+// 안내문 텍스트 임시 저장 전역변수
+let _coupleGuideText = '';
+
+function copyCoupleGuide(){
+  if(!_coupleGuideText){ showToast('먼저 코드를 조회해주세요'); return; }
+  navigator.clipboard.writeText(_coupleGuideText)
+    .then(() => showToast('✅ 안내문이 복사되었습니다'))
+    .catch(() => showToast('⚠️ 복사 실패: 브라우저 권한을 확인해주세요'));
 }
 
 async function applyCoupleDiscount(schId){
@@ -4290,14 +4299,13 @@ async function applyCoupleDiscount(schId){
   // adminMemo 업데이트
   const newAdminMemo = { ...(s.adminMemo || {}), couple_discount: true };
 
-  // 정산정보 자동 반영 — balancePrice, totalPrice에서 1만원 차감
-  const newTotalPrice   = s.totalPrice   ? s.totalPrice   - 10000 : s.totalPrice;
-  const newBalancePrice = s.balancePrice ? s.balancePrice - 10000 : s.balancePrice;
-  const newNetProfit    = s.netProfit    ? s.netProfit    + 10000 : s.netProfit; // 할인이므로 순수익은 그대로거나 -
-
-  // 순수익 재계산: totalPrice - laborCost
-  const laborCost = s.laborCost || 0;
-  const recalcNet = newTotalPrice != null ? newTotalPrice - laborCost : null;
+  // 정산정보 자동 반영
+  // totalPrice에서 1만원 차감, balancePrice는 newTotal - depositPrice로 재계산
+  const newTotalPrice   = (s.totalPrice   != null) ? s.totalPrice   - 10000 : null;
+  const depositPrice    = s.depositPrice  || 0;
+  const newBalancePrice = (newTotalPrice  != null) ? newTotalPrice - depositPrice : null;
+  const laborCost       = s.laborCost     || 0;
+  const recalcNet       = (newTotalPrice  != null) ? newTotalPrice - laborCost   : null;
 
   const patchBody = {
     admin_memo:   newAdminMemo,
