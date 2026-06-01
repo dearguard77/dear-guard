@@ -1772,7 +1772,7 @@ function openDetail(id){
   document.getElementById('dm-title').innerHTML =
     `<span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span>${sideIcon(s)} ${esc(coupleName(s))}</span>
-      <button onclick="event.stopPropagation();window.open('/contribution.html','_blank')"
+      <button onclick="event.stopPropagation();window.open('/contribution.html?schedule_id=${s.id}','_blank')"
         style="background:#C7A96B;color:#fff;border:none;border-radius:8px;
           padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;
           vertical-align:middle;flex-shrink:0">
