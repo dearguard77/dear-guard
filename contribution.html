@@ -61,7 +61,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* 바디 레이아웃 */
 #main-body-outer{flex:1;overflow:hidden;background:#EDEDED}
-#main-body{display:grid;grid-template-columns:minmax(260px, 0.8fr) 1fr 1fr;height:100%;width:100%}
+#main-body{display:grid;grid-template-columns:350px 1fr 1fr;height:100%;width:100%}
 
 /* ── 인계 정보 패널 ── */
 #handover-panel{overflow-y:auto;padding:8px;background:#F8F6F3;border-right:1px solid #DCDCDC;display:flex;flex-direction:column;gap:6px}
@@ -746,7 +746,9 @@ function doLogin(){
   currentUser=user;
   localStorage.setItem('dg_contrib_user',user.id);
   document.getElementById('login-screen').style.display='none';
-  goSelectSchedule();
+  const _directId = new URLSearchParams(location.search).get('schedule_id');
+  if(_directId) selectSchedule(Number(_directId));
+  else goSelectSchedule();
 }
 function doLogout(){ localStorage.removeItem('dg_contrib_user'); location.reload(); }
 
@@ -844,7 +846,11 @@ async function setWeddingMode(scheduleId,btn,mode){
 async function selectSchedule(id){
   try {
     const rows=await sb.get('schedules',`?id=eq.${id}`);
-    if(!rows.length) return;
+    if(!rows.length){
+      showToast('⚠️ 해당 예식을 불러오지 못했습니다. 예식을 다시 선택해주세요.');
+      goSelectSchedule();
+      return;
+    }
     currentSchedule=rows[0];
     if(!currentSchedule.dashboard_token){
       try {
@@ -1542,7 +1548,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEditModal();});
     if(user){
       currentUser=user;
       document.getElementById('login-screen').style.display='none';
-      goSelectSchedule();
+      const _directId = new URLSearchParams(location.search).get('schedule_id');
+      if(_directId) selectSchedule(Number(_directId));
+      else goSelectSchedule();
       return;
     }
   }
