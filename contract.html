@@ -518,19 +518,25 @@ function renderInfo(){
   const d = new Date((s.date||'')+'T00:00:00');
   const dayStr = s.date?`${s.date} (${DAYS[d.getDay()]})`:'—';
   const rows = [
-    ['상품 구성',     s.product||'—'],
-    ['예식 날짜',     dayStr],
-    ['예식 시간',     (s.time||'').slice(0,5)||'—'],
-    ['예식장',        s.hall||'—'],
-    ['홀 이름',       s.address||'—'],
-    ['예상 하객 인원', s.guest_count?`${s.guest_count}명`:'—'],
-  ];
-  if(g) rows.splice(2,0,['신랑 성함', g]);
-  if(b) rows.splice(g?3:2,0,['신부 성함', b]);
+  ['상품 구성',     s.product||'—'],
+  ['예식 날짜',     dayStr],
+  ['예식 시간',     (s.time||'').slice(0,5)||'—'],
+  ['예식장',        s.hall||'—'],
+  ['홀 이름',       s.address||'—'],
+  ['예상 하객 인원', s.guest_count?`${s.guest_count}명`:'—'],
+];
+if(g) rows.splice(2,0,['신랑 성함', g]);
+if(b) rows.splice(g?3:2,0,['신부 성함', b]);
+
+// ▼ 레디백 옵션 추가
+const isBothSides = !!(g && b);
+rows.push(['옵션', isBothSides ? '🎀 레디백 2개 (무료)' : '🎀 레디백 (무료)']);
   document.getElementById('info-rows').innerHTML = rows.map(([l,v])=>`
-    <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val">${esc(v)}</span></div>
-  `).join('');
-}
+  <div class="info-row">
+    <span class="info-lbl">${esc(l)}</span>
+    <span class="info-val${l==='옵션'?' gold':''}">${esc(v)}</span>
+  </div>
+`).join('');
 
 // ── 결제 정보 렌더 ──
 function renderPayment(){
@@ -832,6 +838,7 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
     ${g?`<div class="pdf-info-row"><span class="pdf-info-lbl">신랑 성함</span><span class="pdf-info-val">${g}</span></div>`:''}
     ${b?`<div class="pdf-info-row"><span class="pdf-info-lbl">신부 성함</span><span class="pdf-info-val">${b}</span></div>`:''}
     <div class="pdf-info-row"><span class="pdf-info-lbl">예상 하객 인원</span><span class="pdf-info-val">${s.guest_count?s.guest_count+'명':'—'}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">옵션</span><span class="pdf-info-val gold">${(g&&b)?'🎀 레디백 2개 (무료)':'🎀 레디백 (무료)'}</span></div>
 
     <hr>
 
