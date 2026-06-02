@@ -68,6 +68,11 @@ input,select,textarea{font-family:inherit;outline:none}
 #signed-banner{display:none;margin:12px;padding:14px 16px;background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:var(--radius);text-align:center}
 .signed-title{font-size:15px;font-weight:800;color:var(--green);margin-bottom:4px}
 .signed-sub{font-size:12px;color:#065F46;line-height:1.6}
+/* ▼ [수정6] signed-banner 버튼 그룹 */
+.signed-btn-group{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.signed-btn{width:100%;background:var(--gold);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer}
+.signed-btn.outline{background:#fff;color:var(--gold2);border:1.5px solid var(--gold)}
+.signed-inapp-notice{margin-top:8px;font-size:11px;color:#065F46;line-height:1.6;background:#D1FAE5;border-radius:6px;padding:8px 10px}
 
 /* 섹션 카드 */
 .section{margin:10px 12px 0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
@@ -114,6 +119,13 @@ input,select,textarea{font-family:inherit;outline:none}
 .agree-all{margin-bottom:12px;padding:12px 14px;background:#FDF8F0;border:1.5px solid var(--gold);border-radius:var(--radius-sm);display:flex;align-items:center;gap:10px;cursor:pointer}
 .agree-all-text{font-size:13px;font-weight:800;color:var(--gold2)}
 
+/* ▼ [수정1] 약관 확인 문구 입력창 */
+.agree-confirm-wrap{margin-top:14px;padding:14px;background:#FFF9EC;border:1.5px solid var(--gold);border-radius:var(--radius-sm)}
+.agree-confirm-label{font-size:12px;color:var(--gold2);font-weight:700;line-height:1.7;margin-bottom:8px}
+.agree-confirm-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-weight:700;color:var(--text);background:#fff;transition:border-color .15s;text-align:center}
+.agree-confirm-input:focus{border-color:var(--gold)}
+.agree-confirm-input.valid{border-color:var(--green);background:#F0FDF4;color:var(--green)}
+
 /* 서명 패드 */
 .sig-wrap{border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:#fff;position:relative}
 .sig-wrap canvas{display:block;width:100%;touch-action:none}
@@ -133,12 +145,20 @@ input,select,textarea{font-family:inherit;outline:none}
 .submit-btn:disabled{background:#E5E7EB;color:#9CA3AF;box-shadow:none;cursor:not-allowed}
 .submit-btn:active:not(:disabled){transform:scale(.98)}
 
-/* 완료 화면 */
-#complete-screen{display:none;max-width:480px;margin:0 auto;padding:48px 20px;text-align:center}
+/* ▼ [수정2,3,4] 완료 화면 */
+#complete-screen{display:none;max-width:480px;margin:0 auto;padding:48px 20px 60px;text-align:center}
 .complete-icon{font-size:56px;margin-bottom:16px}
 .complete-title{font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px}
 .complete-sub{font-size:14px;color:var(--text2);line-height:1.8}
-.pdf-btn{display:inline-flex;align-items:center;gap:6px;margin-top:20px;background:var(--gold);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:13px;font-weight:700;cursor:pointer}
+/* 완료화면 버튼 그룹 */
+.complete-btn-group{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+.pdf-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--gold);color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+.pdf-btn.outline{background:#fff;color:var(--gold2);border:1.5px solid var(--gold)}
+.pdf-btn.gray{background:#F3F4F6;color:var(--text2);border:1px solid var(--border)}
+/* 인앱 안내 박스 */
+.inapp-notice{margin-top:16px;background:#FFF9EC;border:1.5px solid var(--gold);border-radius:var(--radius-sm);padding:14px;text-align:left}
+.inapp-notice-title{font-size:12px;font-weight:800;color:var(--gold2);margin-bottom:6px}
+.inapp-notice-body{font-size:12px;color:var(--text2);line-height:1.8}
 
 /* 토스트 */
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)}
@@ -178,11 +198,19 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
   </div>
 
-  <!-- 이미 서명 완료 배너 -->
+  <!-- ▼ [수정6] 이미 서명 완료 배너 — 버튼 및 안내 추가 -->
   <div id="signed-banner">
     <div class="signed-title">✅ 전자계약 완료</div>
     <div class="signed-sub" id="signed-sub-text">서명이 완료된 계약서입니다.</div>
-    <button onclick="downloadPDF()" style="margin-top:10px;background:var(--gold);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">📄 PDF 다운로드</button>
+    <div class="signed-btn-group">
+      <button class="signed-btn" onclick="downloadPDF()">📄 PDF 다운로드</button>
+      <button class="signed-btn outline" onclick="downloadContractImage()">🖼 이미지로 저장</button>
+    </div>
+    <div class="signed-inapp-notice">
+      📱 카카오톡 안에서 다운로드가 안 될 경우<br>
+      우측 상단 메뉴에서 <strong>Safari / Chrome으로 열기</strong>를 선택하거나<br>
+      PC에서 다시 접속 후 다운로드해주세요.
+    </div>
   </div>
 
   <!-- ① 예약 정보 -->
@@ -375,6 +403,22 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="agree-dot"></div>
         <span class="agree-text">서비스 운영 안내 및 책임 범위를 확인했습니다.</span>
       </div>
+
+      <!-- ▼ [수정1] 약관 확인 문구 입력창 -->
+      <div class="agree-confirm-wrap">
+        <div class="agree-confirm-label">
+          ✏️ 서비스 이용 약관 및 환불 규정을 모두 확인하셨다면<br>
+          아래 입력창에 <strong>"확인했습니다"</strong>를 직접 입력해주세요.
+        </div>
+        <input
+          class="agree-confirm-input"
+          id="agree-confirm-text"
+          type="text"
+          placeholder="확인했습니다"
+          autocomplete="off"
+          oninput="onConfirmTextInput()"
+        >
+      </div>
     </div>
   </div>
 
@@ -408,19 +452,39 @@ input,select,textarea{font-family:inherit;outline:none}
   <div style="height:10px"></div>
 </div>
 
-<!-- 완료 화면 -->
+<!-- ▼ [수정2,3,4] 완료 화면 -->
 <div id="complete-screen">
   <div class="complete-icon">✅</div>
   <div class="complete-title">전자계약 완료!</div>
   <div class="complete-sub">
     전자서명이 정상적으로 완료되었습니다 😊<br><br>
-    계약 확인서는 PDF로 자동 저장되며,<br>
-    언제든 아래 버튼으로 다시 다운로드 가능합니다.<br><br>
-    모바일 환경에서 다운로드가 안될 경우<br>
-    PC버전으로 이용 부탁드립니다😊<br><br>    
+    계약 확인서는 아래 버튼을 통해<br>
+    PDF로 다운로드하실 수 있습니다.<br><br>
+    단, 카카오톡 인앱 브라우저에서는<br>
+    파일 저장이 원활하지 않을 수 있어요.<br><br>
+    다운로드가 되지 않는 경우<br>
+    우측 상단 메뉴에서 <strong>"Safari/Chrome으로 열기"</strong> 또는<br>
+    PC 환경에서 다시 접속 후 다운로드 부탁드립니다.<br><br>
     궁금한 점은 디어가드 카카오톡 채널로<br>편하게 문의해주세요 🙏
   </div>
-  <button class="pdf-btn" onclick="downloadPDF()">📄 계약서 PDF 다운로드</button>
+
+  <!-- ▼ 버튼 그룹 -->
+  <div class="complete-btn-group">
+    <button class="pdf-btn" onclick="downloadPDF()">📄 PDF 다운로드</button>
+    <button class="pdf-btn outline" onclick="downloadContractImage()">🖼 이미지로 저장</button>
+    <button class="pdf-btn gray" onclick="openExternalBrowser()">🌐 외부 브라우저로 열기</button>
+  </div>
+
+  <!-- ▼ 인앱 안내 박스 -->
+  <div class="inapp-notice">
+    <div class="inapp-notice-title">📱 카카오톡에서 저장이 안 될 때</div>
+    <div class="inapp-notice-body">
+      우측 상단 메뉴(···)를 눌러<br>
+      <strong>Safari 또는 Chrome으로 열기</strong>를 선택하신 후<br>
+      PDF 또는 이미지 저장을 다시 시도해주세요.<br>
+      PC에서 같은 링크를 열어도 저장 가능합니다.
+    </div>
+  </div>
 </div>
 
 <!-- 제출 버튼 -->
@@ -498,7 +562,6 @@ function renderHeader(){
   const d = new Date((s.date||'')+'T00:00:00');
   const dayStr = s.date?`${s.date} (${DAYS[d.getDay()]}) · ${(s.time||'').slice(0,5)}`:'';
   document.getElementById('hdr-info').textContent = [dayStr, s.hall, s.address].filter(Boolean).join(' · ');
-  // OG 메타 업데이트
   const displayDesc = '디어가드 전자 계약 시스템';
   const pageTitle = `${couple} · 전자계약서`;
   document.title = pageTitle;
@@ -527,8 +590,16 @@ function renderInfo(){
   ];
   if(g) rows.splice(2,0,['신랑 성함', g]);
   if(b) rows.splice(g?3:2,0,['신부 성함', b]);
+
+  // ▼ 레디백 옵션: 양측이면 2개, 단측이면 1개
+  const isBothSides = !!(g && b);
+  rows.push(['옵션', isBothSides ? '🎀 레디백 2개 (무료)' : '🎀 레디백 (무료)']);
+
   document.getElementById('info-rows').innerHTML = rows.map(([l,v])=>`
-    <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val">${esc(v)}</span></div>
+    <div class="info-row">
+      <span class="info-lbl">${esc(l)}</span>
+      <span class="info-val${l==='옵션'?' gold':''}">${esc(v)}</span>
+    </div>
   `).join('');
 }
 
@@ -536,13 +607,11 @@ function renderInfo(){
 function renderPayment(){
   const s = schedule;
   const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
-
   const rows = [
     ['총 계약 금액', s.total_price,   true],
     ['계약금',       s.deposit_price, false],
     ['잔금',         s.balance_price, false],
   ];
-
   const html = rows.map(([l,v,gold])=>`
     <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val${gold?' gold':''}">${fmt(v)}</span></div>
   `).join('');
@@ -557,7 +626,6 @@ function toggleSection(id){
   const isOpen = body.classList.contains('open');
   body.classList.toggle('open',!isOpen);
   if(toggle) toggle.classList.toggle('open',!isOpen);
-  // 서명 섹션 열릴 때 캔버스 크기 재설정
   if(id==='sec-sign' && !isOpen){
     setTimeout(resizeCanvas, 50);
   }
@@ -611,12 +679,22 @@ function updateAllAgreeDot(){
   }
 }
 
+// ▼ [수정1] 확인 문구 입력 핸들러
+function onConfirmTextInput(){
+  const input = document.getElementById('agree-confirm-text');
+  const val = input.value.trim();
+  if(val === '확인했습니다'){
+    input.classList.add('valid');
+  } else {
+    input.classList.remove('valid');
+  }
+  updateProgress();
+}
+
 // ── 서명 패드 ──
 function initSignaturePad(){
   const canvas = document.getElementById('sig-canvas');
   if(!canvas) return;
-
-  // SignaturePad 먼저 생성 (크기는 resizeCanvas에서)
   signaturePad = new SignaturePad(canvas, {
     backgroundColor: 'rgba(255,255,255,0)',
     penColor: '#111827',
@@ -627,15 +705,12 @@ function initSignaturePad(){
     document.getElementById('sig-hint').classList.add('hidden');
   });
   signaturePad.addEventListener('afterUpdateStroke', ()=> updateProgress());
-
-  // 초기 크기 설정 (이미 열려있을 경우 대비)
   resizeCanvas();
 }
 
 function resizeCanvas(){
   const canvas = document.getElementById('sig-canvas');
   if(!canvas || !signaturePad) return;
-  // 부모가 display:none 이면 offsetWidth=0 → 건너뜀
   if(canvas.offsetWidth === 0) return;
   const ratio = Math.max(window.devicePixelRatio || 1, 1);
   const data = signaturePad.toData();
@@ -652,12 +727,13 @@ function clearSignature(){
   updateProgress();
 }
 
-// ── 진행률 ──
+// ▼ [수정1] 진행률: 4단계로 변경 (전체동의 / 확인문구 / 서명자이름 / 서명)
 function updateProgress(){
   const checks = [
-    () => Object.values(agrees).every(v=>v),                              // 전체 동의
-    () => !!document.getElementById('signer-name')?.value.trim(),         // 서명자 이름
-    () => signaturePad && !signaturePad.isEmpty(),                         // 서명
+    () => Object.values(agrees).every(v=>v),                                                    // ① 전체 동의
+    () => document.getElementById('agree-confirm-text')?.value.trim() === '확인했습니다',        // ② 확인 문구
+    () => !!document.getElementById('signer-name')?.value.trim(),                               // ③ 서명자 이름
+    () => signaturePad && !signaturePad.isEmpty(),                                               // ④ 서명
   ];
   const done = checks.filter(c=>{ try{ return c(); }catch(e){ return false; } }).length;
   const pct  = Math.round(done / checks.length * 100);
@@ -672,6 +748,11 @@ async function submitContract(){
   // 검증
   if(!Object.values(agrees).every(v=>v)){
     showToast('⚠️ 모든 동의 항목을 체크해주세요'); return;
+  }
+  // ▼ [수정1] 약관 확인 문구 검증
+  const confirmText = document.getElementById('agree-confirm-text')?.value.trim();
+  if(confirmText !== '확인했습니다'){
+    showToast('⚠️ 약관 확인 문구를 입력해주세요'); return;
   }
   const signerName = document.getElementById('signer-name')?.value.trim();
   if(!signerName){ showToast('⚠️ 서명자 성함을 입력해주세요'); return; }
@@ -702,7 +783,7 @@ async function submitContract(){
     await sb.patch('schedules', schedule.id, {
       contract_signed:    true,
       contract_signed_at: signedAt,
-      contract_signature: sigDataUrl,   // base64 (fallback)
+      contract_signature: sigDataUrl,
       contract_pdf_url:   pdfUrl,
       contract_version:   '1.0',
       contract_signer:    signerName,
@@ -723,12 +804,12 @@ async function submitContract(){
     console.error('[DG] 계약 제출 실패:', e);
     showToast('⚠️ 제출 실패: '+e.message);
     btn.disabled = false;
-    btn.textContent = '✍️ 전자서명 완료 및 계약 제출';
+    btn.textContent = '✍️ 서명 완료 및 제출';
   }
 }
 
 // ── PDF 전용 hidden div 빌드 ──
-const STAMP_FULL_BASE64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADzAKIDASIAAhEBAxEB/8QAHAABAAMAAwEBAAAAAAAAAAAAAAUGBwIDBAEI/8QAORAAAQMDAwIEAwYFBAMBAAAAAQACAwQFEQYSIQcxE0FRYSJxgRQVMkKRsSMzUqHBFhdy0Qg08PH/xAAbAQEAAgMBAQAAAAAAAAAAAAAABAYCAwUBB//EADsRAAEDAgMFBQYDBwUAAAAAAAEAAgMEEQUhMQYSQVFxEyKBscEUYZGh0fAjMkIVJTNSYtLhkqKywvH/2gAMAwEAAhEDEQA/APxkiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiLlGx8jxHGxz3u4DWjJKL0C+QXFco2PkeGRsc97jgNaMkq/aS6b1NY4z32dtuhj3F8T3Br8BueSeBngY78+SnarVGi9MUgpdP0GasMHiSjDnh+MHa/05d3JPPsozqkX3WC5Vip9nJezE1Y8RMP8ANr8Ps+5UW2aJ1HX0xqhQGnpxkmWocIx+h5/sp8dLLkyRsVVc6WGR20tw0uaQex3eijLjr66z7mUscVPGQWjOXkA/PgfooGe+XiZxdJc6ok8cSEfssbVLuICkF+z1N3Q18p533R6H5K8y9KpRI6OO9QmRpIc3ws9u5BBwR6YK8tf0qvcJj+yVtDVeKC6JokAeQCActGS08+fdUoXO5BweLhV7h2PjOz+691Jqi/0rw+K6VGc5y87j+pTcqBo4Fee24BJk6mc3o4nzI9Vxummr9bS77ZaqqMNOHO8MkD6hRCvlp6lV8MrPvOhhrY2+j3Md++D8lOAaI1oyXDPu2rDNzdjMPB8+Ozh5eadvIz+I3LmF4MFoK3LD6jvfyvFieh0PwWTorNq7Rl00+98uDVUbXY8ZjcFn/Nv5f291WVJY9rxdpVfqqSekkMU7S1w5oiIslGREREREREREREREXJjXPe1jGlznHAA7kogF13W6jqbhWxUdJGZJpXbWtH7/ACWp0dv09oO3MqrmI57k6HI2vy5ziezQOwxjn35U30+01R6RtFPXXN9G+43Bn4Jot/hA52geR7Zxz254C6NWWHTTK+SS9OjNfL+J0kmGuGBgtwceeeAuZPUB7t3Pd93FfTMEwCSipvaLN7Y6b97M+Rz05a663zLV2r7nqGVrZBHS0rBtZBA0NBGScuI/Eee59lXVbNe02laZsLNPyh8u4iQskLmloHc5zzlVNTod3cG6LBUfGGztq3NqJA93MG452H04Ll4cnh+JsdszjdjjPplcVsWjaCiufTGGKWFrmF0jHZGQ5wJP0PPf5LH3t2vc0+RwsYpu0c5ttFuxTBzQQQTB28JG36GwJHz/AMLiiuGhtKNuTfvO5hzaFv8ALjAO6cg8jjsBzzwrzrPp/bp7EH2elZDUNkHhuazHBGcOIJyPfyOcrB9Wxj91TKPZSuqqQ1LbDiAb3d068L6rFlNaMtMN5vjKOapdTsDHSbm/iO0ZwPdRNVBLTVElPOwsljcWvae4IUzoF7Gaut/iHDHPLD9WkLdKT2ZLeS5OGRsNdFHM243gCD1sVoNxu1PpOSko6uaauo6mNzHOnYHOa3gEOafxjnHrwoHV2jaeahfedNRSPhaN80LeWtaRkOaf8Z58vRevrpTvgrKFj3iQgOy8EnktacZP6fReHpNqv7ruUdpro/Ho6iUBnxYMbicd/Q+n7ZKgRMc2MSs14jmrzidVTT4g/DKtvc7u47i0lo48QTz8tKEivvVvScNnuclztRdJa5pdod4ZYWuxnO38oPp6qhLoRyCRu8FQ8QoZaCodBLqPmOBRERZqEiIiIiIiIi0bo7pVtxkn1BWT00VNRnZC2YE+JKRny7YHOT/hZ5FG6WVkTBlz3BrR7lbLqx8Gl+ltNbYWsbUOJja5h2PDnD4i7zfkFxBPby7qLVPNgwalWbZqkYZH1k35Ihfx4eXxsqu29yX7qfQNje11M2oLIWs4ByMF3zP+AvJ1iE0OqGUUu4CnhADT3GSc/soLRUgi1ba5HDIFSzI9eVYetTmSavE0UYjZJTtc1oGMAudge+AsAwMnaByUx9bNV4JUSyHN0gJ+AsOmWXRUZERTVTVrnSOuqP8ARVfTRvmZHFON4afhdnBbn6krLLkzZc6mNzTHiZwIP5eStG6KCae13umie8NHhyODfQZ5PyVA1I3ZqC4NySBUyYJHJ+IqFCLTvCuWMO7TA6N54XHp6LUrzJVWvRMz7W+VroYmMjfG7hrOCePlkqvdI6+5S3ariM08rBEZC9zyQx2QDz7gke6lemmtqOG1TWq5+D4pibHEZmAtdgjkOJG1wAx55yp+r1DZLTbp4oPDpKeQb+HMDnP9cNGXeahm8bXRltyVb4uxr5ocSin3Y2CxbfIc755a2OWgFlE3fTVkrtWSOuLt7o2FkkMTtpfgkB/fPt9FKWrQmkqKaOqgrSbnHK0w075CQCeQ7PYgHjCyDUF5qLreprlufE53ws2uwQ0f/f3XVYp3x32hmc9xLahhJLj/AFBSRTSBn5uGirr9osNfWEtpQSX/AJss89cwetvJaF1sp3x0VA55Dnslcxzh2zjt9MLLhwchbJ1sdSS6apzSyP8A4czBI17QDnaR3Hcd1ja20R/CXL2zYW4o4niB5W9FuHT+5w600VVWG4tbJUNbtle8gE4HwvB8uByTxlo9Vjd6t8trutRQTEF8Ly3I7OHkfqMKd6WX6fT2s6Ssgn8DxD4LnZwACRjOfLICsnW2y+B9guzIQwyM2ymMh0ZaSSwjHY4yCD5rFn4M27wKkVV8WwcVJzkiyPMj7sfByzJERTVTERERERERFZOmlHBW60t7aqPxKeKTxZRjIwO2R6ZwrD13rfE1FSW4U/2Y0lOPFiDiQXkn4ufUAH6rp6HUzZdUTzmJ8phgJDWDLuSOw8yoHqLK+XWFcZHNc5pa07TkD4Rwof5qnoPvzVtt7Ps5cayP+Q/y1eHSsnhakt0mM4qWfurb1no5oLlQyvikax8R2ucDgjII7/NUe2ztprjTVLw4tila8hvfAIPC3N2rLDNbnGStt80ckYzlw3tIOW5LuTjOP/xY1LjHK14F1K2dgirsNqKN8gYSQc7fHUclg/hSeH4nhv2f1Y4/VcFtWqtZaSdaKykhMUjyxsccUI3scA0ggkjvk9wccfJYqpEMrpASRZcHGcMgw97WxTCS4ztbL4ErTOhg3vvUXj+FmBhHONxBPB9v1VH1Ywx6luLCMEVDvP3U50xvdFaLjO2ue2NkoaWudnGQexI7DlQ+tKumrtU3CqpHB8EkuWuHY8AZHstTGkVDjbK30XSrZoX7P07A8FzXG44j83DXkodERS1VEXdRFzayBzPxCRpHzyulfWktcHNJBByCPJCsmO3XArZesFNt0fHUN+z7XOj/AJTgfzO7+h9ljKsuqtYV1/t9LRTU8MEcDGtd4efjLQQCfTuq0o1LE6NlnLv7TYlDiNaJYTcboHLmfVfQSCCO4W26xgF76Yisgazw4KVkpe0nDyDuye/xcuGOO3ZYity0HbqW59GJpH1YbI0yRSxuzyz4gHN/qx/bPPCwrBbddyKn7JO7Q1FKdHs+en/ZYaiIpip6IiIiIiIi0v8A8fniLUlRM6PxBG1hILwxuCS07nEjA57qm632/wCq7gWghplyMnPGB5+YVg6K1LItWupJXYZVU7mc9iRhwB9uFGdTW41hVPAIbIGuaPQY7D2UNuVSfePorbUHtNnIiP0vsf8AcfVQFvpJa6thpINviyuDW7jgZ91dqXppWlglrLlDBG7G0tic7OfPnHH/AEqGxzmOD2OLXA5BBwQpGqvt4qo2smuVS5rewDyP2W6VspPcNly8MnwyFjjWROe7hY2Hj9lXq8dJqm32uWu+9Q4RsL8OhxkD1O44BWZrbtGT1VX0sqy+b7Q/7JIXNed73gPPAzzx3ysRWqme9xcHG9l0dpKKkp2U8tMzdD231J4AjUnmrf0701bNQx3I19VUxSU8bTCyFudxOe5wfRVu80f3fdKmi37xDIWh3qPJXfoa+E6graadxY2WlJDg0nDmnI7fv7rp6l6Ykhr57vQuZLC/4p42uy6MjufcHuvBMWzlrjktjsJbUYFHUwR3e0neI1tc+WXToo/RujnX2gluE1U6GBj/AA2tjZue53c+wCnXdMGl8TYr013igFo8MZBJx8Xxcf8ARUd0drJWahltmHywVcR3Qh20Pc3kcnt5j6ro6o1dQ3VMsUNRUxweGwtiLyA3jtx8lg4zGYsDrKZSw4TFgzKyWDfdfdPeIz+Onh9VM/7b0EVU2OS8SzNzh3hxgbcd+TlTDtAaUoziQ1tQ9vcPlA3jPGAMEfXKyU1tYe9XUHy/mFdO9+c7nZ9crMwTHWRRGY5hERHZ0IPV1/MFadqzSumKDT1ZUU26OSJm6J+8538fCckgg9uPNZeubpJHM2OkeWjyJ4XBboY3RiznXXGxjEIK6Vr4IRGALWFs/fkB5Iv0J0JpHS9PJqxpLY6YTOqcPI3w5yWENIJ3Yx9Avz2t20RBJaukEtz8eAtbTum8Ex7zJku9eBtGTzz3IWms/IB7119jxarkeTYBh82rDJi0yvLRhu44HsuCIpiqZNyiIiLxERERS2j7h916moKw42slAcT5A8E/3Vx61UOamhucBMlOY/Dc8Djdkuz7dzx7LOFuNCwa76cx07M76eJ7GReIDse0ZLgCcnJaCSB2ICh1B7ORsngrfgDfbqCow++Zs5vUfYHisORc54pIJnwytLZGOLXA+RC4KYqiQWmxW1dLqZ8/TCeffG1rJJYTud8Z3D8o8xyf1WLEYJHotj6WxvdoAyMxlk7+C/GRke+Vj1QMTyD0cf3UKmP4sg9/1Vx2jb+7aF39Po1W7pBJs1lG0tL2vicHNDsZAwcZ+inuquqKqnrZLNDRwxxOi4lf8UgDsgjIwD58nnlVnpRKyLX9rc9ocDIRtJ4PwnhSfWpwfqKmeGsYPs+0Nac4AccZPmV49jTUgHkt1FVTRbNyOidYh9vA2uPmvH0hqqWk1lFLVNc4GJ4YG/1cfrxnhaRqezaSqaiGouDmT1JZ8bm8MDc5DWncCSAec9jx7nCGOcx4exxa4HIIOCCuc0807g6aaSQjsXuJ/dZy0xe/fDrKFhW0cVDRGllgEmd8yLeIIOi2W5Wbp3GWOaKANa45dHMRvHHG1z+COfZcIIulcdaJXUlPOGtA8P7UA12HDnv6ZWMovPZHfzlbTtTB+mjZ8B6ALYdS1mgHW+ujo4be2J0b3RQMDA9jscAOHJPblY8iLdDD2QOd1xsXxY4k5juzDN0Wy9V6bVRvuFypqGNwa+olbGHHsMnGStl6qOj07oCKwfZnwVPEJ3E/CARwOwALQSe/ceqpHSCyyV1/Fzkid9loiCZPyh54Az+pXo61amqb5foqKWXxI6EEDByAXc4HsBgD07eS0SfiThnLNdvDmnD8Fmqnay90dNP7j4BUBERTVTUREREREREVv6XajZY7/GysBlopjh0Zdhod5E+x7H6eiqCLCRge0tKl0NbJRVDZ49R8+Y8Vp3V/Sp8WTU1tpo4aSUguiYc8EcO+gwCPkVmK1bplrMVtNDpa91DI4JJciZ0W4ycYDXfIccYyO+cKH6l9P6mwV1VUW4x1dFG/+Iad4e2PI3DaR3bjz8vP1UWGQxnspPBWXGcOjr4/2lQi4Obm8QeJ+vx0OVs6bwyQdM/GliaIxJJKHEYJzgDy7cZWLvO57nepytWvGsLIzQQorZUMbOYPCbCGncMjBBPkAMrJ17StdvOcRa5Xm1E0IhpaWJ4duN1BvrYel/FWPpmGu1za2Ozh0hHAz+Uqxdb483OjqA1jAd8exoPGCOeeee6pWnLkbPfaO5iIS/Z5Q/YfzD0Uxr7U8OpKimfBTSQtiDi4vIJc449O3ZZPjcZ2uGn/AKtFJX07MCnpXu75cCBn/T4cCvPoCwQak1A22z1YpmFhduLg3JGOMngd1oMXTPTsdHO6orakVcTgG075MOkB7lpDccehwsipp5qaZs0Er4pG9nNOCvZV3u71UhfPcqp7iMH+IRkfReyxSuddrrBa8KxPDKWn3ain3331y08fotPZ090yymjmnqHsYc7y+ra0g+Q57/ouyl0PoCojI+9TDIwNaY3Ve57nYJJaQ3ABPAB9R81j8kssn8yR7/8Ak4lcFgKeTi8qU/aDDye7Qt+I/tW1TaD0YyERMiqZZXxhzJG1J78cEYwDkn6AfJZXVWaQ6omslveKlzagwseOxwcZJHkPMroslFcrpcIqC2smknkOAGE4A8yfQepW26OsNt6cWKuvVwFDW3AERfaZG+JFA/OdgaeDkDOee44WJc6C+865OgUlkMOObvY0wiY0951xpy0A87fI+O5MtOgdECmY4T1m4lskcoLJn4IDhjyz7/hAWJ1E0lRUSTzO3SSOLnH1JOSprW2o5tR3Y1BY2GmYSIYWDa1oJ74HAz/0oFbaeIsG87Urk7QYqyslbDB/Cjyb9fp7upRERSVXkRERERERERERF9aS1wc0kEHII8lo+heo8tDHDb746aWmYcNlZjdj0dkH9Vm6LXJE2QWcuhh2J1OHS9pA63McD1H2VtWrendh1DEbxpG5U8eaeOaWMuBbK55AIAb+FwJ5AzwMrKb/AKfu9im8O50UkIzgPHxMd8nDj6d1wsl6uVmqBNQVL4iHBxbn4SR7f5WlWvqhbrh4cGoqAeCMCRjGtDJBnJGQOM+pBUf8aHTvBWAfsjFgXOPYyn/SfIf8deKyRFskOm+nmo2PfT1YoJSXFhp3ZB44aQTwfLO0D5Lq/wBoqBxjYLy+OWbd4bXPj28ee4kAj9FkKyPjktD9ka/WIteOYP1t8lkCLWKfo25z2xy6kot54OzYWg5wMu34HPfOF629JbPTxTTVN4kkNPII3sEjBvdzkNxnIGDz25C9NXEOK1R7J4m82LAOrh6ErHWgucGtBJPAA81dNG9PLjeqlhuU4s9K4bg+dh3P4J4Hln1OByFoVNU9OtHtjlgfHJOI84YAZWOwcjccu747Knah6m1b2S0llibBTvcXFzm8uJ7nvk/U/QLWZ5ZMo2+K6DMDw3Du/iEwcR+lv3f5Ae9XZ40joOhhpZnRtjfDJKZomeJUSSYIawnIyOB7NyfQLINWamr9Q1DfGIipYuIYGfhaPf1PuoisqqmsndPVTyTSu7uecldK2Q04Yd52ZXNxbaCSsZ7PANyIfpHHrby06nNERFJVdREREREREREREREREREREREREX1pLSC0kEeYXvp71d6cYhuVU0bduPEJ49FHovC0HULbFPLCbxuI6Gyk33+9v/Fdas+3ileSprq2p/8AZrKiby/iSF37rzovAxo0Czkq55BZ7yepJRERZKOiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIv/9k=';
+const STAMP_FULL_BASE64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADzAKIDASIAAhEBAxEB/8QAHAABAAMAAwEBAAAAAAAAAAAAAAUGBwIDBAEI/8QAORAAAQMDAwIEAwYFBAMBAAAAAQACAwQFEQYSIQcxE0FRYSJxgRQVMkKRsSMzUqHBFhdy0Qg08PH/xAAbAQEAAgMBAQAAAAAAAAAAAAAABAYCAwUBB//EADsRAAEDAgMFBQYDBwUAAAAAAAEAAgMEEQUhMQYSQVFxEyKBscEUYZGh0fAjMkIVJTNSYtLhkqKywvH/2gAMAwEAAhEDEQA/APxkiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiLlGx8jxHGxz3u4DWjJKL0C+QXFco2PkeGRsc97jgNaMkq/aS6b1NY4z32dtuhj3F8T3Br8BueSeBngY78+SnarVGi9MUgpdP0GasMHiSjDnh+MHa/05d3JPPsozqkX3WC5Vip9nJezE1Y8RMP8ANr8Ps+5UW2aJ1HX0xqhQGnpxkmWocIx+h5/sp8dLLkyRsVVc6WGR20tw0uaQex3eijLjr66z7mUscVPGQWjOXkA/PgfooGe+XiZxdJc6ok8cSEfssbVLuICkF+z1N3Q18p573R6H5K8y9KpRI6OO9QmRpIc3ws9u5BBwR6YK8tf0qvcJj+yVtDVeKC6JokAeQCActGS08+fdUoXO5BweLhV7h2PjOz+691Jqi/0rw+K6VGc5y87j+pTcqBo4Fee24BJk6mc3o4nzI9Vxummr9bS77ZaqqMNOHO8MkD6hRCvlp6lV8MrPvOhhrY2+j3Md++D8lOAaI1oyXDPu2rDNzdjMPB8+Ozh5eadvIz+I3LmF4MFoK3LD6jvfyvFieh0PwWTorNq7Rl00+98uDVUbXY8ZjcFn/Nv5f291WVJY9rxdpVfqqSekkMU7S1w5oiIslGREREREREREREREXJjXPe1jGlznHAA7kogF13W6jqbhWxUdJGZJpXbWtH7/ACWp0dv09oO3MqrmI57k6HI2vy5ziezQOwxjn35U30+01R6RtFPXXN9G+43Bn4Jot/hA52geR7Zxz254C6NWWHTTK+SS9OjNfL+J0kmGuGBgtwceeeAuZPUB7t3Pd93FfTMEwCSipvaLN7Y6b97M+Rz05a663zLV2r7nqGVrZBHS0rBtZBA0NBGScuI/Eee59lXVbNe02laZsLNPyh8u4iQskLmloHc5zzlVNTod3cG6LBUfGGztq3NqJA93MG452H04Ll4cnh+JsdszjdjjPplcVsWjaCiufTGGKWFrmF0jHZGQ5wJP0PPf5LH3t2vc0+RwsYpu0c5ttFuxTBzQQQTB28JG36GwJHz/AMLiiuGhtKNuTfvO5hzaFv8ALjAO6cg8jjsBzzwrzrPp/bp7EH2elZDUNkHhuazHBGcOIJyPfyOcrB9Wxj91TKPZSuqqQ1LbDiAb3d068L6rFlNaMtMN5vjKOapdTsDHSbm/iO0ZwPdRNVBLTVElPOwsljcWvae4IUzoF7Gaut/iHDHPLD9WkLdKT2ZLeS5OGRsNdFHM243gCD1sVoNxu1PpOSko6uaauo6mNzHOnYHOa3gEOafxjnHrwoHV2jaeahfedNRSPhaN80LeWtaRkOaf8Z58vRevrpTvgrKFj3iQgOy8EnktacZP6fReHpNqv7ruUdpro/Ho6iUBnxYMbicd/Q+n7ZKgRMc2MSs14jmrzidVTT4g/DKtvc7u47i0lo48QTz8tKEivvVvScNnuclztRdJa5pdod4ZYWuxnO38oPp6qhLoRyCRu8FQ8QoZaCodBLqPmOBRERZqEiIiIiIiIi0bo7pVtxkn1BWT00VNRnZC2YE+JKRny7YHOT/hZ5FG6WVkTBlz3BrR7lbLqx8Gl+ltNbYWsbUOJja5h2PDnD4i7zfkFxBPby7qLVPNgwalWbZqkYZH1k35Ihfx4eXxsqu29yX7qfQNje11M2oLIWs4ByMF3zP+AvJ1iE0OqGUUu4CnhADT3GSc/soLRUgi1ba5HDIFSzI9eVYetTmSavE0UYjZJTtc1oGMAudge+AsAwMnaByUx9bNV4JUSyHN0gJ+AsOmWXRUZERTVTVrnSOuqP8ARVfTRvmZHFON4afhdnBbn6krLLkzZc6mNzTHiZwIP5eStG6KCae13umie8NHhyODfQZ5PyVA1I3ZqC4NySBUyYJHJ+IqFCLTvCuWMO7TA6N54XHp6LUrzJVWvRMz7W+VroYmMjfG7hrOCePlkqvdI6+5S3ariM08rBEZC9zyQx2QDz7gke6lemmtqOG1TWq5+D4pibHEZmAtdgjkOJG1wAx55yp+r1DZLTbp4oPDpKeQb+HMDnP9cNGXeahm8bXRltyVb4uxr5ocSin3Y2CxbfIc755a2OWgFlE3fTVkrtWSOuLt7o2FkkMTtpfgkB/fPt9FKWrQmkqKaOqgrSbnHK0w075CQCeQ7PYgHjCyDUF5qLreprlufE53ws2uwQ0f/f3XVYp3x32hmc9xLahhJLj/AFBSRTSBn5uGirr9osNfWEtpQSX/AJss89cwetvJaF1sp3x0VA55Dnslcxzh2zjt9MLLhwchbJ1sdSS6apzSyP8A4czBI17QDnaR3Hcd1ja20R/CXL2zYW4o4niB5W9FuHT+5w600VVWG4tbJUNbtle8gE4HwvB8uByTxlo9Vjd6t8trutRQTEF8Ly3I7OHkfqMKd6WX6fT2s6Ssgn8DxD4LnZwACRjOfLICsnW2y+B9guzIQwyM2ymMh0ZaSSwjHY4yCD5rFn4M27wKkVV8WwcVJzkiyPMj7sfByzJERTVTERERERERFZOmlHBW60t7aqPxKeKTxZRjIwO2R6ZwrD13rfE1FSW4U/2Y0lOPFiDiQXkn4ufUAH6rp6HUzZdUTzmJ8phgJDWDLuSOw8yoHqLK+XWFcZHNc5pa07TkD4Rwof5qnoPvzVtt7Ps5cayP+Q/y1eHSsnhakt0mM4qWfurb1no5oLlQyvikax8R2ucDgjII7/NUe2ztprjTVLw4tila8hvfAIPC3N2rLDNbnGStt80ckYzlw3tIOW5LuTjOP/xY1LjHK14F1K2dgirsNqKN8gYSQc7fHUclg/hSeH4nhv2f1Y4/VcFtWqtZaSdaKykhMUjyxsccUI3scA0ggkjvk9wccfJYqpEMrpASRZcHGcMgw97WxTCS4ztbL4ErTOhg3vvUXj+FmBhHONxBPB9v1VH1Ywx6luLCMEVDvP3U50xvdFaLjO2ue2NkoaWudnGQexI7DlQ+tKumrtU3CqpHB8EkuWuHY8AZHstTGkVDjbK30XSrZoX7P07A8FzXG44j83DXkodERS1VEXdRFzayBzPxCRpHzyulfWktcHNJBByCPJCsmO3XArZesFNt0fHUN+z7XOj/AJTgfzO7+h9ljKsuqtYV1/t9LRTU8MEcDGtd4efjLQQCfTuq0o1LE6NlnLv7TYlDiNaJYTcboHLmfVfQSCCO4W26xgF76Yisgazw4KVkpe0nDyDuye/xcuGOO3ZYity0HbqW59GJpH1YbI0yRSxuzyz4gHN/qx/bPPCwrBbddyKn7JO7Q1FKdHs+en/ZYaiIpip6IiIiIiIi0v8A8fniLUlRM6PxBG1hILwxuCS07nEjA57qm672/wCq7gWghplyMnPGB5+YVg6K1LItWupJXYZVU7mc9iRhwB9uFGdTW41hVPAIbIGuaPQY7D2UNuVSfePorbUHtNnIiP0vsf8AcfVQFvpJa6thpINviyuDW7jgZ91dqXppWlglrLlDBG7G0tic7OfPnHH/AEqGxzmOD2OLXA5BBwQpGqvt4qo2smuVS5rewDyP2W6VspPcNly8MnwyFjjWROe7hY2Hj9lXq8dJqm32uWu+9Q4RsL8OhxkD1O44BWZrbtGT1VX0sqy+b7Q/7JIXNed73gPPAzzx3ysRWqme9xcHG9l0dpKKkp2U8tMzdD231J4AjUnmrf0701bNQx3I19VUxSU8bTCyFudxOe5wfRVu80f3fdKmi37xDIWh3qPJXfoa+E6graadxY2WlJDg0nDmnI7fv7rp6l6Ykhr57vQuZLC/4p42uy6MjufcHuvBMWzlrjktjsJbUYFHUwR3e0neI1tc+WXToo/RujnX2gluE1U6GBj/AA2tjZue53c+wCnXdMGl8TYr013igFo8MZBJx8Xxcf8ARUd0drJWahltmHywVcR3Qh20Pc3kcnt5j6ro6o1dQ3VMsUNRUxweGwtiLyA3jtx8lg4zGYsDrKZSw4TFgzKyWDfdfdPeIz+Onh9VM/7b0EVU2OS8SzNzh3hxgbcd+TlTDtAaUoziQ1tQ9vcPlA3jPGAMEfXKyU1tYe9XUHy/mFdO9+c7nZ9crMwTHWRRGY5hERHZ0IPV1/MFadqzSumKDT1ZUU26OSJm6J+8538fCckgg9uPNZeubpJHM2OkeWjyJ4XBboY3RiznXXGxjEIK6Vr4IRGALWFs/fkB5Iv0J0JpHS9PJqxpLY6YTOqcPI3w5yWENIJ3Yx9Avz2t20RBJaukEtz8eAtbTum8Ex7zJku9eBtGTzz3IWms/IB7119jxarkeTYBh82rDJi0yvLRhu44HsuCIpiqZNyiIiLxERERS2j7h916moKw42slAcT5A8E/3Vx61UOamhucBMlOY/Dc8Djdkuz7dzx7LOFuNCwa76cx07M76eJ7GReIDse0ZLgCcnJaCSB2ICh1B7ORsngrfgDfbqCow++Zs5vUfYHisORc54pIJnwytLZGOLXA+RC4KYqiQWmxW1dLqZ8/TCeffG1rJJYTud8Z3D8o8xyf1WLEYJHotj6WxvdoAyMxlk7+C/GRke+Vj1QMTyD0cf3UKmP4sg9/1Vx2jb+7aF39Po1W7pBJs1lG0tL2vicHNDsZAwcZ+inuquqKqnrZLNDRwxxOi4lf8UgDsgjIwD58nnlVnpRKyLX9rc9ocDIRtJ4PwnhSfWpwfqKmeGsYPs+0Nac4AccZPmV49jTUgHkt1FVTRbNyOidYh9vA2uPmvH0hqqWk1lFLVNc4GJ4YG/1cfrxnhaRqezaSqaiGouDmT1JZ8bm8MDc5DWncCSAec9jx7nCGOcx4exxa4HIIOCCuc0807g6aaSQjsXuJ/dZy0xe/fDrKFhW0cVDRGllgEmd8yLeIIOi2W5Wbp3GWOaKANa45dHMRvHHG1z+COfZcIIulcdaJXUlPOGtA8P7UA12HDnv6ZWMovPZHfzlbTtTB+mjZ8B6ALYdS1mgHW+ujo4be2J0b3RQMDA9jscAOHJPblY8iLdDD2QOd1xsXxY4k5juzDN0Wy9V6bVRvuFypqGNwa+olbGHHsMnGStl6qOj07oCKwfZnwVPEJ3E/CARwOwALQSe/ceqpHSCyyV1/Fzkid9loiCZPyh54Az+pXo61amqb5foqKWXxI6EEDByAXc4HsBgD07eS0SfiThnLNdvDmnD8Fmqnay90dNP7j4BUBERTVTUREREREREVv6XajZY7/GysBlopjh0Zdhod5E+x7H6eiqCLCRge0tKl0NbJRVDZ49R8+Y8Vp3V/Sp8WTU1tpo4aSUguiYc8EcO+gwCPkVmK1bplrMVtNDpa91DI4JJciZ0W4ycYDXfIccYyO+cKH6l9P6mwV1VUW4x1dFG/+Iad4e2PI3DaR3bjz8vP1UWGQxnspPBWXGcOjr4/2lQi4Obm8QeJ+vx0OVs6bwyQdM/GliaIxJJKHEYJzgDy7cZWLvO57nepytWvGsLIzQQorZUMbOYPCbCGncMjBBPkAMrJ17StdvOcRa5Xm1E0IhpaWJ4duN1BvrYel/FWPpmGu1za2Ozh0hHAz+Uqxdb483OjqA1jAd8exoPGCOeeee6pWnLkbPfaO5iIS/Z5Q/YfzD0Uxr7U8OpKimfBTSQtiDi4vIJc449O3ZZPjcZ2uGn/AKtFJX07MCnpXu75cCBn/T4cCvPoCwQak1A22z1YpmFhduLg3JGOMngd1oMXTPTsdHO6orakVcTgG075MOkB7lpDccehwsipp5qaZs0Er4pG9nNOCvZV3u71UhfPcqp7iMH+IRkfReyxSuddrrBa8KxPDKWn3ain3331y08fotPZ090yymjmnqHsYc7y+ra0g+Q57/ouyl0PoCojI+9TDIwNaY3Ve57nYJJaQ3ABPAB9R81j8kssn8yR7/8Ak4lcFgKeTi8qU/aDDye7Qt+I/tW1TaD0YyERMiqZZXxhzJG1J78cEYwDkn6AfJZXVWaQ6omslveKlzagwseOxwcZJHkPMroslFcrpcIqC2smknkOAGE4A8yfQepW26OsNt6cWKuvVwFDW3AERfaZG+JFA/OdgaeDkDOee44WJc6C+865OgUlkMOObvY0wiY0951xpy0A87fI+O5MtOgdECmY4T1m4lskcoLJn4IDhjyz7/hAWJ1E0lRUSTzO3SSOLnH1JOSprW2o5tR3Y1BY2GmYSIYWDa1oJ74HAz/0oFbaeIsG87Urk7QYqyslbDB/Cjyb9fp7upRERSVXkRERERERERERF9aS1wc0kEHII8lo+heo8tDHDb746aWmYcNlZjdj0dkH9Vm6LXJE2QWcuhh2J1OHS9pA63McD1H2VtWrendh1DEbxpG5U8eaeOaWMuBbK55AIAb+FwJ5AzwMrKb/AKfu9im8O50UkIzgPHxMd8nDj6d1wsl6uVmqBNQVL4iHBxbn4SR7f5WlWvqhbrh4cGoqAeCMCRjGtDJBnJGQOM+pBUf8aHTvBWAfsjFgXOPYyn/SfIf8deKyRFskOm+nmo2PfT1YoJSXFhp3ZB44aQTwfLO0D5Lq/wBoqBxjYLy+OWbd4bXPj28ee4kAj9FkKyPjktD9ka/WIteOYP1t8lkCLWKfo25z2xy6kot54OzYWg5wMu34HPfOF629JbPTxTTVN4kkNPII3sEjBvdzkNxnIGDz25C9NXEOK1R7J4m82LAOrh6ErHWgucGtBJPAA81dNG9PLjeqlhuU4s9K4bg+dh3P4J4Hln1OByFoVNU9OtHtjlgfHJOI84YAZWOwcjccu747Knah6m1b2S0ilibBTvcXFzm8uJ7nvk/U/QLWZ5ZMo2+K6DMDw3Du/iEwcR+lv3f5Ae9XZ40joOhhpZnRtjfDJKZomeJUSSYIawnIyOB7NyfQLINWamr9Q1DfGIipYuIYGfhaPf1PuoisqqmsndPVTyTSu7uecldK2Q04Yd52ZXNxbaCSsZ7PANyIfpHHrby06nNERFJVdREREREREREREREREREREREREX1pLSC0kEeYXvp71d6cYhuVU0bduPEJ49FHovC0HULbFPLCbxuI6Gyk33+9v/Fdas+3ileSprq2p/8AZrKiby/iSF37rzovAxo0Czkq55BZ7yepJRERZKOiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIv/9k=';
 
 async function buildPdfDiv(signerName, sigDataUrl, signedAt){
   const s = schedule;
@@ -740,7 +821,10 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
   const hall = [s.hall, s.address].filter(Boolean).join(' ') || '—';
   const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
   const signedAtStr = new Date(signedAt).toLocaleString('ko-KR');
-  const am = s.admin_memo || {};
+
+  // ▼ 레디백 옵션 (PDF용)
+  const isBothSides = !!(g && b);
+  const readyBagText = isBothSides ? '🎀 레디백 2개 (무료)' : '🎀 레디백 (무료)';
 
   // 직인 JPEG 검은 배경 → 투명 PNG 변환
   const stampDataUrl = await new Promise(resolve => {
@@ -832,6 +916,7 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
     ${g?`<div class="pdf-info-row"><span class="pdf-info-lbl">신랑 성함</span><span class="pdf-info-val">${g}</span></div>`:''}
     ${b?`<div class="pdf-info-row"><span class="pdf-info-lbl">신부 성함</span><span class="pdf-info-val">${b}</span></div>`:''}
     <div class="pdf-info-row"><span class="pdf-info-lbl">예상 하객 인원</span><span class="pdf-info-val">${s.guest_count?s.guest_count+'명':'—'}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">옵션</span><span class="pdf-info-val gold">${readyBagText}</span></div>
 
     <hr>
 
@@ -952,11 +1037,9 @@ async function generatePDF(signerName, sigDataUrl, signedAt){
   const dateForFile = (schedule.date||'').replace(/-/g,'');
   const filename = `디어가드 계약서 ${nameStr} ${dateForFile}.pdf`;
 
-  // hidden div 생성 및 DOM 삽입
   const pdfDiv = await buildPdfDiv(signerName, sigDataUrl, signedAt);
   document.body.appendChild(pdfDiv);
 
-  // 폰트 로드 대기
   await document.fonts.ready;
   await new Promise(r=>setTimeout(r,300));
 
@@ -980,27 +1063,24 @@ async function generatePDF(signerName, sigDataUrl, signedAt){
     const { jsPDF } = window.jspdf;
     const imgData = canvas.toDataURL('image/jpeg', 0.92);
 
-    // A4 기준 (mm)
     const pageW   = 210;
     const pageH   = 297;
-    const marginX = 10;  // 좌우 여백
-    const marginY = 12;  // 상하 여백 — 페이지 잘림 방지
-    const drawW   = pageW - marginX * 2;          // 190mm
-    const drawH   = (canvas.height / canvas.width) * drawW; // 비율 유지 전체 높이
-    const contentH = pageH - marginY * 2;         // 한 페이지에 들어갈 이미지 높이
+    const marginX = 10;
+    const marginY = 12;
+    const drawW   = pageW - marginX * 2;
+    const drawH   = (canvas.height / canvas.width) * drawW;
+    const contentH = pageH - marginY * 2;
 
     const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    let srcY = 0; // 이미지에서 현재 잘라낼 시작 위치 (mm)
+    let srcY = 0;
     let isFirst = true;
     while(srcY < drawH){
       if(!isFirst) doc.addPage();
       isFirst = false;
-      // 이 페이지에서 이미지를 marginY 아래에 배치하고, srcY만큼 올려서 연속되게 표시
       doc.addImage(imgData, 'JPEG', marginX, marginY - srcY, drawW, drawH);
       srcY += contentH;
     }
 
-    // 다운로드 (모바일/PC 통합)
     const pdfBlob = doc.output('blob');
     const blobUrl = URL.createObjectURL(pdfBlob);
     const a = document.createElement('a');
@@ -1028,11 +1108,76 @@ async function downloadPDF(){
   await generatePDF(signerName, sigDataUrl, signedAt);
 }
 
+// ▼ [수정4] 이미지 저장 대체 기능
+async function downloadContractImage(){
+  if(!schedule) return;
+  const signerName = schedule.contract_signer || '—';
+  const sigDataUrl = schedule.contract_signature || '';
+  const signedAt   = schedule.contract_signed_at || new Date().toISOString();
+
+  showToast('🖼 계약서 이미지 생성 중...');
+
+  const pdfDiv = await buildPdfDiv(signerName, sigDataUrl, signedAt);
+  document.body.appendChild(pdfDiv);
+  await document.fonts.ready;
+  await new Promise(r => setTimeout(r, 300));
+
+  try {
+    const canvas = await html2canvas(pdfDiv, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      logging: false,
+      onclone: (doc) => {
+        const el = doc.getElementById('pdf-contract');
+        if(el){
+          el.style.visibility='visible';
+          el.style.position='relative';
+          el.style.overflow='visible';
+        }
+      }
+    });
+
+    const g2 = (schedule.groom_name||'').trim();
+    const b2 = (schedule.bride_name||'').trim();
+    const nameStr = g2 || b2 || '고객';
+    const dateForFile = (schedule.date||'').replace(/-/g,'');
+
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `디어가드 계약서 ${nameStr} ${dateForFile}.png`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1500);
+    }, 'image/png');
+
+    showToast('✅ 이미지 저장 완료');
+  } catch(e){
+    console.error('[DG] 이미지 생성 실패:', e);
+    showToast('⚠️ 이미지 저장 실패: ' + e.message);
+  } finally {
+    document.body.removeChild(pdfDiv);
+  }
+}
+
+// ▼ [수정3] 외부 브라우저 안내 버튼
+function openExternalBrowser(){
+  showToast('카카오톡 우측 상단 메뉴에서 Safari/Chrome으로 열기를 선택해주세요');
+  // 지원 환경에서는 새 탭 시도
+  try { window.open(location.href, '_blank'); } catch(e){ /* 인앱 제한 시 무시 */ }
+}
+
 // ── 토스트 ──
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.style.display='block';
-  setTimeout(()=>t.style.display='none', 2400);
+  setTimeout(()=>t.style.display='none', 2800);
 }
 
 // 캔버스 리사이즈 대응
