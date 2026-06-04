@@ -1791,7 +1791,7 @@ function openDetail(id){
   const _precheckBadge = s.precheckStatus==='submitted'
     ? '<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📋 체크완료</span>'
     : '<span style="background:#F3F4F6;color:#9CA3AF;border:1px solid #E5E7EB;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📋 체크미완</span>';
-  document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>${(s.contractSigned||s.contractStatus==='completed')?'<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📝 계약완료</span>':'<span style="background:#FEF9C3;color:#92400E;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">⏳ 계약대기</span>'}${_precheckBadge}`;
+  document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>${(s.contractSigned||s.contractStatus==='completed'||!!s.contractSignedAt)?'<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📝 계약완료</span>':'<span style="background:#FEF9C3;color:#92400E;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">⏳ 계약대기</span>'}${_precheckBadge}`;
 
   const canEdit=currentUser.canEdit||s.frontManager===currentUser.name||s.backManager===currentUser.name;
 
@@ -2176,7 +2176,7 @@ async function openContractModal(id){
   modal.style.display = 'flex';
   modal.onclick = function(e){ if(e.target===modal) closeContractModal(); };
 
-  const isContractDone = s.contractSigned || s.contractStatus === 'completed';
+  const isContractDone = s.contractSigned || s.contractStatus === 'completed' || !!s.contractSignedAt;
   const signedBadge = isContractDone
     ? `<div style="margin-top:8px;padding:8px 12px;background:#ECFDF5;border-radius:8px;font-size:12px;color:#065F46;font-weight:700;display:flex;align-items:center;gap:8px">
         ✅ 계약 완료
@@ -2243,7 +2243,7 @@ ${contractUrl}
 
 짝꿍코드는 이름+휴대폰 뒷자리로 적용되며,
 (예: 홍길동1234)
-짝꿍 할인은 1회만 적용 가능합니다 🤍
+코드 1개당 1회만 사용 가능합니다 🤍
 
 궁금하신 점은 언제든
 디어가드 카카오톡 채널로 편하게 문의 주세요!`;
@@ -2594,7 +2594,6 @@ function syncContractMemoToSettlement(){
     review_discount:  10000,
     wedding_discount: 20000,
     fast_discount:    20000,
-    event_discount:   10000,
     thread_discount:  10000
   };
 
@@ -2770,7 +2769,6 @@ const CONTRACT_CHECKS = [
   { key:'wedding_discount', label:'본식후기 할인 (-2만)' },
   { key:'couple_discount',  label:'짝꿍 할인 (-1만)'     },
   { key:'fast_discount',    label:'빠른계약 할인 (-2만)' },
-  { key:'event_discount',   label:'이벤트 할인 (-1만)'   },
   { key:'thread_discount',  label:'스레드 할인 (-1만)'   },
   { key:'friend_discount',  label:'지인 할인'            },
 ];
