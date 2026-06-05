@@ -2062,6 +2062,10 @@ async function openPrecheckModal(id){
               💬 안내문 복사
             </button>
           </div>
+          <button onclick="copyBalanceGuide(${id})"
+            style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">
+            💰 잔금 안내
+          </button>
         </div>
         <div style="border-top:1px solid #E5E7EB;padding-top:12px">
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">🔒 사전체크 잠금 관리</div>
@@ -2146,7 +2150,43 @@ ${precheckUrl}
   navigator.clipboard.writeText(text).then(() => showToast('✅ 본식 준비 안내가 복사되었습니다'));
 }
 
-// ── 계약서 링크 모달 ──
+function getDiscountSummaryText(s){
+  const am = s.adminMemo || {};
+  const discountLabels = [
+    { key:'open_discount',    label:'오픈 프로모션 -5만원' },
+    { key:'review_discount',  label:'계약후기 할인 -1만원' },
+    { key:'wedding_discount', label:'본식후기 페이백 -2만원' },
+    { key:'couple_discount',  label:'짝꿍할인 -1만원' },
+    { key:'fast_discount',    label:'빠른계약 할인 -2만원' },
+    { key:'event_discount',   label:'이벤트 할인 -1만원' },
+    { key:'thread_discount',  label:'스레드 할인 -1만원' },
+  ];
+  const applied = discountLabels.filter(d => am[d.key]).map(d => d.label);
+  if(!applied.length) return '';
+  return `${applied.join(', ')} 적용되어`;
+}
+
+function copyBalanceGuide(id){
+  const s = schedules.find(x => x.id === id);
+  if(!s) return;
+  const balance = Number(s.balancePrice) || 0;
+  if(!balance){ showToast('⚠️ 정산정보 탭에 잔금을 먼저 입력해주세요'); return; }
+  const discountText = getDiscountSummaryText(s);
+  const text = `또한 현재 잔금은
+${discountText ? discountText + '\n' : ''}${balance.toLocaleString()}원 남아 있으시며,
+
+신한은행 강성주(디어가드)
+110-591-596356 으로 입금 부탁드립니다 😊
+
+현금영수증은 체크리스트 내 적어주신 번호로 진행되며,
+당일 발행 후 홈택스 조회는 다음날부터 가능하십니다 :)
+
+작성 중 궁금하신 부분은
+언제든 편하게 말씀 주세요 🤍`;
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('✅ 잔금 안내가 복사되었습니다'))
+    .catch(() => showToast('⚠️ 복사 실패: 브라우저 권한을 확인해주세요'));
+}
 async function openContractModal(id){
   if(!ADMIN_NAMES.includes(currentUser.name)){
     showToast('⚠️ 계약 링크는 관리자만 확인할 수 있습니다');
