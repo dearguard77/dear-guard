@@ -3665,9 +3665,14 @@ function renderSettle(){
   if(unpaidOnly) list = list.filter(s => !s.laborPaid);
 
   // ── 요약 카드 ──
-  const totalRevenue = list.reduce((sum,s) => sum + (s.totalPrice  || 0), 0);
+  // 총 매출: 담당자 구성 관계없이 해당 월 정산정보 있는 전체 예식 기준
+  const allMonthList = schedules.filter(s =>
+    s.date?.slice(0,7) === month && (s.totalPrice || s.laborCost)
+  );
+  const totalRevenue = allMonthList.reduce((sum,s) => sum + (s.totalPrice || 0), 0);
+  // 인건비/순수익/미지급: 기존 list(관리자 전용 제외) 기준 유지
   const totalLabor   = list.reduce((sum,s) => sum + (s.laborCost   || 0), 0);
-  const totalNet     = list.reduce((sum,s) => sum + (s.netProfit   || 0), 0);
+  const totalNet     = totalRevenue - totalLabor;
   const unpaidCount  = list.filter(s => !s.laborPaid).length;
 
   document.getElementById('settle-summary').innerHTML = `
