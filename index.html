@@ -3657,15 +3657,10 @@ function renderSettle(){
   const unpaidOnly = document.getElementById('settle-unpaid-only')?.checked || false;
   const managerName = document.getElementById('settle-manager-filter')?.value || '';
 
-  // 해당 월 + 정산정보 있는 예식 (담당자 전원이 관리자인 경우 인건비 제외 대상)
-  let list = schedules.filter(s => {
-    if(s.date?.slice(0,7) !== month) return false;
-    if(!(s.totalPrice || s.laborCost)) return false;
-    const managers = [s.frontManager, s.backManager]
-      .join(',').split(',').map(m => m.trim()).filter(Boolean);
-    if(managers.length > 0 && managers.every(m => ADMIN_NAMES.includes(m))) return false;
-    return true;
-  }).sort((a,b) => a.date.localeCompare(b.date));
+  // 해당 월 전체 예식 (정산정보 미입력 예식도 포함)
+  let list = schedules.filter(s =>
+    s.date?.slice(0,7) === month
+  ).sort((a,b) => a.date.localeCompare(b.date));
 
   // 매니저 필터 적용
   if(managerName){
@@ -3676,7 +3671,8 @@ function renderSettle(){
     });
   }
 
-  if(unpaidOnly) list = list.filter(s => !s.laborPaid);
+  // 미지급 건만 보기: laborCost가 입력된 예식 중 미지급만
+  if(unpaidOnly) list = list.filter(s => s.laborCost && !s.laborPaid);
 
   // ── 요약 카드 ──
   const allMonthList = schedules.filter(s =>
@@ -3688,7 +3684,7 @@ function renderSettle(){
     ? list.reduce((sum,s) => sum + getManagerPayForSchedule(s, managerName), 0)
     : list.reduce((sum,s) => sum + (s.laborCost || 0), 0);
   const totalNet   = totalRevenue - totalLabor;
-  const unpaidCount = list.filter(s => !s.laborPaid).length;
+  const unpaidCount = list.filter(s => s.laborCost && !s.laborPaid).length;
 
   document.getElementById('settle-summary').innerHTML = `
     <div class="settle-summary-card">
