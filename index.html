@@ -819,8 +819,11 @@
             </select>
           </div>
           <div class="form-field">
-            <label class="form-label">투입 인원 수</label>
-            <input class="form-input" id="f-labor-count" type="number" placeholder="2" min="1" max="10" oninput="calcSettlement()">
+            <label class="form-label">정산 대상 매니저 수</label>
+            <input class="form-input" id="f-labor-count" type="number" placeholder="자동계산" min="0" max="10" readonly
+              style="background:#F9FAFB;color:#6B7280;cursor:default"
+              title="관리자 제외, 일반 매니저만 자동 계산됩니다">
+            <div style="font-size:11px;color:#9CA3AF;margin-top:4px">관리자 제외, 일반 매니저만 자동 계산됩니다</div>
           </div>
         </div>
         <!-- 자동 계산 결과 -->
@@ -2497,7 +2500,6 @@ function openForm(id){
     document.getElementById('f-deposit-price').value = s?.depositPrice || '';
     document.getElementById('f-balance-price').value = s?.balancePrice || '';
     document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
-    document.getElementById('f-labor-count').value  = s?.laborCount  || '';
     calcSettlement();
   }
   // ── 매니저 권한: 기본정보/담당자 readonly 처리 ──
@@ -2594,26 +2596,40 @@ function formNextTab(){
 }
 
 // ─── 정산 계산 함수 ───────────────────────────────────────────────────────────
+// ★ 관리자 제외 일반 매니저 이름 추출
+function getPaidManagerNamesFromForm(){
+  const names = [
+    document.getElementById('f-front1')?.value,
+    document.getElementById('f-front2')?.value,
+    document.getElementById('f-back1')?.value,
+    document.getElementById('f-back2')?.value,
+  ].map(v => (v || '').trim()).filter(Boolean);
+  return [...new Set(names)].filter(name => !ADMIN_NAMES.includes(name));
+}
+
 function calcLaborCost(){
   const region = document.getElementById('f-labor-region')?.value || '대전';
-  const count  = Number(document.getElementById('f-labor-count')?.value) || 0;
   const rate   = region === '대전외' ? 120000 : 90000;
-  return count > 0 ? rate * count : null;
+  const paidManagers = getPaidManagerNamesFromForm();
+  // f-labor-count를 자동 반영
+  const countEl = document.getElementById('f-labor-count');
+  if(countEl) countEl.value = paidManagers.length || '';
+  return paidManagers.length > 0 ? rate * paidManagers.length : 0;
 }
 
 function calcNetProfit(){
   const total = Number(document.getElementById('f-total-price')?.value) || 0;
-  const labor = calcLaborCost() || 0;
-  return (total > 0 || labor > 0) ? total - labor : null;
+  const labor = calcLaborCost();
+  return total > 0 ? total - labor : null;
 }
 
 function calcSettlement(){
   const total = Number(document.getElementById('f-total-price')?.value) || 0;
-  const labor = calcLaborCost() || 0;
+  const labor = calcLaborCost();
   const net   = total - labor;
   const prev  = document.getElementById('settlement-preview');
   if(!prev) return;
-  if(total > 0 || labor > 0){
+  if(total > 0){
     prev.style.display = 'block';
     document.getElementById('preview-total').textContent = total.toLocaleString() + '원';
     document.getElementById('preview-labor').textContent = labor.toLocaleString() + '원';
@@ -2689,7 +2705,8 @@ function getFormValues(){
   const depositPrice = isAdmin ? (Number(document.getElementById('f-deposit-price')?.value) || null) : undefined;
   const balancePrice = isAdmin ? (Number(document.getElementById('f-balance-price')?.value) || null) : undefined;
   const laborRegion = isAdmin ? (document.getElementById('f-labor-region')?.value         || null) : undefined;
-  const laborCount  = isAdmin ? (Number(document.getElementById('f-labor-count')?.value)  || null) : undefined;
+  const paidMgrs    = isAdmin ? getPaidManagerNamesFromForm() : [];
+  const laborCount  = isAdmin ? (paidMgrs.length || 0) : undefined;
   const laborCost   = isAdmin ? calcLaborCost()  : undefined;
   const netProfit   = isAdmin ? calcNetProfit()  : undefined;
 
