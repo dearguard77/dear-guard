@@ -3701,7 +3701,9 @@ function renderSettle(){
     ? list.reduce((sum,s) => sum + getManagerPayForSchedule(s, managerName), 0)
     : list.reduce((sum,s) => sum + (s.laborCost || 0), 0);
   const totalNet   = totalRevenue - totalLabor;
-  const unpaidCount = list.filter(s => s.laborCost && !s.laborPaid).length;
+  const unpaidCount = (managerName && ADMIN_NAMES.includes(managerName))
+    ? 0
+    : list.filter(s => s.laborCost && !s.laborPaid).length;
 
   document.getElementById('settle-summary').innerHTML = `
     <div class="settle-summary-card">
@@ -3771,19 +3773,23 @@ function renderSettle(){
         </div>
       </div>
       <!-- 인건비 지급 체크박스 -->
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:${s.laborPaid?'#ECFDF5':'#FFFBEB'};border:1px solid ${s.laborPaid?'#A7F3D0':'#FDE68A'};border-radius:8px;padding:8px 12px">
+      ${(managerName && ADMIN_NAMES.includes(managerName))
+        ? `<div style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#9CA3AF">관리자는 인건비 지급 대상이 아닙니다</div>`
+        : `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:${s.laborPaid?'#ECFDF5':'#FFFBEB'};border:1px solid ${s.laborPaid?'#A7F3D0':'#FDE68A'};border-radius:8px;padding:8px 12px">
         <input type="checkbox" ${s.laborPaid?'checked':''} onchange="toggleLaborPaid(${s.id},this.checked)"
           style="width:16px;height:16px;accent-color:#10B981">
         <span style="font-size:13px;font-weight:600;color:${s.laborPaid?'#065F46':'#92400E'}">
           ${s.laborPaid ? '인건비 지급 완료' : '인건비 미지급 — 클릭하여 지급 처리'}
         </span>
-      </label>
+      </label>`}
     </div>`;
   }).join('');
 }
 
 function getManagerPayForSchedule(s, managerName){
   if(!managerName) return s.laborCost || 0;
+  // 관리자 선택 시 인건비 지급 대상 아님
+  if(ADMIN_NAMES.includes(managerName)) return 0;
   const managers = [s.frontManager, s.backManager]
     .join(',').split(',').map(m => m.trim()).filter(Boolean);
   if(!managers.includes(managerName)) return 0;
