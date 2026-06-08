@@ -506,23 +506,16 @@
   <div id="tab-settle" class="tab-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
       <div class="sec-header" style="margin-bottom:0"><h2>📊 정산 현황</h2><span>관리자 전용</span></div>
-      <select class="form-input" id="settle-month-filter" onchange="renderSettle()" style="width:auto;padding:6px 12px;font-size:12px"></select>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <select class="form-input" id="settle-month-filter" onchange="renderSettle()" style="width:auto;padding:6px 12px;font-size:12px"></select>
+        <select class="form-input" id="settle-manager-filter" onchange="renderSettle()" style="width:auto;padding:6px 12px;font-size:12px">
+          <option value="">전체 매니저</option>
+        </select>
+      </div>
     </div>
 
     <!-- 요약 카드 -->
     <div class="settle-summary" id="settle-summary"></div>
-
-    <!-- 매니저 정산 조회 -->
-    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:10px">👤 매니저 정산 조회</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <select class="form-input" id="settle-manager-filter" onchange="renderManagerSettle()" style="width:auto;padding:6px 12px;font-size:12px">
-          <option value="">전체 매니저</option>
-        </select>
-        <span id="settle-manager-total" style="font-size:13px;font-weight:800;color:#C7A96B"></span>
-      </div>
-      <div id="settle-manager-list"></div>
-    </div>
 
     <!-- 인건비 미지급 필터 -->
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -3657,35 +3650,45 @@ function renderSettle(){
   if(!ADMIN_NAMES.includes(currentUser.name)) return;
 
   initSettleMonthFilter();
+  initSettleManagerFilter();
 
   const sel = document.getElementById('settle-month-filter');
   const month = sel?.value || TODAY.slice(0,7);
   const unpaidOnly = document.getElementById('settle-unpaid-only')?.checked || false;
+  const managerName = document.getElementById('settle-manager-filter')?.value || '';
 
-  // 해당 월 + 정산 정보 있는 예식
-  // 단, 담당자가 모두 관리자(강성주·전수연)인 경우 인건비 없으므로 제외
+  // 해당 월 + 정산정보 있는 예식 (담당자 전원이 관리자인 경우 인건비 제외 대상)
   let list = schedules.filter(s => {
     if(s.date?.slice(0,7) !== month) return false;
     if(!(s.totalPrice || s.laborCost)) return false;
-    // 담당자 전원이 ADMIN_NAMES 안에 있으면 제외
     const managers = [s.frontManager, s.backManager]
       .join(',').split(',').map(m => m.trim()).filter(Boolean);
     if(managers.length > 0 && managers.every(m => ADMIN_NAMES.includes(m))) return false;
     return true;
   }).sort((a,b) => a.date.localeCompare(b.date));
 
+  // 매니저 필터 적용
+  if(managerName){
+    list = list.filter(s => {
+      const mgrs = [s.frontManager, s.backManager]
+        .join(',').split(',').map(m => m.trim()).filter(Boolean);
+      return mgrs.includes(managerName);
+    });
+  }
+
   if(unpaidOnly) list = list.filter(s => !s.laborPaid);
 
   // ── 요약 카드 ──
-  // 총 매출: 담당자 구성 관계없이 해당 월 정산정보 있는 전체 예식 기준
   const allMonthList = schedules.filter(s =>
     s.date?.slice(0,7) === month && (s.totalPrice || s.laborCost)
   );
   const totalRevenue = allMonthList.reduce((sum,s) => sum + (s.totalPrice || 0), 0);
-  // 인건비/순수익/미지급: 기존 list(관리자 전용 제외) 기준 유지
-  const totalLabor   = list.reduce((sum,s) => sum + (s.laborCost   || 0), 0);
-  const totalNet     = totalRevenue - totalLabor;
-  const unpaidCount  = list.filter(s => !s.laborPaid).length;
+  // 인건비: 매니저 선택 시 1인분, 전체 선택 시 전체 laborCost
+  const totalLabor = managerName
+    ? list.reduce((sum,s) => sum + getManagerPayForSchedule(s, managerName), 0)
+    : list.reduce((sum,s) => sum + (s.laborCost || 0), 0);
+  const totalNet   = totalRevenue - totalLabor;
+  const unpaidCount = list.filter(s => !s.laborPaid).length;
 
   document.getElementById('settle-summary').innerHTML = `
     <div class="settle-summary-card">
@@ -3694,7 +3697,7 @@ function renderSettle(){
       <div style="font-size:11px;color:#9CA3AF;margin-top:4px">${list.length}건</div>
     </div>
     <div class="settle-summary-card">
-      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">총 인건비</div>
+      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">${managerName ? esc(managerName)+' 인건비' : '총 인건비'}</div>
       <div style="font-size:20px;font-weight:800;color:#EF4444">${totalLabor.toLocaleString()}원</div>
       <div style="font-size:11px;color:#F59E0B;margin-top:4px;font-weight:600">미지급 ${unpaidCount}건</div>
     </div>
@@ -3711,7 +3714,15 @@ function renderSettle(){
     return;
   }
 
-  el.innerHTML = list.map(s => `
+  el.innerHTML = list.map(s => {
+    // 인건비 카드: 매니저 선택 시 1인분, 전체 시 laborCost
+    const displayLabor = managerName
+      ? getManagerPayForSchedule(s, managerName)
+      : s.laborCost;
+    const displayNet = managerName
+      ? (s.totalPrice || 0) - displayLabor
+      : s.netProfit;
+    return `
     <div class="settle-row">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div>
@@ -3738,12 +3749,12 @@ function renderSettle(){
           <div style="font-size:13px;font-weight:800;color:#111827">${s.totalPrice ? s.totalPrice.toLocaleString()+'원' : '-'}</div>
         </div>
         <div style="background:#FEF2F2;border-radius:8px;padding:8px;text-align:center">
-          <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">인건비</div>
-          <div style="font-size:13px;font-weight:800;color:#EF4444">${s.laborCost ? s.laborCost.toLocaleString()+'원' : '-'}</div>
+          <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">${managerName ? esc(managerName)+' 인건비' : '인건비'}</div>
+          <div style="font-size:13px;font-weight:800;color:#EF4444">${displayLabor ? displayLabor.toLocaleString()+'원' : '-'}</div>
         </div>
-        <div style="background:${(s.netProfit||0)>=0?'#ECFDF5':'#FEF2F2'};border-radius:8px;padding:8px;text-align:center">
+        <div style="background:${(displayNet||0)>=0?'#ECFDF5':'#FEF2F2'};border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">순수익</div>
-          <div style="font-size:13px;font-weight:800;color:${(s.netProfit||0)>=0?'#10B981':'#EF4444'}">${s.netProfit!=null ? s.netProfit.toLocaleString()+'원' : '-'}</div>
+          <div style="font-size:13px;font-weight:800;color:${(displayNet||0)>=0?'#10B981':'#EF4444'}">${displayNet!=null ? displayNet.toLocaleString()+'원' : '-'}</div>
         </div>
       </div>
       <!-- 인건비 지급 체크박스 -->
@@ -3754,121 +3765,25 @@ function renderSettle(){
           ${s.laborPaid ? '인건비 지급 완료' : '인건비 미지급 — 클릭하여 지급 처리'}
         </span>
       </label>
-    </div>`).join('');
-
-  // 매니저 정산 조회도 함께 갱신
-  renderManagerSettle();
+    </div>`;
+  }).join('');
 }
 
-function renderManagerSettle(){
-  if(!ADMIN_NAMES.includes(currentUser.name)) return;
+function getManagerPayForSchedule(s, managerName){
+  if(!managerName) return s.laborCost || 0;
+  const managers = [s.frontManager, s.backManager]
+    .join(',').split(',').map(m => m.trim()).filter(Boolean);
+  if(!managers.includes(managerName)) return 0;
+  const rate = s.laborRegion === '대전외' ? 120000 : 90000;
+  return rate;
+}
 
-  // 드롭다운 옵션 구성 (USERS 기준, 관리자 제외)
+function initSettleManagerFilter(){
   const sel = document.getElementById('settle-manager-filter');
   if(!sel) return;
-  const curVal = sel.value;
+  const cur = sel.value;
   sel.innerHTML = '<option value="">전체 매니저</option>'
-    + USERS.filter(u => !ADMIN_NAMES.includes(u.name))
-        .map(u => `<option value="${esc(u.name)}"${curVal===u.name?' selected':''}>${esc(u.name)}</option>`)
-        .join('');
-
-  const selMonth = document.getElementById('settle-month-filter')?.value || TODAY.slice(0,7);
-  const managerName = sel.value;
-  const rate = (s) => (s.laborRegion === '대전외' ? 120000 : 90000);
-
-  // 해당 월 + 정산정보 있는 예식 중 선택한 매니저가 참여한 예식
-  const targetList = schedules.filter(s => {
-    if(s.date?.slice(0,7) !== selMonth) return false;
-    if(!(s.totalPrice || s.laborCost)) return false;
-    if(!managerName) return true;
-    const mgrs = [s.frontManager, s.backManager]
-      .join(',').split(',').map(m => m.trim()).filter(Boolean);
-    return mgrs.includes(managerName);
-  }).sort((a,b) => a.date.localeCompare(b.date));
-
-  const listEl = document.getElementById('settle-manager-list');
-  const totalEl = document.getElementById('settle-manager-total');
-  if(!listEl) return;
-
-  if(!targetList.length){
-    listEl.innerHTML = '<div style="font-size:13px;color:#9CA3AF;text-align:center;padding:12px 0">해당 조건의 정산 내역이 없습니다</div>';
-    if(totalEl) totalEl.textContent = '';
-    return;
-  }
-
-  // 각 예식별 해당 매니저 지급금액 계산
-  // 인건비(laborCost)가 있으면 인원수로 나눠 1인당 금액 산출
-  let grandTotal = 0;
-  const rows = targetList.map(s => {
-    const mgrs = [s.frontManager, s.backManager]
-      .join(',').split(',').map(m => m.trim()).filter(Boolean)
-      .filter(m => !ADMIN_NAMES.includes(m));
-
-    // 이 예식에서 해당 매니저의 역할
-    const fronts = (s.frontManager||'').split(',').map(m=>m.trim()).filter(Boolean);
-    const backs  = (s.backManager||'').split(',').map(m=>m.trim()).filter(Boolean);
-
-    const getRole = (name) => {
-      const isF = fronts.includes(name);
-      const isB = backs.includes(name);
-      if(isF && isB) return '프론트/백';
-      if(isF) return '프론트';
-      if(isB) return '백';
-      return '-';
-    };
-
-    // 1인당 지급금액: laborCost ÷ 비관리자 인원수
-    const nonAdminCount = mgrs.length || 1;
-    const perPerson = s.laborCost
-      ? Math.round(s.laborCost / nonAdminCount)
-      : rate(s);
-
-    if(managerName){
-      grandTotal += perPerson;
-      return { s, role: getRole(managerName), perPerson };
-    } else {
-      // 전체 보기: 예식별 비관리자 전체 인건비 합산
-      grandTotal += s.laborCost || (rate(s) * nonAdminCount);
-      return { s, role: mgrs.join(', ') || '-', perPerson: s.laborCost || (rate(s) * nonAdminCount) };
-    }
-  });
-
-  listEl.innerHTML = `
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead>
-          <tr style="background:#F9FAFB;border-bottom:2px solid #E5E7EB">
-            <th style="padding:8px 10px;text-align:left;font-weight:700;color:#6B7280">예식일</th>
-            <th style="padding:8px 10px;text-align:left;font-weight:700;color:#6B7280">예식장</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:700;color:#6B7280">역할</th>
-            <th style="padding:8px 10px;text-align:right;font-weight:700;color:#6B7280">지급금액</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:700;color:#6B7280">상태</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(({s, role, perPerson}) => `
-            <tr style="border-bottom:1px solid #F3F4F6">
-              <td style="padding:8px 10px;color:#374151;white-space:nowrap">${esc(s.date)}</td>
-              <td style="padding:8px 10px;color:#374151">${esc(s.hall||'-')}</td>
-              <td style="padding:8px 10px;text-align:center">
-                <span style="background:${role.includes('프론트')?'#EFF6FF':'#F0FDF4'};color:${role.includes('프론트')?'#2563EB':'#059669'};border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700">${esc(role)}</span>
-              </td>
-              <td style="padding:8px 10px;text-align:right;font-weight:800;color:#EF4444">${perPerson.toLocaleString()}원</td>
-              <td style="padding:8px 10px;text-align:center">
-                ${s.laborPaid
-                  ? '<span style="background:#ECFDF5;color:#059669;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700">지급완료</span>'
-                  : '<span style="background:#FEF9C3;color:#92400E;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700">미지급</span>'}
-              </td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-    <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:10px;padding-top:10px;border-top:2px solid #E5E7EB">
-      <span style="font-size:12px;color:#6B7280;margin-right:8px">총 지급 예정 금액</span>
-      <span style="font-size:16px;font-weight:800;color:#C7A96B">${grandTotal.toLocaleString()}원</span>
-    </div>`;
-
-  if(totalEl) totalEl.textContent = managerName ? `${grandTotal.toLocaleString()}원` : '';
+    + USERS.map(u => `<option value="${esc(u.name)}"${cur===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
 }
 
 async function toggleLaborPaid(schId, checked){
