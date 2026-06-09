@@ -1469,7 +1469,10 @@ function renderRightCol(elId, sideLogs, isAdmin){
     var num  = l.seq || sorted.length - i;
     var name = esc(l.guest_name||'—');
     var rel  = l.relation ? '<span style="color:#9CA3AF;font-size:9px;margin-left:2px">'+esc(l.relation)+'</span>' : '';
-    var amt  = l.amount ? fmt(l.amount) : '<span style="color:#D1D5DB">—</span>';
+    var rawAmount = Number(l.amount || 0);
+    var hasAmount = rawAmount > 0;
+    var amt = l.amount == null ? '—' : hasAmount ? fmt(rawAmount) : '0원';
+    var amtColor = hasAmount ? '#C7A96B' : '#111';
     var adultT = l.adult_ticket||0, childT = l.child_ticket||0;
     var tkt = '';
     if(adultT>0) tkt += '<span style="background:#FEF3C7;color:#D97706;border-radius:3px;padding:0 3px;font-size:9px;font-weight:700">대'+adultT+'</span>';
@@ -1484,7 +1487,7 @@ function renderRightCol(elId, sideLogs, isAdmin){
         '<button class="ledger-btn" style="background:#FEF9EC;color:#C7A96B;border:none;border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button>'+
         '<button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>'
       : '';
-    return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:10px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
+    return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt" style="color:'+amtColor+'">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:9px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:10px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
   }).join('');
 }
 
