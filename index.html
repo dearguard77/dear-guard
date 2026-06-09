@@ -478,6 +478,7 @@
       <button class="status-filter-btn" data-status="최종준비완료" onclick="setStatusFilter(&#39;최종준비완료&#39;)">✅ 최종준비완료</button>
       <button class="status-filter-btn" data-status="진행완료" onclick="setStatusFilter(&#39;진행완료&#39;)">🎉 진행완료</button>
       <button class="status-filter-btn" data-status="긴급확인" onclick="setStatusFilter(&#39;긴급확인&#39;)">🚨 긴급확인</button>
+      <button class="status-filter-btn" id="contract-filter-btn" onclick="toggleContractFilter()" style="background:#fff;border-color:#E5E7EB;color:#6B7280">⏳ 계약미완</button>
     </div>
 
     <!-- 긴급확인 필터 배너 (홈 탭에서 넘어올 때) -->
@@ -1118,6 +1119,7 @@ let formNotes   = [];
 let formCL      = BLANK_CL();
 let dropOpen    = false;
 let urgentFilter  = false;  // 긴급확인 필터 on/off
+let contractFilter = false; // 계약미완 필터 on/off
 let calendarMyOnly = false; // 캘린더 내 일정만 보기 (관리자 전용)
 let statusFilter  = '';     // 단계별 필터 ('계약완료' | '인터뷰대기' | '진행완료' | '긴급확인' | '')
 
@@ -1706,7 +1708,18 @@ const byDay = day => {
       ${Object.entries(STATUS_CFG).map(([k,v])=>`<div class="cal-legend-item"><div class="cal-legend-dot" style="background:${v.color}"></div>${k}</div>`).join('')}
     </div>`;
 }
- function setStatusFilter(status){
+ function toggleContractFilter(){
+  contractFilter = !contractFilter;
+  const btn = document.getElementById('contract-filter-btn');
+  if(btn){
+    btn.style.background     = contractFilter ? '#F59E0B' : '#fff';
+    btn.style.borderColor    = contractFilter ? '#F59E0B' : '#E5E7EB';
+    btn.style.color          = contractFilter ? '#fff'    : '#6B7280';
+  }
+  renderScheduleList();
+}
+
+function setStatusFilter(status){
   statusFilter  = status;
   urgentFilter  = false; // 긴급확인 배너 필터 초기화
 
@@ -1747,6 +1760,9 @@ function renderScheduleList(){
 
   // 단계별 필터 적용
   if(statusFilter) vs = vs.filter(s => s.status === statusFilter);
+
+  // 계약미완 필터 적용
+  if(contractFilter) vs = vs.filter(s => !s.contractSigned && s.contractStatus !== 'completed' && !s.contractSignedAt);
 
   // 검색어 필터
   const query = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
