@@ -693,7 +693,7 @@
             </div>
           </div>
           <div class="form-field">
-            <label class="form-label">도착시간 <span style="font-weight:400;color:#9CA3AF">(예식 1시간 30분 전 자동설정)</span></label>
+            <label class="form-label">도착시간 <span style="font-weight:400;color:#9CA3AF">(예식 1시간 20분 전 자동설정)</span></label>
             <div style="display:flex;gap:6px;align-items:center">
               <select class="form-input" id="f-arr-h" style="flex:1;background:#F9FAFB;color:#6B7280">
                 <option value="">시</option>
@@ -2860,13 +2860,13 @@ function toggleFormCL(e, key){
   formCL[key] = !formCL[key];
   renderFormChecklist();
 }
-// ─── 도착시간 자동계산 (예식시간 - 1시간 30분) ───────────────────────────────
+// ─── 도착시간 자동계산 (예식시간 - 1시간 20분) ───────────────────────────────
 function autoSetArrival(){
   const h = document.getElementById('f-time-h')?.value;
   const m = document.getElementById('f-time-m')?.value;
   if(!h || m === '' || m === undefined) return; // 시/분 모두 선택된 경우만 계산
 
-  const totalMin = Number(h) * 60 + Number(m) - 90; // 90분 = 1시간 30분
+  const totalMin = Number(h) * 60 + Number(m) - 80; // 80분 = 1시간 20분
   if(totalMin < 0) return; // 자정 이전이면 무시
 
   const arrH = Math.floor(totalMin / 60);
@@ -3012,9 +3012,9 @@ function buildManagerOptions(selectedName){
         if(!s.time) return false;
         const [sh, sm] = s.time.split(':').map(Number);
         const sc = sh * 60 + sm;
-        if(center >= sc + 90 || center + 90 <= sc - 90) return false;
+        if(center >= sc + 80 || center + 80 <= sc - 80) return false;
         // 시간 겹침 확인
-        if(center - 90 >= sc + 90 || center + 90 <= sc - 90) return false;
+        if(center - 80 >= sc + 80 || center + 80 <= sc - 80) return false;
         const mgrs = [s.frontManager, s.backManager]
           .join(',').split(',').map(n => n.trim()).filter(Boolean);
         return mgrs.includes(u.name);
@@ -3590,11 +3590,11 @@ function selectUvType(val){
 function checkManagerConflict(date, timeStr, managers, excludeId){
   if(!date || !timeStr || !managers.length) return [];
 
-  // 예식 점유시간 계산 (예식시간 ±90분)
+  // 예식 점유시간 계산 (예식시간 ±80분)
   const [h, m] = timeStr.split(':').map(Number);
   const centerMin = h * 60 + m;
-  const startMin  = centerMin - 90; // 도착시간
-  const endMin    = centerMin + 90; // 종료시간
+  const startMin  = centerMin - 80; // 도착시간
+  const endMin    = centerMin + 80; // 종료시간
 
   const conflicts = [];
 
@@ -3606,8 +3606,8 @@ function checkManagerConflict(date, timeStr, managers, excludeId){
 
       const [sh, sm] = s.time.split(':').map(Number);
       const sCenterMin = sh * 60 + sm;
-      const sStartMin  = sCenterMin - 90;
-      const sEndMin    = sCenterMin + 90;
+      const sStartMin  = sCenterMin - 80;
+      const sEndMin    = sCenterMin + 80;
 
       // 시간대 겹침 여부 확인
       if(startMin >= sEndMin || endMin <= sStartMin) return false;
@@ -3621,8 +3621,8 @@ function checkManagerConflict(date, timeStr, managers, excludeId){
     for(const s of conflictSchedules){
       const [sh, sm] = s.time.split(':').map(Number);
       const sCenterMin = sh * 60 + sm;
-      const sStart = `${String(Math.floor((sCenterMin-90)/60)).padStart(2,'0')}:${String((sCenterMin-90)%60).padStart(2,'0')}`;
-      const sEnd   = `${String(Math.floor((sCenterMin+90)/60)).padStart(2,'0')}:${String((sCenterMin+90)%60).padStart(2,'0')}`;
+      const sStart = `${String(Math.floor((sCenterMin-80)/60)).padStart(2,'0')}:${String((sCenterMin-80)%60).padStart(2,'0')}`;
+      const sEnd   = `${String(Math.floor((sCenterMin+80)/60)).padStart(2,'0')}:${String((sCenterMin+80)%60).padStart(2,'0')}`;
       conflicts.push({
         manager,
         schedule: s,
