@@ -337,8 +337,8 @@
     <button class="tab-btn" onclick="switchTab(&#39;calendar&#39;,this)">📅 캘린더</button>
     <button class="tab-btn" onclick="switchTab(&#39;schedules&#39;,this)">📋 전체일정</button>
     <button class="tab-btn" onclick="switchTab(&#39;unavail&#39;,this)">🚫 불가일정</button>
+    <button class="tab-btn" id="nav-assign-btn" style="display:none" onclick="switchTab(&#39;assign&#39;,this)">🤖 배정</button>
     <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab(&#39;settle&#39;,this)">📊 정산</button>
-    <button class="tab-btn" id="nav-assign-btn" style="display:none" onclick="switchTab(&#39;assign&#39;,this)">🤖 배정추천</button>
     <button class="tab-btn" id="nav-sheet-btn" style="display:none" onclick="window.open(&#39;https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623&#39;,&#39;_blank&#39;)">
       📋 시트
     </button>
@@ -539,14 +539,54 @@
   <!-- ASSIGN TAB (관리자 전용) -->
   <div id="tab-assign" class="tab-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-      <div class="sec-header" style="margin-bottom:0"><h2>🤖 배정 추천</h2><span>관리자 전용</span></div>
+      <div class="sec-header" style="margin-bottom:0"><h2>🤖 배정</h2><span>관리자 전용</span></div>
     </div>
     <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:16px">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input type="date" id="assign-date" class="form-input" style="width:auto;padding:6px 12px;font-size:13px">
-        <button onclick="renderAssignRecommend()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer">🤖 AI 배정 추천</button>
+      <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:12px">📋 문의 예식 조건 입력</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-field">
+          <label class="form-label">예식 날짜</label>
+          <input type="date" id="assign-check-date" class="form-input">
+        </div>
+        <div class="form-field">
+          <label class="form-label">예식 시간</label>
+          <div style="display:flex;gap:6px">
+            <select id="assign-check-time-h" class="form-input" style="flex:1">
+              <option value="">시</option>
+              <option>08</option><option>09</option><option>10</option>
+              <option>11</option><option>12</option><option>13</option>
+              <option>14</option><option>15</option><option>16</option>
+              <option>17</option><option>18</option><option>19</option>
+            </select>
+            <select id="assign-check-time-m" class="form-input" style="flex:1">
+              <option value="">분</option>
+              <option>00</option><option>10</option><option>20</option>
+              <option>30</option><option>40</option><option>50</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">지역</label>
+          <select id="assign-check-region" class="form-input">
+            <option>대전</option><option>청주</option><option>천안</option>
+            <option>세종</option><option>공주</option><option>논산</option><option>기타</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">진행 형태</label>
+          <select id="assign-check-side" class="form-input">
+            <option>단측</option><option>양측</option>
+          </select>
+        </div>
+        <div class="form-field span">
+          <label class="form-label">상품 구성</label>
+          <select id="assign-check-product" class="form-input">
+            <option selected>2인 1팀</option><option>4인 2팀</option>
+          </select>
+        </div>
       </div>
-      <div style="font-size:11px;color:#9CA3AF;margin-top:8px">예식 시간·지역 이동시간·불가일정을 고려한 배정 추천입니다. 실제 저장은 예식 수정에서 직접 해주세요.</div>
+      <button onclick="renderAssignAvailability()" style="width:100%;margin-top:14px;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">🤖 가능 매니저 확인</button>
+      <div style="font-size:11px;color:#9CA3AF;margin-top:6px">불가일정·기존 배정·이동시간을 고려합니다. 실제 저장은 예식 수정에서 직접 해주세요.</div>
     </div>
     <div id="assign-result"></div>
   </div>
@@ -557,6 +597,7 @@
   <button class="bnav-btn" onclick="switchTab(&#39;calendar&#39;,null,this)"><span class="bnav-icon">📅</span>캘린더</button>
   <button class="bnav-btn" onclick="switchTab(&#39;schedules&#39;,null,this)"><span class="bnav-icon">📋</span>전체일정</button>
   <button class="bnav-btn" onclick="switchTab(&#39;unavail&#39;,null,this)"><span class="bnav-icon">🚫</span>불가일정</button>
+  <button class="bnav-btn" id="bnav-assign" style="display:none" onclick="switchTab(&#39;assign&#39;,null,this)"><span class="bnav-icon">🤖</span>배정</button>
   <button class="bnav-btn" id="bnav-settle" style="display:none" onclick="switchTab(&#39;settle&#39;,null,this)"><span class="bnav-icon">📊</span>정산</button>
   <button class="bnav-btn" id="bnav-manual" style="display:none" onclick="window.open(&#39;https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9&#39;,&#39;_blank&#39;)">
     <span class="bnav-icon">📖</span>매뉴얼
@@ -1384,9 +1425,11 @@ function renderNav(){
   // 정산 탭 — 관리자만 표시
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
   const bnavSettle = document.getElementById('bnav-settle');
+  const bnavAssign = document.getElementById('bnav-assign');
   const navSettleBtn = document.getElementById('nav-settle-btn');
   const navAssignBtn = document.getElementById('nav-assign-btn');
   if(bnavSettle)   bnavSettle.style.display   = isAdmin ? 'flex'  : 'none';
+  if(bnavAssign)   bnavAssign.style.display   = isAdmin ? 'flex'  : 'none';
   if(navSettleBtn) navSettleBtn.style.display  = isAdmin ? 'block' : 'none';
   if(navAssignBtn) navAssignBtn.style.display  = isAdmin ? 'block' : 'none';
   const navSheetBtn = document.getElementById('nav-sheet-btn');
@@ -3912,123 +3955,142 @@ function canManagerMoveFromTo(prevS, nextS){
   return endMin + travel <= needMin;
 }
 
-function renderAssignRecommend(){
+function renderAssignRecommend(){ renderAssignAvailability(); }
+
+function renderAssignAvailability(){
   if(!ADMIN_NAMES.includes(currentUser.name)) return;
 
-  // 날짜 input 초기값
-  const dateInput = document.getElementById('assign-date');
-  if(dateInput && !dateInput.value) dateInput.value = TODAY;
-  const date = dateInput?.value || TODAY;
-
+  const date    = document.getElementById('assign-check-date')?.value || '';
+  const timeH   = document.getElementById('assign-check-time-h')?.value || '';
+  const timeM   = document.getElementById('assign-check-time-m')?.value || '';
+  const region  = document.getElementById('assign-check-region')?.value || '대전';
+  const side    = document.getElementById('assign-check-side')?.value || '양측';
+  const product = document.getElementById('assign-check-product')?.value || '2인 1팀';
   const resultEl = document.getElementById('assign-result');
   if(!resultEl) return;
 
-  // 해당 날짜 예식 시간순 정렬
-  const daySchedules = schedules
-    .filter(s => s.date === date && s.time)
-    .sort((a,b) => timeToMin(a.time) - timeToMin(b.time));
-
-  if(!daySchedules.length){
-    resultEl.innerHTML = `<div class="empty-state">📅 ${date}에 등록된 예식이 없습니다</div>`;
+  if(!date || !timeH || !timeM){
+    resultEl.innerHTML = `<div class="empty-state">📋 날짜와 시간을 모두 입력해주세요</div>`;
     return;
   }
 
-  // 전체 후보 (USERS 전체)
-  const allCandidates = USERS.map(u => u.name);
+  const timeStr  = `${timeH}:${timeM}`;
+  const startMin = timeToMin(timeStr);
+  const endMin   = startMin + 60;   // 예식 종료
+  const needMin  = startMin - 60;   // 도착 필요
+  const needed   = product === '4인 2팀' ? 4 : 2;
 
-  // 결과 HTML 생성
-  resultEl.innerHTML = `
-    <div style="font-size:14px;font-weight:800;color:#111827;margin-bottom:14px">✅ ${date} 배정 추천</div>
-    ${daySchedules.map(s => {
-      const region   = getRegionFromSchedule(s);
-      const needed   = getNeededManagerCount(s);
-      const existing = [s.frontManager, s.backManager]
+  // 가상 예식 객체 (이동시간 계산용)
+  const vSchedule = { time: timeStr, date };
+
+  // 해당 날짜 기존 배정 예식
+  const daySchedules = schedules.filter(s => s.date === date && s.time);
+
+  const okList    = [];  // 가능
+  const warnList  = [];  // 확인 필요 (이동 가능하나 빠듯)
+  const ngList    = [];  // 불가
+
+  USERS.forEach(u => {
+    const name = u.name;
+
+    // 1. 불가일정 체크
+    const uv = unavailables.find(x => x.managerName === name && x.date === date);
+    if(uv){
+      if(uv.unavailableType === 'all_day'){
+        ngList.push({ name, reason: `불가일정: 종일 불가${uv.memo ? ' ('+uv.memo+')' : ''}` }); return;
+      }
+      if(uv.unavailableType === 'morning' && startMin < 12*60){
+        ngList.push({ name, reason: `불가일정: 오전 불가${uv.memo ? ' ('+uv.memo+')' : ''}` }); return;
+      }
+      if(uv.unavailableType === 'afternoon' && startMin >= 12*60){
+        ngList.push({ name, reason: `불가일정: 오후 불가${uv.memo ? ' ('+uv.memo+')' : ''}` }); return;
+      }
+    }
+
+    // 2. 같은 날 기존 배정 예식 충돌 체크
+    const mySchedules = daySchedules.filter(s => {
+      const mgrs = [s.frontManager, s.backManager]
         .join(',').split(',').map(m=>m.trim()).filter(Boolean);
+      return mgrs.includes(name);
+    });
 
-      // 각 후보별 가능 여부 분석
-      const analysis = allCandidates.map(name => {
-        const unavail = isManagerUnavailable(name, date, s);
-        if(unavail){
-          const uv = unavailables.find(u=>u.managerName===name&&u.date===date);
-          const typeLabel = {all_day:'종일불가',morning:'오전불가',afternoon:'오후불가'}[uv?.unavailableType]||'불가';
-          return { name, ok:false, reason:`불가일정 (${typeLabel})` };
-        }
-        // 같은 날 다른 예식과 충돌 여부
-        const conflicts = daySchedules
-          .filter(other => other.id !== s.id)
-          .filter(other => {
-            const oMgrs = [other.frontManager, other.backManager]
-              .join(',').split(',').map(m=>m.trim()).filter(Boolean);
-            return oMgrs.includes(name);
-          });
-        for(const other of conflicts){
-          const oEnd  = getScheduleEndMin(other);
-          const sNeed = getScheduleArrivalNeedMin(s);
-          const sEnd  = getScheduleEndMin(s);
-          const oNeed = getScheduleArrivalNeedMin(other);
-          const travel= getTravelMinutes(getRegionFromSchedule(other), region);
-          const canGoNext  = oEnd + travel <= sNeed;
-          const canGoPrev  = sEnd + getTravelMinutes(region, getRegionFromSchedule(other)) <= oNeed;
-          if(!canGoNext && !canGoPrev){
-            return { name, ok:false, reason:`${other.time} ${esc(other.hall||'')} 예식 후 이동시간 부족` };
-          }
-        }
-        return { name, ok:true, reason:'' };
-      });
+    let conflict = false;
+    let conflictReason = '';
+    for(const other of mySchedules){
+      const otherRegion = getRegionFromSchedule(other);
+      const travel      = getTravelMinutes(otherRegion, region);
+      const otherEnd    = timeToMin(other.time) + 60;
+      const otherNeed   = timeToMin(other.time) - 60;
+      const travelBack  = getTravelMinutes(region, otherRegion);
 
-      const available  = analysis.filter(a => a.ok).map(a => a.name);
-      const unavailable= analysis.filter(a => !a.ok);
+      const canAfter  = otherEnd  + travel      <= needMin;  // 기존 후 → 문의
+      const canBefore = endMin    + travelBack   <= otherNeed; // 문의 후 → 기존
 
-      // 추천: 기존 배정자 우선 → 가능 후보로 채우기
-      const recommended = [];
-      for(const name of existing){
-        if(available.includes(name) && recommended.length < needed) recommended.push(name);
+      if(!canAfter && !canBefore){
+        conflict = true;
+        conflictReason = `${other.time} ${esc(other.hall||'')} 예식 후 이동시간 부족`;
+        break;
       }
-      for(const name of available){
-        if(!recommended.includes(name) && recommended.length < needed) recommended.push(name);
-      }
+    }
 
-      const isAdmin = n => ADMIN_NAMES.includes(n);
-      const nameTag = (name, highlight) => {
-        const adminBadge = isAdmin(name) ? '<span style="font-size:9px;background:#FDF8F3;color:#C7A96B;border-radius:4px;padding:1px 5px;margin-left:3px;font-weight:700">관리자</span>' : '';
-        const existBadge = existing.includes(name) ? '<span style="font-size:9px;background:#EFF6FF;color:#2563EB;border-radius:4px;padding:1px 5px;margin-left:3px;font-weight:700">기존</span>' : '';
-        return `<span style="display:inline-flex;align-items:center;background:${highlight?'#C7A96B':'#F3F4F6'};color:${highlight?'#fff':'#374151'};border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;margin:2px">${esc(name)}${adminBadge}${existBadge}</span>`;
-      };
+    if(conflict){
+      ngList.push({ name, reason: conflictReason }); return;
+    }
 
-      return `
-        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-            <span style="background:#111827;color:#fff;border-radius:8px;padding:4px 12px;font-size:13px;font-weight:800">${esc(s.time)}</span>
-            <span style="font-size:14px;font-weight:700;color:#111827">${esc(s.hall||'예식장미상')}</span>
-            <span style="font-size:12px;color:#9CA3AF">${region} · ${s.product||'2인 1팀'}</span>
-            <span style="font-size:11px;color:#6B7280;background:#F3F4F6;border-radius:6px;padding:2px 8px">필요 ${needed}명</span>
-          </div>
-          <div style="margin-bottom:8px">
-            <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:4px">✨ 추천 배정 (${recommended.length}/${needed}명)</div>
-            <div style="display:flex;flex-wrap:wrap;gap:4px">
-              ${recommended.length
-                ? recommended.map(n => nameTag(n, true)).join('')
-                : '<span style="font-size:12px;color:#EF4444;font-weight:600">가능 인원 부족</span>'}
-            </div>
-          </div>
-          <div style="margin-bottom:8px">
-            <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:4px">👥 가능 후보 (${available.length}명)</div>
-            <div style="display:flex;flex-wrap:wrap;gap:4px">
-              ${available.length
-                ? available.map(n => nameTag(n, false)).join('')
-                : '<span style="font-size:12px;color:#9CA3AF">없음</span>'}
-            </div>
-          </div>
-          ${unavailable.length ? `
-          <div style="background:#FEF2F2;border-radius:8px;padding:10px 12px">
-            <div style="font-size:11px;font-weight:700;color:#DC2626;margin-bottom:6px">⚠ 배정 불가 사유</div>
-            ${unavailable.map(a=>`
-              <div style="font-size:11px;color:#374151;margin-bottom:3px">
-                <span style="font-weight:700;color:#DC2626">${esc(a.name)}</span> : ${esc(a.reason)}
-              </div>`).join('')}
-          </div>` : ''}
-        </div>`;
-    }).join('')}`;
+    // 3. 기존 배정 있지만 이동 가능 → 확인 필요로 분류
+    if(mySchedules.length > 0){
+      const otherTimes = mySchedules.map(s=>s.time+' '+esc(s.hall||'')).join(', ');
+      warnList.push({ name, reason: `같은 날 기존 배정 있음 (${otherTimes}) — 이동 가능` });
+      return;
+    }
+
+    okList.push({ name });
+  });
+
+  const isAdmin = n => ADMIN_NAMES.includes(n);
+  const badge = n => isAdmin(n)
+    ? `<span style="font-size:10px;background:#FDF8F3;color:#C7A96B;border-radius:4px;padding:1px 6px;margin-left:4px;font-weight:700">관리자</span>`
+    : '';
+
+  const nameRow = (item, color) =>
+    `<div style="padding:7px 0;border-bottom:1px solid #F3F4F6">
+      <div style="font-size:13px;font-weight:700;color:${color}">${esc(item.name)}${badge(item.name)}</div>
+      ${item.reason ? `<div style="font-size:11px;color:#6B7280;margin-top:2px">· ${esc(item.reason)}</div>` : ''}
+    </div>`;
+
+  const summaryColor = okList.length >= needed ? '#059669' : '#D97706';
+  const summaryMsg   = okList.length >= needed
+    ? `✅ 배정 가능 — 필요 ${needed}명 중 가능 ${okList.length}명입니다.`
+    : `⚠️ 인원 부족 — 필요 ${needed}명 중 가능 ${okList.length}명입니다. 불가일정 또는 이동시간을 확인해주세요.`;
+
+  resultEl.innerHTML = `
+    <!-- 조회 조건 요약 -->
+    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px 16px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:4px">조회 조건</div>
+      <div style="font-size:14px;font-weight:800;color:#111827">${date} ${timeStr}</div>
+      <div style="font-size:12px;color:#6B7280;margin-top:2px">${region} · ${side} · ${product} · 필요 ${needed}명</div>
+    </div>
+    <!-- 추천 멘트 -->
+    <div style="background:${okList.length>=needed?'#ECFDF5':'#FFFBEB'};border:1px solid ${okList.length>=needed?'#A7F3D0':'#FDE68A'};border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:${summaryColor}">
+      ${summaryMsg}
+    </div>
+    <!-- 가능 -->
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:800;color:#059669;margin-bottom:8px">✅ 가능 매니저 ${okList.length}명</div>
+      ${okList.length ? okList.map(i=>nameRow(i,'#111827')).join('') : '<div style="font-size:12px;color:#9CA3AF">없음</div>'}
+    </div>
+    <!-- 확인 필요 -->
+    ${warnList.length ? `
+    <div style="background:#fff;border:1px solid #FDE68A;border-radius:12px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:800;color:#D97706;margin-bottom:8px">⚠️ 확인 필요 ${warnList.length}명</div>
+      ${warnList.map(i=>nameRow(i,'#D97706')).join('')}
+    </div>` : ''}
+    <!-- 불가 -->
+    ${ngList.length ? `
+    <div style="background:#fff;border:1px solid #FCA5A5;border-radius:12px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:800;color:#DC2626;margin-bottom:8px">❌ 불가 매니저 ${ngList.length}명</div>
+      ${ngList.map(i=>nameRow(i,'#DC2626')).join('')}
+    </div>` : ''}`;
 }
 
 async function toggleLaborPaid(schId, checked){
