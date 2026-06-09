@@ -2535,8 +2535,9 @@ function openForm(id){
       document.getElementById('f-arr-m').value = calcM;
     }
   } else {
-    document.getElementById('f-arr-h').value = ah ? ah.padStart(2,'0') : '';
-    document.getElementById('f-arr-m').value = am ? am.slice(0,2) : '';
+    // 예식시간 미입력 시 도착시간도 초기화
+    document.getElementById('f-arr-h').value = '';
+    document.getElementById('f-arr-m').value = '';
   }
 
   document.getElementById('f-guests').value  = s?.guestCount  || '';
