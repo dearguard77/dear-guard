@@ -295,6 +295,8 @@
     #reg-btn{padding:6px 10px;font-size:11px;min-width:72px}
     #notif-btn{width:28px;height:28px;font-size:15px}
     #contrib-btn{width:26px;height:26px;font-size:14px}
+    .assign-form-grid{grid-template-columns:1fr !important}
+    .assign-form-grid .form-field.span{grid-column:unset}
   }
 </style>
 </head>
@@ -543,7 +545,7 @@
     </div>
     <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:16px">
       <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:12px">📋 문의 예식 조건 입력</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="assign-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="form-field">
           <label class="form-label">예식 날짜</label>
           <input type="date" id="assign-check-date" class="form-input">
@@ -576,12 +578,6 @@
           <label class="form-label">진행 형태</label>
           <select id="assign-check-side" class="form-input">
             <option>단측</option><option>양측</option>
-          </select>
-        </div>
-        <div class="form-field span">
-          <label class="form-label">상품 구성</label>
-          <select id="assign-check-product" class="form-input">
-            <option selected>2인 1팀</option><option>4인 2팀</option>
           </select>
         </div>
       </div>
@@ -3964,8 +3960,7 @@ function renderAssignAvailability(){
   const timeH   = document.getElementById('assign-check-time-h')?.value || '';
   const timeM   = document.getElementById('assign-check-time-m')?.value || '';
   const region  = document.getElementById('assign-check-region')?.value || '대전';
-  const side    = document.getElementById('assign-check-side')?.value || '양측';
-  const product = document.getElementById('assign-check-product')?.value || '2인 1팀';
+  const side    = document.getElementById('assign-check-side')?.value || '단측';
   const resultEl = document.getElementById('assign-result');
   if(!resultEl) return;
 
@@ -3976,9 +3971,9 @@ function renderAssignAvailability(){
 
   const timeStr  = `${timeH}:${timeM}`;
   const startMin = timeToMin(timeStr);
-  const endMin   = startMin + 60;   // 예식 종료
-  const needMin  = startMin - 60;   // 도착 필요
-  const needed   = product === '4인 2팀' ? 4 : 2;
+  const endMin   = startMin + 60;   // 예식 종료 (+1시간 유지)
+  const needMin  = startMin - 80;   // 도착 필요 (-80분)
+  const needed   = side === '양측' ? 4 : 2;  // 진행 형태 기준
 
   // 가상 예식 객체 (이동시간 계산용)
   const vSchedule = { time: timeStr, date };
@@ -4020,7 +4015,7 @@ function renderAssignAvailability(){
       const otherRegion = getRegionFromSchedule(other);
       const travel      = getTravelMinutes(otherRegion, region);
       const otherEnd    = timeToMin(other.time) + 60;
-      const otherNeed   = timeToMin(other.time) - 60;
+      const otherNeed   = timeToMin(other.time) - 80;
       const travelBack  = getTravelMinutes(region, otherRegion);
 
       const canAfter  = otherEnd  + travel      <= needMin;  // 기존 후 → 문의
@@ -4068,7 +4063,7 @@ function renderAssignAvailability(){
     <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px 16px;margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:4px">조회 조건</div>
       <div style="font-size:14px;font-weight:800;color:#111827">${date} ${timeStr}</div>
-      <div style="font-size:12px;color:#6B7280;margin-top:2px">${region} · ${side} · ${product} · 필요 ${needed}명</div>
+      <div style="font-size:12px;color:#6B7280;margin-top:2px">${region} · ${side} · 필요 ${needed}명</div>
     </div>
     <!-- 추천 멘트 -->
     <div style="background:${okList.length>=needed?'#ECFDF5':'#FFFBEB'};border:1px solid ${okList.length>=needed?'#A7F3D0':'#FDE68A'};border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:${summaryColor}">
