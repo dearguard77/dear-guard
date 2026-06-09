@@ -582,7 +582,7 @@
         </div>
       </div>
       <button onclick="renderAssignAvailability()" style="width:100%;margin-top:14px;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">🤖 가능 매니저 확인</button>
-      <div style="font-size:11px;color:#9CA3AF;margin-top:6px">불가일정·기존 배정·이동시간을 고려합니다. 실제 저장은 예식 수정에서 직접 해주세요.</div>
+      <div style="font-size:11px;color:#9CA3AF;margin-top:6px">불가일정·기존 배정·이동시간을 고려합니다. 실제 저장은 예식 수정에서 직접 해주세요.<br><span style="color:#C7A96B;font-weight:600">기준: 도착 80분 전 / 종료 50분 후</span></div>
     </div>
     <div id="assign-result"></div>
   </div>
@@ -3933,7 +3933,7 @@ function timeToMin(timeStr){
 }
 
 function getScheduleEndMin(s){
-  return timeToMin(s.time) + 60; // 예식 시작 + 1시간
+  return timeToMin(s.time) + 50; // 예식 시작 + 50분
 }
 
 function getScheduleArrivalNeedMin(s){
@@ -3981,7 +3981,7 @@ function renderAssignAvailability(){
 
   const timeStr  = `${timeH}:${timeM}`;
   const startMin = timeToMin(timeStr);
-  const endMin   = startMin + 60;   // 예식 종료 (+1시간 유지)
+  const endMin   = startMin + 50;   // 예식 종료 (+50분)
   const needMin  = startMin - 80;   // 도착 필요 (-80분)
   const needed   = side === '양측' ? 4 : 2;  // 진행 형태 기준
 
@@ -4024,7 +4024,7 @@ function renderAssignAvailability(){
     for(const other of mySchedules){
       const otherRegion = getRegionFromSchedule(other);
       const travel      = getTravelMinutes(otherRegion, region);
-      const otherEnd    = timeToMin(other.time) + 60;
+      const otherEnd    = timeToMin(other.time) + 50;
       const otherNeed   = timeToMin(other.time) - 80;
       const travelBack  = getTravelMinutes(region, otherRegion);
 
