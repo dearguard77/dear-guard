@@ -441,6 +441,12 @@
   <div id="tab-calendar" class="tab-panel">
     <div style="background:#fff;border-radius:16px;padding:24px;border:1px solid #E5E7EB">
       <div class="sec-header"><h2>월간 캘린더</h2><span id="cal-tab-subtitle">예식 일정 전체 보기</span></div>
+      <div id="cal-my-only-wrap" style="display:none;margin-bottom:12px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#374151;cursor:pointer">
+          <input type="checkbox" id="cal-my-only" onchange="toggleCalendarMyOnly()" style="width:15px;height:15px;accent-color:#C7A96B">
+          내 일정만 보기
+        </label>
+      </div>
       <div id="calendar-wrap"></div>
     </div>
   </div>
@@ -986,6 +992,8 @@ const USERS = [
   { id:6, name:"목수빈", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"sb" },
   { id:7, name:"양윤수", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"ys" },
   { id:8, name:"김홍주", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"hj" },
+  { id:9, name:"이승윤", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"sy" },
+  { id:10, name:"임우령", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"wr" },
 ];
 
 const PRODUCTS = ["2인 1팀","4인 2팀"];
@@ -1058,6 +1066,7 @@ let formNotes   = [];
 let formCL      = BLANK_CL();
 let dropOpen    = false;
 let urgentFilter  = false;  // 긴급확인 필터 on/off
+let calendarMyOnly = false; // 캘린더 내 일정만 보기 (관리자 전용)
 let statusFilter  = '';     // 단계별 필터 ('계약완료' | '인터뷰대기' | '진행완료' | '긴급확인' | '')
 
 // ─── DB 헬퍼 ─────────────────────────────────────────────────────────────────
@@ -1576,16 +1585,29 @@ function renderCalendar(){
   const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
   const days = [...Array(firstDay).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
 const vs = visible(); // 권한 필터 적용된 일정
+// ★ 관리자 전용 내 일정만 보기 필터
+let vsFiltered = vs;
+if(calendarMyOnly && ADMIN_NAMES.includes(currentUser.name)){
+  vsFiltered = vs.filter(s =>
+    (s.frontManager || '').includes(currentUser.name) ||
+    (s.backManager  || '').includes(currentUser.name)
+  );
+}
+// 체크박스 표시/숨김
+const myOnlyWrap = document.getElementById('cal-my-only-wrap');
+if(myOnlyWrap) myOnlyWrap.style.display = ADMIN_NAMES.includes(currentUser.name) ? 'block' : 'none';
 const byDay = day => {
     if(!day) return [];
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    return vs.filter(s=>s.date===ds);
+    return vsFiltered.filter(s=>s.date===ds);
   };
   const dayNames = ['일','월','화','수','목','금','토'];
   const calMonthStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-  const calMonthCnt = vs.filter(s => s.date?.startsWith(calMonthStr)).length;
+  const calMonthCnt = vsFiltered.filter(s => s.date?.startsWith(calMonthStr)).length;
   const calSubEl = document.getElementById('cal-tab-subtitle');
-  if(calSubEl) calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
+  if(calSubEl) calSubEl.textContent = calendarMyOnly && ADMIN_NAMES.includes(currentUser.name)
+    ? `${calYear}년 ${calMonth+1}월 · 내 일정 ${calMonthCnt}건`
+    : `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
   wrap.innerHTML = `
     <div class="cal-nav">
       <button class="btn btn-ghost sm" onclick="calMove(-1)">‹ 이전</button>
@@ -1752,6 +1774,11 @@ function switchUser(id){
   currentUser=USERS.find(u=>u.id===id);
   renderUserDrop(); renderNav(); renderAll();
   toggleDrop();
+}
+
+function toggleCalendarMyOnly(){
+  calendarMyOnly = document.getElementById('cal-my-only')?.checked || false;
+  renderCalendar();
 }
 
 function calMove(dir){
