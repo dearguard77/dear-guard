@@ -2524,10 +2524,20 @@ function openForm(id){
   document.getElementById('f-time-h').value = th ? th.padStart(2,'0') : '';
   document.getElementById('f-time-m').value = tm ? tm.slice(0,2) : '';
 
-  // 도착시간 분리 세팅
-  const [ah='', am=''] = (s?.arrivalTime || '').split(':');
-  document.getElementById('f-arr-h').value = ah ? ah.padStart(2,'0') : '';
-  document.getElementById('f-arr-m').value = am ? am.slice(0,2) : '';
+  // 도착시간: 예식시간 기준 80분 전으로 재계산 (신규/수정 모두 동일 기준 적용)
+  if(th && tm){
+    const totalMin = Number(th) * 60 + Number(tm) - 80;
+    if(totalMin >= 0){
+      const calcH = String(Math.floor(totalMin / 60)).padStart(2,'0');
+      const rawM  = totalMin % 60;
+      const calcM = String(Math.floor(rawM / 10) * 10).padStart(2,'0'); // 10분 단위 내림
+      document.getElementById('f-arr-h').value = calcH;
+      document.getElementById('f-arr-m').value = calcM;
+    }
+  } else {
+    document.getElementById('f-arr-h').value = ah ? ah.padStart(2,'0') : '';
+    document.getElementById('f-arr-m').value = am ? am.slice(0,2) : '';
+  }
 
   document.getElementById('f-guests').value  = s?.guestCount  || '';
   document.getElementById('f-hall').value    = s?.hall        || '';
