@@ -338,6 +338,7 @@
     <button class="tab-btn" onclick="switchTab(&#39;schedules&#39;,this)">📋 전체일정</button>
     <button class="tab-btn" onclick="switchTab(&#39;unavail&#39;,this)">🚫 불가일정</button>
     <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab(&#39;settle&#39;,this)">📊 정산</button>
+    <button class="tab-btn" id="nav-assign-btn" style="display:none" onclick="switchTab(&#39;assign&#39;,this)">🤖 배정추천</button>
     <button class="tab-btn" id="nav-sheet-btn" style="display:none" onclick="window.open(&#39;https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623&#39;,&#39;_blank&#39;)">
       📋 시트
     </button>
@@ -534,7 +535,21 @@
     <!-- 정산 리스트 -->
     <div id="settle-list"></div>
   </div>
-</main>
+
+  <!-- ASSIGN TAB (관리자 전용) -->
+  <div id="tab-assign" class="tab-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div class="sec-header" style="margin-bottom:0"><h2>🤖 배정 추천</h2><span>관리자 전용</span></div>
+    </div>
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="date" id="assign-date" class="form-input" style="width:auto;padding:6px 12px;font-size:13px">
+        <button onclick="renderAssignRecommend()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer">🤖 AI 배정 추천</button>
+      </div>
+      <div style="font-size:11px;color:#9CA3AF;margin-top:8px">예식 시간·지역 이동시간·불가일정을 고려한 배정 추천입니다. 실제 저장은 예식 수정에서 직접 해주세요.</div>
+    </div>
+    <div id="assign-result"></div>
+  </div>
 
 <!-- BOTTOM NAV -->
 <div id="bottom-nav">
@@ -1370,8 +1385,10 @@ function renderNav(){
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
   const bnavSettle = document.getElementById('bnav-settle');
   const navSettleBtn = document.getElementById('nav-settle-btn');
+  const navAssignBtn = document.getElementById('nav-assign-btn');
   if(bnavSettle)   bnavSettle.style.display   = isAdmin ? 'flex'  : 'none';
   if(navSettleBtn) navSettleBtn.style.display  = isAdmin ? 'block' : 'none';
+  if(navAssignBtn) navAssignBtn.style.display  = isAdmin ? 'block' : 'none';
   const navSheetBtn = document.getElementById('nav-sheet-btn');
   if(navSheetBtn)  navSheetBtn.style.display   = isAdmin ? 'block' : 'none';
   const bnavManual   = document.getElementById('bnav-manual');
@@ -1760,6 +1777,7 @@ function switchTab(id, topBtn, botBtn){
   if(id==='schedules') renderScheduleList();
   if(id==='unavail')   renderUnavailAll();
   if(id==='settle')    renderSettle();
+  if(id==='assign')    renderAssignRecommend();
 }
 
 function toggleDrop(){
@@ -3830,6 +3848,187 @@ function initSettleManagerFilter(){
   const cur = sel.value;
   sel.innerHTML = '<option value="">전체 매니저</option>'
     + USERS.map(u => `<option value="${esc(u.name)}"${cur===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  🤖  배정 추천 기능 (관리자 전용)
+// ════════════════════════════════════════════════════════════
+
+function getRegionFromSchedule(s){
+  const txt = `${s.hall||''} ${s.address||''}`;
+  if(txt.includes('대전')) return '대전';
+  if(txt.includes('청주')) return '청주';
+  if(txt.includes('천안')) return '천안';
+  if(txt.includes('세종')) return '세종';
+  if(txt.includes('공주')) return '공주';
+  if(txt.includes('논산')) return '논산';
+  return '기타';
+}
+
+function getTravelMinutes(regionA, regionB){
+  if(regionA === regionB) return 30;
+  const TRAVEL = {
+    '대전-청주':60,'대전-천안':90,'대전-세종':40,'공주-대전':50,'논산-대전':60,
+    '청주-천안':40,'세종-청주':40,'공주-청주':60,'논산-청주':80,
+    '세종-천안':60,'공주-천안':80,'논산-천안':100,
+    '공주-세종':40,'논산-세종':70,'공주-논산':50,
+  };
+  const key = [regionA, regionB].sort().join('-');
+  return TRAVEL[key] || 90;
+}
+
+function timeToMin(timeStr){
+  if(!timeStr) return 0;
+  const [h,m] = timeStr.split(':').map(Number);
+  return h*60+(m||0);
+}
+
+function getScheduleEndMin(s){
+  return timeToMin(s.time) + 60; // 예식 시작 + 1시간
+}
+
+function getScheduleArrivalNeedMin(s){
+  return timeToMin(s.time) - 60; // 예식 시작 - 1시간
+}
+
+function getNeededManagerCount(s){
+  return s.product === '4인 2팀' ? 4 : 2;
+}
+
+function isManagerUnavailable(managerName, date, schedule){
+  const uv = unavailables.find(u => u.managerName === managerName && u.date === date);
+  if(!uv) return false;
+  if(uv.unavailableType === 'all_day') return true;
+  const schHour = timeToMin(schedule.time);
+  if(uv.unavailableType === 'morning'   && schHour < 12*60) return true;
+  if(uv.unavailableType === 'afternoon' && schHour >= 12*60) return true;
+  return false;
+}
+
+function canManagerMoveFromTo(prevS, nextS){
+  const endMin    = getScheduleEndMin(prevS);
+  const needMin   = getScheduleArrivalNeedMin(nextS);
+  const travel    = getTravelMinutes(getRegionFromSchedule(prevS), getRegionFromSchedule(nextS));
+  return endMin + travel <= needMin;
+}
+
+function renderAssignRecommend(){
+  if(!ADMIN_NAMES.includes(currentUser.name)) return;
+
+  // 날짜 input 초기값
+  const dateInput = document.getElementById('assign-date');
+  if(dateInput && !dateInput.value) dateInput.value = TODAY;
+  const date = dateInput?.value || TODAY;
+
+  const resultEl = document.getElementById('assign-result');
+  if(!resultEl) return;
+
+  // 해당 날짜 예식 시간순 정렬
+  const daySchedules = schedules
+    .filter(s => s.date === date && s.time)
+    .sort((a,b) => timeToMin(a.time) - timeToMin(b.time));
+
+  if(!daySchedules.length){
+    resultEl.innerHTML = `<div class="empty-state">📅 ${date}에 등록된 예식이 없습니다</div>`;
+    return;
+  }
+
+  // 전체 후보 (USERS 전체)
+  const allCandidates = USERS.map(u => u.name);
+
+  // 결과 HTML 생성
+  resultEl.innerHTML = `
+    <div style="font-size:14px;font-weight:800;color:#111827;margin-bottom:14px">✅ ${date} 배정 추천</div>
+    ${daySchedules.map(s => {
+      const region   = getRegionFromSchedule(s);
+      const needed   = getNeededManagerCount(s);
+      const existing = [s.frontManager, s.backManager]
+        .join(',').split(',').map(m=>m.trim()).filter(Boolean);
+
+      // 각 후보별 가능 여부 분석
+      const analysis = allCandidates.map(name => {
+        const unavail = isManagerUnavailable(name, date, s);
+        if(unavail){
+          const uv = unavailables.find(u=>u.managerName===name&&u.date===date);
+          const typeLabel = {all_day:'종일불가',morning:'오전불가',afternoon:'오후불가'}[uv?.unavailableType]||'불가';
+          return { name, ok:false, reason:`불가일정 (${typeLabel})` };
+        }
+        // 같은 날 다른 예식과 충돌 여부
+        const conflicts = daySchedules
+          .filter(other => other.id !== s.id)
+          .filter(other => {
+            const oMgrs = [other.frontManager, other.backManager]
+              .join(',').split(',').map(m=>m.trim()).filter(Boolean);
+            return oMgrs.includes(name);
+          });
+        for(const other of conflicts){
+          const oEnd  = getScheduleEndMin(other);
+          const sNeed = getScheduleArrivalNeedMin(s);
+          const sEnd  = getScheduleEndMin(s);
+          const oNeed = getScheduleArrivalNeedMin(other);
+          const travel= getTravelMinutes(getRegionFromSchedule(other), region);
+          const canGoNext  = oEnd + travel <= sNeed;
+          const canGoPrev  = sEnd + getTravelMinutes(region, getRegionFromSchedule(other)) <= oNeed;
+          if(!canGoNext && !canGoPrev){
+            return { name, ok:false, reason:`${other.time} ${esc(other.hall||'')} 예식 후 이동시간 부족` };
+          }
+        }
+        return { name, ok:true, reason:'' };
+      });
+
+      const available  = analysis.filter(a => a.ok).map(a => a.name);
+      const unavailable= analysis.filter(a => !a.ok);
+
+      // 추천: 기존 배정자 우선 → 가능 후보로 채우기
+      const recommended = [];
+      for(const name of existing){
+        if(available.includes(name) && recommended.length < needed) recommended.push(name);
+      }
+      for(const name of available){
+        if(!recommended.includes(name) && recommended.length < needed) recommended.push(name);
+      }
+
+      const isAdmin = n => ADMIN_NAMES.includes(n);
+      const nameTag = (name, highlight) => {
+        const adminBadge = isAdmin(name) ? '<span style="font-size:9px;background:#FDF8F3;color:#C7A96B;border-radius:4px;padding:1px 5px;margin-left:3px;font-weight:700">관리자</span>' : '';
+        const existBadge = existing.includes(name) ? '<span style="font-size:9px;background:#EFF6FF;color:#2563EB;border-radius:4px;padding:1px 5px;margin-left:3px;font-weight:700">기존</span>' : '';
+        return `<span style="display:inline-flex;align-items:center;background:${highlight?'#C7A96B':'#F3F4F6'};color:${highlight?'#fff':'#374151'};border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;margin:2px">${esc(name)}${adminBadge}${existBadge}</span>`;
+      };
+
+      return `
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="background:#111827;color:#fff;border-radius:8px;padding:4px 12px;font-size:13px;font-weight:800">${esc(s.time)}</span>
+            <span style="font-size:14px;font-weight:700;color:#111827">${esc(s.hall||'예식장미상')}</span>
+            <span style="font-size:12px;color:#9CA3AF">${region} · ${s.product||'2인 1팀'}</span>
+            <span style="font-size:11px;color:#6B7280;background:#F3F4F6;border-radius:6px;padding:2px 8px">필요 ${needed}명</span>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:4px">✨ 추천 배정 (${recommended.length}/${needed}명)</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">
+              ${recommended.length
+                ? recommended.map(n => nameTag(n, true)).join('')
+                : '<span style="font-size:12px;color:#EF4444;font-weight:600">가능 인원 부족</span>'}
+            </div>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:4px">👥 가능 후보 (${available.length}명)</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">
+              ${available.length
+                ? available.map(n => nameTag(n, false)).join('')
+                : '<span style="font-size:12px;color:#9CA3AF">없음</span>'}
+            </div>
+          </div>
+          ${unavailable.length ? `
+          <div style="background:#FEF2F2;border-radius:8px;padding:10px 12px">
+            <div style="font-size:11px;font-weight:700;color:#DC2626;margin-bottom:6px">⚠ 배정 불가 사유</div>
+            ${unavailable.map(a=>`
+              <div style="font-size:11px;color:#374151;margin-bottom:3px">
+                <span style="font-weight:700;color:#DC2626">${esc(a.name)}</span> : ${esc(a.reason)}
+              </div>`).join('')}
+          </div>` : ''}
+        </div>`;
+    }).join('')}`;
 }
 
 async function toggleLaborPaid(schId, checked){
