@@ -879,10 +879,9 @@
           </div>
           <div class="form-field">
             <label class="form-label">정산 대상 매니저 수</label>
-            <input class="form-input" id="f-labor-count" type="number" placeholder="자동계산" min="0" max="10" readonly
-              style="background:#F9FAFB;color:#6B7280;cursor:default"
-              title="관리자 제외, 일반 매니저만 자동 계산됩니다">
-            <div style="font-size:11px;color:#9CA3AF;margin-top:4px">관리자 제외, 일반 매니저만 자동 계산됩니다</div>
+            <input class="form-input" id="f-labor-count" type="number" placeholder="자동계산" min="0" max="10" oninput="calcSettlement()"
+              title="관리자 제외, 일반 매니저만 자동 계산됩니다. 필요 시 직접 수정 가능합니다">
+            <div style="font-size:11px;color:#9CA3AF;margin-top:4px">자동 계산됩니다. 필요 시 직접 수정 가능합니다</div>
           </div>
         </div>
         <!-- 자동 계산 결과 -->
@@ -2721,11 +2720,18 @@ function getPaidManagerNamesFromForm(){
 function calcLaborCost(){
   const region = document.getElementById('f-labor-region')?.value || '대전';
   const rate   = region === '대전외' ? 120000 : 90000;
+  // f-labor-count 값 우선 사용 (수동 입력 가능), 비어있으면 자동계산
+  const countEl = document.getElementById('f-labor-count');
+  const manualCount = countEl ? Number(countEl.value) : NaN;
+  const count = (!isNaN(manualCount) && countEl?.value !== '') ? manualCount : getPaidManagerNamesFromForm().length;
+  return count > 0 ? rate * count : 0;
+}
+
+// 담당자 변경 시 f-labor-count 자동세팅 (수동 수정값 덮어쓰지 않음 - 직접 호출 시만 적용)
+function autoFillLaborCount(){
   const paidManagers = getPaidManagerNamesFromForm();
-  // f-labor-count를 자동 반영
   const countEl = document.getElementById('f-labor-count');
   if(countEl) countEl.value = paidManagers.length || '';
-  return paidManagers.length > 0 ? rate * paidManagers.length : 0;
 }
 
 function calcNetProfit(){
@@ -3067,6 +3073,7 @@ function updateManagerFields(){
   renderManagerPreview();
   // 상품구성 변경 시 정산 자동 재계산 (관리자만)
   if(ADMIN_NAMES.includes(currentUser.name)){
+    autoFillLaborCount();            // 담당자 변경 시 매니저 수 자동세팅
     applyProductPricePreset(true);   // 기본값 강제 세팅
     syncContractMemoToSettlement();  // 할인 프리셋 재적용
   }
