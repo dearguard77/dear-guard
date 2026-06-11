@@ -1660,9 +1660,16 @@ const byDay = day => {
   };
   const dayNames = ['일','월','화','수','목','금','토'];
   const calMonthStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-  const calMonthCnt = vsFiltered.filter(s => s.date?.startsWith(calMonthStr)).length;
+  const monthSchedules = vsFiltered.filter(s => s.date?.startsWith(calMonthStr));
+  const calMonthCnt = monthSchedules.length;
+  const readybagCnt = monthSchedules.reduce((sum, s) => {
+    const hasGroom = !!(s.groomName || '').trim();
+    const hasBride = !!(s.brideName || '').trim();
+    return sum + (hasGroom && hasBride ? 2 : 1);
+  }, 0);
+  const isAdminCal = ADMIN_NAMES.includes(currentUser.name);
   const calSubEl = document.getElementById('cal-tab-subtitle');
-  if(calSubEl) calSubEl.textContent = calendarMyOnly && ADMIN_NAMES.includes(currentUser.name)
+  if(calSubEl) calSubEl.textContent = calendarMyOnly && isAdminCal
     ? `${calYear}년 ${calMonth+1}월 · 내 일정 ${calMonthCnt}건`
     : `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
   wrap.innerHTML = `
@@ -1671,6 +1678,7 @@ const byDay = day => {
       <div style="text-align:center">
         <div class="cal-nav-title">${calYear}년 ${calMonth+1}월</div>
         <div style="font-size:11px;color:#C7A96B;font-weight:700;margin-top:2px">예식 총 ${calMonthCnt}건</div>
+        ${isAdminCal ? `<div style="font-size:10px;color:#9CA3AF;margin-top:2px">🎒 레디백 예상 ${readybagCnt}개</div>` : ''}
       </div>
       <button class="btn btn-ghost sm" onclick="calMove(1)">다음 ›</button>
     </div>
