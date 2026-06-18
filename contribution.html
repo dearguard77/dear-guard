@@ -376,8 +376,8 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div class="ho-section" style="flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 사전 공유 식권</div>
-            <span style="font-size:10px;color:#9CA3AF;font-weight:400">운영메모 함께 기록 권장</span>
+            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 식권 수령자</div>
+            <span style="font-size:10px;color:#9CA3AF;font-weight:400">식권을 대신 수령한 분을 기록해주세요.<br>(계좌이체, 사회자, 부모님 지인, 가방순이 등)</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
             <select id="pre-share-side" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
@@ -388,10 +388,10 @@ input,select,textarea{font-family:inherit;outline:none}
             <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
-            <input id="pre-share-name" placeholder="사회자, 헬퍼, 혼주직접..." type="text" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')addPreShare('groom')">
+            <input id="pre-share-name" placeholder="예) 사회자, 계좌이체, 부모님 지인, 가방순이" type="text" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')addPreShare('groom')">
             <button onclick="addPreShare('groom')" style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
           </div>
-          <div id="pre-share-list" style="max-height:80px;overflow-y:auto"><div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div></div>
+          <div id="pre-share-list" style="max-height:80px;overflow-y:auto"><div style="font-size:10px;color:#9CA3AF;padding:3px 0">식권 수령 내역 없음</div></div>
         </div>
       </div><!-- /ho-pane-g -->
 
@@ -431,8 +431,8 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div class="ho-section" style="flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 사전 공유 식권</div>
-            <span style="font-size:10px;color:#9CA3AF;font-weight:400">운영메모 함께 기록 권장</span>
+            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 식권 수령자</div>
+            <span style="font-size:10px;color:#9CA3AF;font-weight:400">식권을 대신 수령한 분을 기록해주세요.<br>(계좌이체, 사회자, 부모님 지인, 가방순이 등)</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
             <select id="pre-share-side-b" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
@@ -443,10 +443,10 @@ input,select,textarea{font-family:inherit;outline:none}
             <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
-            <input id="pre-share-name-b" placeholder="사회자, 헬퍼, 혼주직접..." type="text" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')addPreShare('bride')">
+            <input id="pre-share-name-b" placeholder="예) 사회자, 계좌이체, 부모님 지인, 가방순이" type="text" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;flex:1;min-width:0" onkeydown="if(event.key==='Enter')addPreShare('bride')">
             <button onclick="addPreShare('bride')" style="height:26px;background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:0 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
           </div>
-          <div id="pre-share-list-b" style="max-height:80px;overflow-y:auto"><div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div></div>
+          <div id="pre-share-list-b" style="max-height:80px;overflow-y:auto"><div style="font-size:10px;color:#9CA3AF;padding:3px 0">식권 수령 내역 없음</div></div>
         </div>
       </div><!-- /ho-pane-b -->
 
@@ -996,7 +996,7 @@ async function deletePreShare(id){
   } catch(e){ showToast('⚠️ 삭제 실패'); }
 }
 function renderPreShareList(){
-  var empty = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">사전 공유 내역 없음</div>';
+  var empty = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">식권 수령 내역 없음</div>';
   var html = preShares.length ? preShares.map(function(p){
     var icon = p.side==='신랑측' ? '🤵' : '👰';
     var label = esc(p.person_name||'');
