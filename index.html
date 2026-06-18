@@ -89,6 +89,9 @@
   /* CALENDAR */
   .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
   .cal-nav-title{font-weight:700;font-size:16px;color:#111827}
+  .cal-jump-wrap{display:flex;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap}
+  .cal-jump-select{height:30px;border:1px solid #E5E7EB;border-radius:8px;padding:0 8px;font-size:12px;background:#fff;color:#374151;cursor:pointer;font-family:inherit}
+  .cal-jump-select:focus{outline:none;border-color:#C7A96B}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#E5E7EB;border-radius:12px;overflow:hidden}
   .cal-head{background:#F9FAFB;text-align:center;padding:8px 0;font-size:11px;font-weight:700}
   .cal-cell{background:#fff;min-height:70px;padding:6px 4px;cursor:default;transition:background .15s}
@@ -1679,6 +1682,17 @@ const byDay = day => {
         <div class="cal-nav-title">${calYear}년 ${calMonth+1}월</div>
         <div style="font-size:11px;color:#C7A96B;font-weight:700;margin-top:2px">예식 총 ${calMonthCnt}건</div>
         ${isAdminCal ? `<div style="font-size:10px;color:#9CA3AF;margin-top:2px">🎒 레디백 예상 ${readybagCnt}개</div>` : ''}
+        <div class="cal-jump-wrap">
+          <select id="cal-year-select" class="cal-jump-select" onchange="jumpCalendarMonth()">
+            <option value="2025"${calYear===2025?' selected':''}>2025년</option>
+            <option value="2026"${calYear===2026?' selected':''}>2026년</option>
+            <option value="2027"${calYear===2027?' selected':''}>2027년</option>
+            <option value="2028"${calYear===2028?' selected':''}>2028년</option>
+          </select>
+          <select id="cal-month-select" class="cal-jump-select" onchange="jumpCalendarMonth()">
+            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}"${calMonth+1===m?' selected':''}>${m}월</option>`).join('')}
+          </select>
+        </div>
       </div>
       <button class="btn btn-ghost sm" onclick="calMove(1)">다음 ›</button>
     </div>
@@ -1854,6 +1868,14 @@ function switchUser(id){
   currentUser=USERS.find(u=>u.id===id);
   renderUserDrop(); renderNav(); renderAll();
   toggleDrop();
+}
+
+function jumpCalendarMonth(){
+  const y = Number(document.getElementById('cal-year-select')?.value);
+  const m = Number(document.getElementById('cal-month-select')?.value);
+  if(y) calYear = y;
+  if(m) calMonth = m - 1;
+  renderCalendar();
 }
 
 function toggleCalendarMyOnly(){
