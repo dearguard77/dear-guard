@@ -3371,12 +3371,9 @@ async function openResult(id){
       logs.reduce((sum, l) => sum + (l.amount || 0), 0) / 10000
     );
 
-    // 3. 사용 식권 = 현장 사용 + 사전 공유
+    // 3. 사용 식권 = 현장 사용만 (봉투 없이 식권 수령자는 계산에서 제외)
     const usedOnsite   = logs.reduce((sum, l) => sum + (l.adult_ticket||0) + (l.child_ticket||0), 0);
-    const usedPreShare = tickets
-      .filter(t => t.type === 'pre_share')
-      .reduce((sum, t) => sum + (t.amount||0), 0);
-    const ticketUsed = usedOnsite + usedPreShare;
+    const ticketUsed = usedOnsite;
 
     // 4. 잔여 식권 = (초기 식권 + 추가 발급) - 사용 식권
     const extraAdded = tickets

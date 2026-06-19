@@ -421,13 +421,13 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="section-icon">🎟️</div>
       <div class="section-meta">
         <div class="section-num">STEP 4</div>
-        <div class="section-title">사전 전달 식권</div>
+        <div class="section-title">봉투 없이 식권 수령자</div>
         <div class="section-status" id="sec-4-status">해당 없으면 건너뛰세요</div>
       </div>
       <div class="section-toggle" id="sec-4-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-4-body">
-      <div class="info-box" style="margin-bottom:12px">식권을 미리 전달드려야 하는 분들을 작성해주세요 😊<br><span style="color:#6B7280">예: 사회자 2장 / 헬퍼 1장 / 스냅작가 2장</span></div>
+      <div class="info-box" style="margin-bottom:12px">식권을 봉투 없이 미리 수령하는 분들을 작성해주세요 😊<br><span style="color:#6B7280">예: 계좌이체 / 사회자 / 가방순이 / 부모님 지인 / 업체 관계자</span></div>
       <div id="pre-share-list-pc" class="pre-share-list"></div>
       <div class="add-row" style="margin-top:10px">
         <select class="add-select-sm" id="ps-side">
@@ -1500,9 +1500,9 @@ async function saveAll(){
         if(ticketStamp)      lines.push(`· 식권 도장: ${ticketStamp==='true'?'전달함':'전달안함'}`);
       }
 
-      // STEP4: 사전 전달 식권
+      // STEP4: 봉투 없이 식권 수령자 (메모용)
       if(preShares && preShares.length){
-        lines.push('🎟️ 사전 전달 식권');
+        lines.push('🎟️ 봉투 없이 식권 수령자');
         preShares.forEach(p=>{
           const icon = p.side==='신랑측'?'🤵':'👰';
           lines.push(`· ${icon} ${p.side} ${p.person_name||''} ${p.amount}장`);

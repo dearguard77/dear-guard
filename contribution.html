@@ -1195,12 +1195,10 @@ function renderStats(){
   const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0),0);
   const gExtra=ticketExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
   const bExtra=ticketExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
-  const gPreShare=preShares.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
-  const bPreShare=preShares.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
   const gTotal=totalTickets.groom>0?totalTickets.groom+gExtra:null;
   const bTotal=totalTickets.bride>0?totalTickets.bride+bExtra:null;
-  const gRemain=gTotal!==null?gTotal-gUsed-gPreShare:null;
-  const bRemain=bTotal!==null?bTotal-bUsed-bPreShare:null;
+  const gRemain=gTotal!==null?gTotal-gUsed:null;
+  const bRemain=bTotal!==null?bTotal-bUsed:null;
   const se=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   se('stat-total-amount',fmtFull(total));
   se('stat-total-count','총 '+logs.length+'건');
