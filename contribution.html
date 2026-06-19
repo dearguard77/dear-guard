@@ -1215,8 +1215,8 @@ function renderStats(){
   se('stat-cash',cashCnt+'건');
   se('stat-transfer',transCnt+'건');
   se('g-total-tkt',gTotal!==null?(totalTickets.groom+'장'+(gExtra>0?' +추가'+gExtra:'')):'미설정');
-  se('g-used-tkt',gUsed+'장');
-  se('g-used-tkt2',gUsed);
+  se('g-used-tkt',(gUsed+gPreShare)+'장');
+  se('g-used-tkt2',(gUsed+gPreShare));
   se('g-extra-tkt',gExtra>0?'+'+gExtra+'장':'—');
   const gREl=document.getElementById('g-remain-tkt');
   const gR2El=document.getElementById('g-remain-tkt2');
@@ -1224,8 +1224,8 @@ function renderStats(){
   if(gREl){gREl.textContent=gRemain===null?'—':gRemain+'장';gREl.style.color=gRColor;}
   if(gR2El){gR2El.textContent=gRemain===null?'—':String(gRemain);gR2El.style.color=gRColor;}
   se('b-total-tkt',bTotal!==null?(totalTickets.bride+'장'+(bExtra>0?' +추가'+bExtra:'')):'미설정');
-  se('b-used-tkt',bUsed+'장');
-  se('b-used-tkt2',bUsed);
+  se('b-used-tkt',(bUsed+bPreShare)+'장');
+  se('b-used-tkt2',(bUsed+bPreShare));
   se('b-extra-tkt',bExtra>0?'+'+bExtra+'장':'—');
   const bREl=document.getElementById('b-remain-tkt');
   const bR2El=document.getElementById('b-remain-tkt2');
@@ -1233,14 +1233,14 @@ function renderStats(){
   if(bREl){bREl.textContent=bRemain===null?'—':bRemain+'장';bREl.style.color=bRColor;}
   if(bR2El){bR2El.textContent=bRemain===null?'—':String(bRemain);bR2El.style.color=bRColor;}
   se('tks-g-total',gTotal!==null?gTotal+'장':'미설정');
-  se('tks-g-used',gUsed+'장');
+  se('tks-g-used',(gUsed+gPreShare)+'장');
   const tksGR=document.getElementById('tks-g-remain');
   if(tksGR){
     if(gRemain===null){tksGR.textContent='—';tksGR.style.color='#9CA3AF';tksGR.style.animation='';}
     else{tksGR.textContent=gRemain+'장';tksGR.style.color=gRColor;tksGR.style.animation=gRemain<=5?'blink 0.7s ease-in-out infinite':'';}
   }
   se('tks-b-total',bTotal!==null?bTotal+'장':'미설정');
-  se('tks-b-used',bUsed+'장');
+  se('tks-b-used',(bUsed+bPreShare)+'장');
   const tksBR=document.getElementById('tks-b-remain');
   if(tksBR){
     if(bRemain===null){tksBR.textContent='—';tksBR.style.color='#9CA3AF';tksBR.style.animation='';}
