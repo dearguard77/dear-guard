@@ -997,21 +997,25 @@ async function deletePreShare(id){
 }
 function renderPreShareList(){
   var empty = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">식권 수령 내역 없음</div>';
-  var html = preShares.length ? preShares.map(function(p){
-    var icon = p.side==='신랑측' ? '🤵' : '👰';
-    var label = esc(p.person_name||'');
-    return '<div style="display:flex;align-items:center;gap:3px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px">'+
-      '<span style="flex-shrink:0">'+icon+'</span>'+
-      '<span style="flex:1;min-width:0;color:#374151;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</span>'+
-      '<span style="font-weight:700;color:#C7A96B;flex-shrink:0;margin-right:2px">'+p.amount+'장</span>'+
-      '<button onclick="editPreShare('+p.id+')" title="수정" style="width:18px;height:18px;background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">✏️</button>'+
-      '<button onclick="deletePreShare('+p.id+')" title="삭제" style="width:18px;height:18px;background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">🗑️</button>'+
-    '</div>';
-  }).join('') : empty;
+  function makeHtml(list){
+    return list.length ? list.map(function(p){
+      var icon = p.side==='신랑측' ? '🤵' : '👰';
+      var label = esc(p.person_name||'');
+      return '<div style="display:flex;align-items:center;gap:3px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px">'+
+        '<span style="flex-shrink:0">'+icon+'</span>'+
+        '<span style="flex:1;min-width:0;color:#374151;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</span>'+
+        '<span style="font-weight:700;color:#C7A96B;flex-shrink:0;margin-right:2px">'+p.amount+'장</span>'+
+        '<button onclick="editPreShare('+p.id+')" title="수정" style="width:18px;height:18px;background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">✏️</button>'+
+        '<button onclick="deletePreShare('+p.id+')" title="삭제" style="width:18px;height:18px;background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">🗑️</button>'+
+      '</div>';
+    }).join('') : empty;
+  }
+  var gList = preShares.filter(function(p){ return p.side==='신랑측'; });
+  var bList = preShares.filter(function(p){ return p.side==='신부측'; });
   var elG = document.getElementById('pre-share-list');
   var elB = document.getElementById('pre-share-list-b');
-  if(elG) elG.innerHTML = html;
-  if(elB) elB.innerHTML = html;
+  if(elG) elG.innerHTML = makeHtml(gList);
+  if(elB) elB.innerHTML = makeHtml(bList);
 }
 
 function saveTotalTickets(){
@@ -1211,8 +1215,8 @@ function renderStats(){
   se('stat-cash',cashCnt+'건');
   se('stat-transfer',transCnt+'건');
   se('g-total-tkt',gTotal!==null?(totalTickets.groom+'장'+(gExtra>0?' +추가'+gExtra:'')):'미설정');
-  se('g-used-tkt',(gUsed+gPreShare)+'장');
-  se('g-used-tkt2',(gUsed+gPreShare));
+  se('g-used-tkt',gUsed+'장');
+  se('g-used-tkt2',gUsed);
   se('g-extra-tkt',gExtra>0?'+'+gExtra+'장':'—');
   const gREl=document.getElementById('g-remain-tkt');
   const gR2El=document.getElementById('g-remain-tkt2');
@@ -1220,8 +1224,8 @@ function renderStats(){
   if(gREl){gREl.textContent=gRemain===null?'—':gRemain+'장';gREl.style.color=gRColor;}
   if(gR2El){gR2El.textContent=gRemain===null?'—':String(gRemain);gR2El.style.color=gRColor;}
   se('b-total-tkt',bTotal!==null?(totalTickets.bride+'장'+(bExtra>0?' +추가'+bExtra:'')):'미설정');
-  se('b-used-tkt',(bUsed+bPreShare)+'장');
-  se('b-used-tkt2',(bUsed+bPreShare));
+  se('b-used-tkt',bUsed+'장');
+  se('b-used-tkt2',bUsed);
   se('b-extra-tkt',bExtra>0?'+'+bExtra+'장':'—');
   const bREl=document.getElementById('b-remain-tkt');
   const bR2El=document.getElementById('b-remain-tkt2');
@@ -1229,14 +1233,14 @@ function renderStats(){
   if(bREl){bREl.textContent=bRemain===null?'—':bRemain+'장';bREl.style.color=bRColor;}
   if(bR2El){bR2El.textContent=bRemain===null?'—':String(bRemain);bR2El.style.color=bRColor;}
   se('tks-g-total',gTotal!==null?gTotal+'장':'미설정');
-  se('tks-g-used',(gUsed+gPreShare)+'장');
+  se('tks-g-used',gUsed+'장');
   const tksGR=document.getElementById('tks-g-remain');
   if(tksGR){
     if(gRemain===null){tksGR.textContent='—';tksGR.style.color='#9CA3AF';tksGR.style.animation='';}
     else{tksGR.textContent=gRemain+'장';tksGR.style.color=gRColor;tksGR.style.animation=gRemain<=5?'blink 0.7s ease-in-out infinite':'';}
   }
   se('tks-b-total',bTotal!==null?bTotal+'장':'미설정');
-  se('tks-b-used',(bUsed+bPreShare)+'장');
+  se('tks-b-used',bUsed+'장');
   const tksBR=document.getElementById('tks-b-remain');
   if(tksBR){
     if(bRemain===null){tksBR.textContent='—';tksBR.style.color='#9CA3AF';tksBR.style.animation='';}
