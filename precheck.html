@@ -1509,6 +1509,15 @@ async function saveAll(){
         });
       }
 
+      // STEP6: 디어가드 이용 안내
+      const dgDisclosed   = getRadioVal('dg-disclosed-group');
+      const dgRelationDesc = gv('dg_relation_desc');
+      if(dgDisclosed === 'true'){
+        lines.push('🤝 디어가드 이용 안내: 혼주 인지 완료');
+      } else if(dgDisclosed === 'false'){
+        lines.push(`🤝 디어가드 이용 안내: 당일 관계 안내 필요 · ${dgRelationDesc||'미입력'}`);
+      }
+
       const precheckText = lines.join('\n');
 
       const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
