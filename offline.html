@@ -53,12 +53,14 @@ input,select{font-family:inherit}
 .card-sub{font-size:12px;color:#9CA3AF;margin-bottom:20px}
 
 /* Schedule List */
-.sch-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
-.sch-item{border:1.5px solid #E5E7EB;border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all .15s}
+.sch-search{width:100%;border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 14px 10px 36px;font-size:14px;color:#111827;outline:none;transition:border-color .15s;margin-bottom:10px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239CA3AF' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 11px center}
+.sch-search:focus{border-color:#C7A96B}
+.sch-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto}
+.sch-item{border:1.5px solid #E5E7EB;border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s}
 .sch-item:hover{border-color:#C7A96B;background:#FAFAF8}
 .sch-item.selected{border-color:#C7A96B;background:#FDF8F3}
-.sch-icon{width:44px;height:44px;border-radius:10px;background:#FDF8F3;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.sch-name{font-size:15px;font-weight:800;color:#111827;margin-bottom:2px}
+.sch-icon{width:40px;height:40px;border-radius:10px;background:#FDF8F3;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sch-name{font-size:14px;font-weight:800;color:#111827;margin-bottom:2px}
 .sch-info{font-size:12px;color:#6B7280}
 .sch-empty{text-align:center;padding:32px;color:#9CA3AF;font-size:13px}
 
@@ -207,6 +209,8 @@ input,select{font-family:inherit}
     <div class="card">
       <div class="card-title">📋 예식 일정 선택</div>
       <div class="card-sub">데이터를 업로드할 예식을 선택하세요</div>
+      <input class="sch-search" id="sch-search" placeholder="이름 · 예식장 검색" oninput="renderSchList()" autocomplete="off">
+      <div style="font-size:11px;color:#9CA3AF;margin-bottom:6px" id="sch-count"></div>
       <div class="sch-list" id="sch-list"><div class="sch-empty">일정을 불러오는 중...</div></div>
     </div>
     <button class="btn-primary" id="btn-s1" onclick="goStep2()" disabled>다음 → 측 선택</button>
@@ -407,8 +411,17 @@ function coupleName(s){var g=(s.groom_name||'').trim(),b=(s.bride_name||'').trim
 function coupleIcon(s){var g=(s.groom_name||'').trim(),b=(s.bride_name||'').trim();if(g&&b)return '💑';if(g)return '🤵';if(b)return '👰';return '💍';}
 function renderSchList(){
   var el=document.getElementById('sch-list');
+  var cntEl=document.getElementById('sch-count');
   if(!schedules.length){el.innerHTML='<div class="sch-empty">등록된 일정이 없습니다</div>';return;}
-  el.innerHTML=schedules.map(function(s){
+  var q=((document.getElementById('sch-search')||{}).value||'').trim().toLowerCase();
+  var filtered=q?schedules.filter(function(s){
+    return coupleName(s).toLowerCase().includes(q)||
+           (s.hall||'').toLowerCase().includes(q)||
+           (s.date||'').replace(/-/g,'').includes(q.replace(/\./g,''));
+  }):schedules;
+  if(cntEl) cntEl.textContent=q?'검색 결과 '+filtered.length+'건 (전체 '+schedules.length+'개)':'전체 '+schedules.length+'개';
+  if(!filtered.length){el.innerHTML='<div class="sch-empty">검색 결과가 없습니다</div>';return;}
+  el.innerHTML=filtered.map(function(s){
     var sel=selectedSch&&selectedSch.id===s.id;
     return '<div class="sch-item'+(sel?' selected':'')+'" onclick="selectSchedule('+s.id+')">'+
       '<div class="sch-icon">'+coupleIcon(s)+'</div>'+
@@ -416,6 +429,7 @@ function renderSchList(){
         '<div class="sch-name">'+esc(coupleName(s))+'</div>'+
         '<div class="sch-info">'+esc((s.date||'').replace(/-/g,'.'))+' '+esc((s.time||'').slice(0,5))+(s.hall?' · '+esc(s.hall):'')+'</div>'+
       '</div>'+
+      (sel?'<span style="font-size:12px;color:#C7A96B;font-weight:700;flex-shrink:0">✓ 선택됨</span>':'')+
     '</div>';
   }).join('');
 }
