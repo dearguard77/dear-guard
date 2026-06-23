@@ -145,6 +145,25 @@ input,select{font-family:inherit}
 .logout-btn{font-size:11px;color:#9CA3AF;background:none;border:none;cursor:pointer}
 .logout-btn:hover{color:#374151}
 
+/* Preview tabs */
+.preview-tab-bar{display:flex;border-bottom:2px solid #E5E7EB;margin-bottom:14px;gap:0}
+.preview-tab{padding:7px 18px;font-size:13px;font-weight:700;border:none;background:none;color:#9CA3AF;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.preview-tab.active{color:#111827;border-bottom-color:#111827}
+.preview-pane{display:none}
+.preview-pane.active{display:block}
+
+/* Sheet validation */
+.sheet-check{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.sheet-check-row{font-size:12px;color:#374151;display:flex;align-items:center;gap:6px}
+
+/* Ops preview */
+.ops-preview-row{padding:9px 14px;font-size:13px;border-bottom:1px solid #F3F4F6;display:flex;align-items:baseline;gap:10px}
+.ops-preview-row:last-child{border-bottom:none}
+.ops-preview-row:hover{background:#FAFAF8}
+.ops-time{font-size:12px;font-weight:700;color:#C7A96B;flex-shrink:0;min-width:44px}
+.ops-category{font-size:11px;background:#F3F4F6;color:#374151;border-radius:4px;padding:1px 7px;font-weight:700;flex-shrink:0}
+.ops-content{font-size:13px;color:#111827;flex:1}
+
 /* Toast */
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:700;z-index:9000;display:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 
@@ -256,11 +275,27 @@ input,select{font-family:inherit}
     </div>
     <div id="preview-card" class="card" style="display:none">
       <div class="card-title">👀 미리보기</div>
-      <div class="sum-grid" id="preview-stats"></div>
-      <div class="preview-wrap">
-        <div class="preview-head" id="preview-head"></div>
-        <div class="preview-body" id="preview-body"></div>
-        <div class="preview-summary" id="preview-foot"></div>
+      <!-- 파일 검증 -->
+      <div class="sheet-check" id="sheet-check"></div>
+      <!-- 탭 -->
+      <div class="preview-tab-bar">
+        <button class="preview-tab active" id="ptab-ledger" onclick="switchPreviewTab('ledger')">📋 장부</button>
+        <button class="preview-tab" id="ptab-ops" onclick="switchPreviewTab('ops')">📝 운영메모</button>
+      </div>
+      <!-- 장부 탭 -->
+      <div class="preview-pane active" id="ppane-ledger">
+        <div class="sum-grid" id="preview-stats"></div>
+        <div class="preview-wrap">
+          <div class="preview-head" id="preview-head"></div>
+          <div class="preview-body" id="preview-body"></div>
+          <div class="preview-summary" id="preview-foot"></div>
+        </div>
+      </div>
+      <!-- 운영메모 탭 -->
+      <div class="preview-pane" id="ppane-ops">
+        <div class="preview-wrap">
+          <div class="preview-body" id="ops-preview-body" style="max-height:260px"></div>
+        </div>
       </div>
     </div>
     <div style="display:flex;gap:10px">
@@ -350,7 +385,7 @@ const USERS=[
   {id:10,name:'임우령',role:'실장',avatar:'실',pw:'wr'},
 ];
 
-var currentUser=null,schedules=[],selectedSch=null,selectedSide=null,parsedRows=[],rawHeaders=[],rawData=[];
+var currentUser=null,schedules=[],selectedSch=null,selectedSide=null,parsedRows=[],rawHeaders=[],rawData=[],opsRows=[];
 
 var esc=function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
 var fmt=function(n){return Number(n||0).toLocaleString()+'원';};
@@ -497,15 +532,57 @@ function processFile(file){
     try{
       var data=new Uint8Array(e.target.result);
       var wb=XLSX.read(data,{type:'array',cellDates:true});
-      var ws=wb.Sheets[wb.SheetNames[0]];
-      var json=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'HH:MM'});
-      if(!json||json.length<2){showToast('⚠️ 데이터가 없습니다');return;}
-      rawHeaders=json[0].map(function(h){return (h||'').toString().trim();});
-      rawData=json.slice(1).filter(function(row){return row.some(function(c){return c!==undefined&&c!=='';});});
+
+      // ── 장부: 첫 번째 시트
+      var ws1=wb.Sheets[wb.SheetNames[0]];
+      var json1=XLSX.utils.sheet_to_json(ws1,{header:1,raw:false,dateNF:'HH:MM'});
+      if(!json1||json1.length<2){showToast('⚠️ 장부 시트에 데이터가 없습니다');return;}
+      rawHeaders=json1[0].map(function(h){return (h||'').toString().trim();});
+      rawData=json1.slice(1).filter(function(row){return row.some(function(c){return c!==undefined&&c!=='';});});
+
+      // ── 운영메모: 두 번째 시트 (없어도 됨)
+      var hasOps=wb.SheetNames.length>=2;
+      opsRows=[];
+      if(hasOps){
+        var ws2=wb.Sheets[wb.SheetNames[1]];
+        var json2=XLSX.utils.sheet_to_json(ws2,{header:1,raw:false,dateNF:'HH:MM'});
+        if(json2&&json2.length>=2){
+          var oh=json2[0].map(function(h){return (h||'').toString().trim().toLowerCase();});
+          // 시간/구분/내용 컬럼 자동 감지
+          var ti2=detectOpsCol(oh,['시간','접수시간','time']);
+          var ci2=detectOpsCol(oh,['구분','분류','category','type']);
+          var ni2=detectOpsCol(oh,['내용','운영메모','메모','memo','content','note']);
+          var odata=json2.slice(1).filter(function(row){return row.some(function(c){return c!==undefined&&c!=='';});});
+          opsRows=odata.map(function(row){
+            return {
+              time_str: ti2>=0?String(row[ti2]||'').trim():'',
+              category: ci2>=0?String(row[ci2]||'').trim():'',
+              content:  ni2>=0?String(row[ni2]||'').trim():''
+            };
+          }).filter(function(r){return r.content;});
+        }
+      }
+
+      // ── 검증 표시 (openMapModal 전에 세팅, 실제 렌더는 applyMapping 후)
+      var _hasOps=hasOps;
+      var _opsCount=opsRows.length;
+      window._sheetCheckHtml=
+        '<div class="sheet-check-row"><span>'+('' ? '⚠️':'✔')+'</span><span>✔ 장부 시트 확인 ('+rawData.length+'행)</span></div>'+
+        (_hasOps
+          ? '<div class="sheet-check-row"><span>✔ 운영메모 시트 확인 ('+_opsCount+'건)</span></div>'
+          : '<div class="sheet-check-row" style="color:#D97706"><span>⚠ 운영메모 시트 없음 (장부만 업로드됩니다)</span></div>');
+
       openMapModal();
     }catch(err){showToast('⚠️ 파일 읽기 실패: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
+}
+
+function detectOpsCol(headers, aliases){
+  for(var i=0;i<headers.length;i++){
+    for(var j=0;j<aliases.length;j++){if(headers[i].includes(aliases[j]))return i;}
+  }
+  return -1;
 }
 
 function openMapModal(){
@@ -547,7 +624,11 @@ function applyMapping(){
     };
   }).filter(function(r){return r.guest_name||r.amount>0;});
   document.getElementById('map-modal').classList.remove('open');
+  // 파일 검증 표시
+  var sc=document.getElementById('sheet-check');
+  if(sc&&window._sheetCheckHtml)sc.innerHTML=window._sheetCheckHtml;
   renderPreview();
+  renderOpsPreview();
   document.getElementById('preview-card').style.display='block';
   document.getElementById('btn-s3').disabled=false;
 }
@@ -582,6 +663,29 @@ function renderPreview(){
     '<span>계좌이체 <strong>'+tr+'건</strong></span>'+
     '<span>대인 <strong>'+adT+'</strong> / 소인 <strong>'+chT+'</strong></span>'+
     (parsedRows.length>200?'<span style="color:#EF4444">200행 이후 표시 생략 (저장은 전체)</span>':'');
+}
+
+function switchPreviewTab(tab){
+  ['ledger','ops'].forEach(function(t){
+    document.getElementById('ptab-'+t).className='preview-tab'+(t===tab?' active':'');
+    document.getElementById('ppane-'+t).className='preview-pane'+(t===tab?' active':'');
+  });
+}
+
+function renderOpsPreview(){
+  var el=document.getElementById('ops-preview-body');
+  if(!el)return;
+  if(!opsRows.length){
+    el.innerHTML='<div style="text-align:center;padding:28px;font-size:13px;color:#9CA3AF">운영메모가 없거나 시트가 없습니다</div>';
+    return;
+  }
+  el.innerHTML=opsRows.map(function(r){
+    return '<div class="ops-preview-row">'+
+      (r.time_str?'<span class="ops-time">'+esc(r.time_str)+'</span>':'')+
+      (r.category?'<span class="ops-category">'+esc(r.category)+'</span>':'')+
+      '<span class="ops-content">'+esc(r.content)+'</span>'+
+    '</div>';
+  }).join('');
 }
 
 // ── Step 4: Confirm
@@ -658,7 +762,7 @@ async function startUpload(){
 
 // ── Reset
 function resetAll(){
-  selectedSch=null;selectedSide=null;parsedRows=[];rawHeaders=[];rawData=[];
+  selectedSch=null;selectedSide=null;parsedRows=[];rawHeaders=[];rawData=[];opsRows=[];window._sheetCheckHtml='';
   document.getElementById('file-input').value='';
   document.getElementById('preview-card').style.display='none';
   document.getElementById('btn-s3').disabled=true;
