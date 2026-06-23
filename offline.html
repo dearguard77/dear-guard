@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dear Guard · 오프라인 장부 업로드</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F5F3F0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#F8F7F5;color:#111827;font-size:14px;min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+input,select{font-family:inherit}
+
+/* Loading */
+#loading-screen{position:fixed;inset:0;background:#F8F7F5;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:12px}
+.spinner{width:28px;height:28px;border:2.5px solid rgba(199,169,107,.2);border-top-color:#C7A96B;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Login */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#F8F5F0,#FDF8F3);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:24px;padding:40px 32px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.login-logo{font-family:Georgia,serif;font-size:28px;font-weight:700;color:#C7A96B;letter-spacing:2px;text-align:center;margin-bottom:6px}
+.login-sub{font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:32px}
+.login-field{margin-bottom:14px}
+.login-label{font-size:11px;font-weight:700;color:#6B7280;margin-bottom:6px;display:block}
+.login-input{width:100%;border:1.5px solid #E5E7EB;border-radius:10px;padding:11px 14px;font-size:14px;color:#111827;outline:none;transition:border-color .15s}
+.login-input:focus{border-color:#C7A96B}
+.login-btn{width:100%;background:#C7A96B;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;margin-top:8px;transition:background .15s}
+.login-btn:hover{background:#B8976A}
+.login-err{font-size:12px;color:#EF4444;text-align:center;margin-top:10px;min-height:18px;font-weight:600}
+
+/* App */
+#app{display:none;max-width:680px;margin:0 auto;padding:24px 16px 60px}
+
+/* Step Bar */
+.step-bar{display:flex;align-items:center;margin-bottom:28px}
+.step-item{display:flex;align-items:center;gap:8px;font-size:12px}
+.step-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;transition:all .2s}
+.step-num.done{background:#C7A96B;color:#fff}
+.step-num.active{background:#111827;color:#fff}
+.step-num.idle{background:#E5E7EB;color:#9CA3AF}
+.step-label{color:#6B7280;font-weight:600;white-space:nowrap}
+.step-label.active{color:#111827;font-weight:800}
+.step-sep{flex:1;height:1px;background:#E5E7EB;margin:0 8px}
+
+/* Cards */
+.card{background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:24px;margin-bottom:16px}
+.card-title{font-size:16px;font-weight:800;color:#111827;margin-bottom:6px}
+.card-sub{font-size:12px;color:#9CA3AF;margin-bottom:20px}
+
+/* Schedule List */
+.sch-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
+.sch-item{border:1.5px solid #E5E7EB;border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all .15s}
+.sch-item:hover{border-color:#C7A96B;background:#FAFAF8}
+.sch-item.selected{border-color:#C7A96B;background:#FDF8F3}
+.sch-icon{width:44px;height:44px;border-radius:10px;background:#FDF8F3;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sch-name{font-size:15px;font-weight:800;color:#111827;margin-bottom:2px}
+.sch-info{font-size:12px;color:#6B7280}
+.sch-empty{text-align:center;padding:32px;color:#9CA3AF;font-size:13px}
+
+/* Side Buttons */
+.side-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.side-btn{border:2px solid #E5E7EB;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:#fff}
+.side-btn:hover{border-color:#C7B89A}
+.side-btn.sel-g{border-color:#2563EB;background:#EFF6FF}
+.side-btn.sel-b{border-color:#DB2777;background:#FDF2F8}
+.side-btn-icon{font-size:24px;margin-bottom:6px}
+.side-btn-label{font-size:14px;font-weight:800}
+
+/* Drop zone */
+.drop-zone{border:2px dashed #E5E7EB;border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.drop-zone:hover,.drop-zone.drag-over{border-color:#C7A96B;background:#FDFBF7}
+.drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:32px;margin-bottom:10px}
+.drop-text{font-size:14px;font-weight:700;color:#374151;margin-bottom:4px}
+.drop-hint{font-size:12px;color:#9CA3AF}
+.col-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:14px}
+.col-chip{background:#FDF8F0;border:1px solid #E8D5B0;border-radius:6px;padding:2px 9px;font-size:11px;font-weight:700;color:#B8933A}
+
+/* Preview */
+.preview-wrap{border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;margin-top:16px}
+.preview-head{background:#F9FAFB;padding:8px 14px;font-size:11px;font-weight:700;color:#6B7280;display:grid;border-bottom:1px solid #E5E7EB}
+.preview-body{overflow-y:auto;max-height:260px}
+.preview-row{padding:9px 14px;font-size:13px;display:grid;border-bottom:1px solid #F3F4F6;align-items:center}
+.preview-row:last-child{border-bottom:none}
+.preview-row:hover{background:#FAFAF8}
+.preview-amt{font-weight:800;color:#C7A96B}
+.preview-tkt{font-size:11px;background:#FEF3C7;color:#D97706;border-radius:4px;padding:1px 6px;font-weight:700;display:inline-block}
+.preview-summary{padding:10px 14px;background:#F9FAFB;font-size:12px;color:#6B7280;border-top:1px solid #E5E7EB;display:flex;gap:16px;font-weight:600}
+
+/* Summary count cards */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.sum-c{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;text-align:center}
+.sum-c .lbl{font-size:10px;color:#9CA3AF;font-weight:700;margin-bottom:4px;text-transform:uppercase}
+.sum-c .val{font-size:18px;font-weight:900;color:#111827}
+
+/* Mapping Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-title{font-size:16px;font-weight:900;margin-bottom:4px}
+.modal-sub{font-size:12px;color:#9CA3AF;margin-bottom:20px;line-height:1.6}
+.map-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.map-lbl{width:80px;font-size:12px;font-weight:700;color:#374151;flex-shrink:0}
+.map-lbl .req{color:#EF4444}
+.map-sel{flex:1;height:34px;border:1.5px solid #E5E7EB;border-radius:8px;padding:0 8px;font-size:12px;color:#111827;outline:none;cursor:pointer}
+.map-sel:focus{border-color:#C7A96B}
+.modal-btns{display:flex;gap:8px;margin-top:20px}
+
+/* Progress / Status */
+#status-area{margin-top:16px}
+.status-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:13px}
+.status-row:last-child{border-bottom:none}
+.prog-bar-wrap{background:#E5E7EB;border-radius:99px;height:6px;overflow:hidden;flex:1}
+.prog-bar-fill{height:100%;background:#C7A96B;border-radius:99px;transition:width .3s}
+#upload-result{display:none;border-radius:12px;padding:16px 18px;font-size:14px;font-weight:700;margin-top:16px;text-align:center}
+#upload-result.ok{background:#ECFDF5;color:#059669;border:1.5px solid #6EE7B7}
+#upload-result.err{background:#FEF2F2;color:#DC2626;border:1.5px solid #FCA5A5}
+
+/* Warn */
+.warn-banner{background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:10px;padding:12px 16px;font-size:12px;color:#92400E;margin-bottom:16px;line-height:1.7}
+.warn-banner strong{color:#D97706}
+
+/* Buttons */
+.btn-primary{background:#111827;color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:14px;font-weight:800;transition:opacity .15s;width:100%}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-gold{background:#C7A96B;color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:14px;font-weight:800;width:100%;transition:background .15s}
+.btn-gold:hover{background:#B8976A}
+.btn-ghost{background:none;border:1.5px solid #E5E7EB;border-radius:10px;padding:11px 20px;font-size:14px;color:#374151;font-weight:600}
+.btn-ghost:hover{border-color:#C7B89A}
+.btn-danger{background:#FEF2F2;color:#DC2626;border:1.5px solid #FCA5A5;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:800;flex:1}
+.btn-danger:hover{background:#FEE2E2}
+.btn-danger:disabled{opacity:.4;cursor:not-allowed}
+
+/* User bar */
+#user-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.avatar{width:30px;height:30px;border-radius:50%;background:#C7A96B;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.logout-btn{font-size:11px;color:#9CA3AF;background:none;border:none;cursor:pointer}
+.logout-btn:hover{color:#374151}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:700;z-index:9000;display:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+
+@media(max-width:480px){
+  .sum-grid{grid-template-columns:1fr 1fr}
+  .step-label{display:none}
+  #app{padding:16px 12px 60px}
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading-screen">
+  <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#C7A96B;letter-spacing:2px">Dear Guard</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Dear Guard</div>
+    <div class="login-sub">오프라인 장부 업로드</div>
+    <div class="login-field">
+      <label class="login-label">이름 선택</label>
+      <select class="login-input" id="login-name">
+        <option value="">— 이름을 선택하세요 —</option>
+      </select>
+    </div>
+    <div class="login-field">
+      <label class="login-label">비밀번호</label>
+      <input class="login-input" id="login-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <div id="user-bar">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="avatar" id="user-avatar"></div>
+      <span style="font-size:13px;font-weight:700" id="user-name-label"></span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+  </div>
+
+  <!-- Step Bar -->
+  <div class="step-bar">
+    <div class="step-item"><div class="step-num active" id="sn1">1</div><span class="step-label active" id="sl1">일정 선택</span></div>
+    <div class="step-sep"></div>
+    <div class="step-item"><div class="step-num idle" id="sn2">2</div><span class="step-label" id="sl2">측 선택</span></div>
+    <div class="step-sep"></div>
+    <div class="step-item"><div class="step-num idle" id="sn3">3</div><span class="step-label" id="sl3">파일 업로드</span></div>
+    <div class="step-sep"></div>
+    <div class="step-item"><div class="step-num idle" id="sn4">4</div><span class="step-label" id="sl4">저장</span></div>
+  </div>
+
+  <!-- STEP 1: 일정 선택 -->
+  <div id="panel1">
+    <div class="card">
+      <div class="card-title">📋 예식 일정 선택</div>
+      <div class="card-sub">데이터를 업로드할 예식을 선택하세요</div>
+      <div class="sch-list" id="sch-list"><div class="sch-empty">일정을 불러오는 중...</div></div>
+    </div>
+    <button class="btn-primary" id="btn-s1" onclick="goStep2()" disabled>다음 → 측 선택</button>
+  </div>
+
+  <!-- STEP 2: 측 선택 -->
+  <div id="panel2" style="display:none">
+    <div class="card">
+      <div class="card-title">⚡ 측 선택</div>
+      <div class="card-sub">이 엑셀 파일이 어느 측 데이터인지 선택하세요.<br>파일 전체가 하나의 측으로 일괄 적용됩니다.</div>
+      <div class="side-btns">
+        <div class="side-btn" id="btn-g" onclick="selectSide('신랑측')"><div class="side-btn-icon">🤵</div><div class="side-btn-label" style="color:#2563EB">신랑측</div></div>
+        <div class="side-btn" id="btn-b" onclick="selectSide('신부측')"><div class="side-btn-icon">👰</div><div class="side-btn-label" style="color:#DB2777">신부측</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-ghost" onclick="setStep(1)">← 뒤로</button>
+      <button class="btn-primary" id="btn-s2" onclick="goStep3()" disabled style="flex:1">다음 → 파일 업로드</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: 파일 업로드 + 미리보기 -->
+  <div id="panel3" style="display:none">
+    <div class="card">
+      <div class="card-title">📂 엑셀 파일 업로드</div>
+      <div class="card-sub">오프라인으로 작성한 장부 파일을 선택하세요</div>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text">파일을 드래그하거나 클릭하여 선택</div>
+        <div class="drop-hint">.xlsx · .xls · .csv 지원</div>
+      </div>
+      <div class="col-chips">
+        <span class="col-chip">번호</span>
+        <span class="col-chip">성함</span>
+        <span class="col-chip">금액</span>
+        <span class="col-chip">결제방식</span>
+        <span class="col-chip">관계</span>
+        <span class="col-chip">식권</span>
+        <span class="col-chip">메모</span>
+        <span class="col-chip">접수시간</span>
+      </div>
+    </div>
+    <div id="preview-card" class="card" style="display:none">
+      <div class="card-title">👀 미리보기</div>
+      <div class="sum-grid" id="preview-stats"></div>
+      <div class="preview-wrap">
+        <div class="preview-head" id="preview-head"></div>
+        <div class="preview-body" id="preview-body"></div>
+        <div class="preview-summary" id="preview-foot"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-ghost" onclick="setStep(2)">← 뒤로</button>
+      <button class="btn-primary" id="btn-s3" onclick="setStep(4);renderConfirm()" disabled style="flex:1">다음 → 저장</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: 최종 확인 + 저장 -->
+  <div id="panel4" style="display:none">
+    <div class="card">
+      <div class="card-title">✅ 최종 확인 및 저장</div>
+      <div id="confirm-info" style="font-size:13px;color:#374151;line-height:2.2;margin-bottom:16px"></div>
+      <div class="warn-banner">
+        ⚠️ <strong>기존 데이터 삭제 후 교체</strong><br>
+        저장 시 이 예식의 <strong>기존 contribution_logs 전체가 삭제</strong>되고 엑셀 데이터로 교체됩니다.<br>
+        live.html에서 바로 확인 가능합니다. 되돌릴 수 없으니 신중히 확인하세요.
+      </div>
+      <div id="status-area" style="display:none">
+        <div class="status-row">
+          <span style="width:20px;text-align:center">🗑️</span>
+          <span style="flex:1;font-size:13px">기존 데이터 삭제 중...</span>
+          <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-del" style="width:0%"></div></div>
+        </div>
+        <div class="status-row">
+          <span style="width:20px;text-align:center">📤</span>
+          <span id="prog-ins-label" style="flex:1;font-size:13px">데이터 저장 중...</span>
+          <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-ins" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div id="upload-result"></div>
+    </div>
+    <div style="display:flex;gap:10px" id="step4-btns">
+      <button class="btn-ghost" onclick="setStep(3)">← 뒤로</button>
+      <button class="btn-danger" id="btn-upload" onclick="startUpload()">🗑️ 기존 삭제 후 저장</button>
+    </div>
+    <div style="margin-top:10px;display:none" id="done-btns">
+      <button class="btn-gold" onclick="resetAll()">처음으로 돌아가기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Column Mapping Modal -->
+<div class="modal-overlay" id="map-modal">
+  <div class="modal-box">
+    <div class="modal-title">📋 컬럼 매핑</div>
+    <div class="modal-sub">엑셀 헤더를 자동 감지했습니다.<br>항목이 다르면 직접 선택해주세요.</div>
+    <div class="map-row"><div class="map-lbl">번호</div><select class="map-sel" id="map-num"></select></div>
+    <div class="map-row"><div class="map-lbl">성함 <span class="req">*</span></div><select class="map-sel" id="map-name"></select></div>
+    <div class="map-row"><div class="map-lbl">금액 <span class="req">*</span></div><select class="map-sel" id="map-amount"></select></div>
+    <div class="map-row"><div class="map-lbl">결제방식</div><select class="map-sel" id="map-payment"></select></div>
+    <div class="map-row"><div class="map-lbl">관계</div><select class="map-sel" id="map-relation"></select></div>
+    <div class="map-row"><div class="map-lbl">대인 식권</div><select class="map-sel" id="map-adult"></select></div>
+    <div class="map-row"><div class="map-lbl">소인 식권</div><select class="map-sel" id="map-child"></select></div>
+    <div class="map-row"><div class="map-lbl">메모</div><select class="map-sel" id="map-memo"></select></div>
+    <div class="map-row"><div class="map-lbl">접수시간</div><select class="map-sel" id="map-time"></select></div>
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="closeMapModal()">취소</button>
+      <button class="btn-primary" onclick="applyMapping()" style="flex:1">확인 →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://fmvomfjmkbklhaaapkbk.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
+const sb={
+  h:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
+  url:function(t,q){return SUPABASE_URL+'/rest/v1/'+t+(q||'');},
+  async get(t,q){var r=await fetch(sb.url(t,q),{headers:sb.h});if(!r.ok)throw new Error(await r.text());return r.json();},
+  async post(t,b){var r=await fetch(sb.url(t),{method:'POST',headers:Object.assign({'Prefer':'return=representation'},sb.h),body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();},
+  async del(t,q){var r=await fetch(sb.url(t,q),{method:'DELETE',headers:sb.h});if(!r.ok)throw new Error(await r.text());}
+};
+
+const USERS=[
+  {id:1,name:'강성주',role:'대표',avatar:'대',pw:'gg'},
+  {id:2,name:'전수연',role:'실장',avatar:'실',pw:'gg'},
+  {id:3,name:'조윤성',role:'실장',avatar:'실',pw:'ys'},
+  {id:4,name:'정선화',role:'실장',avatar:'실',pw:'sh'},
+  {id:5,name:'김지현',role:'실장',avatar:'실',pw:'jh'},
+  {id:6,name:'목수빈',role:'실장',avatar:'실',pw:'sb'},
+  {id:7,name:'양윤수',role:'실장',avatar:'실',pw:'ys'},
+  {id:8,name:'김홍주',role:'실장',avatar:'실',pw:'hj'},
+  {id:9,name:'이승윤',role:'실장',avatar:'실',pw:'sy'},
+  {id:10,name:'임우령',role:'실장',avatar:'실',pw:'wr'},
+];
+
+var currentUser=null,schedules=[],selectedSch=null,selectedSide=null,parsedRows=[],rawHeaders=[],rawData=[];
+
+var esc=function(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+var fmt=function(n){return Number(n||0).toLocaleString()+'원';};
+function showToast(msg,dur){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(function(){t.style.display='none';},dur||2200);}
+
+// ── Login
+function initLogin(){
+  var sel=document.getElementById('login-name');
+  sel.innerHTML='<option value="">— 이름을 선택하세요 —</option>'+
+    USERS.map(function(u){return '<option value="'+u.id+'">'+u.name+' ('+u.role+')</option>';}).join('');
+}
+function doLogin(){
+  var nv=document.getElementById('login-name').value;
+  var pv=document.getElementById('login-pw').value;
+  var er=document.getElementById('login-err');
+  er.textContent='';
+  if(!nv){er.textContent='이름을 선택해주세요.';return;}
+  if(!pv){er.textContent='비밀번호를 입력해주세요.';return;}
+  var user=USERS.find(function(u){return u.id===Number(nv);});
+  if(!user||user.pw!==pv){er.textContent='비밀번호가 올바르지 않습니다.';document.getElementById('login-pw').value='';return;}
+  localStorage.setItem('dg_offline_uid',user.id);
+  currentUser=user;
+  document.getElementById('login-screen').style.display='none';
+  startApp();
+}
+function doLogout(){
+  if(!confirm('로그아웃 하시겠습니까?'))return;
+  localStorage.removeItem('dg_offline_uid');
+  location.reload();
+}
+
+// ── Init
+async function init(){
+  initLogin();
+  var saved=localStorage.getItem('dg_offline_uid');
+  if(saved){var u=USERS.find(function(x){return x.id===Number(saved);});if(u){currentUser=u;document.getElementById('login-screen').style.display='none';await startApp();return;}}
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+async function startApp(){
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('user-avatar').textContent=currentUser.avatar;
+  document.getElementById('user-name-label').textContent=currentUser.name+' '+currentUser.role;
+  document.getElementById('app').style.display='block';
+  await loadSchedules();
+}
+
+// ── Schedules
+async function loadSchedules(){
+  try{
+    schedules=await sb.get('schedules','?order=date.asc,time.asc');
+    renderSchList();
+  }catch(e){
+    document.getElementById('sch-list').innerHTML='<div class="sch-empty" style="color:#DC2626">로드 실패: '+esc(e.message)+'</div>';
+  }
+}
+function coupleName(s){var g=(s.groom_name||'').trim(),b=(s.bride_name||'').trim();if(g&&b)return g+' ♥ '+b;if(g)return g+' 신랑측';if(b)return b+' 신부측';return s.hall||'미입력';}
+function coupleIcon(s){var g=(s.groom_name||'').trim(),b=(s.bride_name||'').trim();if(g&&b)return '💑';if(g)return '🤵';if(b)return '👰';return '💍';}
+function renderSchList(){
+  var el=document.getElementById('sch-list');
+  if(!schedules.length){el.innerHTML='<div class="sch-empty">등록된 일정이 없습니다</div>';return;}
+  el.innerHTML=schedules.map(function(s){
+    var sel=selectedSch&&selectedSch.id===s.id;
+    return '<div class="sch-item'+(sel?' selected':'')+'" onclick="selectSchedule('+s.id+')">'+
+      '<div class="sch-icon">'+coupleIcon(s)+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="sch-name">'+esc(coupleName(s))+'</div>'+
+        '<div class="sch-info">'+esc((s.date||'').replace(/-/g,'.'))+' '+esc((s.time||'').slice(0,5))+(s.hall?' · '+esc(s.hall):'')+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+function selectSchedule(id){
+  selectedSch=schedules.find(function(s){return s.id===id;});
+  renderSchList();
+  document.getElementById('btn-s1').disabled=false;
+}
+
+// ── Step control
+function setStep(n){
+  [1,2,3,4].forEach(function(i){
+    var num=document.getElementById('sn'+i);
+    var lbl=document.getElementById('sl'+i);
+    if(i<n){num.className='step-num done';num.textContent='✓';}
+    else if(i===n){num.className='step-num active';num.textContent=String(i);lbl.className='step-label active';}
+    else{num.className='step-num idle';num.textContent=String(i);lbl.className='step-label';}
+    document.getElementById('panel'+i).style.display=(i===n)?'block':'none';
+  });
+}
+function goStep2(){if(!selectedSch){showToast('예식을 선택해주세요');return;}setStep(2);}
+function goStep3(){if(!selectedSide){showToast('측을 선택해주세요');return;}setStep(3);}
+
+function selectSide(side){
+  selectedSide=side;
+  document.getElementById('btn-g').className='side-btn'+(side==='신랑측'?' sel-g':'');
+  document.getElementById('btn-b').className='side-btn'+(side==='신부측'?' sel-b':'');
+  document.getElementById('btn-s2').disabled=false;
+}
+
+// ── File Upload
+var ALIASES={
+  num:['번호','no','순번','number','순서'],
+  name:['성함','이름','성명','고객명','하객이름','name'],
+  amount:['금액','축의금','봉투금액','amount'],
+  payment:['결제방식','결제','payment','payment_type'],
+  relation:['관계','relation','rel'],
+  adult:['대인식권','대인','adult','식권','adult_ticket','식권수'],
+  child:['소인식권','소인','child','child_ticket'],
+  memo:['메모','비고','memo','note'],
+  time:['접수시간','시간','입력시간','타임스탬프','time','timestamp','created_at']
+};
+function detectCol(f){
+  for(var i=0;i<rawHeaders.length;i++){
+    var h=rawHeaders[i].toLowerCase();
+    for(var j=0;j<ALIASES[f].length;j++){if(h.includes(ALIASES[f][j].toLowerCase()))return i;}
+  }
+  return -1;
+}
+function buildOpts(id,det,req){
+  var sel=document.getElementById(id);sel.innerHTML='';
+  if(!req){var o=document.createElement('option');o.value='-1';o.textContent='— 없음 —';sel.appendChild(o);}
+  rawHeaders.forEach(function(h,i){var o=document.createElement('option');o.value=i;o.textContent=h||(i+1)+'번 열';if(i===det)o.selected=true;sel.appendChild(o);});
+  if(req&&det<0&&rawHeaders.length>0)sel.value='0';
+}
+var dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag-over');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('drag-over');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag-over');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0]);});
+document.getElementById('file-input').addEventListener('change',function(e){if(e.target.files[0])processFile(e.target.files[0]);});
+
+function processFile(file){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=new Uint8Array(e.target.result);
+      var wb=XLSX.read(data,{type:'array',cellDates:true});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var json=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'HH:MM'});
+      if(!json||json.length<2){showToast('⚠️ 데이터가 없습니다');return;}
+      rawHeaders=json[0].map(function(h){return (h||'').toString().trim();});
+      rawData=json.slice(1).filter(function(row){return row.some(function(c){return c!==undefined&&c!=='';});});
+      openMapModal();
+    }catch(err){showToast('⚠️ 파일 읽기 실패: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function openMapModal(){
+  buildOpts('map-num',    detectCol('num'),     false);
+  buildOpts('map-name',   detectCol('name'),    true);
+  buildOpts('map-amount', detectCol('amount'),  true);
+  buildOpts('map-payment',detectCol('payment'), false);
+  buildOpts('map-relation',detectCol('relation'),false);
+  buildOpts('map-adult',  detectCol('adult'),   false);
+  buildOpts('map-child',  detectCol('child'),   false);
+  buildOpts('map-memo',   detectCol('memo'),    false);
+  buildOpts('map-time',   detectCol('time'),    false);
+  document.getElementById('map-modal').classList.add('open');
+}
+function closeMapModal(){document.getElementById('map-modal').classList.remove('open');document.getElementById('file-input').value='';}
+
+function gi(id){return +document.getElementById(id).value;}
+function parseAmt(v){if(typeof v==='number')return v;var n=parseInt(String(v||'').replace(/[^0-9]/g,''),10);return isNaN(n)?0:n;}
+function parseTkt(v){if(typeof v==='number')return Math.round(v);var n=parseInt(String(v||'').replace(/[^0-9]/g,''),10);return isNaN(n)?0:n;}
+function fmtT(v){if(!v)return null;var s=String(v).trim();if(s.includes('T')||s.includes(' ')){var p=s.split(/T| /);return p[1]?p[1].slice(0,5):null;}if(/^\d{1,2}:\d{2}/.test(s))return s.slice(0,5);return null;}
+
+function applyMapping(){
+  var ni=gi('map-num'),nmi=gi('map-name'),ami=gi('map-amount');
+  var pi=gi('map-payment'),ri=gi('map-relation'),adi=gi('map-adult'),chi=gi('map-child'),mi=gi('map-memo'),ti=gi('map-time');
+  if(nmi<0||ami<0){alert('성함, 금액 컬럼은 필수입니다.');return;}
+  parsedRows=rawData.map(function(row,idx){
+    var rawPay=pi>=0?(row[pi]||'현금'):'현금';
+    var payNorm=/계좌|transfer|이체/i.test(String(rawPay))?'계좌이체':'현금';
+    return {
+      _seq: ni>=0?(parseInt(row[ni],10)||idx+1):idx+1,
+      guest_name: nmi>=0?(String(row[nmi]||'').trim()||null):null,
+      amount: ami>=0?parseAmt(row[ami]):0,
+      payment_type: payNorm,
+      relation: ri>=0?(String(row[ri]||'').trim()||null):null,
+      adult_ticket: adi>=0?parseTkt(row[adi]):0,
+      child_ticket: chi>=0?parseTkt(row[chi]):0,
+      memo: mi>=0?(String(row[mi]||'').trim()||null):null,
+      _time: ti>=0?fmtT(row[ti]):null
+    };
+  }).filter(function(r){return r.guest_name||r.amount>0;});
+  document.getElementById('map-modal').classList.remove('open');
+  renderPreview();
+  document.getElementById('preview-card').style.display='block';
+  document.getElementById('btn-s3').disabled=false;
+}
+
+function renderPreview(){
+  var tot=parsedRows.reduce(function(a,r){return a+r.amount;},0);
+  var adT=parsedRows.reduce(function(a,r){return a+r.adult_ticket;},0);
+  var chT=parsedRows.reduce(function(a,r){return a+r.child_ticket;},0);
+  var ca=parsedRows.filter(function(r){return r.payment_type==='현금';}).length;
+  var tr=parsedRows.filter(function(r){return r.payment_type==='계좌이체';}).length;
+  document.getElementById('preview-stats').innerHTML=
+    '<div class="sum-c"><div class="lbl">총 건수</div><div class="val">'+parsedRows.length+'건</div></div>'+
+    '<div class="sum-c"><div class="lbl">총 금액</div><div class="val" style="font-size:14px;color:#C7A96B">'+fmt(tot)+'</div></div>'+
+    '<div class="sum-c"><div class="lbl">식권 합계</div><div class="val">'+(adT+chT)+'매</div></div>';
+  var cols='38px 1fr 90px 56px 46px';
+  document.getElementById('preview-head').style.gridTemplateColumns=cols;
+  document.getElementById('preview-head').innerHTML='<span>#</span><span>이름</span><span style="text-align:right">금액</span><span>식권</span><span>시간</span>';
+  document.getElementById('preview-body').innerHTML=parsedRows.slice(0,200).map(function(r,i){
+    var tkt='';
+    if(r.adult_ticket>0)tkt+='<span class="preview-tkt">대'+r.adult_ticket+'</span>';
+    if(r.child_ticket>0)tkt+='<span class="preview-tkt" style="background:#EDE9FE;color:#7C3AED">소'+r.child_ticket+'</span>';
+    return '<div class="preview-row" style="grid-template-columns:'+cols+'">'+
+      '<span style="font-size:11px;font-weight:700;color:#C7A96B">#'+(i+1)+'</span>'+
+      '<span style="font-weight:700">'+esc(r.guest_name||'—')+(r.relation?'<span style="color:#9CA3AF;font-size:10px;margin-left:3px">'+esc(r.relation)+'</span>':'')+(r.memo?'<div style="font-size:10px;color:#9CA3AF">'+esc(r.memo)+'</div>':'')+'</span>'+
+      '<span class="preview-amt" style="text-align:right">'+(r.amount?fmt(r.amount):'—')+'</span>'+
+      '<span>'+(tkt||'<span style="color:#D1D5DB;font-size:12px">—</span>')+'</span>'+
+      '<span style="font-size:11px;color:#9CA3AF">'+(r._time||'—')+'</span>'+
+    '</div>';
+  }).join('');
+  document.getElementById('preview-foot').innerHTML=
+    '<span>현금 <strong>'+ca+'건</strong></span>'+
+    '<span>계좌이체 <strong>'+tr+'건</strong></span>'+
+    '<span>대인 <strong>'+adT+'</strong> / 소인 <strong>'+chT+'</strong></span>'+
+    (parsedRows.length>200?'<span style="color:#EF4444">200행 이후 표시 생략 (저장은 전체)</span>':'');
+}
+
+// ── Step 4: Confirm
+function renderConfirm(){
+  var s=selectedSch;
+  var tot=parsedRows.reduce(function(a,r){return a+r.amount;},0);
+  var tkt=parsedRows.reduce(function(a,r){return a+r.adult_ticket+r.child_ticket;},0);
+  document.getElementById('confirm-info').innerHTML=
+    '📋 <strong>예식:</strong> '+esc(coupleName(s))+'<br>'+
+    '📅 <strong>날짜:</strong> '+esc((s.date||'').replace(/-/g,'.'))+' '+esc((s.time||'').slice(0,5))+(s.hall?' · '+esc(s.hall):'')+'<br>'+
+    '⚡ <strong>측:</strong> '+esc(selectedSide)+'<br>'+
+    '📊 <strong>총 건수:</strong> '+parsedRows.length+'건<br>'+
+    '💰 <strong>총 금액:</strong> '+fmt(tot)+'<br>'+
+    '🎫 <strong>식권 합계:</strong> '+tkt+'매';
+  document.getElementById('upload-result').style.display='none';
+  document.getElementById('status-area').style.display='none';
+  document.getElementById('step4-btns').style.display='flex';
+  document.getElementById('done-btns').style.display='none';
+  document.getElementById('btn-upload').disabled=false;
+}
+
+// ── Upload
+async function startUpload(){
+  document.getElementById('btn-upload').disabled=true;
+  document.getElementById('step4-btns').style.display='none';
+  document.getElementById('status-area').style.display='block';
+  var res=document.getElementById('upload-result');
+  res.style.display='none';
+  try{
+    // 1. 기존 삭제
+    document.getElementById('prog-del').style.width='30%';
+    await sb.del('contribution_logs','?schedule_id=eq.'+selectedSch.id);
+    document.getElementById('prog-del').style.width='100%';
+
+    // 2. INSERT (배치 20건)
+    var rows=parsedRows.map(function(r,i){
+      return {
+        schedule_id:  selectedSch.id,
+        side:         selectedSide,
+        payment_type: r.payment_type,
+        guest_name:   r.guest_name||null,
+        relation:     r.relation||null,
+        amount:       r.amount||null,
+        adult_ticket: r.adult_ticket||0,
+        child_ticket: r.child_ticket||0,
+        memo:         r.memo||null,
+        created_by:   currentUser.name,
+        seq:          i+1
+      };
+    });
+    var BATCH=20;
+    for(var i=0;i<rows.length;i+=BATCH){
+      await sb.post('contribution_logs',rows.slice(i,i+BATCH));
+      var pct=Math.round(((i+Math.min(BATCH,rows.length-i))/rows.length)*100);
+      document.getElementById('prog-ins').style.width=pct+'%';
+      document.getElementById('prog-ins-label').textContent=(i+Math.min(BATCH,rows.length-i))+'/'+rows.length+'건 저장 중...';
+    }
+    document.getElementById('prog-ins').style.width='100%';
+    document.getElementById('prog-ins-label').textContent='저장 완료!';
+    res.className='ok';
+    res.textContent='✅ '+rows.length+'건 저장 완료! live.html에서 바로 확인하세요.';
+    res.style.display='block';
+    document.getElementById('done-btns').style.display='block';
+    showToast('✅ 업로드 완료!',3000);
+  }catch(e){
+    res.className='err';
+    res.textContent='⚠️ 저장 실패: '+e.message;
+    res.style.display='block';
+    document.getElementById('step4-btns').style.display='flex';
+    document.getElementById('btn-upload').disabled=false;
+    showToast('⚠️ 저장 실패');
+  }
+}
+
+// ── Reset
+function resetAll(){
+  selectedSch=null;selectedSide=null;parsedRows=[];rawHeaders=[];rawData=[];
+  document.getElementById('file-input').value='';
+  document.getElementById('preview-card').style.display='none';
+  document.getElementById('btn-s3').disabled=true;
+  document.getElementById('btn-s2').disabled=true;
+  document.getElementById('btn-s1').disabled=true;
+  document.getElementById('btn-g').className='side-btn';
+  document.getElementById('btn-b').className='side-btn';
+  renderSchList();
+  setStep(1);
+}
+
+init();
+</script>
+</body>
+</html>
