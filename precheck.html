@@ -1201,9 +1201,87 @@ async function saveDraftToDB(){
   if(!schedule) return;
   try {
     const draft = _collectDraft();
+    // ★ 임시저장 시 field_memo.precheck도 함께 업데이트 (index 상세모달에서 바로 확인 가능)
+    const CASH_LABEL    = { sealed:'밀봉 전달형', confirmed:'봉투 유지형', sorted:'권종별 정리형' };
+    const RECEIPT_LABEL = { personal:'개인', business:'사업자' };
+    const cashMethod    = getRadioVal('cash-group');
+    const giftYn        = getRadioVal('gift-group');
+    const mobileUrl     = gv('mobile_invite_url');
+    const receiptType   = getRadioVal('receipt-type-group');
+    const receiptNum    = gv('cash_receipt_number');
+    const memo          = gv('precheck_memo');
+    const reviewPlanned = getRadioVal('review-planned-group');
+    const lines = ['[사전체크 자동 등록]'];
+    const gContactName  = gv('groom_contact_name');
+    const gContactPhone = gv('groom_contact_phone');
+    const bContactName  = gv('bride_contact_name');
+    const bContactPhone = gv('bride_contact_phone');
+    if(gContactName || bContactName){
+      lines.push('📌 인계 담당자');
+      if(gContactName) lines.push(`🤵 신랑측 ${gContactName}${gContactPhone?' / '+gContactPhone:''}`);
+      if(bContactName) lines.push(`👰 신부측 ${bContactName}${bContactPhone?' / '+bContactPhone:''}`);
+    }
+    if(cashMethod) lines.push(`📩 축의금 전달 방식: ${CASH_LABEL[cashMethod]||cashMethod}`);
+    const giftDetail = getRadioVal('gift-detail-group');
+    const GIFT_DETAIL_LABEL = { hall:'홀 답례품 식권 교환형', desk:'축의대 직접 전달형' };
+    if(giftYn){
+      const giftDetailStr = (giftYn==='true' && giftDetail) ? ` · ${GIFT_DETAIL_LABEL[giftDetail]||giftDetail}` : '';
+      lines.push(`🎁 답례품: ${giftYn==='true'?'있음':'없음'}${giftDetailStr}`);
+    }
+    if(mobileUrl) lines.push(`💌 모바일 청첩장: ${mobileUrl}`);
+    if(receiptType||receiptNum) lines.push(`🧾 현금영수증: ${(RECEIPT_LABEL[receiptType]||'')+' '+(receiptNum||'')}`.trim());
+    if(memo) lines.push(`📝 특이사항: ${memo}`);
+    if(reviewPlanned) lines.push(`✍️ 본식 후기 작성 예정: ${reviewPlanned==='true'?'예':'아니오'}`);
+    const gPwEl = document.getElementById('g_ho_pw');
+    const bPwEl = document.getElementById('b_ho_pw');
+    const gPw = (gPwEl && gPwEl.value) ? gPwEl.value.trim() : '';
+    const bPw = (bPwEl && bPwEl.value) ? bPwEl.value.trim() : '';
+    if(gPw || bPw){
+      lines.push('🔒 레디백 비밀번호');
+      if(gPw) lines.push(`🤵 신랑측: ${gPw}`);
+      if(bPw) lines.push(`👰 신부측: ${bPw}`);
+    }
+    const ticketGuarantee  = gv('ticket_guarantee');
+    const ticketGroom      = gv('ticket_total_groom');
+    const ticketBride      = gv('ticket_total_bride');
+    const ticketExtraLimit = gv('ticket_extra_limit');
+    const ticketStamp      = getRadioVal('stamp-group');
+    const childGroomYn     = getRadioVal('child-groom-yn-group');
+    const childGroomAmt    = gv('ticket_child_groom');
+    const childBrideYn     = getRadioVal('child-bride-yn-group');
+    const childBrideAmt    = gv('ticket_child_bride');
+    if(ticketGuarantee || ticketGroom || ticketBride || ticketExtraLimit || ticketStamp){
+      lines.push('🎫 식권 정보');
+      if(ticketGuarantee)  lines.push(`· 전체 보증인원: ${ticketGuarantee}명`);
+      if(ticketGroom)      lines.push(`· 신랑측 식권: ${ticketGroom}장`);
+      if(childGroomYn === 'true' && childGroomAmt) lines.push(`· 신랑측 소인 식권: ${childGroomAmt}장`);
+      if(ticketBride)      lines.push(`· 신부측 식권: ${ticketBride}장`);
+      if(childBrideYn === 'true' && childBrideAmt) lines.push(`· 신부측 소인 식권: ${childBrideAmt}장`);
+      if(ticketExtraLimit) lines.push(`· 추가 발권 가능: ${ticketExtraLimit}장`);
+      if(ticketStamp)      lines.push(`· 식권 도장: ${ticketStamp==='true'?'전달함':'전달안함'}`);
+    }
+    if(preShares && preShares.length){
+      lines.push('🎟️ 봉투 없이 식권 수령자');
+      preShares.forEach(p=>{
+        const icon = p.side==='신랑측'?'🤵':'👰';
+        lines.push(`· ${icon} ${p.side} ${p.person_name||''} ${p.amount}장`);
+      });
+    }
+    const dgDisclosed    = getRadioVal('dg-disclosed-group');
+    const dgRelationDesc = gv('dg_relation_desc');
+    if(dgDisclosed === 'true'){
+      lines.push('🤝 디어가드 이용 안내: 혼주 인지 완료');
+    } else if(dgDisclosed === 'false'){
+      lines.push(`🤝 디어가드 이용 안내: 당일 관계 안내 필요 · ${dgRelationDesc||'미입력'}`);
+    }
+    const precheckText = lines.join('\n');
+    const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
+    const prevFieldMemo = (existing[0]?.field_memo) || {};
+    const newFieldMemo  = { ...prevFieldMemo, precheck: precheckText };
     await sb.patch('schedules', schedule.id, {
-      precheck_draft: draft,
+      precheck_draft:   draft,
       draft_updated_at: new Date().toISOString(),
+      field_memo:       newFieldMemo,
     });
   } catch(e){ console.warn('[DG] draft DB 저장 실패:', e); }
 }
