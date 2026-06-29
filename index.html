@@ -310,10 +310,9 @@
     <div class="login-logo">Dear Guard</div>
     <div class="login-sub">웨딩 운영 관리 시스템</div>
     <div class="login-field">
-      <label class="login-label">이름 선택</label>
-      <select class="login-input" id="login-name">
-        <option value="">— 이름을 선택하세요 —</option>
-      </select>
+      <label class="login-label">이름 입력</label>
+      <input class="login-input" id="login-name" type="text" placeholder="이름을 입력하세요" autocomplete="off" list="login-name-list" onkeydown="if(event.key==='Enter') document.getElementById('login-pw').focus()">
+      <datalist id="login-name-list"></datalist>
     </div>
     <div class="login-field">
       <label class="login-label">비밀번호</label>
@@ -1051,6 +1050,8 @@ const USERS = [
   { id:10, name:"임우령", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"wr" },
   { id:11, name:"강미송", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"ms" },
   { id:12, name:"노지훈", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"jh" },
+  { id:13, name:"김아희", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"ah" },
+  { id:14, name:"진효성", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"hs" },
 ];
 
 const PRODUCTS = ["2인 1팀","4인 2팀"];
@@ -1300,23 +1301,24 @@ function visible(){
 
 // ─── LOGIN ───────────────────────────────────────────────────────────────────
 function initLoginScreen(){
-  const sel = document.getElementById('login-name');
-  sel.innerHTML = '<option value="">— 이름을 선택하세요 —</option>'
-    + USERS.map(u => `<option value="${u.id}">${u.name} (${u.role})</option>`).join('');
+  const dl = document.getElementById('login-name-list');
+  dl.innerHTML = USERS.map(u => `<option value="${u.name} (${u.role})"></option>`).join('');
 }
 
 function doLogin(){
-  const nameVal = document.getElementById('login-name').value;
+  const nameVal = (document.getElementById('login-name').value || '').trim();
   const pwVal   = document.getElementById('login-pw').value;
   const errEl   = document.getElementById('login-err');
   errEl.textContent = '';
 
-  if(!nameVal){ errEl.textContent = '이름을 선택해주세요.'; return; }
+  if(!nameVal){ errEl.textContent = '이름을 입력해주세요.'; return; }
   if(!pwVal)  { errEl.textContent = '비밀번호를 입력해주세요.'; return; }
 
-  const user = USERS.find(u => u.id === Number(nameVal));
+  // "이름 (역할)" 형식 또는 이름만 입력해도 찾을 수 있도록
+  const inputName = nameVal.replace(/\s*\(.*\)\s*$/, '').trim();
+  const user = USERS.find(u => u.name === inputName);
   if(!user || user.pw !== pwVal){
-    errEl.textContent = '비밀번호가 올바르지 않습니다.';
+    errEl.textContent = '이름 또는 비밀번호가 올바르지 않습니다.';
     document.getElementById('login-pw').value = '';
     return;
   }
