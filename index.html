@@ -2807,7 +2807,6 @@ function syncContractMemoToSettlement(){
     wedding_discount:      20000,
     fast_discount:         20000,
     event_discount:        10000,
-    thread_discount:       10000,
     affiliate_discount5:   50000,
     affiliate_discount7:   70000,
   };
@@ -2983,15 +2982,13 @@ function applyProductPricePreset(force = false){
 }
 
 const CONTRACT_CHECKS = [
+  { key:'affiliate_discount7', label:'제휴 할인 (-7만)'     },
+  { key:'affiliate_discount5', label:'제휴 할인 (-5만)'     },
   { key:'open_discount',       label:'오픈 할인 (-5만)'     },
   { key:'review_discount',     label:'계약후기 할인 (-1만)' },
-  { key:'wedding_discount',    label:'본식후기 할인 (-2만)' },
-  { key:'couple_discount',     label:'짝꿍 할인 (-1만)'     },
   { key:'fast_discount',       label:'빠른계약 할인 (-2만)' },
+  { key:'couple_discount',     label:'짝꿍 할인 (-1만)'     },
   { key:'event_discount',      label:'이벤트 할인 (-1만)'   },
-  { key:'thread_discount',     label:'스레드 할인 (-1만)'   },
-  { key:'affiliate_discount5', label:'제휴 할인 (-5만)'     },
-  { key:'affiliate_discount7', label:'제휴 할인 (-7만)'     },
   { key:'etc_discount',        label:'기타 할인'             },
 ];
 
@@ -3004,7 +3001,7 @@ function renderContractChecks(){
     if(c.key === 'etc_discount'){
       return `
         <label style="display:flex;align-items:center;gap:7px;background:#FAF5FF;border:1px solid #E9D5FF;
-          border-radius:8px;padding:8px 10px;cursor:pointer;grid-column:1/-1">
+          border-radius:8px;padding:8px 10px;cursor:pointer">
           <input type="checkbox" ${formContractMemo['etc_discount']?'checked':''} id="etc-discount-chk"
             onchange="formContractMemo['etc_discount']=this.checked;document.getElementById('etc-discount-wrap').style.display=this.checked?'flex':'none';syncContractMemoToSettlement()"
             style="width:15px;height:15px;accent-color:#7C3AED;flex-shrink:0">
