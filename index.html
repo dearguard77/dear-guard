@@ -1047,8 +1047,10 @@ const USERS = [
   { id:6, name:"목수빈", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"sb" },
   { id:7, name:"양윤수", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"ys" },
   { id:8, name:"김홍주", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"hj" },
-  { id:9, name:"이승윤", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"sy" },
+  { id:9,  name:"이승윤", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"sy" },
   { id:10, name:"임우령", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"wr" },
+  { id:11, name:"강미송", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"ms" },
+  { id:12, name:"노지훈", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"jh" },
 ];
 
 const PRODUCTS = ["2인 1팀","4인 2팀"];
@@ -2625,6 +2627,8 @@ function openForm(id){
  // 현장메모 / 계약참고메모 초기화
   formFieldMemo    = s?.fieldMemo    ? {...s.fieldMemo}    : {};
   formContractMemo = s?.adminMemo    ? {...s.adminMemo}    : {};
+  // 기타 할인 금액 복원
+  if(formContractMemo['etc_discount_amount'] === undefined) formContractMemo['etc_discount_amount'] = '';
   if(document.getElementById('fm-field-text'))
     document.getElementById('fm-field-text').value       = formFieldMemo.text || '';
   if(document.getElementById('fm-field-urgent'))
@@ -2797,13 +2801,15 @@ function syncContractMemoToSettlement(){
 
   // 자동 계산에 반영할 할인 항목과 금액
   const DISCOUNT_MAP = {
-    open_discount:    50000,
-    couple_discount:  10000,
-    review_discount:  10000,
-    wedding_discount: 20000,
-    fast_discount:    20000,
-    event_discount:   10000,
-    thread_discount:  10000
+    open_discount:         50000,
+    couple_discount:       10000,
+    review_discount:       10000,
+    wedding_discount:      20000,
+    fast_discount:         20000,
+    event_discount:        10000,
+    thread_discount:       10000,
+    affiliate_discount5:   50000,
+    affiliate_discount7:   70000,
   };
 
   // 체크된 할인 합산
@@ -2811,6 +2817,9 @@ function syncContractMemoToSettlement(){
   Object.entries(DISCOUNT_MAP).forEach(([key, amount]) => {
     if(formContractMemo[key]) totalDiscount += amount;
   });
+  // 기타 할인 직접 입력값 합산
+  const etcAmt = formContractMemo['etc_discount'] ? (Number(formContractMemo['etc_discount_amount']) || 0) * 10000 : 0;
+  totalDiscount += etcAmt;
 
   const totalPrice   = BASE_PRICE - totalDiscount;
   const balancePrice = totalPrice - DEPOSIT;
@@ -2974,14 +2983,16 @@ function applyProductPricePreset(force = false){
 }
 
 const CONTRACT_CHECKS = [
-  { key:'open_discount',    label:'오픈 할인 (-5만)'     },
-  { key:'review_discount',  label:'계약후기 할인 (-1만)' },
-  { key:'wedding_discount', label:'본식후기 할인 (-2만)' },
-  { key:'couple_discount',  label:'짝꿍 할인 (-1만)'     },
-  { key:'fast_discount',    label:'빠른계약 할인 (-2만)' },
-  { key:'event_discount',   label:'이벤트 할인 (-1만)'   },
-  { key:'thread_discount',  label:'스레드 할인 (-1만)'   },
-  { key:'friend_discount',  label:'지인 할인'            },
+  { key:'open_discount',       label:'오픈 할인 (-5만)'     },
+  { key:'review_discount',     label:'계약후기 할인 (-1만)' },
+  { key:'wedding_discount',    label:'본식후기 할인 (-2만)' },
+  { key:'couple_discount',     label:'짝꿍 할인 (-1만)'     },
+  { key:'fast_discount',       label:'빠른계약 할인 (-2만)' },
+  { key:'event_discount',      label:'이벤트 할인 (-1만)'   },
+  { key:'thread_discount',     label:'스레드 할인 (-1만)'   },
+  { key:'affiliate_discount5', label:'제휴 할인 (-5만)'     },
+  { key:'affiliate_discount7', label:'제휴 할인 (-7만)'     },
+  { key:'etc_discount',        label:'기타 할인'             },
 ];
 
 let formFieldMemo    = {};
@@ -2989,13 +3000,31 @@ let formContractMemo = {};
 
 function renderContractChecks(){
   const el = document.getElementById('fm-contract-checks'); if(!el) return;
-  el.innerHTML = CONTRACT_CHECKS.map(c => `
-    <label style="display:flex;align-items:center;gap:7px;background:#FAF5FF;border:1px solid #E9D5FF;
-      border-radius:8px;padding:8px 10px;cursor:pointer">
-      <input type="checkbox" ${formContractMemo[c.key]?'checked':''} onchange="formContractMemo['${c.key}']=this.checked;syncContractMemoToSettlement()"
-        style="width:15px;height:15px;accent-color:#7C3AED;flex-shrink:0">
-      <span style="font-size:12px;color:#7C3AED;font-weight:600">${c.label}</span>
-    </label>`).join('');
+  el.innerHTML = CONTRACT_CHECKS.map(c => {
+    if(c.key === 'etc_discount'){
+      return `
+        <label style="display:flex;align-items:center;gap:7px;background:#FAF5FF;border:1px solid #E9D5FF;
+          border-radius:8px;padding:8px 10px;cursor:pointer;grid-column:1/-1">
+          <input type="checkbox" ${formContractMemo['etc_discount']?'checked':''} id="etc-discount-chk"
+            onchange="formContractMemo['etc_discount']=this.checked;document.getElementById('etc-discount-wrap').style.display=this.checked?'flex':'none';syncContractMemoToSettlement()"
+            style="width:15px;height:15px;accent-color:#7C3AED;flex-shrink:0">
+          <span style="font-size:12px;color:#7C3AED;font-weight:600">기타 할인</span>
+          <div id="etc-discount-wrap" style="display:${formContractMemo['etc_discount']?'flex':'none'};align-items:center;gap:4px;margin-left:4px">
+            <input type="number" id="etc-discount-amount" value="${formContractMemo['etc_discount_amount']||''}"
+              placeholder="0" min="0" style="width:60px;border:1px solid #C4B5FD;border-radius:6px;padding:3px 6px;font-size:12px;text-align:center"
+              oninput="formContractMemo['etc_discount_amount']=this.value;syncContractMemoToSettlement()">
+            <span style="font-size:12px;color:#7C3AED">만원</span>
+          </div>
+        </label>`;
+    }
+    return `
+      <label style="display:flex;align-items:center;gap:7px;background:#FAF5FF;border:1px solid #E9D5FF;
+        border-radius:8px;padding:8px 10px;cursor:pointer">
+        <input type="checkbox" ${formContractMemo[c.key]?'checked':''} onchange="formContractMemo['${c.key}']=this.checked;syncContractMemoToSettlement()"
+          style="width:15px;height:15px;accent-color:#7C3AED;flex-shrink:0">
+        <span style="font-size:12px;color:#7C3AED;font-weight:600">${c.label}</span>
+      </label>`;
+  }).join('');
 }
 
 function getFieldMemo(){
@@ -3012,6 +3041,7 @@ function getHandoverPerson(){
 function getContractMemo(){
   const checks = {};
   CONTRACT_CHECKS.forEach(c => { checks[c.key] = !!formContractMemo[c.key]; });
+  checks.etc_discount_amount = formContractMemo['etc_discount_amount'] || '';
   checks.text = (document.getElementById('fm-contract-text')?.value || '').trim();
   return checks;
 }
@@ -3512,7 +3542,20 @@ function renderUnavailCal(){
   wrap.innerHTML = `
     <div class="cal-nav">
       <button class="btn btn-ghost sm" onclick="uvCalMove(-1)">‹ 이전</button>
-      <div class="cal-nav-title">${uvCalYear}년 ${uvCalMonth+1}월</div>
+      <div style="text-align:center">
+        <div class="cal-nav-title">${uvCalYear}년 ${uvCalMonth+1}월</div>
+        <div class="cal-jump-wrap">
+          <select id="uv-year-select" class="cal-jump-select" onchange="jumpUnavailMonth()">
+            <option value="2025"${uvCalYear===2025?' selected':''}>2025년</option>
+            <option value="2026"${uvCalYear===2026?' selected':''}>2026년</option>
+            <option value="2027"${uvCalYear===2027?' selected':''}>2027년</option>
+            <option value="2028"${uvCalYear===2028?' selected':''}>2028년</option>
+          </select>
+          <select id="uv-month-select" class="cal-jump-select" onchange="jumpUnavailMonth()">
+            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}"${uvCalMonth+1===m?' selected':''}>${m}월</option>`).join('')}
+          </select>
+        </div>
+      </div>
       <button class="btn btn-ghost sm" onclick="uvCalMove(1)">다음 ›</button>
     </div>
     <div class="cal-grid">
@@ -3544,6 +3587,14 @@ function renderUnavailCal(){
       }).join('')}
     </div>
     <div style="margin-top:8px;font-size:11px;color:#9CA3AF">날짜를 클릭하면 불가일정을 등록할 수 있습니다</div>`;
+}
+
+function jumpUnavailMonth(){
+  const y = Number(document.getElementById('uv-year-select')?.value);
+  const m = Number(document.getElementById('uv-month-select')?.value);
+  if(y) uvCalYear  = y;
+  if(m) uvCalMonth = m - 1;
+  renderUnavailCal();
 }
 
 function uvCalMove(dir){
