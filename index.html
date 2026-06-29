@@ -987,6 +987,15 @@
         <textarea class="form-input" id="uv-memo" rows="2" placeholder="출장, 개인일정, 병가 등" style="resize:vertical"></textarea>
       </div>
 
+      <!-- 부부동반 등록 (신규 등록 시에만 표시) -->
+      <div id="uv-couple-wrap" style="display:none;margin-top:12px;background:#FFF9F0;border:1.5px solid #FDE68A;border-radius:10px;padding:10px 14px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="uv-couple-chk" style="width:15px;height:15px;accent-color:#C7A96B">
+          <span style="font-size:13px;font-weight:700;color:#92400E">💑 부부동반 등록</span>
+        </label>
+        <div id="uv-couple-partner" style="font-size:11px;color:#9CA3AF;margin-top:4px;margin-left:23px"></div>
+      </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="uv-del-btn" style="display:none;color:#DC2626;border-color:#FCA5A5" onclick="deleteUnavail()">🗑️ 삭제</button>
@@ -3647,6 +3656,17 @@ function renderUnavailList(){
 }
 
 // ─── 폼 OPEN / CLOSE ─────────────────────────────────────────────────────────
+// ── 부부/짝꿍 세트 매니저 목록 ──────────────────────────────────────────────
+const COUPLE_PAIRS = {
+  '강성주':'전수연', '전수연':'강성주',
+  '조윤성':'정선화', '정선화':'조윤성',
+  '김아희':'진효성', '진효성':'김아희',
+  '김홍주':'양윤수', '양윤수':'김홍주',
+  '강미송':'노지훈', '노지훈':'강미송',
+  '이승윤':'임우령', '임우령':'이승윤',
+  '김지현':'목수빈', '목수빈':'김지현',
+};
+
 function openUnavailForm(id, presetDate){
   uvEditId = id;
   const uv = id ? unavailables.find(x => x.id === id) : null;
@@ -3679,6 +3699,43 @@ function openUnavailForm(id, presetDate){
   document.querySelectorAll('.uv-type-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.val === uvType);
   });
+
+  // 부부동반 등록: 신규 등록 시에만 표시
+  const coupleWrap    = document.getElementById('uv-couple-wrap');
+  const coupleChk     = document.getElementById('uv-couple-chk');
+  const couplePartner = document.getElementById('uv-couple-partner');
+  if(coupleWrap && coupleChk){
+    if(uv){
+      // 수정 모드: 숨김
+      coupleWrap.style.display = 'none';
+    } else {
+      // 신규 등록: 세트 매니저 있으면 표시
+      const myName  = ADMIN_NAMES.includes(currentUser.name) ? '' : currentUser.name;
+      // 관리자는 매니저 select 변경 시 동적으로 partner 표시
+      const initName = myName || '';
+      const partner  = COUPLE_PAIRS[initName] || '';
+      coupleChk.checked = false;
+      if(partner || ADMIN_NAMES.includes(currentUser.name)){
+        coupleWrap.style.display = 'block';
+        couplePartner.textContent = partner
+          ? `체크 시 ${partner}에게도 동일한 불가일정이 등록됩니다.`
+          : '매니저를 선택하면 세트 매니저가 표시됩니다.';
+      } else {
+        coupleWrap.style.display = 'none';
+      }
+      // 관리자: 매니저 select 변경 시 partner 업데이트
+      const manSelEl = document.getElementById('uv-manager');
+      if(ADMIN_NAMES.includes(currentUser.name) && manSelEl){
+        manSelEl.onchange = () => {
+          const p = COUPLE_PAIRS[manSelEl.value] || '';
+          couplePartner.textContent = p
+            ? `체크 시 ${p}에게도 동일한 불가일정이 등록됩니다.`
+            : '세트 매니저가 등록되지 않은 계정입니다.';
+          coupleChk.checked = false;
+        };
+      }
+    }
+  }
 
   document.getElementById('unavail-modal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -3811,7 +3868,32 @@ async function saveUnavail(){
     } else {
       const created = await sb.post('unavailable_schedules', row);
       unavailables.push(rowToUnavail(Array.isArray(created)?created[0]:created));
-      showToast('🚫 불가일정이 등록되었습니다');
+
+      // ── 부부동반 등록 ──
+      const coupleChk = document.getElementById('uv-couple-chk');
+      if(coupleChk?.checked){
+        const partnerName = COUPLE_PAIRS[managerName];
+        if(partnerName){
+          // 중복 체크
+          const isDup = unavailables.some(u =>
+            u.managerName === partnerName &&
+            u.date === date &&
+            u.unavailableType === uvType
+          );
+          if(isDup){
+            showToast('🚫 불가일정 등록 완료 (세트 매니저는 이미 등록되어 있어 중복 저장하지 않았습니다)');
+          } else {
+            const partnerRow = { manager_name: partnerName, date, unavailable_type: uvType, memo: memo || null };
+            const partnerCreated = await sb.post('unavailable_schedules', partnerRow);
+            unavailables.push(rowToUnavail(Array.isArray(partnerCreated)?partnerCreated[0]:partnerCreated));
+            showToast(`🚫 ${managerName} + ${partnerName} 불가일정이 함께 등록되었습니다`);
+          }
+        } else {
+          showToast('🚫 불가일정이 등록되었습니다');
+        }
+      } else {
+        showToast('🚫 불가일정이 등록되었습니다');
+      }
     }
     closeUnavailForm();
     renderUnavailAll();
