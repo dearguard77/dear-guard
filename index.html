@@ -383,7 +383,10 @@
     <button class="tab-btn" id="nav-manual-btn" style="display:none" onclick="window.open(&#39;https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9&#39;,&#39;_blank&#39;)">
       📖 매뉴얼
     </button>
-    <button class="tab-btn" onclick="window.open('/contribution.html','_blank')">💌 접수</button>
+    <button class="tab-btn" onclick="window.open(&#39;/contribution.html&#39;,&#39;_blank&#39;)"
+      style="background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B;font-weight:700;border:1px solid #E8DFD0">
+      💌 접수
+    </button>
   </div>
 
   <!-- 우측: 예식등록 / 프로필 / 알림 / 로그아웃 -->
@@ -4486,12 +4489,26 @@ function renderResultTab(){
     const todayMs = Date.now();
     const fromDate = new Date(todayMs - 15*24*3600*1000).toISOString().slice(0,10);
     const toDate   = new Date(todayMs + 15*24*3600*1000).toISOString().slice(0,10);
-    sel.innerHTML = '<option value="">— 예식을 선택하세요 —</option>'
-      + schedules
-          .filter(s => s.date >= fromDate && s.date <= toDate)
-          .sort((a,b) => a.date.localeCompare(b.date))
-          .map(s => `<option value="${s.id}">${s.date} ${esc(coupleName(s))}</option>`)
-          .join('');
+
+    // 권한별 필터: 관리자는 전체, 매니저는 본인 담당 예식만
+    const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+    let resultSchedules = schedules.filter(s => s.date >= fromDate && s.date <= toDate);
+    if(!isAdmin){
+      resultSchedules = resultSchedules.filter(s =>
+        (s.frontManager || '').includes(currentUser.name) ||
+        (s.backManager  || '').includes(currentUser.name)
+      );
+    }
+
+    if(!isAdmin && resultSchedules.length === 0){
+      sel.innerHTML = '<option value="">담당 예식이 없습니다</option>';
+    } else {
+      sel.innerHTML = '<option value="">— 예식을 선택하세요 —</option>'
+        + resultSchedules
+            .sort((a,b) => a.date.localeCompare(b.date))
+            .map(s => `<option value="${s.id}">${s.date} ${esc(coupleName(s))}</option>`)
+            .join('');
+    }
   }
   rtShowStep(rtStep);
 }
@@ -4553,6 +4570,18 @@ async function rtLoadSchedule(){
   if(!id){ rtSchedule = null; rtResultData = {}; return; }
   rtSchedule = schedules.find(s => s.id === id) || null;
   if(!rtSchedule) return;
+
+  // 권한 재확인: 매니저는 본인 담당 예식만 조회 가능
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  if(!isAdmin){
+    const isMine = (rtSchedule.frontManager || '').includes(currentUser.name) ||
+                   (rtSchedule.backManager  || '').includes(currentUser.name);
+    if(!isMine){
+      rtSchedule = null; rtResultData = {};
+      showToast('⚠️ 담당하지 않은 예식입니다');
+      return;
+    }
+  }
 
   // ★ 예식이 바뀌면 이전 예식의 입력값/생성결과를 모두 초기화
   ['rt-chk-smooth','rt-chk-wait','rt-chk-vip','rt-chk-extra'].forEach(cid=>{
