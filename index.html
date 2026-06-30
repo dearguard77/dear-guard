@@ -1144,8 +1144,7 @@
       <!-- 1. 수령인 정보 -->
       <div style="background:#fff;border:1px solid #E8DFD0;border-radius:14px;padding:16px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:10px">① 수령인 정보</div>
-        <div class="form-field" style="margin-bottom:10px"><label class="form-label">관계</label><input class="form-input" id="hv-relation" placeholder="예) 고모, 이모, 아버님, 가방순이 등" oninput="rtValidateHandover()"></div>
-        <div class="form-field" style="margin-bottom:10px"><label class="form-label">성함</label><input class="form-input" id="hv-name" placeholder="실제 수령인 성함" oninput="rtValidateHandover()"></div>
+        <div class="form-field" style="margin-bottom:10px"><label class="form-label">관계 / 성함</label><input class="form-input" id="hv-name" placeholder="예) 친동생 신민지, 고모 김희애" oninput="rtValidateHandover()"></div>
         <div class="form-field"><label class="form-label">연락처</label><input class="form-input" id="hv-phone" type="tel" placeholder="010-0000-0000" oninput="rtValidateHandover()"></div>
       </div>
 
@@ -5013,9 +5012,8 @@ function rtOpenHandoverCert(){
   if(t === '신랑님') prefillName = d.handoverByside?.groom || '';
   else if(t === '신부님') prefillName = d.handoverByside?.bride || '';
   else prefillName = d.handoverByside?.groom || d.handoverByside?.bride || '';
-  // "이름 / 전화번호" 형식이면 분리
+  // "이름 / 전화번호" 형식이면 분리 — 이름(관계+성함 통합)은 hv-name에, 전화번호는 hv-phone에
   const [autoName, autoPhone] = (prefillName || '').split(' / ').map(s=>s?.trim());
-  document.getElementById('hv-relation').value = '';
   document.getElementById('hv-name').value  = autoName  || '';
   document.getElementById('hv-phone').value = autoPhone || '';
 
@@ -5054,12 +5052,11 @@ function rtToggleHandoverCheck(key){
 }
 
 function rtValidateHandover(){
-  const relation = document.getElementById('hv-relation')?.value.trim();
   const name     = document.getElementById('hv-name')?.value.trim();
   const phone    = document.getElementById('hv-phone')?.value.trim();
   const allChecked = Object.values(hvChecks).length > 0 && Object.values(hvChecks).every(v => v);
 
-  const allValid = !!relation && !!name && !!phone && allChecked && hvSignatureConfirmed;
+  const allValid = !!name && !!phone && allChecked && hvSignatureConfirmed;
 
   const btn = document.getElementById('hv-complete-btn');
   const helper = document.getElementById('hv-helper-text');
@@ -5137,20 +5134,19 @@ function rtCompleteHandover(){
   if(!rtValidateHandover()){ alert('모든 항목을 확인하고 서명을 완료해주세요.'); return; }
 
   hvCompleted = true;
-  const relation = document.getElementById('hv-relation').value.trim();
-  const name     = document.getElementById('hv-name').value.trim();
+  const name = document.getElementById('hv-name').value.trim();
 
   rtCloseHandoverCert();
   document.getElementById('hv-status-badge').style.display = 'block';
 
   // 3차 인계 문구를 "서명완료 강조형(B안)"으로 재생성
-  rtGenStep3WithSignature(relation, name);
+  rtGenStep3WithSignature(name);
 
   showToast('✅ 인계확인서 서명이 완료되었습니다');
 }
 
 // B안: 인계확인서 서명 완료를 중심으로 문구 재구성
-function rtGenStep3WithSignature(relation, name){
+function rtGenStep3WithSignature(name){
   const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
   const d = rtResultData;
   const t = rtTarget;
@@ -5166,7 +5162,7 @@ function rtGenStep3WithSignature(relation, name){
     : '✔️ 축의금 및 봉투가 담긴 레디백\n✔️ 방명록\n✔️ 잔여 식권';
   const pwLine = pw ? `\n\n🔒 레디백 비밀번호는 사전 안내주신\n${pw}로 설정해두었습니다 :)` : '';
 
-  let txt = `📦 ${relation} ${name}님께 인계 완료되었습니다.\n\n인계확인서가 정상적으로 작성되었으며,\n수령인 본인이 직접 항목을 확인하고\n전자서명까지 완료하셨습니다.\n\n${itemsList}${pwLine}`;
+  let txt = `📦 ${name}님께 인계 완료되었습니다.\n\n인계확인서가 정상적으로 작성되었으며,\n수령인 본인이 직접 항목을 확인하고\n전자서명까지 완료하셨습니다.\n\n${itemsList}${pwLine}`;
 
   if(val === '봉투접수'){
     const envName    = document.getElementById('rt-env-name')?.value?.trim()    || '○○';
