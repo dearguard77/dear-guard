@@ -1160,11 +1160,11 @@
         <textarea class="form-input" id="uv-memo" rows="2" placeholder="출장, 개인일정, 병가 등" style="resize:vertical"></textarea>
       </div>
 
-      <!-- 부부동반 등록 (신규 등록 시에만 표시) -->
+      <!-- 부부동반 등록/수정 (신규 등록 + 수정 모드 모두 지원) -->
       <div id="uv-couple-wrap" style="display:none;margin-top:12px;background:#FFF9F0;border:1.5px solid #FDE68A;border-radius:10px;padding:10px 14px">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
           <input type="checkbox" id="uv-couple-chk" style="width:15px;height:15px;accent-color:#C7A96B">
-          <span style="font-size:13px;font-weight:700;color:#92400E">💑 부부동반 등록</span>
+          <span id="uv-couple-label" style="font-size:13px;font-weight:700;color:#92400E">💑 부부동반 등록</span>
         </label>
         <div id="uv-couple-partner" style="font-size:11px;color:#9CA3AF;margin-top:4px;margin-left:23px"></div>
       </div>
@@ -3885,21 +3885,30 @@ function openUnavailForm(id, presetDate){
     b.classList.toggle('active', b.dataset.val === uvType);
   });
 
-  // 부부동반 등록: 신규 등록 시에만 표시
+  // 부부동반 등록/수정: 신규 등록 + 수정 모드 모두 지원
   const coupleWrap    = document.getElementById('uv-couple-wrap');
   const coupleChk     = document.getElementById('uv-couple-chk');
+  const coupleLabel   = document.getElementById('uv-couple-label');
   const couplePartner = document.getElementById('uv-couple-partner');
   if(coupleWrap && coupleChk){
+    coupleChk.checked = false;
     if(uv){
-      // 수정 모드: 숨김
-      coupleWrap.style.display = 'none';
+      // 수정 모드: 본인이 세트 매니저가 있으면 "부부동반 수정" 체크박스 표시
+      const partner = COUPLE_PAIRS[uv.managerName] || '';
+      if(coupleLabel) coupleLabel.textContent = '💑 부부동반 수정';
+      if(partner){
+        coupleWrap.style.display = 'block';
+        couplePartner.textContent = `체크 시 ${partner}의 동일 일정도 함께 수정됩니다.`;
+      } else {
+        coupleWrap.style.display = 'none';
+      }
     } else {
       // 신규 등록: 세트 매니저 있으면 표시
+      if(coupleLabel) coupleLabel.textContent = '💑 부부동반 등록';
       const myName  = ADMIN_NAMES.includes(currentUser.name) ? '' : currentUser.name;
       // 관리자는 매니저 select 변경 시 동적으로 partner 표시
       const initName = myName || '';
       const partner  = COUPLE_PAIRS[initName] || '';
-      coupleChk.checked = false;
       if(partner || ADMIN_NAMES.includes(currentUser.name)){
         coupleWrap.style.display = 'block';
         couplePartner.textContent = partner
@@ -4049,7 +4058,36 @@ async function saveUnavail(){
       const updated = await sb.patch('unavailable_schedules', uvEditId, row);
       const idx = unavailables.findIndex(x => x.id === uvEditId);
       if(idx !== -1) unavailables[idx] = rowToUnavail(Array.isArray(updated)?updated[0]:updated);
-      showToast('✅ 불가일정이 수정되었습니다');
+
+      // ── 부부동반 수정 ──
+      const coupleChkEdit = document.getElementById('uv-couple-chk');
+      if(coupleChkEdit?.checked){
+        const partnerName = COUPLE_PAIRS[managerName];
+        if(partnerName){
+          // 배우자의 "같은 날짜 + 같은 시간대" 기존 일정 탐색
+          const partnerExisting = unavailables.find(u =>
+            u.managerName === partnerName &&
+            u.date === date &&
+            u.id !== uvEditId
+          );
+          if(partnerExisting){
+            const partnerUpdated = await sb.patch('unavailable_schedules', partnerExisting.id, row);
+            const pIdx = unavailables.findIndex(x => x.id === partnerExisting.id);
+            if(pIdx !== -1) unavailables[pIdx] = rowToUnavail(Array.isArray(partnerUpdated)?partnerUpdated[0]:partnerUpdated);
+            showToast(`✅ ${managerName} + ${partnerName} 불가일정이 함께 수정되었습니다`);
+          } else {
+            // 배우자에게 해당 날짜 일정이 없으면 새로 생성
+            const partnerRow = { manager_name: partnerName, date, unavailable_type: uvType, memo: memo || null };
+            const partnerCreated = await sb.post('unavailable_schedules', partnerRow);
+            unavailables.push(rowToUnavail(Array.isArray(partnerCreated)?partnerCreated[0]:partnerCreated));
+            showToast(`✅ 불가일정이 수정되었습니다 (세트 매니저 ${partnerName}는 새 일정으로 등록되었습니다)`);
+          }
+        } else {
+          showToast('✅ 불가일정이 수정되었습니다');
+        }
+      } else {
+        showToast('✅ 불가일정이 수정되었습니다');
+      }
     } else {
       const created = await sb.post('unavailable_schedules', row);
       unavailables.push(rowToUnavail(Array.isArray(created)?created[0]:created));
