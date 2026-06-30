@@ -4715,28 +4715,6 @@ function rtGenStep2(){
   const tktExtra = d.ticketByside ? `${tk.extra}장`  : '-';
   const tktOut   = d.ticketByside ? `${tk.out}장`    : '-';
   const tktRem   = d.ticketByside ? `${tk.remain}장` : '-';
-  // 보고대상에 따라 인계자 선택
-  let handover = '';
-  if(d.handoverByside){
-    if(t === '신랑님' && d.handoverByside.groom) handover = `\n\n📌 인계자: ${d.handoverByside.groom}`;
-    else if(t === '신부님' && d.handoverByside.bride) handover = `\n\n📌 인계자: ${d.handoverByside.bride}`;
-    else if(t === '신랑신부님'){
-      const lines = [];
-      if(d.handoverByside.groom) lines.push(`신랑측: ${d.handoverByside.groom}`);
-      if(d.handoverByside.bride) lines.push(`신부측: ${d.handoverByside.bride}`);
-      if(lines.length) handover = `\n\n📌 인계자\n${lines.join('\n')}`;
-    }
-  }
-  // 보고대상에 따라 레디백 비밀번호 선택
-  let pwLine = '';
-  if(t === '신랑님' && d.groomPw)      pwLine = `\n\n🔒 레디백 비밀번호: ${d.groomPw}`;
-  else if(t === '신부님' && d.bridePw) pwLine = `\n\n🔒 레디백 비밀번호: ${d.bridePw}`;
-  else if(t === '신랑신부님'){
-    const lines = [];
-    if(d.groomPw) lines.push(`신랑측: ${d.groomPw}`);
-    if(d.bridePw) lines.push(`신부측: ${d.bridePw}`);
-    if(lines.length) pwLine = `\n\n🔒 레디백 비밀번호\n${lines.join('\n')}`;
-  }
   // 현장 진행 상황 섹션: 선택된 항목이 있을 때만 출력
   const situationBlock = sitStr
     ? `\n\n━━━━━━━━━━━━━━━━━━━\n📋 현장 진행 상황\n━━━━━━━━━━━━━━━━━━━\n\n${sitStr}`
@@ -4758,9 +4736,9 @@ function rtGenStep2(){
 🎫 초기 수령 식권: ${tktInit}
 ➕ 추가 발급 식권: ${tktExtra}
 📤 불출 식권: ${tktOut}
-📦 잔여 식권: ${tktRem}${situationBlock}${notesBlock}${handover}${pwLine}
+📦 잔여 식권: ${tktRem}${situationBlock}${notesBlock}
 
-화환 사진도 전달 드립니다 🤍`;
+오늘 하루도 정말 수고 많으셨습니다 🤍`;
   document.getElementById('rt-out-2').value = txt;
 }
 
@@ -4796,9 +4774,11 @@ function rtGenStep3(){
     else if(t === '신부님'){ handoverName = d.handoverByside?.bride || '○○'; pw = d.bridePw || ''; }
     else { handoverName = [d.handoverByside?.groom, d.handoverByside?.bride].filter(Boolean).join(' / ') || '○○'; pw = [d.groomPw, d.bridePw].filter(Boolean).join(' / '); }
     const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
-    const itemsList = itemsRaw ? itemsRaw.split('\n').filter(l=>l.trim()).map(l=>l.trim().startsWith('·')?l.trim():'· '+l.trim()).join('\n') : '· 축의금 및 봉투가 담긴 레디백\n· 방명록\n· 잔여 식권\n· 기타 전달 물품';
-    const pwLine = pw ? `\n\n레디백 비밀번호는 사전 안내주신\n${pw}로 설정해두었습니다 :)` : '';
-    txt = `축의금은 사전 지정해주신 인계자\n${handoverName}님께 아래 물품과 함께 전달 완료하였습니다.\n\n${itemsList}${pwLine}\n\n화환 사진도 함께 전달드립니다.`;
+    const itemsList = itemsRaw
+      ? itemsRaw.split('\n').filter(l=>l.trim()).map(l=>'✔️ '+l.trim().replace(/^[·\-•]\s*/,'')).join('\n')
+      : '✔️ 축의금 및 봉투가 담긴 레디백\n✔️ 방명록\n✔️ 잔여 식권\n✔️ 기타 전달 물품';
+    const pwLine = pw ? `\n\n🔒 레디백 비밀번호는 사전 안내주신\n${pw}로 설정해두었습니다 :)` : '';
+    txt = `📦 ${handoverName}님께 아래 물품과 함께\n전달 완료하였습니다.\n\n${itemsList}${pwLine}\n\n🌸 화환 사진도 함께 전달드립니다.`;
   } else if(val === '봉투접수'){
     const name    = document.getElementById('rt-env-name')?.value?.trim()    || '○○';
     const content = document.getElementById('rt-env-content')?.value?.trim() || '봉투';
