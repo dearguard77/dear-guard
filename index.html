@@ -5202,7 +5202,9 @@ async function rtSaveHandoverCertImage(){
   const s = rtSchedule;
   if(!s || !hvCompletedAt) return;
 
-  // 도장 JPEG 검은 배경 → 투명 PNG 변환 (contract.html과 동일 방식)
+  // 도장 JPEG 검은 배경 → 투명 PNG 변환
+  // 도장은 빨간 글씨 + 검정 배경이므로, 무채색(R≈G≈B)이면서 어두운 픽셀만 배경으로 판단해 제거
+  // (단순 밝기 기준만 쓰면 빨간 글씨 가장자리까지 함께 지워지므로 색상 채도까지 함께 확인)
   const stampDataUrl = await new Promise(resolve => {
     const img = new Image();
     img.onload = function(){
@@ -5214,7 +5216,19 @@ async function rtSaveHandoverCertImage(){
       const d = imageData.data;
       for(let i = 0; i < d.length; i += 4){
         const r = d[i], g = d[i+1], b = d[i+2];
-        if(r < 80 && g < 80 && b < 80){ d[i+3] = 0; }
+        const maxC = Math.max(r, g, b);
+        const minC = Math.min(r, g, b);
+        const saturation = maxC - minC; // 채도: 빨간 글씨는 크고, 검정/회색 배경은 작음
+        if(saturation < 40){
+          // 무채색 픽셀(검정~회색)인 경우 밝기에 따라 단계적으로 투명 처리
+          if(maxC < 100){
+            d[i+3] = 0; // 완전 어두운 배경: 완전 투명
+          } else if(maxC < 170){
+            // JPEG 압축 경계의 회색 잔상: 점진적 투명도로 거친 외곽선 방지
+            d[i+3] = Math.round((maxC - 100) / 70 * 255);
+          }
+        }
+        // saturation이 충분한 빨간 글씨 픽셀은 그대로 보존
       }
       ctx.putImageData(imageData, 0, 0);
       resolve(cvs.toDataURL('image/png'));
@@ -5307,11 +5321,11 @@ async function rtSaveHandoverCertImage(){
           </div>
         </div>
 
-        <div style="margin-top:18px;border:1px solid #E5E7EB;border-radius:12px;padding:16px;position:relative;min-height:120px">
+        <div style="margin-top:18px;border:1px solid #E5E7EB;border-radius:12px;padding:16px;overflow:visible">
           <div style="font-size:12px;color:#9CA3AF;font-weight:700;margin-bottom:8px">수령인 서명</div>
-          <div style="text-align:center;position:relative">
-            ${hvSignatureDataUrl ? `<img src="${hvSignatureDataUrl}" style="max-width:260px;max-height:100px">` : `<div style="color:#EF4444;font-size:12px">서명 이미지를 불러오지 못했습니다</div>`}
-            ${stampDataUrl ? `<img src="${stampDataUrl}" style="position:absolute;right:20px;bottom:-10px;width:64px;height:64px;opacity:.92">` : ''}
+          <div style="display:flex;align-items:flex-end;justify-content:center;gap:12px;min-height:100px">
+            ${hvSignatureDataUrl ? `<img src="${hvSignatureDataUrl}" style="max-width:220px;max-height:100px;display:block">` : `<div style="color:#EF4444;font-size:12px">서명 이미지를 불러오지 못했습니다</div>`}
+            ${stampDataUrl ? `<img src="${stampDataUrl}" style="width:60px;height:60px;display:block;flex-shrink:0">` : ''}
           </div>
         </div>
 
