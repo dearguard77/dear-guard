@@ -550,10 +550,13 @@
 
     <!-- 보고대상 선택 -->
     <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:14px">
-      <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:8px">보고 대상</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:700;color:#6B7280">보고 대상</div>
+        <div id="rt-target-indicator" style="font-size:11px;font-weight:700;color:#C7A96B;background:#FDF8F3;border-radius:6px;padding:2px 8px">현재: 신부님</div>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
-          <input type="radio" name="rt-target" value="신부님" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신부님
+          <input type="radio" name="rt-target" value="신부님" checked onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신부님
         </label>
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
           <input type="radio" name="rt-target" value="신랑님" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신랑님
@@ -4427,6 +4430,8 @@ function renderResultTab(){
 
 function rtSetTarget(val){
   rtTarget = val;
+  const ind = document.getElementById('rt-target-indicator');
+  if(ind) ind.textContent = `현재: ${val}`;
 }
 
 function rtGetLink(){
@@ -4515,10 +4520,11 @@ async function rtLoadSchedule(){
   const gRemain = gTotal - gUsed - gPreShare;      // 신랑측 잔여 = 초기+추가-장부값-수령자
   const bRemain = bTotal - bUsed - bPreShare;      // 신부측 잔여 = 초기+추가-장부값-수령자
 
-  const ticketInit   = gInit + bInit;              // 초기 수령(보증) 식권 합계
-  const ticketExtra  = gExtra + bExtra;            // 추가 발급 식권 합계
-  const ticketOut    = gUsed + bUsed + gPreShare + bPreShare; // 불출 식권 합계
-  const ticketRemain = (gInit>0 || bInit>0) ? (gRemain + bRemain) : null; // 잔여 식권 합계
+  // 측별 데이터 분리 저장 (보고대상에 따라 선택 사용, 통합 선택 시 합산)
+  const ticketByside = {
+    groom: { init: gInit, extra: gExtra, out: gUsed + gPreShare, remain: gRemain },
+    bride: { init: bInit, extra: bExtra, out: bUsed + bPreShare, remain: bRemain },
+  };
 
   // 인계자 / 레디백 비밀번호
   const handover  = rtSchedule.handoverPerson || '';
@@ -4526,13 +4532,16 @@ async function rtLoadSchedule(){
   const bridePw   = rtSchedule.readybagPwBride || '';
 
   // 운영메모 (특이사항 자동 연동용)
+  // - 매니저 내부용(_internal, 번호수정 등) 제외
+  // - 타임스탬프 제거, 말머리(•)로 정리
   const opsMemoText = opsLogs
-    .map(l => `[${l.time_str||''}/${l.side||''}] ${l.content||''}`)
+    .filter(l => l.side !== '_internal' && !(l.content||'').startsWith('[번호수정]'))
+    .map(l => `• ${l.content||''}`)
     .join('\n');
 
   rtResultData = {
     totalGuests, totalAmount,
-    ticketInit, ticketExtra, ticketOut, ticketRemain,
+    ticketByside,
     handover, groomPw, bridePw, opsMemoText
   };
   showToast(`✅ ${coupleName(rtSchedule)} 데이터 연동 완료`);
@@ -4613,12 +4622,24 @@ function rtGenStep2(){
   const sitStr = situations.join('\n');
   const notes = document.getElementById('rt-notes-2')?.value?.trim() || '';
   // 데이터
-  const guests   = d.totalGuests  != null ? `${d.totalGuests}명`        : '-';
-  const amount   = d.totalAmount  != null ? `${d.totalAmount.toLocaleString()}만원` : '-';
-  const tktInit  = d.ticketInit   != null ? `${d.ticketInit}장`         : '-';
-  const tktExtra = d.ticketExtra  != null ? `${d.ticketExtra}장`        : '-';
-  const tktOut   = d.ticketOut    != null ? `${d.ticketOut}장`          : '-';
-  const tktRem   = d.ticketRemain != null ? `${d.ticketRemain}장`       : '-';
+  const guests = d.totalGuests != null ? `${d.totalGuests}명` : '-';
+  const amount = d.totalAmount != null ? `${d.totalAmount.toLocaleString()}만원` : '-';
+  // 보고대상에 따라 식권 데이터 선택 (신랑측만/신부측만/통합)
+  let tk = { init:0, extra:0, out:0, remain:0 };
+  if(d.ticketByside){
+    if(t === '신랑님') tk = d.ticketByside.groom;
+    else if(t === '신부님') tk = d.ticketByside.bride;
+    else tk = {
+      init:   d.ticketByside.groom.init   + d.ticketByside.bride.init,
+      extra:  d.ticketByside.groom.extra  + d.ticketByside.bride.extra,
+      out:    d.ticketByside.groom.out    + d.ticketByside.bride.out,
+      remain: d.ticketByside.groom.remain + d.ticketByside.bride.remain,
+    };
+  }
+  const tktInit  = d.ticketByside ? `${tk.init}장`   : '-';
+  const tktExtra = d.ticketByside ? `${tk.extra}장`  : '-';
+  const tktOut   = d.ticketByside ? `${tk.out}장`    : '-';
+  const tktRem   = d.ticketByside ? `${tk.remain}장` : '-';
   const handover = d.handover ? `\n\n📌 인계자: ${d.handover}` : '';
   const groomPw  = d.groomPw ? `신랑측: ${d.groomPw}` : '';
   const bridePw  = d.bridePw ? `신부측: ${d.bridePw}` : '';
