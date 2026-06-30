@@ -4477,16 +4477,32 @@ async function rtLoadSchedule(){
   if(!id){ rtSchedule = null; rtResultData = {}; return; }
   rtSchedule = schedules.find(s => s.id === id) || null;
   if(!rtSchedule) return;
+
+  // ★ 예식이 바뀌면 이전 예식의 입력값/생성결과를 모두 초기화
+  ['rt-chk-smooth','rt-chk-wait','rt-chk-vip','rt-chk-extra'].forEach(cid=>{
+    const el = document.getElementById(cid); if(el) el.checked = false;
+  });
+  const notesElReset = document.getElementById('rt-notes-2');
+  if(notesElReset) notesElReset.value = '';
+  for(let i=0;i<5;i++){
+    const outEl = document.getElementById(`rt-out-${i}`);
+    if(outEl) outEl.value = '';
+  }
+
   // schedules 메모리 캐시가 오래됐을 수 있으므로 식권 관련 최신값 재조회
   try {
-    const fresh = await sb.get('schedules', `?id=eq.${id}&select=ticket_total_groom,ticket_total_bride,handover_person,dashboard_token,groom_token,bride_token`);
+    const fresh = await sb.get('schedules', `?id=eq.${id}&select=ticket_total_groom,ticket_total_bride,handover_person,dashboard_token,groom_token,bride_token,groom_contact_name,groom_contact_phone,bride_contact_name,bride_contact_phone`);
     if(fresh && fresh[0]){
-      rtSchedule.ticketTotalGroom = fresh[0].ticket_total_groom || 0;
-      rtSchedule.ticketTotalBride = fresh[0].ticket_total_bride || 0;
-      rtSchedule.handoverPerson   = fresh[0].handover_person || rtSchedule.handoverPerson;
-      rtSchedule.dashboardToken   = fresh[0].dashboard_token || rtSchedule.dashboardToken;
-      rtSchedule.groomToken       = fresh[0].groom_token      || rtSchedule.groomToken;
-      rtSchedule.brideToken       = fresh[0].bride_token      || rtSchedule.brideToken;
+      rtSchedule.ticketTotalGroom  = fresh[0].ticket_total_groom || 0;
+      rtSchedule.ticketTotalBride  = fresh[0].ticket_total_bride || 0;
+      rtSchedule.handoverPerson    = fresh[0].handover_person || rtSchedule.handoverPerson;
+      rtSchedule.dashboardToken    = fresh[0].dashboard_token || rtSchedule.dashboardToken;
+      rtSchedule.groomToken        = fresh[0].groom_token      || rtSchedule.groomToken;
+      rtSchedule.brideToken        = fresh[0].bride_token      || rtSchedule.brideToken;
+      rtSchedule.groomContactName  = fresh[0].groom_contact_name  || rtSchedule.groomContactName;
+      rtSchedule.groomContactPhone = fresh[0].groom_contact_phone || rtSchedule.groomContactPhone;
+      rtSchedule.brideContactName  = fresh[0].bride_contact_name  || rtSchedule.brideContactName;
+      rtSchedule.brideContactPhone = fresh[0].bride_contact_phone || rtSchedule.brideContactPhone;
     }
   } catch(e){ console.warn('[DG] 예식 최신값 재조회 실패:', e); }
   // 토큰 없으면 자동 생성 (1차/4차 링크용)
@@ -4519,8 +4535,12 @@ async function rtLoadSchedule(){
 
   const gLogs = logs.filter(l => l.side === '신랑측');
   const bLogs = logs.filter(l => l.side === '신부측');
-  const totalGuests = logs.length;
-  const totalAmount = Math.round(logs.reduce((s,l)=>s+(l.amount||0),0)/10000);
+  const gGuests = gLogs.length;
+  const bGuests = bLogs.length;
+  const gAmount = Math.round(gLogs.reduce((s,l)=>s+(l.amount||0),0)/10000);
+  const bAmount = Math.round(bLogs.reduce((s,l)=>s+(l.amount||0),0)/10000);
+  const guestByside = { groom: gGuests, bride: bGuests };
+  const amountByside = { groom: gAmount, bride: bAmount };
 
   // ── 식권 계산 (신랑측/신부측 각각 계산 후 합산 — contribution.html과 동일 기준) ──
   const gUsed      = gLogs.reduce((s,l)=>s+(l.adult_ticket||0),0);
@@ -4543,8 +4563,18 @@ async function rtLoadSchedule(){
     bride: { init: bInit, extra: bExtra, out: bUsed + bPreShare, remain: bRemain },
   };
 
-  // 인계자 / 레디백 비밀번호
-  const handover  = rtSchedule.handoverPerson || '';
+  // 인계자 / 레디백 비밀번호 (측별 분리)
+  // - precheck에서 받은 신랑측/신부측 인계 담당자 우선 사용
+  // - 없으면 현장 매니저가 직접 입력한 공통 인계자(fm-handover-person)를 양측 공통으로 사용
+  const commonHandover = rtSchedule.handoverPerson || '';
+  const gHandoverName  = rtSchedule.groomContactName  || '';
+  const gHandoverPhone = rtSchedule.groomContactPhone || '';
+  const bHandoverName  = rtSchedule.brideContactName  || '';
+  const bHandoverPhone = rtSchedule.brideContactPhone || '';
+  const handoverByside = {
+    groom: gHandoverName ? `${gHandoverName}${gHandoverPhone ? ' / '+gHandoverPhone : ''}` : commonHandover,
+    bride: bHandoverName ? `${bHandoverName}${bHandoverPhone ? ' / '+bHandoverPhone : ''}` : commonHandover,
+  };
   const groomPw   = rtSchedule.readybagPwGroom || '';
   const bridePw   = rtSchedule.readybagPwBride || '';
 
@@ -4559,9 +4589,9 @@ async function rtLoadSchedule(){
   };
 
   rtResultData = {
-    totalGuests, totalAmount,
+    guestByside, amountByside,
     ticketByside,
-    handover, groomPw, bridePw, opsMemoByside
+    handoverByside, groomPw, bridePw, opsMemoByside
   };
   showToast(`✅ ${coupleName(rtSchedule)} 데이터 연동 완료`);
   // 특이사항 textarea: 현재 보고대상에 맞는 운영메모만 자동 반영 (기존 입력 내용 있으면 유지)
@@ -4640,9 +4670,15 @@ function rtGenStep2(){
     situations.push('예약실을 통해 추가 식권을 발급받아 운영하였습니다.');
   const sitStr = situations.join('\n');
   const notes = document.getElementById('rt-notes-2')?.value?.trim() || '';
-  // 데이터
-  const guests = d.totalGuests != null ? `${d.totalGuests}명` : '-';
-  const amount = d.totalAmount != null ? `${d.totalAmount.toLocaleString()}만원` : '-';
+  // 보고대상에 따라 접수 인원/축의금 선택 (신랑측만/신부측만/통합)
+  let guestsNum = 0, amountNum = 0;
+  if(d.guestByside && d.amountByside){
+    if(t === '신랑님'){ guestsNum = d.guestByside.groom; amountNum = d.amountByside.groom; }
+    else if(t === '신부님'){ guestsNum = d.guestByside.bride; amountNum = d.amountByside.bride; }
+    else { guestsNum = d.guestByside.groom + d.guestByside.bride; amountNum = d.amountByside.groom + d.amountByside.bride; }
+  }
+  const guests = d.guestByside ? `${guestsNum}명` : '-';
+  const amount = d.amountByside ? `${amountNum.toLocaleString()}만원` : '-';
   // 보고대상에 따라 식권 데이터 선택 (신랑측만/신부측만/통합)
   let tk = { init:0, extra:0, out:0, remain:0 };
   if(d.ticketByside){
@@ -4659,10 +4695,28 @@ function rtGenStep2(){
   const tktExtra = d.ticketByside ? `${tk.extra}장`  : '-';
   const tktOut   = d.ticketByside ? `${tk.out}장`    : '-';
   const tktRem   = d.ticketByside ? `${tk.remain}장` : '-';
-  const handover = d.handover ? `\n\n📌 인계자: ${d.handover}` : '';
-  const groomPw  = d.groomPw ? `신랑측: ${d.groomPw}` : '';
-  const bridePw  = d.bridePw ? `신부측: ${d.bridePw}` : '';
-  const pwLine   = (groomPw||bridePw) ? `\n\n🔒 레디백 비밀번호\n${[groomPw,bridePw].filter(Boolean).join('\n')}` : '';
+  // 보고대상에 따라 인계자 선택
+  let handover = '';
+  if(d.handoverByside){
+    if(t === '신랑님' && d.handoverByside.groom) handover = `\n\n📌 인계자: ${d.handoverByside.groom}`;
+    else if(t === '신부님' && d.handoverByside.bride) handover = `\n\n📌 인계자: ${d.handoverByside.bride}`;
+    else if(t === '신랑신부님'){
+      const lines = [];
+      if(d.handoverByside.groom) lines.push(`신랑측: ${d.handoverByside.groom}`);
+      if(d.handoverByside.bride) lines.push(`신부측: ${d.handoverByside.bride}`);
+      if(lines.length) handover = `\n\n📌 인계자\n${lines.join('\n')}`;
+    }
+  }
+  // 보고대상에 따라 레디백 비밀번호 선택
+  let pwLine = '';
+  if(t === '신랑님' && d.groomPw)      pwLine = `\n\n🔒 레디백 비밀번호: ${d.groomPw}`;
+  else if(t === '신부님' && d.bridePw) pwLine = `\n\n🔒 레디백 비밀번호: ${d.bridePw}`;
+  else if(t === '신랑신부님'){
+    const lines = [];
+    if(d.groomPw) lines.push(`신랑측: ${d.groomPw}`);
+    if(d.bridePw) lines.push(`신부측: ${d.bridePw}`);
+    if(lines.length) pwLine = `\n\n🔒 레디백 비밀번호\n${lines.join('\n')}`;
+  }
   // 현장 진행 상황 섹션: 선택된 항목이 있을 때만 출력
   const situationBlock = sitStr
     ? `\n\n━━━━━━━━━━━━━━━━━━━\n📋 현장 진행 상황\n━━━━━━━━━━━━━━━━━━━\n\n${sitStr}`
