@@ -628,8 +628,13 @@
         <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">마감 후 상황</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="없음" checked onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 없음</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="인계완료" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 물품 인계 완료</label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="봉투접수" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 봉투 접수</label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="식권배부" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 식권 배부</label>
+        </div>
+        <div id="rt-closing-handover" style="display:none;margin-bottom:8px">
+          <div style="font-size:11px;color:#9CA3AF;margin-bottom:6px">예식 선택 시 인계자·물품·레디백 비밀번호가 자동 연동됩니다. (직접 수정 가능)</div>
+          <textarea id="rt-handover-items" class="form-input" rows="3" style="font-size:12px;resize:vertical" placeholder="· 축의금 및 봉투가 담긴 레디백&#10;· 방명록&#10;· 잔여 식권"></textarea>
         </div>
         <div id="rt-closing-envelope" style="display:none;margin-bottom:8px">
           <input id="rt-env-name" class="form-input" placeholder="이름" style="font-size:12px;margin-bottom:6px">
@@ -4484,6 +4489,8 @@ async function rtLoadSchedule(){
   });
   const notesElReset = document.getElementById('rt-notes-2');
   if(notesElReset) notesElReset.value = '';
+  const itemsElReset = document.getElementById('rt-handover-items');
+  if(itemsElReset) itemsElReset.value = '';
   for(let i=0;i<5;i++){
     const outEl = document.getElementById(`rt-out-${i}`);
     if(outEl) outEl.value = '';
@@ -4491,18 +4498,28 @@ async function rtLoadSchedule(){
 
   // schedules 메모리 캐시가 오래됐을 수 있으므로 식권 관련 최신값 재조회
   try {
-    const fresh = await sb.get('schedules', `?id=eq.${id}&select=ticket_total_groom,ticket_total_bride,handover_person,dashboard_token,groom_token,bride_token,groom_contact_name,groom_contact_phone,bride_contact_name,bride_contact_phone`);
+    const fresh = await sb.get('schedules', `?id=eq.${id}&select=ticket_total_groom,ticket_total_bride,handover_person,dashboard_token,groom_token,bride_token,groom_contact_name,groom_contact_phone,bride_contact_name,bride_contact_phone,groom_handover_name,groom_handover_phone,groom_handoff_items,groom_password,bride_handover_name,bride_handover_phone,bride_handoff_items,bride_password`);
     if(fresh && fresh[0]){
-      rtSchedule.ticketTotalGroom  = fresh[0].ticket_total_groom || 0;
-      rtSchedule.ticketTotalBride  = fresh[0].ticket_total_bride || 0;
-      rtSchedule.handoverPerson    = fresh[0].handover_person || rtSchedule.handoverPerson;
-      rtSchedule.dashboardToken    = fresh[0].dashboard_token || rtSchedule.dashboardToken;
-      rtSchedule.groomToken        = fresh[0].groom_token      || rtSchedule.groomToken;
-      rtSchedule.brideToken        = fresh[0].bride_token      || rtSchedule.brideToken;
-      rtSchedule.groomContactName  = fresh[0].groom_contact_name  || rtSchedule.groomContactName;
-      rtSchedule.groomContactPhone = fresh[0].groom_contact_phone || rtSchedule.groomContactPhone;
-      rtSchedule.brideContactName  = fresh[0].bride_contact_name  || rtSchedule.brideContactName;
-      rtSchedule.brideContactPhone = fresh[0].bride_contact_phone || rtSchedule.brideContactPhone;
+      const f = fresh[0];
+      rtSchedule.ticketTotalGroom  = f.ticket_total_groom || 0;
+      rtSchedule.ticketTotalBride  = f.ticket_total_bride || 0;
+      rtSchedule.handoverPerson    = f.handover_person || rtSchedule.handoverPerson;
+      rtSchedule.dashboardToken    = f.dashboard_token || rtSchedule.dashboardToken;
+      rtSchedule.groomToken        = f.groom_token      || rtSchedule.groomToken;
+      rtSchedule.brideToken        = f.bride_token      || rtSchedule.brideToken;
+      rtSchedule.groomContactName  = f.groom_contact_name  || rtSchedule.groomContactName;
+      rtSchedule.groomContactPhone = f.groom_contact_phone || rtSchedule.groomContactPhone;
+      rtSchedule.brideContactName  = f.bride_contact_name  || rtSchedule.brideContactName;
+      rtSchedule.brideContactPhone = f.bride_contact_phone || rtSchedule.brideContactPhone;
+      // contribution.html 인계 정보 (현장 매니저 입력값 — precheck 값보다 우선)
+      rtSchedule.groomHandoverName  = f.groom_handover_name  || '';
+      rtSchedule.groomHandoverPhone = f.groom_handover_phone || '';
+      rtSchedule.groomHandoffItems  = f.groom_handoff_items  || '';
+      rtSchedule.groomPassword      = f.groom_password       || '';
+      rtSchedule.brideHandoverName  = f.bride_handover_name  || '';
+      rtSchedule.brideHandoverPhone = f.bride_handover_phone || '';
+      rtSchedule.brideHandoffItems  = f.bride_handoff_items  || '';
+      rtSchedule.bridePassword      = f.bride_password       || '';
     }
   } catch(e){ console.warn('[DG] 예식 최신값 재조회 실패:', e); }
   // 토큰 없으면 자동 생성 (1차/4차 링크용)
@@ -4563,20 +4580,23 @@ async function rtLoadSchedule(){
     bride: { init: bInit, extra: bExtra, out: bUsed + bPreShare, remain: bRemain },
   };
 
-  // 인계자 / 레디백 비밀번호 (측별 분리)
-  // - precheck에서 받은 신랑측/신부측 인계 담당자 우선 사용
-  // - 없으면 현장 매니저가 직접 입력한 공통 인계자(fm-handover-person)를 양측 공통으로 사용
+  // 인계자 / 레디백 비밀번호 / 인계 물품 (측별 분리)
+  // - contribution.html(현장 매니저 입력)이 최우선, 없으면 precheck 연동값, 그것도 없으면 공통 인계자
   const commonHandover = rtSchedule.handoverPerson || '';
-  const gHandoverName  = rtSchedule.groomContactName  || '';
-  const gHandoverPhone = rtSchedule.groomContactPhone || '';
-  const bHandoverName  = rtSchedule.brideContactName  || '';
-  const bHandoverPhone = rtSchedule.brideContactPhone || '';
+  const gHandoverName  = rtSchedule.groomHandoverName || rtSchedule.groomContactName  || '';
+  const gHandoverPhone = rtSchedule.groomHandoverPhone || rtSchedule.groomContactPhone || '';
+  const bHandoverName  = rtSchedule.brideHandoverName || rtSchedule.brideContactName  || '';
+  const bHandoverPhone = rtSchedule.brideHandoverPhone || rtSchedule.brideContactPhone || '';
   const handoverByside = {
     groom: gHandoverName ? `${gHandoverName}${gHandoverPhone ? ' / '+gHandoverPhone : ''}` : commonHandover,
     bride: bHandoverName ? `${bHandoverName}${bHandoverPhone ? ' / '+bHandoverPhone : ''}` : commonHandover,
   };
-  const groomPw   = rtSchedule.readybagPwGroom || '';
-  const bridePw   = rtSchedule.readybagPwBride || '';
+  const itemsByside = {
+    groom: rtSchedule.groomHandoffItems || '',
+    bride: rtSchedule.brideHandoffItems || '',
+  };
+  const groomPw = rtSchedule.groomPassword || '';
+  const bridePw = rtSchedule.bridePassword || '';
 
   // 운영메모 (특이사항 자동 연동용)
   // - 매니저 내부용(_internal, 번호수정 등) 제외
@@ -4591,7 +4611,7 @@ async function rtLoadSchedule(){
   rtResultData = {
     guestByside, amountByside,
     ticketByside,
-    handoverByside, groomPw, bridePw, opsMemoByside
+    handoverByside, itemsByside, groomPw, bridePw, opsMemoByside
   };
   showToast(`✅ ${coupleName(rtSchedule)} 데이터 연동 완료`);
   // 특이사항 textarea: 현재 보고대상에 맞는 운영메모만 자동 반영 (기존 입력 내용 있으면 유지)
@@ -4745,8 +4765,19 @@ function rtGenStep2(){
 }
 
 function rtClosingChange(val){
+  document.getElementById('rt-closing-handover').style.display = val==='인계완료' ? 'block' : 'none';
   document.getElementById('rt-closing-envelope').style.display = val==='봉투접수' ? 'block' : 'none';
   document.getElementById('rt-closing-ticket').style.display   = val==='식권배부'  ? 'block' : 'none';
+  if(val === '인계완료'){
+    const itemsEl = document.getElementById('rt-handover-items');
+    const d = rtResultData;
+    if(itemsEl && !itemsEl.value.trim() && d.itemsByside){
+      const items = rtTarget === '신랑님' ? d.itemsByside.groom
+                  : rtTarget === '신부님' ? d.itemsByside.bride
+                  : [d.itemsByside.groom, d.itemsByside.bride].filter(Boolean).join('\n');
+      if(items) itemsEl.value = items;
+    }
+  }
 }
 
 function rtGenStep3(){
@@ -4756,7 +4787,19 @@ function rtGenStep3(){
     return;
   }
   let txt = '';
-  if(val === '봉투접수'){
+  if(val === '인계완료'){
+    const d = rtResultData;
+    const t = rtTarget;
+    // 보고대상에 따라 인계자/비밀번호 선택
+    let handoverName = '', pw = '';
+    if(t === '신랑님'){ handoverName = d.handoverByside?.groom || '○○'; pw = d.groomPw || ''; }
+    else if(t === '신부님'){ handoverName = d.handoverByside?.bride || '○○'; pw = d.bridePw || ''; }
+    else { handoverName = [d.handoverByside?.groom, d.handoverByside?.bride].filter(Boolean).join(' / ') || '○○'; pw = [d.groomPw, d.bridePw].filter(Boolean).join(' / '); }
+    const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
+    const itemsList = itemsRaw ? itemsRaw.split('\n').filter(l=>l.trim()).map(l=>l.trim().startsWith('·')?l.trim():'· '+l.trim()).join('\n') : '· 축의금 및 봉투가 담긴 레디백\n· 방명록\n· 잔여 식권\n· 기타 전달 물품';
+    const pwLine = pw ? `\n\n레디백 비밀번호는 사전 안내주신\n${pw}로 설정해두었습니다 :)` : '';
+    txt = `축의금은 사전 지정해주신 인계자\n${handoverName}님께 아래 물품과 함께 전달 완료하였습니다.\n\n${itemsList}${pwLine}\n\n화환 사진도 함께 전달드립니다.`;
+  } else if(val === '봉투접수'){
     const name    = document.getElementById('rt-env-name')?.value?.trim()    || '○○';
     const content = document.getElementById('rt-env-content')?.value?.trim() || '봉투';
     txt = `식 종료 후 ${name}님께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`;
