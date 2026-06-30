@@ -219,7 +219,6 @@
   /* LOGIN */
   #login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#F8F5F0,#FDF8F3);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
   .login-box{background:#fff;border-radius:24px;padding:40px 32px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
-  .login-logo{font-family:Georgia,serif;font-size:28px;font-weight:700;color:#C7A96B;letter-spacing:2px;text-align:center;margin-bottom:6px}
   .login-sub{font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:32px}
   .login-field{margin-bottom:14px}
   .login-label{font-size:11px;font-weight:700;color:#6B7280;margin-bottom:6px;display:block}
@@ -342,7 +341,7 @@
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo">Dear Guard</div>
+    <img src="logo.png" alt="Dear Guard" style="height:48px;width:auto;object-fit:contain;display:block;margin:0 auto 10px">
     <div class="login-sub">웨딩 운영 관리 시스템</div>
     <div class="login-field">
       <label class="login-label">이름 입력</label>
@@ -381,8 +380,7 @@
     <button class="tab-btn" id="nav-sheet-btn" style="display:none" onclick="window.open(&#39;https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623&#39;,&#39;_blank&#39;)">
       📋 시트
     </button>
-    <button class="tab-btn" onclick="window.open(&#39;/contribution.html&#39;,&#39;_blank&#39;)"
-      style="background:#FDF8F3;border-color:#E8DFD0;color:#C7A96B;font-weight:700;border:1px solid #E8DFD0">
+    <button class="tab-btn" onclick="window.open(&#39;/contribution.html&#39;,&#39;_blank&#39;)">
       💌 접수
     </button>
   </div>
@@ -5340,8 +5338,10 @@ async function rtSaveHandoverCertImage(){
 
   div.innerHTML = `
     <div style="width:640px;padding:0;background:#fff;border:1px solid #E8DFD0">
-      <div style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);padding:28px 40px;text-align:center">
-        <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:3px;margin-bottom:6px">Dear Guard</div>
+      <div style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);padding:24px 40px 28px;text-align:center">
+        <div style="background:#fff;border-radius:12px;display:inline-block;padding:8px 18px;margin-bottom:14px">
+          <img src="${location.origin}/logo.png" alt="Dear Guard" crossorigin="anonymous" style="height:30px;width:auto;object-fit:contain;display:block">
+        </div>
         <div style="font-size:23px;font-weight:900;color:#fff;letter-spacing:6px">인 계 확 인 서</div>
       </div>
       <div style="padding:36px 40px 0">
