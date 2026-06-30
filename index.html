@@ -579,7 +579,7 @@
       <button id="rt-tab-0" class="rt-step-btn rt-step-active" onclick="rtShowStep(0)">0차 출발</button>
       <button id="rt-tab-1" class="rt-step-btn" onclick="rtShowStep(1)">1차 도착</button>
       <button id="rt-tab-2" class="rt-step-btn" onclick="rtShowStep(2)">2차 결과</button>
-      <button id="rt-tab-3" class="rt-step-btn" onclick="rtShowStep(3)">3차 마감후</button>
+      <button id="rt-tab-3" class="rt-step-btn" onclick="rtShowStep(3)">3차 인계</button>
       <button id="rt-tab-4" class="rt-step-btn" onclick="rtShowStep(4)">4차 장부</button>
     </div>
 
@@ -621,19 +621,24 @@
       <button onclick="rtCopy('rt-out-2')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
     </div>
 
-    <!-- 3차 마감후안내 -->
+    <!-- 3차 인계 -->
     <div id="rt-step-3" class="rt-step-panel" style="display:none">
-      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 마감 이후 발생한 특이사항을 보고합니다.</div>
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 인계 완료 안내와 마감 후 추가 상황을 함께 전달합니다.</div>
+
+      <!-- 인계 물품 (항상 표시) -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">인계 물품</div>
+        <div style="font-size:11px;color:#9CA3AF;margin-bottom:6px">예식 선택 시 인계자·물품·레디백 비밀번호가 자동 연동됩니다. (직접 수정 가능)</div>
+        <textarea id="rt-handover-items" class="form-input" rows="3" style="font-size:12px;resize:vertical" placeholder="· 축의금 및 봉투가 담긴 레디백&#10;· 방명록&#10;· 잔여 식권"></textarea>
+      </div>
+
+      <!-- 추가 상황 선택 -->
       <div style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">마감 후 상황</div>
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">추가 상황</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="인계완료" checked onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 물품 인계 완료</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="없음" checked onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 없음</label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="봉투접수" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 봉투 접수</label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="식권배부" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 식권 배부</label>
-        </div>
-        <div id="rt-closing-handover" style="display:none;margin-bottom:8px">
-          <div style="font-size:11px;color:#9CA3AF;margin-bottom:6px">예식 선택 시 인계자·물품·레디백 비밀번호가 자동 연동됩니다. (직접 수정 가능)</div>
-          <textarea id="rt-handover-items" class="form-input" rows="3" style="font-size:12px;resize:vertical" placeholder="· 축의금 및 봉투가 담긴 레디백&#10;· 방명록&#10;· 잔여 식권"></textarea>
         </div>
         <div id="rt-closing-envelope" style="display:none;margin-bottom:8px">
           <input id="rt-env-name" class="form-input" placeholder="이름" style="font-size:12px;margin-bottom:6px">
@@ -4450,6 +4455,14 @@ function rtSetTarget(val){
   if(notesEl && rtResultData?.opsMemoByside){
     notesEl.value = rtGetOpsMemoForTarget();
   }
+  // 인계 물품도 측 전환 시 해당 측 데이터로 갱신
+  const itemsEl = document.getElementById('rt-handover-items');
+  if(itemsEl && rtResultData?.itemsByside){
+    const items = val === '신랑님' ? rtResultData.itemsByside.groom
+                : val === '신부님' ? rtResultData.itemsByside.bride
+                : [rtResultData.itemsByside.groom, rtResultData.itemsByside.bride].filter(Boolean).join('\n');
+    if(items) itemsEl.value = items;
+  }
 }
 
 function rtGetLink(){
@@ -4615,6 +4628,8 @@ async function rtLoadSchedule(){
   if(notesEl && !notesEl.value.trim()){
     notesEl.value = rtGetOpsMemoForTarget();
   }
+  // 인계 물품 textarea도 자동 반영 (기존 입력 내용 있으면 유지)
+  rtFillHandoverItems();
 }
 
 function rtCopy(id){
@@ -4739,47 +4754,51 @@ function rtGenStep2(){
 }
 
 function rtClosingChange(val){
-  document.getElementById('rt-closing-handover').style.display = val==='인계완료' ? 'block' : 'none';
   document.getElementById('rt-closing-envelope').style.display = val==='봉투접수' ? 'block' : 'none';
   document.getElementById('rt-closing-ticket').style.display   = val==='식권배부'  ? 'block' : 'none';
-  if(val === '인계완료'){
-    const itemsEl = document.getElementById('rt-handover-items');
-    const d = rtResultData;
-    if(itemsEl && !itemsEl.value.trim() && d.itemsByside){
-      const items = rtTarget === '신랑님' ? d.itemsByside.groom
-                  : rtTarget === '신부님' ? d.itemsByside.bride
-                  : [d.itemsByside.groom, d.itemsByside.bride].filter(Boolean).join('\n');
-      if(items) itemsEl.value = items;
-    }
+}
+
+// 인계 물품 자동 연동 (예식 선택 시 rtLoadSchedule에서 호출)
+function rtFillHandoverItems(){
+  const itemsEl = document.getElementById('rt-handover-items');
+  const d = rtResultData;
+  if(itemsEl && !itemsEl.value.trim() && d.itemsByside){
+    const items = rtTarget === '신랑님' ? d.itemsByside.groom
+                : rtTarget === '신부님' ? d.itemsByside.bride
+                : [d.itemsByside.groom, d.itemsByside.bride].filter(Boolean).join('\n');
+    if(items) itemsEl.value = items;
   }
 }
 
 function rtGenStep3(){
-  const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '인계완료';
-  let txt = '';
-  if(val === '인계완료'){
-    const d = rtResultData;
-    const t = rtTarget;
-    // 보고대상에 따라 인계자/비밀번호 선택
-    let handoverName = '', pw = '';
-    if(t === '신랑님'){ handoverName = d.handoverByside?.groom || '○○'; pw = d.groomPw || ''; }
-    else if(t === '신부님'){ handoverName = d.handoverByside?.bride || '○○'; pw = d.bridePw || ''; }
-    else { handoverName = [d.handoverByside?.groom, d.handoverByside?.bride].filter(Boolean).join(' / ') || '○○'; pw = [d.groomPw, d.bridePw].filter(Boolean).join(' / '); }
-    const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
-    const itemsList = itemsRaw
-      ? itemsRaw.split('\n').filter(l=>l.trim()).map(l=>'✔️ '+l.trim().replace(/^[·\-•]\s*/,'')).join('\n')
-      : '✔️ 축의금 및 봉투가 담긴 레디백\n✔️ 방명록\n✔️ 잔여 식권\n✔️ 기타 전달 물품';
-    const pwLine = pw ? `\n\n🔒 레디백 비밀번호는 사전 안내주신\n${pw}로 설정해두었습니다 :)` : '';
-    txt = `📦 ${handoverName}님께 아래 물품과 함께\n전달 완료하였습니다.\n\n${itemsList}${pwLine}\n\n🌸 화환 사진도 함께 전달드립니다.`;
-  } else if(val === '봉투접수'){
+  const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
+  const d = rtResultData;
+  const t = rtTarget;
+
+  // ── 인계 안내 (항상 출력) ──
+  let handoverName = '', pw = '';
+  if(t === '신랑님'){ handoverName = d.handoverByside?.groom || '○○'; pw = d.groomPw || ''; }
+  else if(t === '신부님'){ handoverName = d.handoverByside?.bride || '○○'; pw = d.bridePw || ''; }
+  else { handoverName = [d.handoverByside?.groom, d.handoverByside?.bride].filter(Boolean).join(' / ') || '○○'; pw = [d.groomPw, d.bridePw].filter(Boolean).join(' / '); }
+  const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
+  const itemsList = itemsRaw
+    ? itemsRaw.split('\n').filter(l=>l.trim()).map(l=>'✔️ '+l.trim().replace(/^[·\-•]\s*/,'')).join('\n')
+    : '✔️ 축의금 및 봉투가 담긴 레디백\n✔️ 방명록\n✔️ 잔여 식권\n✔️ 기타 전달 물품';
+  const pwLine = pw ? `\n\n🔒 레디백 비밀번호는 사전 안내주신\n${pw}로 설정해두었습니다 :)` : '';
+  let txt = `📦 ${handoverName}님께 아래 물품과 함께\n전달 완료하였습니다.\n\n${itemsList}${pwLine}\n\n🌸 화환 사진도 함께 전달드립니다.`;
+
+  // ── 추가 상황 (선택했을 때만 덧붙임) ──
+  if(val === '봉투접수'){
     const name    = document.getElementById('rt-env-name')?.value?.trim()    || '○○';
     const content = document.getElementById('rt-env-content')?.value?.trim() || '봉투';
-    txt = `식 종료 후 ${name}님께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`;
+    txt += `\n\n식 종료 후 ${name}님께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`;
   } else if(val === '식권배부'){
     const name  = document.getElementById('rt-tkt-name')?.value?.trim()  || '○○';
     const count = document.getElementById('rt-tkt-count')?.value?.trim() || '1';
-    txt = `식 종료 후 ${name}님 식권 ${count}장을 배부하였습니다.`;
+    txt += `\n\n식 종료 후 ${name}님 식권 ${count}장을 배부하였습니다.`;
   }
+  // val === '없음'이면 추가 문구 없이 인계 안내만 출력
+
   document.getElementById('rt-out-3').value = txt;
 }
 
