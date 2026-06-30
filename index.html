@@ -4990,10 +4990,11 @@ let hvCanvas, hvCtx, hvDrawing = false;
 let hvCompleted = false;
 
 function rtOpenHandoverCert(){
-  // 3차 인계물품 textarea 내용을 그대로 체크리스트 항목으로 사용
+  // 3차 인계물품 textarea 내용을 체크리스트 항목으로 사용
+  // 줄바꿈(엔터) 또는 쉼표(,)로 구분된 각 항목을 모두 별도 체크박스로 분리
   const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
   const items = itemsRaw
-    ? itemsRaw.split('\n').map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
+    ? itemsRaw.split(/[\n,，、]/).map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
     : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
 
   hvChecks = {};
@@ -5228,7 +5229,7 @@ async function rtSaveHandoverCertImage(){
 
   const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
   const itemsArr = itemsRaw
-    ? itemsRaw.split('\n').map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
+    ? itemsRaw.split(/[\n,，、]/).map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
     : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
 
   // ── 인계확인서 내부용 상세 데이터 (인계자 화면에는 노출되지 않음, 이미지에만 기록) ──
