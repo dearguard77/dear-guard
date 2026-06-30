@@ -332,6 +332,9 @@
       text-align:center;
       border-radius:10px;
     }
+
+    /* 홈 화면 스크롤 최소화 — 모바일에서 다가오는 일정 / 본식준비체크 기본 접힘 */
+    #upcoming-list, #precheck-reminder-list{display:none}
   }
 </style>
 </head>
@@ -464,12 +467,45 @@
       <div id="today-list"></div>
     </div>
     <div class="stats-grid" id="stats-grid"></div>
-    <div class="sec-header" style="margin-top:8px"><h2>다가오는 일정</h2><span>D-7 이내</span></div>
+
+    <!-- 운영 바로가기 (관리자 전용) -->
+    <div id="home-admin-shortcuts" style="display:none;margin-bottom:20px">
+      <div class="sec-header" style="margin-bottom:8px"><h2>운영 바로가기</h2></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button onclick="switchTab('settle',document.getElementById('nav-settle-btn'))" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:22px">💰</div>
+          <div style="font-size:14px;font-weight:800;color:#111827">정산관리</div>
+          <div style="font-size:11px;color:#9CA3AF">계약금 · 잔금 · 매니저 정산</div>
+        </button>
+        <button onclick="switchTab('assign',document.getElementById('nav-assign-btn'))" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:22px">🤖</div>
+          <div style="font-size:14px;font-weight:800;color:#111827">배정관리</div>
+          <div style="font-size:11px;color:#9CA3AF">예식별 인원 배정</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 매뉴얼 바로가기 (매니저 전용) -->
+    <div id="home-manager-shortcuts" style="display:none;margin-bottom:20px">
+      <div class="sec-header" style="margin-bottom:8px"><h2>운영 바로가기</h2></div>
+      <button onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px">
+        <div style="font-size:26px">📖</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#111827">매뉴얼</div>
+          <div style="font-size:11px;color:#9CA3AF">현장 운영 가이드</div>
+        </div>
+      </button>
+    </div>
+
+    <div class="sec-header" id="upcoming-header" style="margin-top:8px;cursor:pointer" onclick="toggleHomeSection('upcoming')">
+      <h2>다가오는 일정 <span id="upcoming-toggle-icon" style="font-size:11px;color:#C7A96B">▾</span></h2>
+      <span>D-7 이내</span>
+    </div>
     <div id="upcoming-list"></div>
 
     <!-- 본식 준비 체크 & 잔금 확인 알림 카드 -->
-    <div class="sec-header" style="margin-top:20px">
-      <h2>&#x1F4B0; 본식 준비 체크 &amp; 잔금 확인</h2>
+    <div class="sec-header" id="precheck-header" style="margin-top:20px;cursor:pointer" onclick="toggleHomeSection('precheck')">
+      <h2>&#x1F4B0; 본식 준비 체크 &amp; 잔금 확인 <span id="precheck-toggle-icon" style="font-size:11px;color:#C7A96B">▾</span></h2>
       <span>D-8 ~ D-10</span>
     </div>
     <div id="precheck-reminder-list"></div>
@@ -749,11 +785,6 @@
   <button class="bnav-btn" onclick="switchTab(&#39;schedules&#39;,null,this)"><span class="bnav-icon">📋</span>전체</button>
   <button class="bnav-btn" onclick="switchTab(&#39;unavail&#39;,null,this)"><span class="bnav-icon">🚫</span>불가</button>
   <button class="bnav-btn" id="bnav-result" onclick="switchTab(&#39;result&#39;,null,this)"><span class="bnav-icon">📢</span>결과</button>
-  <button class="bnav-btn" id="bnav-assign" style="display:none" onclick="switchTab(&#39;assign&#39;,null,this)"><span class="bnav-icon">🤖</span>배정</button>
-  <button class="bnav-btn" id="bnav-settle" style="display:none" onclick="switchTab(&#39;settle&#39;,null,this)"><span class="bnav-icon">📊</span>정산</button>
-  <button class="bnav-btn" id="bnav-manual" style="display:none" onclick="window.open(&#39;https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9&#39;,&#39;_blank&#39;)">
-    <span class="bnav-icon">📖</span>매뉴얼
-  </button>
 </div>
 
 <!-- DELETE CONFIRM MODAL -->
@@ -1606,6 +1637,22 @@ function renderNav(){
   // 결과 탭 — 전체 표시 (renderResultTab 예식 드롭다운 초기화)
   const navResultBtn = document.getElementById('nav-result-btn');
   if(navResultBtn) navResultBtn.style.display = 'block';
+
+  // 홈 화면 바로가기 카드 — 관리자/매니저 권한별 분리
+  const homeAdminShortcuts   = document.getElementById('home-admin-shortcuts');
+  const homeManagerShortcuts = document.getElementById('home-manager-shortcuts');
+  if(homeAdminShortcuts)   homeAdminShortcuts.style.display   = isAdmin ? 'block' : 'none';
+  if(homeManagerShortcuts) homeManagerShortcuts.style.display = isAdmin ? 'none'  : 'block';
+}
+
+const HOME_SECTION_LIST_IDS = { upcoming: 'upcoming-list', precheck: 'precheck-reminder-list' };
+function toggleHomeSection(key){
+  const list = document.getElementById(HOME_SECTION_LIST_IDS[key]);
+  const icon = document.getElementById(key + '-toggle-icon');
+  if(!list || !icon) return;
+  const isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? 'block' : 'none';
+  icon.textContent = isHidden ? '▾' : '▸';
 }
 
 function renderUserDrop(){
@@ -1630,6 +1677,13 @@ function renderAll(){
   renderPrecheckReminder();
   renderCalendar();
   renderScheduleList();
+  // 모바일에서는 다가오는 일정/본식준비체크 섹션이 기본 접힘 상태이므로 토글 아이콘도 맞춰줌
+  if(window.innerWidth <= 768){
+    const uIcon = document.getElementById('upcoming-toggle-icon');
+    const pIcon = document.getElementById('precheck-toggle-icon');
+    if(uIcon) uIcon.textContent = '▸';
+    if(pIcon) pIcon.textContent = '▸';
+  }
 }
 
 function renderBanner(){
