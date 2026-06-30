@@ -341,7 +341,7 @@
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-box">
-    <img src="logo.png" alt="Dear Guard" style="height:48px;width:auto;object-fit:contain;display:block;margin:0 auto 10px">
+    <img src="logo.png" alt="Dear Guard" style="height:96px;width:auto;object-fit:contain;display:block;margin:0 auto 16px">
     <div class="login-sub">웨딩 운영 관리 시스템</div>
     <div class="login-field">
       <label class="login-label">이름 입력</label>
@@ -5024,11 +5024,15 @@ function rtOpenHandoverCert(){
     ? itemsRaw.split(/[\n,，、]/).map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
     : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
 
+  // 물품 항목(수령 확인) + 절차 확인 항목(직접확인/설명확인) — 모두 수령인이 실제로 체크해야 함
+  const procedureItems = ['물품 직접 확인', '인계 내용 설명 확인'];
+
   hvChecks = {};
   items.forEach((_, i) => { hvChecks['item'+i] = false; });
+  procedureItems.forEach((_, i) => { hvChecks['proc'+i] = false; });
 
   const listEl = document.getElementById('hv-items-checklist');
-  listEl.innerHTML = items.map((label, i) => `
+  const itemsHtml = items.map((label, i) => `
     <div class="hv-chk-card" id="hv-chk-card-item${i}" onclick="rtToggleHandoverCheck('item${i}')"
       style="display:flex;align-items:center;gap:12px;background:#FAF8F4;border:1.5px solid #E8DFD0;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer">
       <div class="hv-chk-box" id="hv-chk-box-item${i}"
@@ -5036,6 +5040,15 @@ function rtOpenHandoverCert(){
       </div>
       <div style="font-size:13px;font-weight:700;color:#111827">${esc(label)}을(를) 수령했습니다.</div>
     </div>`).join('');
+  const procHtml = procedureItems.map((label, i) => `
+    <div class="hv-chk-card" id="hv-chk-card-proc${i}" onclick="rtToggleHandoverCheck('proc${i}')"
+      style="display:flex;align-items:center;gap:12px;background:#FAF8F4;border:1.5px solid #E8DFD0;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer">
+      <div class="hv-chk-box" id="hv-chk-box-proc${i}"
+        style="width:26px;height:26px;border-radius:8px;border:2px solid #D4C7AE;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:900">
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#111827">${esc(label)}</div>
+    </div>`).join('');
+  listEl.innerHTML = itemsHtml + procHtml;
 
   // 수령인 정보는 인계자명으로 자동완성 (직접 수정 가능)
   const d = rtResultData;
@@ -5305,7 +5318,7 @@ async function rtSaveHandoverCertImage(){
   const itemsArr = itemsRaw
     ? itemsRaw.split(/[\n,，、]/).map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
     : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
-  // 수령 확인 체크 항목: 인계 물품 + 확인 절차 항목
+  // 수령 확인 체크 항목: 인계 물품 + 확인 절차 항목 (수령인이 실제로 체크한 항목과 동일)
   const checkItemsArr = [...itemsArr.map(it=>`${it} 수령`), '물품 직접 확인', '인계 내용 설명 확인'];
 
   // 연락처 마스킹 (010-1234-5678 → 010-****-5678)
