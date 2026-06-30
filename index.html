@@ -344,7 +344,7 @@
     <button class="tab-btn" onclick="switchTab(&#39;schedules&#39;,this)">📋 전체일정</button>
     <button class="tab-btn" onclick="switchTab(&#39;unavail&#39;,this)">🚫 불가일정</button>
     <button class="tab-btn" id="nav-assign-btn" style="display:none" onclick="switchTab(&#39;assign&#39;,this)">🤖 배정</button>
-    <button class="tab-btn" id="nav-result-btn" onclick="switchTab(&#39;result&#39;,this)">📋 결과</button>
+    <button class="tab-btn" id="nav-result-btn" onclick="switchTab(&#39;result&#39;,this)">📢 결과</button>
     <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab(&#39;settle&#39;,this)">📊 정산</button>
     <button class="tab-btn" id="nav-sheet-btn" style="display:none" onclick="window.open(&#39;https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623&#39;,&#39;_blank&#39;)">
       📋 시트
@@ -705,7 +705,7 @@
   <button class="bnav-btn" onclick="switchTab(&#39;calendar&#39;,null,this)"><span class="bnav-icon">📅</span>일정</button>
   <button class="bnav-btn" onclick="switchTab(&#39;schedules&#39;,null,this)"><span class="bnav-icon">📋</span>전체</button>
   <button class="bnav-btn" onclick="switchTab(&#39;unavail&#39;,null,this)"><span class="bnav-icon">🚫</span>불가</button>
-  <button class="bnav-btn" id="bnav-result" onclick="switchTab(&#39;result&#39;,null,this)"><span class="bnav-icon">📋</span>결과</button>
+  <button class="bnav-btn" id="bnav-result" onclick="switchTab(&#39;result&#39;,null,this)"><span class="bnav-icon">📢</span>결과</button>
   <button class="bnav-btn" id="bnav-assign" style="display:none" onclick="switchTab(&#39;assign&#39;,null,this)"><span class="bnav-icon">🤖</span>배정</button>
   <button class="bnav-btn" id="bnav-settle" style="display:none" onclick="switchTab(&#39;settle&#39;,null,this)"><span class="bnav-icon">📊</span>정산</button>
   <button class="bnav-btn" id="bnav-manual" style="display:none" onclick="window.open(&#39;https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9&#39;,&#39;_blank&#39;)">
@@ -4429,9 +4429,13 @@ function rtSetTarget(val){
 }
 
 function rtGetLink(){
-  if(!rtSchedule?.dashboardToken) return '(장부 링크)';
-  const base = `${location.origin}/live.html?t=${rtSchedule.dashboardToken}`;
-  return base;
+  if(!rtSchedule) return '(장부 링크)';
+  let token = '';
+  if(rtTarget === '신랑님')      token = rtSchedule.groomToken || rtSchedule.dashboardToken;
+  else if(rtTarget === '신부님') token = rtSchedule.brideToken || rtSchedule.dashboardToken;
+  else                            token = rtSchedule.dashboardToken; // 신랑신부님 = 통합
+  if(!token) return '(예식 선택 시 자동 생성됩니다)';
+  return `${location.origin}/live.html?t=${token}`;
 }
 
 function rtShowStep(n){
@@ -4450,6 +4454,25 @@ async function rtLoadSchedule(){
   if(!id){ rtSchedule = null; rtResultData = {}; return; }
   rtSchedule = schedules.find(s => s.id === id) || null;
   if(!rtSchedule) return;
+  // 토큰 없으면 자동 생성 (1차/4차 링크용)
+  if(!rtSchedule.dashboardToken || !rtSchedule.groomToken || !rtSchedule.brideToken){
+    try {
+      const patchBody = {};
+      if(!rtSchedule.dashboardToken){
+        const dt = 'T_' + Math.random().toString(36).slice(2,10).toUpperCase();
+        patchBody.dashboard_token = dt; rtSchedule.dashboardToken = dt;
+      }
+      if(!rtSchedule.groomToken){
+        const gt = 'G_' + Math.random().toString(36).slice(2,10).toUpperCase();
+        patchBody.groom_token = gt; rtSchedule.groomToken = gt;
+      }
+      if(!rtSchedule.brideToken){
+        const bt = 'B_' + Math.random().toString(36).slice(2,10).toUpperCase();
+        patchBody.bride_token = bt; rtSchedule.brideToken = bt;
+      }
+      if(Object.keys(patchBody).length) await sb.patch('schedules', id, patchBody);
+    } catch(e){ console.warn('[DG] 토큰 생성 실패:', e); }
+  }
   // contribution 데이터 자동 로드
   try {
     const [logs, tickets, preShares] = await Promise.all([
@@ -4575,6 +4598,7 @@ function rtGenStep2(){
 💰 총 축의금: ${amount}
 
 🎫 수령(사용) 식권: ${tktUsed}
+📤 불출 식권: ${tktOut}
 📦 잔여 식권: ${tktRem}${preShare}
 
 ━━━━━━━━━━━━━━━━━━━
