@@ -336,6 +336,7 @@
     #upcoming-list, #precheck-reminder-list{display:none}
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
@@ -3893,6 +3894,9 @@ function renderUnavailList(){
 
 // ─── 폼 OPEN / CLOSE ─────────────────────────────────────────────────────────
 // ── 부부/짝꿍 세트 매니저 목록 ──────────────────────────────────────────────
+// 디어가드 직인 (인계확인서 등에 사용)
+const STAMP_FULL_BASE64 = 'data:image/jpeg;base64,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';
+
 const COUPLE_PAIRS = {
   '강성주':'전수연', '전수연':'강성주',
   '조윤성':'정선화', '정선화':'조윤성',
@@ -5130,19 +5134,28 @@ function rtConfirmSignature(){
 }
 
 // ── 인계 완료: 확인서 작성 완료 → 3차 인계 문구를 B안(서명완료 강조형)으로 자동 생성 ──
+let hvCompletedAt = null;     // 인계 완료 정확한 시각 (Date 객체)
+let hvSignatureDataUrl = '';  // 서명 캔버스 이미지(base64)
+let hvCompletedName = '';     // 인계 완료 시점의 관계/성함
+
 function rtCompleteHandover(){
   if(!rtValidateHandover()){ alert('모든 항목을 확인하고 서명을 완료해주세요.'); return; }
 
   hvCompleted = true;
-  const name = document.getElementById('hv-name').value.trim();
+  hvCompletedAt = new Date();
+  hvCompletedName = document.getElementById('hv-name').value.trim();
+  hvSignatureDataUrl = hvCanvas ? hvCanvas.toDataURL('image/png') : '';
 
   rtCloseHandoverCert();
   document.getElementById('hv-status-badge').style.display = 'block';
 
   // 3차 인계 문구를 "서명완료 강조형(B안)"으로 재생성
-  rtGenStep3WithSignature(name);
+  rtGenStep3WithSignature(hvCompletedName);
 
   showToast('✅ 인계확인서 서명이 완료되었습니다');
+
+  // 인계확인서 이미지를 매니저 폰에 자동 저장 (도장 포함)
+  rtSaveHandoverCertImage();
 }
 
 // B안: 인계확인서 서명 완료를 중심으로 문구 재구성
@@ -5174,9 +5187,119 @@ function rtGenStep3WithSignature(name){
     txt += `\n\n식 종료 후 ${tktName}님 식권 ${tktCount}장을 배부하였습니다.`;
   }
 
-  txt += `\n\n🌸 화환 사진도 함께 전달드립니다.`;
+  txt += `\n\n🌸 화환 사진과 인계확인서도 함께 전달드립니다.`;
 
   document.getElementById('rt-out-3').value = txt;
+}
+
+// ── 인계확인서 이미지 생성 및 매니저 폰에 자동 저장 (도장 + 정확한 인계 시각 포함) ──
+async function rtSaveHandoverCertImage(){
+  if(typeof html2canvas === 'undefined'){
+    showToast('⚠️ 이미지 생성 모듈을 불러오지 못했습니다');
+    return;
+  }
+  const s = rtSchedule;
+  if(!s || !hvCompletedAt) return;
+
+  // 도장 JPEG 검은 배경 → 투명 PNG 변환 (contract.html과 동일 방식)
+  const stampDataUrl = await new Promise(resolve => {
+    const img = new Image();
+    img.onload = function(){
+      const cvs = document.createElement('canvas');
+      cvs.width = img.width; cvs.height = img.height;
+      const ctx = cvs.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+      const d = imageData.data;
+      for(let i = 0; i < d.length; i += 4){
+        const r = d[i], g = d[i+1], b = d[i+2];
+        if(r < 80 && g < 80 && b < 80){ d[i+3] = 0; }
+      }
+      ctx.putImageData(imageData, 0, 0);
+      resolve(cvs.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve('');
+    img.src = STAMP_FULL_BASE64;
+  });
+
+  // 정확한 인계 일시 (몇년 몇월 몇일 몇시 몇분)
+  const dt = hvCompletedAt;
+  const dateTimeStr = `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 ${String(dt.getHours()).padStart(2,'0')}시 ${String(dt.getMinutes()).padStart(2,'0')}분`;
+
+  const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
+  const itemsArr = itemsRaw
+    ? itemsRaw.split('\n').map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
+    : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
+
+  const div = document.createElement('div');
+  div.id = 'hv-cert-capture';
+  div.style.cssText = 'position:absolute;top:0;left:0;width:640px;background:#fff;font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#111827;z-index:-9999;visibility:hidden';
+
+  div.innerHTML = `
+    <div style="width:640px;padding:0;background:#fff">
+      <div style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);padding:24px 40px;text-align:center">
+        <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:3px">Dear Guard</div>
+      </div>
+      <div style="padding:40px">
+        <div style="font-size:22px;font-weight:900;color:#111827;text-align:center;margin-bottom:6px">인 계 확 인 서</div>
+        <div style="font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #F0EBE1">
+          수령인 본인이 직접 항목을 확인하고 전자서명까지 완료하였음을 증명합니다.
+        </div>
+
+        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
+          <div style="width:130px;color:#9CA3AF;font-weight:600">예식명</div>
+          <div style="flex:1;font-weight:700">${esc(coupleName(s))}</div>
+        </div>
+        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
+          <div style="width:130px;color:#9CA3AF;font-weight:600">예식일시</div>
+          <div style="flex:1;font-weight:700">${esc(s.date||'-')} ${esc(s.time||'')}</div>
+        </div>
+        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
+          <div style="width:130px;color:#9CA3AF;font-weight:600">예식장</div>
+          <div style="flex:1;font-weight:700">${esc(s.hall||'-')}</div>
+        </div>
+        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
+          <div style="width:130px;color:#9CA3AF;font-weight:600">인계 일시</div>
+          <div style="flex:1;font-weight:800;color:#C7A96B">${dateTimeStr}</div>
+        </div>
+        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
+          <div style="width:130px;color:#9CA3AF;font-weight:600">수령인 (관계/성함)</div>
+          <div style="flex:1;font-weight:700">${esc(hvCompletedName||'-')}</div>
+        </div>
+
+        <div style="font-size:13px;font-weight:800;color:#C7A96B;margin:24px 0 10px">수령 확인 항목</div>
+        ${itemsArr.map(it=>`<div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#374151;padding:5px 0">
+          <span style="color:#10B981;font-weight:900">✔</span>${esc(it)}을(를) 수령했습니다.
+        </div>`).join('')}
+
+        <div style="margin-top:30px;border:1px solid #E5E7EB;border-radius:12px;padding:16px;position:relative;min-height:120px">
+          <div style="font-size:12px;color:#9CA3AF;font-weight:700;margin-bottom:8px">수령인 서명</div>
+          <div style="text-align:center;position:relative">
+            <img src="${hvSignatureDataUrl}" style="max-width:260px;max-height:100px">
+            ${stampDataUrl ? `<img src="${stampDataUrl}" style="position:absolute;right:20px;bottom:-10px;width:64px;height:64px;opacity:.92">` : ''}
+          </div>
+        </div>
+
+        <div style="text-align:center;font-size:10px;color:#C4C4C4;margin-top:30px;letter-spacing:2px">D E A R &nbsp; G U A R D</div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(div);
+
+  try {
+    const canvas = await html2canvas(div, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    const link = document.createElement('a');
+    const fileDate = `${dt.getFullYear()}${String(dt.getMonth()+1).padStart(2,'0')}${String(dt.getDate()).padStart(2,'0')}_${String(dt.getHours()).padStart(2,'0')}${String(dt.getMinutes()).padStart(2,'0')}`;
+    link.download = `인계확인서_${coupleName(s).replace(/[♥\s]/g,'')}_${fileDate}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('🖼️ 인계확인서 이미지가 저장되었습니다');
+  } catch(e){
+    console.error('인계확인서 이미지 생성 실패:', e);
+    showToast('⚠️ 이미지 저장에 실패했습니다: ' + (e.message||''));
+  } finally {
+    document.body.removeChild(div);
+  }
 }
 
 function rtGenStep4(){
