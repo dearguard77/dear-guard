@@ -4414,18 +4414,15 @@ let rtSchedule   = null;       // 선택된 예식 (2차 자동연동용)
 let rtResultData = {};         // 2차 자동 연동 데이터
 
 function renderResultTab(){
-  // 예식 드롭다운 초기화
+  // 예식 드롭다운 초기화 — 오늘 기준 ±15일 예식만 표시
   const sel = document.getElementById('rt-schedule-sel');
   if(sel){
-    const today = TODAY;
-    const recent = schedules
-      .filter(s => s.date >= today.slice(0,7)+'-01' && s.date <= today)
-      .concat(schedules.filter(s => s.date > today))
-      .sort((a,b) => a.date.localeCompare(b.date))
-      .slice(0, 30);
+    const todayMs = Date.now();
+    const fromDate = new Date(todayMs - 15*24*3600*1000).toISOString().slice(0,10);
+    const toDate   = new Date(todayMs + 15*24*3600*1000).toISOString().slice(0,10);
     sel.innerHTML = '<option value="">— 예식을 선택하세요 —</option>'
       + schedules
-          .filter(s => s.date >= new Date(Date.now()-30*24*3600*1000).toISOString().slice(0,10))
+          .filter(s => s.date >= fromDate && s.date <= toDate)
           .sort((a,b) => a.date.localeCompare(b.date))
           .map(s => `<option value="${s.id}">${s.date} ${esc(coupleName(s))}</option>`)
           .join('');
