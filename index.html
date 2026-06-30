@@ -5298,100 +5298,107 @@ async function rtSaveHandoverCertImage(){
     img.src = STAMP_FULL_BASE64;
   });
 
-  // 정확한 인계 일시 (몇년 몇월 몇일 몇시 몇분)
+  // 정확한 인계 일시 (연-월-일 시:분:초까지)
   const dt = hvCompletedAt;
-  const dateTimeStr = `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 ${String(dt.getHours()).padStart(2,'0')}시 ${String(dt.getMinutes()).padStart(2,'0')}분`;
+  const pad = n => String(n).padStart(2,'0');
+  const dateTimeStr = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
 
   const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
   const itemsArr = itemsRaw
     ? itemsRaw.split(/[\n,，、]/).map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
     : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
+  // 수령 확인 체크 항목: 인계 물품 + 확인 절차 항목
+  const checkItemsArr = [...itemsArr.map(it=>`${it} 수령`), '물품 직접 확인', '인계 내용 설명 확인'];
 
-  // ── 인계확인서 내부용 상세 데이터 (인계자 화면에는 노출되지 않음, 이미지에만 기록) ──
-  const rd = rtResultData;
-  const t  = rtTarget;
-  let amountNum = 0, guestNum = 0, tk = { init:0, extra:0, out:0, remain:0 };
-  if(rd.amountByside && rd.guestByside){
-    if(t === '신랑님'){ amountNum = rd.amountByside.groom; guestNum = rd.guestByside.groom; }
-    else if(t === '신부님'){ amountNum = rd.amountByside.bride; guestNum = rd.guestByside.bride; }
-    else { amountNum = rd.amountByside.groom + rd.amountByside.bride; guestNum = rd.guestByside.groom + rd.guestByside.bride; }
+  // 연락처 마스킹 (010-1234-5678 → 010-****-5678)
+  const phoneRaw = (document.getElementById('hv-phone')?.value || '').trim();
+  const phoneMasked = phoneRaw.replace(/(\d{2,3})-?(\d{3,4})-?(\d{4})/, (m,a,b,c) => `${a}-****-${c}`);
+
+  // 관계/성함 통합값에서 표시용으로 그대로 사용 (예: "가방순이 김희애" 또는 "가방순이/김희애" 등 입력 형식 그대로)
+  const nameDisplay = hvCompletedName || document.getElementById('hv-name')?.value?.trim() || '-';
+
+  // 접수 마감 후 상황 — 선택된 내용이 있을 때만 출력
+  const closingVal = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
+  let closingText = '';
+  if(closingVal === '봉투접수'){
+    const envName    = document.getElementById('rt-env-name')?.value?.trim()    || '';
+    const envContent = document.getElementById('rt-env-content')?.value?.trim() || '';
+    if(envName){
+      closingText = `식 종료 후 ${envName}님${envContent ? ' '+envContent+'이(가)' : ''} 추가 접수되어\n별도 개봉 없이 레디백에 동봉하였습니다.`;
+    }
+  } else if(closingVal === '식권배부'){
+    const tktName  = document.getElementById('rt-tkt-name')?.value?.trim()  || '';
+    const tktCount = document.getElementById('rt-tkt-count')?.value?.trim() || '1';
+    if(tktName){
+      closingText = `식 종료 후 ${tktName}님 식권 ${tktCount}장을 배부하였습니다.`;
+    }
   }
-  if(rd.ticketByside){
-    if(t === '신랑님') tk = rd.ticketByside.groom;
-    else if(t === '신부님') tk = rd.ticketByside.bride;
-    else tk = {
-      init:   rd.ticketByside.groom.init   + rd.ticketByside.bride.init,
-      extra:  rd.ticketByside.groom.extra  + rd.ticketByside.bride.extra,
-      out:    rd.ticketByside.groom.out    + rd.ticketByside.bride.out,
-      remain: rd.ticketByside.groom.remain + rd.ticketByside.bride.remain,
-    };
-  }
-  const ticketTotal = tk.init + tk.extra;
 
   const div = document.createElement('div');
   div.id = 'hv-cert-capture';
   div.style.cssText = 'position:absolute;top:0;left:0;width:640px;background:#fff;font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#111827;z-index:-9999;visibility:hidden';
 
   div.innerHTML = `
-    <div style="width:640px;padding:0;background:#fff">
-      <div style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);padding:24px 40px;text-align:center">
-        <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:3px">Dear Guard</div>
+    <div style="width:640px;padding:0;background:#fff;border:1px solid #E8DFD0">
+      <div style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);padding:28px 40px;text-align:center">
+        <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:3px;margin-bottom:6px">Dear Guard</div>
+        <div style="font-size:23px;font-weight:900;color:#fff;letter-spacing:6px">인 계 확 인 서</div>
       </div>
-      <div style="padding:40px">
-        <div style="font-size:22px;font-weight:900;color:#111827;text-align:center;margin-bottom:6px">인 계 확 인 서</div>
-        <div style="font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #F0EBE1">
-          수령인 본인이 직접 항목을 확인하고 전자서명까지 완료하였음을 증명합니다.
+      <div style="padding:36px 40px 0">
+        <div style="font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:26px;padding-bottom:22px;border-bottom:2px solid #F0EBE1;line-height:1.7">
+          수령인 본인이 직접 항목을 확인하고<br>전자서명까지 완료하였음을 증빙합니다.
         </div>
 
-        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
-          <div style="width:130px;color:#9CA3AF;font-weight:600">예식명</div>
+        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">기본 정보</div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
+          <div style="width:110px;color:#9CA3AF;font-weight:600">예식명</div>
           <div style="flex:1;font-weight:700">${esc(coupleName(s))}</div>
         </div>
-        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
-          <div style="width:130px;color:#9CA3AF;font-weight:600">예식일시</div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
+          <div style="width:110px;color:#9CA3AF;font-weight:600">예식일시</div>
           <div style="flex:1;font-weight:700">${esc(s.date||'-')} ${esc(s.time||'')}</div>
         </div>
-        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
-          <div style="width:130px;color:#9CA3AF;font-weight:600">예식장</div>
+        <div style="display:flex;padding:8px 0 22px;font-size:14px">
+          <div style="width:110px;color:#9CA3AF;font-weight:600">예식장</div>
           <div style="flex:1;font-weight:700">${esc(s.hall||'-')}</div>
         </div>
-        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
-          <div style="width:130px;color:#9CA3AF;font-weight:600">인계 일시</div>
-          <div style="flex:1;font-weight:800;color:#C7A96B">${dateTimeStr}</div>
+
+        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">수령인 정보</div>
+        <div style="display:flex;padding:8px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
+          <div style="width:110px;color:#9CA3AF;font-weight:600">관계 / 성함</div>
+          <div style="flex:1;font-weight:700">${esc(nameDisplay)}</div>
         </div>
-        <div style="display:flex;padding:9px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
-          <div style="width:130px;color:#9CA3AF;font-weight:600">수령인 (관계/성함)</div>
-          <div style="flex:1;font-weight:700">${esc(hvCompletedName||'-')}</div>
+        <div style="display:flex;padding:8px 0 22px;font-size:14px">
+          <div style="width:110px;color:#9CA3AF;font-weight:600">연락처</div>
+          <div style="flex:1;font-weight:700">${esc(phoneMasked||'-')}</div>
         </div>
 
-        <div style="font-size:13px;font-weight:800;color:#C7A96B;margin:24px 0 10px">수령 확인 항목</div>
-        ${itemsArr.map(it=>`<div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#374151;padding:5px 0">
-          <span style="color:#10B981;font-weight:900">✔</span>${esc(it)}을(를) 수령했습니다.
+        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">수령 확인</div>
+        ${checkItemsArr.map(it=>`<div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#374151;padding:5px 0">
+          <span style="color:#10B981;font-weight:900;font-size:15px">☑</span>${esc(it)}
         </div>`).join('')}
 
-        <div style="margin-top:22px;background:#FAFAF9;border:1px solid #E5E7EB;border-radius:12px;padding:16px 18px">
-          <div style="font-size:11px;font-weight:800;color:#9CA3AF;margin-bottom:10px;letter-spacing:.5px">내부 보관용 (디어가드 기록)</div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed #E5E7EB">
-            <span style="color:#6B7280">총 축의금</span><span style="font-weight:800;color:#111827">${amountNum.toLocaleString()}만원</span>
+        ${closingText ? `
+        <div style="margin-top:24px">
+          <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">접수 마감 후 상황</div>
+          <div style="background:#FAFAF9;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;font-size:13px;color:#374151;line-height:1.7;white-space:pre-line">${esc(closingText)}</div>
+        </div>` : ''}
+
+        <div style="margin-top:30px;border-top:2px solid #C7A96B;padding-top:20px">
+          <div style="text-align:center;margin-bottom:18px">
+            <div style="font-size:11px;color:#9CA3AF;font-weight:700;letter-spacing:1px;margin-bottom:6px">인 계 일 시</div>
+            <div style="font-size:19px;font-weight:900;color:#92400E;letter-spacing:.5px">${dateTimeStr}</div>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed #E5E7EB">
-            <span style="color:#6B7280">봉투 수량</span><span style="font-weight:800;color:#111827">${guestNum}개</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0">
-            <span style="color:#6B7280">식권 (전체 / 불출)</span><span style="font-weight:800;color:#111827">${ticketTotal}장 중 ${tk.out}장 사용</span>
+          <div style="border:1px solid #E5E7EB;border-radius:12px;padding:18px;background:#FDFCFB">
+            <div style="font-size:11px;color:#9CA3AF;font-weight:700;margin-bottom:10px;text-align:center">수령인 서명</div>
+            <div style="display:flex;align-items:flex-end;justify-content:center;gap:14px;min-height:90px">
+              ${hvSignatureDataUrl ? `<img src="${hvSignatureDataUrl}" style="max-width:240px;max-height:90px;display:block">` : `<div style="color:#EF4444;font-size:12px">서명 이미지를 불러오지 못했습니다</div>`}
+              ${stampDataUrl ? `<img src="${stampDataUrl}" style="width:66px;height:66px;display:block;flex-shrink:0">` : ''}
+            </div>
           </div>
         </div>
-
-        <div style="margin-top:18px;border:1px solid #E5E7EB;border-radius:12px;padding:16px;overflow:visible">
-          <div style="font-size:12px;color:#9CA3AF;font-weight:700;margin-bottom:8px">수령인 서명</div>
-          <div style="display:flex;align-items:flex-end;justify-content:center;gap:12px;min-height:100px">
-            ${hvSignatureDataUrl ? `<img src="${hvSignatureDataUrl}" style="max-width:220px;max-height:100px;display:block">` : `<div style="color:#EF4444;font-size:12px">서명 이미지를 불러오지 못했습니다</div>`}
-            ${stampDataUrl ? `<img src="${stampDataUrl}" style="width:60px;height:60px;display:block;flex-shrink:0">` : ''}
-          </div>
-        </div>
-
-        <div style="text-align:center;font-size:10px;color:#C4C4C4;margin-top:30px;letter-spacing:2px">D E A R &nbsp; G U A R D</div>
       </div>
+      <div style="text-align:center;font-size:10px;color:#C4C4C4;padding:22px 0;letter-spacing:2px">D E A R &nbsp; G U A R D</div>
     </div>`;
 
   document.body.appendChild(div);
