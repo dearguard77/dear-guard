@@ -92,10 +92,18 @@
   .cal-jump-wrap{display:flex;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap}
   .cal-jump-select{height:30px;border:1px solid #E5E7EB;border-radius:8px;padding:0 8px;font-size:12px;background:#fff;color:#374151;cursor:pointer;font-family:inherit}
   .cal-jump-select:focus{outline:none;border-color:#C7A96B}
-  .rt-step-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .rt-step-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
   .rt-step-active{background:#C7A96B;color:#fff;border-color:#C7A96B}
   .result-step-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
   .rt-step-label-mo{display:none}
+  /* 단계가 앞으로 진행되는 느낌의 은은한 그라데이션 (PC/모바일 공통, 비활성 상태) */
+  #rt-tab-0{background:#FBF7F1;border-color:#F0E6D6;color:#B8A47E}
+  #rt-tab-1{background:#F7EFDE;border-color:#E8D8B8;color:#A98E5C}
+  #rt-tab-2{background:#F2E4C7;border-color:#E0CB97;color:#96793F}
+  #rt-tab-3{background:#E9D5A8;border-color:#D4B776;color:#7A5F2C}
+  #rt-tab-4{background:#D9BD83;border-color:#C2A05A;color:#5C461B}
+  /* active 상태는 기존 골드 색상으로 통일 */
+  .rt-step-btn.rt-step-active{background:#C7A96B !important;border-color:#C7A96B !important;color:#fff !important}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#E5E7EB;border-radius:12px;overflow:hidden}
   .cal-head{background:#F9FAFB;text-align:center;padding:8px 0;font-size:11px;font-weight:700}
   .cal-cell{background:#fff;min-height:70px;padding:6px 4px;cursor:default;transition:background .15s}
@@ -307,7 +315,7 @@
     .assign-form-grid{grid-template-columns:1fr !important}
     .assign-form-grid .form-field.span{grid-column:unset}
 
-    /* 결과 탭 단계 버튼 — 모바일: 5개 한 줄 그리드 + 짧은 라벨 + 그라데이션 */
+    /* 결과 탭 단계 버튼 — 모바일: 5개 한 줄 그리드 + 짧은 라벨 (그라데이션은 PC 공통 규칙 사용) */
     .result-step-tabs{
       display:grid;
       grid-template-columns:repeat(5,1fr);
@@ -324,14 +332,6 @@
       text-align:center;
       border-radius:10px;
     }
-    /* 단계가 앞으로 진행되는 느낌의 은은한 그라데이션 (비활성 상태) */
-    #rt-tab-0{background:#FBF7F1;border-color:#F0E6D6;color:#B8A47E}
-    #rt-tab-1{background:#F7EFDE;border-color:#E8D8B8;color:#A98E5C}
-    #rt-tab-2{background:#F2E4C7;border-color:#E0CB97;color:#96793F}
-    #rt-tab-3{background:#E9D5A8;border-color:#D4B776;color:#7A5F2C}
-    #rt-tab-4{background:#D9BD83;border-color:#C2A05A;color:#5C461B}
-    /* active 상태는 기존 골드 색상으로 통일 */
-    .rt-step-btn.rt-step-active{background:#C7A96B !important;border-color:#C7A96B !important;color:#fff !important}
   }
 </style>
 </head>
@@ -606,16 +606,16 @@
 
     <!-- 단계 탭 -->
     <div class="result-step-tabs">
-      <button id="rt-tab-0" class="rt-step-btn rt-step-active" data-step="0" onclick="rtShowStep(0)"><span class="rt-step-label-pc">0차 출발</span><span class="rt-step-label-mo">출발</span></button>
-      <button id="rt-tab-1" class="rt-step-btn" data-step="1" onclick="rtShowStep(1)"><span class="rt-step-label-pc">1차 도착</span><span class="rt-step-label-mo">도착</span></button>
-      <button id="rt-tab-2" class="rt-step-btn" data-step="2" onclick="rtShowStep(2)"><span class="rt-step-label-pc">2차 결과</span><span class="rt-step-label-mo">결과</span></button>
-      <button id="rt-tab-3" class="rt-step-btn" data-step="3" onclick="rtShowStep(3)"><span class="rt-step-label-pc">3차 인계</span><span class="rt-step-label-mo">인계</span></button>
-      <button id="rt-tab-4" class="rt-step-btn" data-step="4" onclick="rtShowStep(4)"><span class="rt-step-label-pc">4차 장부</span><span class="rt-step-label-mo">장부</span></button>
+      <button id="rt-tab-0" class="rt-step-btn rt-step-active" data-step="0" onclick="rtShowStep(0)"><span class="rt-step-label-pc">1. 출발</span><span class="rt-step-label-mo">출발</span></button>
+      <button id="rt-tab-1" class="rt-step-btn" data-step="1" onclick="rtShowStep(1)"><span class="rt-step-label-pc">2. 도착</span><span class="rt-step-label-mo">도착</span></button>
+      <button id="rt-tab-2" class="rt-step-btn" data-step="2" onclick="rtShowStep(2)"><span class="rt-step-label-pc">3. 결과</span><span class="rt-step-label-mo">결과</span></button>
+      <button id="rt-tab-3" class="rt-step-btn" data-step="3" onclick="rtShowStep(3)"><span class="rt-step-label-pc">4. 인계</span><span class="rt-step-label-mo">인계</span></button>
+      <button id="rt-tab-4" class="rt-step-btn" data-step="4" onclick="rtShowStep(4)"><span class="rt-step-label-pc">5. 장부</span><span class="rt-step-label-mo">장부</span></button>
     </div>
 
     <!-- 0차 출발안내 -->
     <div id="rt-step-0" class="rt-step-panel">
-      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 0차 출발 안내 메시지를 생성합니다.</div>
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 출발 안내 메시지를 생성합니다.</div>
       <button onclick="rtGenStep0()" style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">✏️ 문구 생성</button>
       <textarea id="rt-out-0" class="form-input" rows="12" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
       <button onclick="rtCopy('rt-out-0')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
@@ -623,7 +623,7 @@
 
     <!-- 1차 도착안내 -->
     <div id="rt-step-1" class="rt-step-panel" style="display:none">
-      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 1차 도착 안내 메시지를 생성합니다.</div>
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 도착 안내 메시지를 생성합니다.</div>
       <button onclick="rtGenStep1()" style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">✏️ 문구 생성</button>
       <textarea id="rt-out-1" class="form-input" rows="16" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
       <button onclick="rtCopy('rt-out-1')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
@@ -631,7 +631,7 @@
 
     <!-- 2차 결과보고 -->
     <div id="rt-step-2" class="rt-step-panel" style="display:none">
-      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 2차 결과 보고 메시지를 생성합니다. 예식 선택 시 자동 연동됩니다.</div>
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 결과 보고 메시지를 생성합니다. 예식 선택 시 자동 연동됩니다.</div>
       <!-- 현장 프리셋 -->
       <div style="background:#F9FAFB;border-radius:8px;padding:10px 12px;margin-bottom:10px">
         <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">현장 진행 상황</div>
@@ -686,7 +686,7 @@
 
     <!-- 4차 장부안내 -->
     <div id="rt-step-4" class="rt-step-panel" style="display:none">
-      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 4차 장부 안내 메시지를 생성합니다.</div>
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 장부 안내 메시지를 생성합니다.</div>
       <button onclick="rtGenStep4()" style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">✏️ 문구 생성</button>
       <textarea id="rt-out-4" class="form-input" rows="20" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
       <button onclick="rtCopy('rt-out-4')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
