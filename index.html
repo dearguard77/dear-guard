@@ -706,7 +706,14 @@
       </div>
       <!-- 전자 인계확인서 -->
       <div style="margin-bottom:14px">
-        <button id="hv-open-btn" onclick="rtOpenHandoverCert()" style="width:100%;background:#fff;border:1.5px solid #C7A96B;color:#C7A96B;border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">📝 인계확인서 작성 (수령인 서명)</button>
+        <div style="background:#FDF8F3;border:1px solid #E8DFD0;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+          <div style="font-size:13px;color:#92400E;line-height:1.7">
+            📌 인계 물품 설명 후 수령인이 직접 체크 및 전자서명 해주세요.<br>
+            📎 인계 완료 후 인계확인서를 저장하여 화환 사진과 함께 전달해주세요.<br>
+            ⚠️ 체크는 매니저가 아닌 수령인이 직접 진행해야 합니다.
+          </div>
+        </div>
+        <button id="hv-open-btn" onclick="rtOpenHandoverCert()" style="width:100%;background:#fff;border:1.5px solid #C7A96B;color:#C7A96B;border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">📝 수령인 확인 및 서명</button>
         <div id="hv-status-badge" style="display:none;text-align:center;font-size:12px;font-weight:700;color:#059669;margin-top:8px">✅ 인계확인서 서명 완료</div>
       </div>
 
