@@ -627,8 +627,7 @@
       <div style="margin-bottom:10px">
         <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">마감 후 상황</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="없음" checked onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 없음</label>
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="인계완료" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 물품 인계 완료</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="인계완료" checked onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 물품 인계 완료</label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="봉투접수" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 봉투 접수</label>
           <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="식권배부" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 식권 배부</label>
         </div>
@@ -4756,11 +4755,7 @@ function rtClosingChange(val){
 }
 
 function rtGenStep3(){
-  const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
-  if(val === '없음'){
-    document.getElementById('rt-out-3').value = '(마감 후 특이사항 없음)';
-    return;
-  }
+  const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '인계완료';
   let txt = '';
   if(val === '인계완료'){
     const d = rtResultData;
