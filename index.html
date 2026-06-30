@@ -94,6 +94,8 @@
   .cal-jump-select:focus{outline:none;border-color:#C7A96B}
   .rt-step-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
   .rt-step-active{background:#C7A96B;color:#fff;border-color:#C7A96B}
+  .result-step-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+  .rt-step-label-mo{display:none}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#E5E7EB;border-radius:12px;overflow:hidden}
   .cal-head{background:#F9FAFB;text-align:center;padding:8px 0;font-size:11px;font-weight:700}
   .cal-cell{background:#fff;min-height:70px;padding:6px 4px;cursor:default;transition:background .15s}
@@ -160,6 +162,7 @@
 
   /* RESULT CARDS */
   .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .result-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .result-card{border-radius:10px;padding:12px;text-align:center;border:1px solid #E5E7EB}
   .result-card.gold{background:linear-gradient(135deg,#FDF8F3,#F9F0E0);border-color:#E8DFD0}
   .result-card-icon{font-size:20px;margin-bottom:4px}
@@ -295,6 +298,7 @@
     .info-box-grid{grid-template-columns:1fr}
     .info-box.span{grid-column:unset}
     .result-grid{grid-template-columns:1fr 1fr}
+    .result-grid-3{grid-template-columns:1fr}
     #nav .tab-wrap{display:none !important}
     #reg-btn span{display:inline}
     #reg-btn{padding:6px 10px;font-size:11px;min-width:72px}
@@ -302,6 +306,32 @@
     #contrib-btn{width:26px;height:26px;font-size:14px}
     .assign-form-grid{grid-template-columns:1fr !important}
     .assign-form-grid .form-field.span{grid-column:unset}
+
+    /* 결과 탭 단계 버튼 — 모바일: 5개 한 줄 그리드 + 짧은 라벨 + 그라데이션 */
+    .result-step-tabs{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:6px;
+      overflow-x:visible;
+    }
+    .rt-step-label-pc{display:none}
+    .rt-step-label-mo{display:inline}
+    .rt-step-btn{
+      min-width:0;
+      padding:10px 0;
+      font-size:13px;
+      white-space:nowrap;
+      text-align:center;
+      border-radius:10px;
+    }
+    /* 단계가 앞으로 진행되는 느낌의 은은한 그라데이션 (비활성 상태) */
+    #rt-tab-0{background:#FBF7F1;border-color:#F0E6D6;color:#B8A47E}
+    #rt-tab-1{background:#F7EFDE;border-color:#E8D8B8;color:#A98E5C}
+    #rt-tab-2{background:#F2E4C7;border-color:#E0CB97;color:#96793F}
+    #rt-tab-3{background:#E9D5A8;border-color:#D4B776;color:#7A5F2C}
+    #rt-tab-4{background:#D9BD83;border-color:#C2A05A;color:#5C461B}
+    /* active 상태는 기존 골드 색상으로 통일 */
+    .rt-step-btn.rt-step-active{background:#C7A96B !important;border-color:#C7A96B !important;color:#fff !important}
   }
 </style>
 </head>
@@ -575,12 +605,12 @@
     </div>
 
     <!-- 단계 탭 -->
-    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none">
-      <button id="rt-tab-0" class="rt-step-btn rt-step-active" onclick="rtShowStep(0)">0차 출발</button>
-      <button id="rt-tab-1" class="rt-step-btn" onclick="rtShowStep(1)">1차 도착</button>
-      <button id="rt-tab-2" class="rt-step-btn" onclick="rtShowStep(2)">2차 결과</button>
-      <button id="rt-tab-3" class="rt-step-btn" onclick="rtShowStep(3)">3차 인계</button>
-      <button id="rt-tab-4" class="rt-step-btn" onclick="rtShowStep(4)">4차 장부</button>
+    <div class="result-step-tabs">
+      <button id="rt-tab-0" class="rt-step-btn rt-step-active" data-step="0" onclick="rtShowStep(0)"><span class="rt-step-label-pc">0차 출발</span><span class="rt-step-label-mo">출발</span></button>
+      <button id="rt-tab-1" class="rt-step-btn" data-step="1" onclick="rtShowStep(1)"><span class="rt-step-label-pc">1차 도착</span><span class="rt-step-label-mo">도착</span></button>
+      <button id="rt-tab-2" class="rt-step-btn" data-step="2" onclick="rtShowStep(2)"><span class="rt-step-label-pc">2차 결과</span><span class="rt-step-label-mo">결과</span></button>
+      <button id="rt-tab-3" class="rt-step-btn" data-step="3" onclick="rtShowStep(3)"><span class="rt-step-label-pc">3차 인계</span><span class="rt-step-label-mo">인계</span></button>
+      <button id="rt-tab-4" class="rt-step-btn" data-step="4" onclick="rtShowStep(4)"><span class="rt-step-label-pc">4차 장부</span><span class="rt-step-label-mo">장부</span></button>
     </div>
 
     <!-- 0차 출발안내 -->
@@ -1058,7 +1088,6 @@
         <div class="form-field"><label class="form-label">총 접수 인원 (명)</label><input class="form-input" id="r-guests" type="number" placeholder="276"></div>
         <div class="form-field"><label class="form-label">총 축의금 (만원)</label><input class="form-input" id="r-amount" type="number" placeholder="1482" oninput="updateAmountPreview()"></div>
         <div class="form-field"><label class="form-label">식권 사용 (매)</label><input class="form-input" id="r-ticket-used" type="number" placeholder="248"></div>
-        <div class="form-field"><label class="form-label">잔여 식권 (매)</label><input class="form-input" id="r-ticket-rem" type="number" placeholder="32"></div>
       </div>
       <div class="form-field" style="margin-top:12px"><label class="form-label">특이사항</label><textarea class="form-input" id="r-notes" rows="3" placeholder="현장 특이사항, VIP 응대 결과 등" style="resize:vertical;line-height:1.6"></textarea></div>
       <div id="amount-preview" style="display:none;margin-top:12px;background:linear-gradient(135deg,#FDF8F3,#F9F0E0);border:1px solid #E8DFD0;border-radius:10px;padding:12px;text-align:center">
@@ -2237,11 +2266,10 @@ function openDetail(id){
     <div class="detail-sec">
       <div class="detail-sec-title">📊 결과보고</div>
       ${s.result?`
-        <div class="result-grid">
+        <div class="result-grid-3">
           <div class="result-card"><div class="result-card-icon">👥</div><div class="result-card-lbl">총 접수 인원</div><div class="result-card-val">${s.result.totalGuests}명</div></div>
           <div class="result-card gold"><div class="result-card-icon">💰</div><div class="result-card-lbl">총 축의금</div><div class="result-card-val">${fmt(s.result.totalAmount)}</div></div>
           <div class="result-card"><div class="result-card-icon">🎫</div><div class="result-card-lbl">식권 사용</div><div class="result-card-val">${s.result.ticketUsed}매</div></div>
-          <div class="result-card"><div class="result-card-icon">📋</div><div class="result-card-lbl">잔여 식권</div><div class="result-card-val">${s.result.ticketRemain}매</div></div>
         </div>
         ${s.result.notes?`<div class="result-notes">${esc(s.result.notes)}</div>`:''}`
       :`<div class="empty-result">📊 결과보고 미작성</div>`}
@@ -3515,7 +3543,6 @@ async function openResult(id){
   document.getElementById('r-guests').value=s.result?.totalGuests||'';
   document.getElementById('r-amount').value=s.result?.totalAmount?Math.round(s.result.totalAmount/10000):'';
   document.getElementById('r-ticket-used').value=s.result?.ticketUsed||'';
-  document.getElementById('r-ticket-rem').value=s.result?.ticketRemain||'';
   document.getElementById('r-notes').value=s.result?.notes||'';
   updateAmountPreview();
   document.getElementById('result-modal').style.display='flex';
@@ -3536,24 +3563,20 @@ async function openResult(id){
       logs.reduce((sum, l) => sum + (l.amount || 0), 0) / 10000
     );
 
-    // 3. 사용 식권 = 현장 사용만 (봉투 없이 식권 수령자는 계산에서 제외)
-    const usedOnsite   = logs.reduce((sum, l) => sum + (l.adult_ticket||0) + (l.child_ticket||0), 0);
-    const ticketUsed = usedOnsite;
-
-    // 4. 잔여 식권 = (초기 식권 + 추가 발급) - 사용 식권
-    const extraAdded = tickets
-      .filter(t => t.type === 'extra')
-      .reduce((sum, t) => sum + (t.amount||0), 0);
-    const groomTotal = (s.ticketTotalGroom || 0) + tickets.filter(t=>t.type==='extra'&&t.side==='신랑측').reduce((sum,t)=>sum+(t.amount||0),0);
-    const brideTotal = (s.ticketTotalBride || 0) + tickets.filter(t=>t.type==='extra'&&t.side==='신부측').reduce((sum,t)=>sum+(t.amount||0),0);
-    const initTotal  = groomTotal + brideTotal;
-    const ticketRemain = initTotal > 0 ? initTotal - ticketUsed : '';
+    // 3. 식권 사용 = 신랑측+신부측 각각 (현장 사용 + 봉투없이 식권 수령자) 합산
+    //    contribution.html / 결과 탭과 동일한 기준
+    const gLogs = logs.filter(l => l.side === '신랑측');
+    const bLogs = logs.filter(l => l.side === '신부측');
+    const gUsed = gLogs.reduce((sum,l) => sum + (l.adult_ticket||0), 0);
+    const bUsed = bLogs.reduce((sum,l) => sum + (l.adult_ticket||0), 0);
+    const gPreShare = tickets.filter(t=>t.type==='pre_share'&&t.side==='신랑측').reduce((sum,t)=>sum+(t.amount||0),0);
+    const bPreShare = tickets.filter(t=>t.type==='pre_share'&&t.side==='신부측').reduce((sum,t)=>sum+(t.amount||0),0);
+    const ticketUsed = gUsed + bUsed + gPreShare + bPreShare;
 
     // 자동 채우기 (수동 수정 가능)
     document.getElementById('r-guests').value      = totalGuests || '';
     document.getElementById('r-amount').value      = totalAmount || '';
     document.getElementById('r-ticket-used').value = ticketUsed  || '';
-    document.getElementById('r-ticket-rem').value  = ticketRemain !== '' ? ticketRemain : '';
     updateAmountPreview();
 
   } catch(e){
@@ -3575,7 +3598,6 @@ async function saveResult(){
     totalGuests:  Number(document.getElementById('r-guests').value)||0,
     totalAmount:  (Number(document.getElementById('r-amount').value)||0)*10000,
     ticketUsed:   Number(document.getElementById('r-ticket-used').value)||0,
-    ticketRemain: Number(document.getElementById('r-ticket-rem').value)||0,
     notes:        document.getElementById('r-notes').value,
   };
   s.checklist.report=true;
