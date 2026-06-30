@@ -4808,8 +4808,8 @@ async function rtLoadSchedule(){
   const bHandoverName  = rtSchedule.brideHandoverName || rtSchedule.brideContactName  || '';
   const bHandoverPhone = rtSchedule.brideHandoverPhone || rtSchedule.brideContactPhone || '';
   const handoverByside = {
-    groom: gHandoverName ? `${gHandoverName}${gHandoverPhone ? ' / '+gHandoverPhone : ''}` : commonHandover,
-    bride: bHandoverName ? `${bHandoverName}${bHandoverPhone ? ' / '+bHandoverPhone : ''}` : commonHandover,
+    groom: gHandoverName ? `${gHandoverName}${gHandoverPhone ? ' ('+gHandoverPhone+')' : ''}` : commonHandover,
+    bride: bHandoverName ? `${bHandoverName}${bHandoverPhone ? ' ('+bHandoverPhone+')' : ''}` : commonHandover,
   };
   const itemsByside = {
     groom: rtSchedule.groomHandoffItems || '',
@@ -4982,6 +4982,13 @@ function rtFillHandoverItems(){
 }
 
 function rtGenStep3(){
+  // 인계확인서 서명이 이미 완료된 상태라면, 일반 문구가 아닌
+  // "서명완료 강조형(B안)"으로 생성해야 함 (수동으로 문구 생성 버튼을 다시 눌러도 덮어쓰이지 않도록)
+  if(hvCompleted && hvCompletedName){
+    rtGenStep3WithSignature(hvCompletedName);
+    return;
+  }
+
   const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
   const d = rtResultData;
   const t = rtTarget;
@@ -5064,8 +5071,10 @@ function rtOpenHandoverCert(){
   if(t === '신랑님') prefillName = d.handoverByside?.groom || '';
   else if(t === '신부님') prefillName = d.handoverByside?.bride || '';
   else prefillName = d.handoverByside?.groom || d.handoverByside?.bride || '';
-  // "이름 / 전화번호" 형식이면 분리 — 이름(관계+성함 통합)은 hv-name에, 전화번호는 hv-phone에
-  const [autoName, autoPhone] = (prefillName || '').split(' / ').map(s=>s?.trim());
+  // "이름 (전화번호)" 형식이면 분리 — 이름(관계+성함 통합)은 hv-name에, 전화번호는 hv-phone에
+  const phoneMatch = (prefillName || '').match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  const autoName  = phoneMatch ? phoneMatch[1].trim() : (prefillName || '').trim();
+  const autoPhone = phoneMatch ? phoneMatch[2].trim() : '';
   document.getElementById('hv-name').value  = autoName  || '';
   document.getElementById('hv-phone').value = autoPhone || '';
 
