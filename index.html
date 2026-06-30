@@ -1421,6 +1421,12 @@ function rowToSchedule(row){
     contractSignedAt:  row.contract_signed_at  || '',
     contractSigner:    row.contract_signer     || '',
     contractPdfUrl:    row.contract_pdf_url    || '',
+    handoverCertCompleted: row.handover_cert_completed || false,
+    handoverCertAt:        row.handover_cert_at        || '',
+    handoverCertName:      row.handover_cert_name      || '',
+    handoverCertPhone:     row.handover_cert_phone     || '',
+    handoverCertSignature: row.handover_cert_signature || '',
+    handoverCertItems:     row.handover_cert_items     || '',
   };
 }
 
@@ -4684,7 +4690,7 @@ async function rtLoadSchedule(){
 
   // schedules 메모리 캐시가 오래됐을 수 있으므로 식권 관련 최신값 재조회
   try {
-    const fresh = await sb.get('schedules', `?id=eq.${id}&select=ticket_total_groom,ticket_total_bride,handover_person,dashboard_token,groom_token,bride_token,groom_contact_name,groom_contact_phone,bride_contact_name,bride_contact_phone,groom_handover_name,groom_handover_phone,groom_handoff_items,groom_password,bride_handover_name,bride_handover_phone,bride_handoff_items,bride_password`);
+    const fresh = await sb.get('schedules', `?id=eq.${id}&select=ticket_total_groom,ticket_total_bride,handover_person,dashboard_token,groom_token,bride_token,groom_contact_name,groom_contact_phone,bride_contact_name,bride_contact_phone,groom_handover_name,groom_handover_phone,groom_handoff_items,groom_password,bride_handover_name,bride_handover_phone,bride_handoff_items,bride_password,handover_cert_completed,handover_cert_at,handover_cert_name,handover_cert_phone,handover_cert_signature,handover_cert_items`);
     if(fresh && fresh[0]){
       const f = fresh[0];
       rtSchedule.ticketTotalGroom  = f.ticket_total_groom || 0;
@@ -4706,8 +4712,31 @@ async function rtLoadSchedule(){
       rtSchedule.brideHandoverPhone = f.bride_handover_phone || '';
       rtSchedule.brideHandoffItems  = f.bride_handoff_items  || '';
       rtSchedule.bridePassword      = f.bride_password       || '';
+      // 인계확인서 작성 상태 (새로고침해도 유지)
+      rtSchedule.handoverCertCompleted = f.handover_cert_completed || false;
+      rtSchedule.handoverCertAt        = f.handover_cert_at        || '';
+      rtSchedule.handoverCertName      = f.handover_cert_name      || '';
+      rtSchedule.handoverCertPhone     = f.handover_cert_phone     || '';
+      rtSchedule.handoverCertSignature = f.handover_cert_signature || '';
+      rtSchedule.handoverCertItems     = f.handover_cert_items     || '';
     }
   } catch(e){ console.warn('[DG] 예식 최신값 재조회 실패:', e); }
+
+  // 이미 작성된 인계확인서가 있으면 완료 뱃지 표시 + 전역 상태 동기화
+  const hvBadge = document.getElementById('hv-status-badge');
+  if(rtSchedule.handoverCertCompleted){
+    if(hvBadge) hvBadge.style.display = 'block';
+    hvCompleted = true;
+    hvCompletedAt = rtSchedule.handoverCertAt ? new Date(rtSchedule.handoverCertAt) : null;
+    hvCompletedName = rtSchedule.handoverCertName || '';
+    hvSignatureDataUrl = rtSchedule.handoverCertSignature || '';
+  } else {
+    if(hvBadge) hvBadge.style.display = 'none';
+    hvCompleted = false;
+    hvCompletedAt = null;
+    hvCompletedName = '';
+    hvSignatureDataUrl = '';
+  }
   // 토큰 없으면 자동 생성 (1차/4차 링크용)
   if(!rtSchedule.dashboardToken || !rtSchedule.groomToken || !rtSchedule.brideToken){
     try {
@@ -5146,6 +5175,8 @@ function rtCompleteHandover(){
   hvCompletedAt = new Date();
   hvCompletedName = document.getElementById('hv-name').value.trim();
   hvSignatureDataUrl = hvCanvas ? hvCanvas.toDataURL('image/png') : '';
+  const hvCompletedPhone = document.getElementById('hv-phone').value.trim();
+  const hvCompletedItems = document.getElementById('rt-handover-items')?.value?.trim() || '';
 
   rtCloseHandoverCert();
   document.getElementById('hv-status-badge').style.display = 'block';
@@ -5157,6 +5188,38 @@ function rtCompleteHandover(){
 
   // 인계확인서 이미지를 매니저 폰에 자동 저장 (도장 포함)
   rtSaveHandoverCertImage();
+
+  // 새로고침해도 작성 상태가 유지되도록 schedules 테이블에 저장
+  if(rtSchedule?.id){
+    sb.patch('schedules', rtSchedule.id, {
+      handover_cert_completed: true,
+      handover_cert_at:        hvCompletedAt.toISOString(),
+      handover_cert_name:      hvCompletedName,
+      handover_cert_phone:     hvCompletedPhone,
+      handover_cert_signature: hvSignatureDataUrl,
+      handover_cert_items:     hvCompletedItems,
+    }).then(updated => {
+      // 메모리 캐시도 동기화
+      rtSchedule.handoverCertCompleted = true;
+      rtSchedule.handoverCertAt        = hvCompletedAt.toISOString();
+      rtSchedule.handoverCertName      = hvCompletedName;
+      rtSchedule.handoverCertPhone     = hvCompletedPhone;
+      rtSchedule.handoverCertSignature = hvSignatureDataUrl;
+      rtSchedule.handoverCertItems     = hvCompletedItems;
+      const idx = schedules.findIndex(s => s.id === rtSchedule.id);
+      if(idx !== -1){
+        schedules[idx].handoverCertCompleted = true;
+        schedules[idx].handoverCertAt        = hvCompletedAt.toISOString();
+        schedules[idx].handoverCertName      = hvCompletedName;
+        schedules[idx].handoverCertPhone     = hvCompletedPhone;
+        schedules[idx].handoverCertSignature = hvSignatureDataUrl;
+        schedules[idx].handoverCertItems     = hvCompletedItems;
+      }
+    }).catch(e => {
+      console.warn('[DG] 인계확인서 저장 실패:', e);
+      showToast('⚠️ 인계확인서 저장에 실패했습니다 (이미지는 정상 다운로드됨)');
+    });
+  }
 }
 
 // B안: 인계확인서 서명 완료를 중심으로 문구 재구성
@@ -5203,8 +5266,8 @@ async function rtSaveHandoverCertImage(){
   if(!s || !hvCompletedAt) return;
 
   // 도장 JPEG 검은 배경 → 투명 PNG 변환
-  // 도장은 빨간 글씨 + 검정 배경이므로, 무채색(R≈G≈B)이면서 어두운 픽셀만 배경으로 판단해 제거
-  // (단순 밝기 기준만 쓰면 빨간 글씨 가장자리까지 함께 지워지므로 색상 채도까지 함께 확인)
+  // 실측 결과 배경 픽셀은 (예: R48,G0,B11)처럼 미세한 붉은기를 띤 검정이라
+  // 채도 기준만으로는 배경을 못 거르므로, 밝기(maxC) 우선 판정으로 변경
   const stampDataUrl = await new Promise(resolve => {
     const img = new Image();
     img.onload = function(){
@@ -5218,17 +5281,15 @@ async function rtSaveHandoverCertImage(){
         const r = d[i], g = d[i+1], b = d[i+2];
         const maxC = Math.max(r, g, b);
         const minC = Math.min(r, g, b);
-        const saturation = maxC - minC; // 채도: 빨간 글씨는 크고, 검정/회색 배경은 작음
-        if(saturation < 40){
-          // 무채색 픽셀(검정~회색)인 경우 밝기에 따라 단계적으로 투명 처리
-          if(maxC < 100){
-            d[i+3] = 0; // 완전 어두운 배경: 완전 투명
-          } else if(maxC < 170){
-            // JPEG 압축 경계의 회색 잔상: 점진적 투명도로 거친 외곽선 방지
-            d[i+3] = Math.round((maxC - 100) / 70 * 255);
-          }
+        const saturation = maxC - minC;
+        if(maxC < 70){
+          // 밝기 자체가 매우 낮으면(검정 배경 + JPEG 압축 노이즈) 채도와 무관하게 완전 투명
+          d[i+3] = 0;
+        } else if(maxC < 130 && saturation < 30){
+          // 어두운 회색 전이 구간: 진짜 무채색일 때만 점진적 투명 처리
+          d[i+3] = Math.round((maxC - 70) / 60 * 255);
         }
-        // saturation이 충분한 빨간 글씨 픽셀은 그대로 보존
+        // 그 외(채도가 높은 빨간 글씨 등)는 그대로 보존
       }
       ctx.putImageData(imageData, 0, 0);
       resolve(cvs.toDataURL('image/png'));
