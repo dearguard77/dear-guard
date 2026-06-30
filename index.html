@@ -4428,10 +4428,27 @@ function renderResultTab(){
   rtShowStep(rtStep);
 }
 
+function rtGetOpsMemoForTarget(){
+  const d = rtResultData;
+  if(!d.opsMemoByside) return '';
+  if(rtTarget === '신랑님') return d.opsMemoByside.groom;
+  if(rtTarget === '신부님') return d.opsMemoByside.bride;
+  // 신랑신부님(통합): 둘 다 표시, 측 구분
+  const parts = [];
+  if(d.opsMemoByside.groom) parts.push(`🤵 신랑측\n${d.opsMemoByside.groom}`);
+  if(d.opsMemoByside.bride) parts.push(`👰 신부측\n${d.opsMemoByside.bride}`);
+  return parts.join('\n\n');
+}
+
 function rtSetTarget(val){
   rtTarget = val;
   const ind = document.getElementById('rt-target-indicator');
   if(ind) ind.textContent = `현재: ${val}`;
+  // 보고대상 변경 시 특이사항 textarea도 해당 측 운영메모로 갱신 (직접 입력한 내용 있으면 유지하지 않고 새로 반영 — 측 전환 의도가 명확하므로)
+  const notesEl = document.getElementById('rt-notes-2');
+  if(notesEl && rtResultData?.opsMemoByside){
+    notesEl.value = rtGetOpsMemoForTarget();
+  }
 }
 
 function rtGetLink(){
@@ -4534,21 +4551,23 @@ async function rtLoadSchedule(){
   // 운영메모 (특이사항 자동 연동용)
   // - 매니저 내부용(_internal, 번호수정 등) 제외
   // - 타임스탬프 제거, 말머리(•)로 정리
-  const opsMemoText = opsLogs
-    .filter(l => l.side !== '_internal' && !(l.content||'').startsWith('[번호수정]'))
-    .map(l => `• ${l.content||''}`)
-    .join('\n');
+  // - 신랑측/신부측 분리 저장 (보고대상에 맞춰 선택 표시)
+  const opsFiltered = opsLogs.filter(l => l.side !== '_internal' && !(l.content||'').startsWith('[번호수정]'));
+  const opsMemoByside = {
+    groom: opsFiltered.filter(l => l.side === '신랑측').map(l => `• ${l.content||''}`).join('\n'),
+    bride: opsFiltered.filter(l => l.side === '신부측').map(l => `• ${l.content||''}`).join('\n'),
+  };
 
   rtResultData = {
     totalGuests, totalAmount,
     ticketByside,
-    handover, groomPw, bridePw, opsMemoText
+    handover, groomPw, bridePw, opsMemoByside
   };
   showToast(`✅ ${coupleName(rtSchedule)} 데이터 연동 완료`);
-  // 특이사항 textarea에 운영메모 자동 반영 (기존 입력 내용 있으면 유지)
+  // 특이사항 textarea: 현재 보고대상에 맞는 운영메모만 자동 반영 (기존 입력 내용 있으면 유지)
   const notesEl = document.getElementById('rt-notes-2');
-  if(notesEl && !notesEl.value.trim() && opsMemoText){
-    notesEl.value = opsMemoText;
+  if(notesEl && !notesEl.value.trim()){
+    notesEl.value = rtGetOpsMemoForTarget();
   }
 }
 
@@ -4644,6 +4663,12 @@ function rtGenStep2(){
   const groomPw  = d.groomPw ? `신랑측: ${d.groomPw}` : '';
   const bridePw  = d.bridePw ? `신부측: ${d.bridePw}` : '';
   const pwLine   = (groomPw||bridePw) ? `\n\n🔒 레디백 비밀번호\n${[groomPw,bridePw].filter(Boolean).join('\n')}` : '';
+  // 현장 진행 상황 섹션: 선택된 항목이 있을 때만 출력
+  const situationBlock = sitStr
+    ? `\n\n━━━━━━━━━━━━━━━━━━━\n📋 현장 진행 상황\n━━━━━━━━━━━━━━━━━━━\n\n${sitStr}`
+    : '';
+  // 특이사항 섹션: 입력된 내용이 있을 때만 출력
+  const notesBlock = notes ? `\n\n📝 특이사항\n${notes}` : '';
   const txt = `${t} 😊
 
 오늘 소중한 결혼식 진심으로 축하드립니다 🤍
@@ -4659,13 +4684,7 @@ function rtGenStep2(){
 🎫 초기 수령 식권: ${tktInit}
 ➕ 추가 발급 식권: ${tktExtra}
 📤 불출 식권: ${tktOut}
-📦 잔여 식권: ${tktRem}
-
-━━━━━━━━━━━━━━━━━━━
-📋 현장 진행 상황
-━━━━━━━━━━━━━━━━━━━
-
-${sitStr || '(현장 진행 상황을 선택해주세요)'}${notes ? '\n\n📝 특이사항\n' + notes : ''}${handover}${pwLine}
+📦 잔여 식권: ${tktRem}${situationBlock}${notesBlock}${handover}${pwLine}
 
 화환 사진도 전달 드립니다 🤍`;
   document.getElementById('rt-out-2').value = txt;
