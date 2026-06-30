@@ -341,7 +341,9 @@
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-box">
-    <img src="logo.png" alt="Dear Guard" style="height:96px;width:auto;object-fit:contain;display:block;margin:0 auto 16px">
+    <div style="width:140px;height:96px;overflow:hidden;margin:0 auto 16px;display:flex;align-items:center;justify-content:center">
+      <img src="logo.png" alt="Dear Guard" style="height:100%;width:auto;object-fit:cover;transform:scale(2.6);display:block">
+    </div>
     <div class="login-sub">웨딩 운영 관리 시스템</div>
     <div class="login-field">
       <label class="login-label">이름 입력</label>
@@ -5351,10 +5353,8 @@ async function rtSaveHandoverCertImage(){
 
   div.innerHTML = `
     <div style="width:640px;padding:0;background:#fff;border:1px solid #E8DFD0">
-      <div style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);padding:24px 40px 28px;text-align:center">
-        <div style="background:#fff;border-radius:12px;display:inline-block;padding:8px 18px;margin-bottom:14px">
-          <img src="${location.origin}/logo.png" alt="Dear Guard" crossorigin="anonymous" style="height:30px;width:auto;object-fit:contain;display:block">
-        </div>
+      <div style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);padding:28px 40px;text-align:center">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:3px;margin-bottom:6px">Dear Guard</div>
         <div style="font-size:23px;font-weight:900;color:#fff;letter-spacing:6px">인 계 확 인 서</div>
       </div>
       <div style="padding:36px 40px 0">
