@@ -92,6 +92,8 @@
   .cal-jump-wrap{display:flex;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap}
   .cal-jump-select{height:30px;border:1px solid #E5E7EB;border-radius:8px;padding:0 8px;font-size:12px;background:#fff;color:#374151;cursor:pointer;font-family:inherit}
   .cal-jump-select:focus{outline:none;border-color:#C7A96B}
+  .rt-step-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .rt-step-active{background:#C7A96B;color:#fff;border-color:#C7A96B}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#E5E7EB;border-radius:12px;overflow:hidden}
   .cal-head{background:#F9FAFB;text-align:center;padding:8px 0;font-size:11px;font-weight:700}
   .cal-cell{background:#fff;min-height:70px;padding:6px 4px;cursor:default;transition:background .15s}
@@ -342,6 +344,7 @@
     <button class="tab-btn" onclick="switchTab(&#39;schedules&#39;,this)">📋 전체일정</button>
     <button class="tab-btn" onclick="switchTab(&#39;unavail&#39;,this)">🚫 불가일정</button>
     <button class="tab-btn" id="nav-assign-btn" style="display:none" onclick="switchTab(&#39;assign&#39;,this)">🤖 배정</button>
+    <button class="tab-btn" id="nav-result-btn" onclick="switchTab(&#39;result&#39;,this)">📋 결과</button>
     <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab(&#39;settle&#39;,this)">📊 정산</button>
     <button class="tab-btn" id="nav-sheet-btn" style="display:none" onclick="window.open(&#39;https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623&#39;,&#39;_blank&#39;)">
       📋 시트
@@ -541,6 +544,112 @@
     <div id="settle-list"></div>
   </div>
 
+  <!-- RESULT TAB -->
+  <div id="tab-result" class="tab-panel">
+    <div class="sec-header" style="margin-bottom:16px"><h2>📋 결과 안내</h2><span>메시지 자동 생성</span></div>
+
+    <!-- 보고대상 선택 -->
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:8px">보고 대상</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
+          <input type="radio" name="rt-target" value="신부님" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신부님
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
+          <input type="radio" name="rt-target" value="신랑님" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신랑님
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
+          <input type="radio" name="rt-target" value="신랑신부님" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신랑신부님
+        </label>
+      </div>
+      <!-- 예식 선택 (2차 자동연동용) -->
+      <div style="margin-top:10px">
+        <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:6px">예식 선택 (2차 자동연동)</div>
+        <select id="rt-schedule-sel" class="form-input" style="font-size:12px" onchange="rtLoadSchedule()">
+          <option value="">— 예식을 선택하세요 —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 단계 탭 -->
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none">
+      <button id="rt-tab-0" class="rt-step-btn rt-step-active" onclick="rtShowStep(0)">0차 출발</button>
+      <button id="rt-tab-1" class="rt-step-btn" onclick="rtShowStep(1)">1차 도착</button>
+      <button id="rt-tab-2" class="rt-step-btn" onclick="rtShowStep(2)">2차 결과</button>
+      <button id="rt-tab-3" class="rt-step-btn" onclick="rtShowStep(3)">3차 마감후</button>
+      <button id="rt-tab-4" class="rt-step-btn" onclick="rtShowStep(4)">4차 장부</button>
+    </div>
+
+    <!-- 0차 출발안내 -->
+    <div id="rt-step-0" class="rt-step-panel">
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 0차 출발 안내 메시지를 생성합니다.</div>
+      <button onclick="rtGenStep0()" style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">✏️ 문구 생성</button>
+      <textarea id="rt-out-0" class="form-input" rows="12" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
+      <button onclick="rtCopy('rt-out-0')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
+    </div>
+
+    <!-- 1차 도착안내 -->
+    <div id="rt-step-1" class="rt-step-panel" style="display:none">
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 1차 도착 안내 메시지를 생성합니다.</div>
+      <button onclick="rtGenStep1()" style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">✏️ 문구 생성</button>
+      <textarea id="rt-out-1" class="form-input" rows="16" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
+      <button onclick="rtCopy('rt-out-1')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
+    </div>
+
+    <!-- 2차 결과보고 -->
+    <div id="rt-step-2" class="rt-step-panel" style="display:none">
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 2차 결과 보고 메시지를 생성합니다. 예식 선택 시 자동 연동됩니다.</div>
+      <!-- 현장 프리셋 -->
+      <div style="background:#F9FAFB;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">현장 진행 상황</div>
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-smooth" style="accent-color:#C7A96B"> 원활하게 진행</label>
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-wait" style="accent-color:#C7A96B"> 대기 발생</label>
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-vip" style="accent-color:#C7A96B"> VIP 응대</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-extra" style="accent-color:#C7A96B"> 식권 추가 발급</label>
+      </div>
+      <!-- 특이사항 -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:4px">특이사항</div>
+        <textarea id="rt-notes-2" class="form-input" rows="3" style="font-size:12px;resize:vertical" placeholder="특이사항을 직접 입력하세요 (선택)"></textarea>
+      </div>
+      <button onclick="rtGenStep2()" style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">✏️ 문구 생성</button>
+      <textarea id="rt-out-2" class="form-input" rows="18" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
+      <button onclick="rtCopy('rt-out-2')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
+    </div>
+
+    <!-- 3차 마감후안내 -->
+    <div id="rt-step-3" class="rt-step-panel" style="display:none">
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 마감 이후 발생한 특이사항을 보고합니다.</div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">마감 후 상황</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="없음" checked onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 없음</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="봉투접수" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 봉투 접수</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="식권배부" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 식권 배부</label>
+        </div>
+        <div id="rt-closing-envelope" style="display:none;margin-bottom:8px">
+          <input id="rt-env-name" class="form-input" placeholder="이름" style="font-size:12px;margin-bottom:6px">
+          <input id="rt-env-content" class="form-input" placeholder="내용 (예: 봉투 1개)" style="font-size:12px">
+        </div>
+        <div id="rt-closing-ticket" style="display:none;margin-bottom:8px">
+          <input id="rt-tkt-name" class="form-input" placeholder="대상자" style="font-size:12px;margin-bottom:6px">
+          <input id="rt-tkt-count" class="form-input" type="number" placeholder="수량" style="font-size:12px">
+        </div>
+      </div>
+      <button onclick="rtGenStep3()" style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">✏️ 문구 생성</button>
+      <textarea id="rt-out-3" class="form-input" rows="6" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
+      <button onclick="rtCopy('rt-out-3')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
+    </div>
+
+    <!-- 4차 장부안내 -->
+    <div id="rt-step-4" class="rt-step-panel" style="display:none">
+      <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 4차 장부 안내 메시지를 생성합니다.</div>
+      <button onclick="rtGenStep4()" style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">✏️ 문구 생성</button>
+      <textarea id="rt-out-4" class="form-input" rows="20" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
+      <button onclick="rtCopy('rt-out-4')" style="width:100%;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">📋 복사하기</button>
+    </div>
+  </div>
+
   <!-- ASSIGN TAB (관리자 전용) -->
   <div id="tab-assign" class="tab-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
@@ -596,6 +705,7 @@
   <button class="bnav-btn" onclick="switchTab(&#39;calendar&#39;,null,this)"><span class="bnav-icon">📅</span>일정</button>
   <button class="bnav-btn" onclick="switchTab(&#39;schedules&#39;,null,this)"><span class="bnav-icon">📋</span>전체</button>
   <button class="bnav-btn" onclick="switchTab(&#39;unavail&#39;,null,this)"><span class="bnav-icon">🚫</span>불가</button>
+  <button class="bnav-btn" id="bnav-result" onclick="switchTab(&#39;result&#39;,null,this)"><span class="bnav-icon">📋</span>결과</button>
   <button class="bnav-btn" id="bnav-assign" style="display:none" onclick="switchTab(&#39;assign&#39;,null,this)"><span class="bnav-icon">🤖</span>배정</button>
   <button class="bnav-btn" id="bnav-settle" style="display:none" onclick="switchTab(&#39;settle&#39;,null,this)"><span class="bnav-icon">📊</span>정산</button>
   <button class="bnav-btn" id="bnav-manual" style="display:none" onclick="window.open(&#39;https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9&#39;,&#39;_blank&#39;)">
@@ -1451,6 +1561,9 @@ function renderNav(){
   const navManualBtn = document.getElementById('nav-manual-btn');
   if(bnavManual)   bnavManual.style.display   = isAdmin ? 'none'  : 'flex';
   if(navManualBtn) navManualBtn.style.display  = isAdmin ? 'none'  : 'block';
+  // 결과 탭 — 전체 표시 (renderResultTab 예식 드롭다운 초기화)
+  const navResultBtn = document.getElementById('nav-result-btn');
+  if(navResultBtn) navResultBtn.style.display = 'block';
 }
 
 function renderUserDrop(){
@@ -1867,6 +1980,7 @@ function switchTab(id, topBtn, botBtn){
   if(id==='unavail')   renderUnavailAll();
   if(id==='settle')    renderSettle();
   if(id==='assign')    renderAssignRecommend();
+  if(id==='result')    renderResultTab();
 }
 
 function toggleDrop(){
@@ -4279,6 +4393,258 @@ function renderAssignAvailability(){
       <div style="font-size:13px;font-weight:800;color:#DC2626;margin-bottom:8px">❌ 불가 매니저 ${ngList.length}명</div>
       ${ngList.map(i=>nameRow(i,'#DC2626')).join('')}
     </div>` : ''}`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  📋  결과 탭 기능
+// ════════════════════════════════════════════════════════════
+
+let rtTarget     = '신부님';   // 보고대상
+let rtStep       = 0;          // 현재 단계
+let rtSchedule   = null;       // 선택된 예식 (2차 자동연동용)
+let rtResultData = {};         // 2차 자동 연동 데이터
+
+function renderResultTab(){
+  // 예식 드롭다운 초기화
+  const sel = document.getElementById('rt-schedule-sel');
+  if(sel){
+    const today = TODAY;
+    const recent = schedules
+      .filter(s => s.date >= today.slice(0,7)+'-01' && s.date <= today)
+      .concat(schedules.filter(s => s.date > today))
+      .sort((a,b) => a.date.localeCompare(b.date))
+      .slice(0, 30);
+    sel.innerHTML = '<option value="">— 예식을 선택하세요 —</option>'
+      + schedules
+          .filter(s => s.date >= new Date(Date.now()-30*24*3600*1000).toISOString().slice(0,10))
+          .sort((a,b) => a.date.localeCompare(b.date))
+          .map(s => `<option value="${s.id}">${s.date} ${esc(coupleName(s))}</option>`)
+          .join('');
+  }
+  rtShowStep(rtStep);
+}
+
+function rtSetTarget(val){
+  rtTarget = val;
+}
+
+function rtGetLink(){
+  if(!rtSchedule?.dashboardToken) return '(장부 링크)';
+  const base = `${location.origin}/live.html?t=${rtSchedule.dashboardToken}`;
+  return base;
+}
+
+function rtShowStep(n){
+  rtStep = n;
+  for(let i=0;i<5;i++){
+    const panel = document.getElementById(`rt-step-${i}`);
+    const btn   = document.getElementById(`rt-tab-${i}`);
+    if(panel) panel.style.display = i===n ? 'block' : 'none';
+    if(btn){ btn.classList.toggle('rt-step-active', i===n); }
+  }
+}
+
+async function rtLoadSchedule(){
+  const sel = document.getElementById('rt-schedule-sel');
+  const id  = Number(sel?.value);
+  if(!id){ rtSchedule = null; rtResultData = {}; return; }
+  rtSchedule = schedules.find(s => s.id === id) || null;
+  if(!rtSchedule) return;
+  // contribution 데이터 자동 로드
+  try {
+    const [logs, tickets, preShares] = await Promise.all([
+      sb.get('contribution_logs', `?schedule_id=eq.${id}`),
+      sb.get('ticket_additions',  `?schedule_id=eq.${id}`),
+      sb.get('ticket_additions',  `?schedule_id=eq.${id}&type=eq.pre_share`),
+    ]);
+    const totalGuests  = logs.length;
+    const totalAmount  = Math.round(logs.reduce((s,l)=>s+(l.amount||0),0)/10000);
+    const usedOnsite   = logs.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+    const preShareCnt  = preShares.reduce((s,t)=>s+(t.amount||0),0);
+    const ticketUsed   = usedOnsite + preShareCnt;
+    const groomExtra   = tickets.filter(t=>t.type==='extra'&&t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
+    const brideExtra   = tickets.filter(t=>t.type==='extra'&&t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+    const groomTotal   = (rtSchedule.ticketTotalGroom||0) + groomExtra;
+    const brideTotal   = (rtSchedule.ticketTotalBride||0) + brideExtra;
+    const ticketTotal  = groomTotal + brideTotal;
+    const ticketRemain = ticketTotal > 0 ? ticketTotal - ticketUsed : null;
+    const ticketOut    = ticketTotal > 0 ? ticketTotal - ticketRemain : null;
+    // 봉투 없이 식권 수령자 목록
+    const preShareList = preShares.map(p=>`${p.person_name||''} ${p.amount}장`).join(', ');
+    // 인계자 / 레디백 비밀번호
+    const handover  = rtSchedule.handoverPerson || '';
+    const groomPw   = rtSchedule.readybagPwGroom || '';
+    const bridePw   = rtSchedule.readybagPwBride || '';
+    rtResultData = { totalGuests, totalAmount, ticketUsed, ticketRemain, ticketOut, preShareList, handover, groomPw, bridePw, groomTotal, brideTotal };
+    showToast(`✅ ${coupleName(rtSchedule)} 데이터 연동 완료`);
+  } catch(e){
+    console.warn('[DG] 결과탭 데이터 로드 실패:', e);
+  }
+}
+
+function rtCopy(id){
+  const el = document.getElementById(id);
+  if(!el || !el.value){ showToast('복사할 내용이 없습니다'); return; }
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(el.value).then(()=>showToast('📋 복사됐습니다!'));
+  } else {
+    el.select(); document.execCommand('copy'); showToast('📋 복사됐습니다!');
+  }
+}
+
+function rtGenStep0(){
+  const t = rtTarget;
+  const txt = `${t} 😊 디어가드입니다!
+
+오늘 소중한 결혼식 진심으로 축하드립니다 🤍
+
+디어가드는 현재 예식장으로 출발 예정이며,
+예식 시작 약 80분 전 현장 도착 후 축의대 세팅을 진행할 예정입니다.
+
+식권은 도착 후 바로 축의대에서 확인할 수 있도록 미리 전달 부탁드립니다 🙏
+
+오늘 가장 행복한 하루가 되실 수 있도록
+최선을 다해 운영하겠습니다 🤍`;
+  document.getElementById('rt-out-0').value = txt;
+}
+
+function rtGenStep1(){
+  const t    = rtTarget;
+  const link = rtGetLink();
+  const txt = `${t} 😊
+
+디어가드 현장 도착 및 축의대 세팅 완료되어 안내드립니다!
+
+✔️ 실시간 장부 확인 링크
+👉 ${link}
+
+접수되는 모든 축의 내역은 실시간으로 기록 및 업데이트될 예정이며,
+모바일 / PC 모두 언제든 편하게 확인 가능하십니다 😊
+
+또한 LIVE 버튼 클릭 시 현장 스트리밍 영상도 함께 확인 가능하십니다.
+
+식 종료 후에는
+
+✔️ 최종 정산 내용
+✔️ 특이사항
+✔️ 현장 사진
+
+까지 깔끔하게 정리하여 전달드리겠습니다 🙏
+
+오늘 세상에서 가장 아름답고 행복한 하루 보내시길 바라겠습니다 🤍`;
+  document.getElementById('rt-out-1').value = txt;
+}
+
+function rtGenStep2(){
+  const t    = rtTarget;
+  const d    = rtResultData;
+  const s    = rtSchedule;
+  // 프리셋 상황
+  const situations = [];
+  if(document.getElementById('rt-chk-smooth')?.checked)
+    situations.push('현장 진행은 전반적으로 원활하게 이루어졌습니다.');
+  if(document.getElementById('rt-chk-wait')?.checked)
+    situations.push('일시적으로 하객 대기가 발생하였으나\n안내 후 순차적으로 접수를 진행하였습니다.');
+  if(document.getElementById('rt-chk-vip')?.checked)
+    situations.push('VIP 하객 응대 및 안내를 진행하였습니다.');
+  if(document.getElementById('rt-chk-extra')?.checked)
+    situations.push('예약실을 통해 추가 식권을 발급받아 운영하였습니다.');
+  const sitStr = situations.join('\n');
+  const notes = document.getElementById('rt-notes-2')?.value?.trim() || '';
+  // 데이터
+  const guests    = d.totalGuests   != null ? `${d.totalGuests}명`       : '-';
+  const amount    = d.totalAmount   != null ? `${d.totalAmount.toLocaleString()}만원` : '-';
+  const tktUsed   = d.ticketUsed    != null ? `${d.ticketUsed}장`        : '-';
+  const tktRem    = d.ticketRemain  != null ? `${d.ticketRemain}장`      : '-';
+  const tktOut    = d.ticketOut     != null ? `${d.ticketOut}장`         : '-';
+  const preShare  = d.preShareList  ? `\n\n📌 봉투 없이 식권 수령자\n${d.preShareList}` : '';
+  const handover  = d.handover ? `\n\n📌 인계자: ${d.handover}` : '';
+  const groomPw   = d.groomPw ? `신랑측: ${d.groomPw}` : '';
+  const bridePw   = d.bridePw ? `신부측: ${d.bridePw}` : '';
+  const pwLine    = (groomPw||bridePw) ? `\n\n🔒 레디백 비밀번호\n${[groomPw,bridePw].filter(Boolean).join('\n')}` : '';
+  const txt = `${t} 😊
+
+오늘 소중한 결혼식 진심으로 축하드립니다 🤍
+디어가드 결과 보고 드립니다.
+
+━━━━━━━━━━━━━━━━━━━
+📊 현장 결과 요약
+━━━━━━━━━━━━━━━━━━━
+
+👥 총 접수 인원: ${guests}
+💰 총 축의금: ${amount}
+
+🎫 수령(사용) 식권: ${tktUsed}
+📦 잔여 식권: ${tktRem}${preShare}
+
+━━━━━━━━━━━━━━━━━━━
+📋 현장 진행 상황
+━━━━━━━━━━━━━━━━━━━
+
+${sitStr || '(현장 진행 상황을 선택해주세요)'}${notes ? '\n\n📝 특이사항\n' + notes : ''}${handover}${pwLine}
+
+오늘 하루도 정말 수고 많으셨습니다 🤍
+앞으로의 결혼생활에도 행복한 일만 가득하시길 바라겠습니다 💖`;
+  document.getElementById('rt-out-2').value = txt;
+}
+
+function rtClosingChange(val){
+  document.getElementById('rt-closing-envelope').style.display = val==='봉투접수' ? 'block' : 'none';
+  document.getElementById('rt-closing-ticket').style.display   = val==='식권배부'  ? 'block' : 'none';
+}
+
+function rtGenStep3(){
+  const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
+  if(val === '없음'){
+    document.getElementById('rt-out-3').value = '(마감 후 특이사항 없음)';
+    return;
+  }
+  let txt = '';
+  if(val === '봉투접수'){
+    const name    = document.getElementById('rt-env-name')?.value?.trim()    || '○○';
+    const content = document.getElementById('rt-env-content')?.value?.trim() || '봉투';
+    txt = `식 종료 후 ${name}님께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`;
+  } else if(val === '식권배부'){
+    const name  = document.getElementById('rt-tkt-name')?.value?.trim()  || '○○';
+    const count = document.getElementById('rt-tkt-count')?.value?.trim() || '1';
+    txt = `식 종료 후 ${name}님 식권 ${count}장을 배부하였습니다.`;
+  }
+  document.getElementById('rt-out-3').value = txt;
+}
+
+function rtGenStep4(){
+  const t    = rtTarget;
+  const link = rtGetLink();
+  const txt = `${t} 😊
+
+또한 금일 전달드렸던 실시간 장부는
+본식 이후에도 일정 기간 동안 다시 확인 가능하시며,
+
+✔️ 접수 내역 확인
+✔️ LIVE 다시보기
+✔️ 축의 장부 관리
+
+등으로 활용 가능하십니다 😊
+
+다만 개인정보 보호를 위해
+장부 링크는 본식 종료 후 약 3개월 뒤 삭제 예정으로,
+
+필요하신 경우 우측 상단의
+"엑셀 다운로드" 기능을 통해
+미리 보관용 장부 다운로드를 권장드립니다 🙏
+
+카카오톡 인앱에서 접속 시 다운로드가 어려우니,
+Safari / Chrome 등 외부 브라우저 혹은 PC 버전 이용 바랍니다.
+
+링크는 다시 한번 전달드립니다 :)
+
+👉 ${link}
+
+오늘 소중한 하루를 디어가드에 맡겨주셔서 진심으로 감사드리며,
+앞으로의 결혼생활에도 행복한 일만 가득하시길 바라겠습니다 🤍
+
+다시 한번 결혼을 진심으로 축하드립니다 💖`;
+  document.getElementById('rt-out-4').value = txt;
 }
 
 async function toggleLaborPaid(schId, checked){
