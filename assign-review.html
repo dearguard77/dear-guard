@@ -73,7 +73,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .result-header h3{font-size:15px;font-weight:800}
 .result-header span{font-size:12px;color:#6B7280}
-.result-counts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.result-counts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .cnt-card{border-radius:10px;padding:10px 4px;text-align:center}
 .cnt-card .num{font-size:22px;font-weight:900;line-height:1}
 .cnt-card .lbl{font-size:10px;font-weight:700;margin-top:3px}
@@ -156,7 +156,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 @media(max-width:380px){
   .rec-compare{grid-template-columns:1fr}
-  .result-counts{grid-template-columns:repeat(2,1fr)}
+  .result-counts{grid-template-columns:repeat(3,1fr)}
 }
 </style>
 </head>
@@ -218,7 +218,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <span id="resultDateLbl"></span>
     </div>
     <div class="result-counts">
-      <div class="cnt-card cnt-total"><div class="num" id="cntTotal">-</div><div class="lbl">전체</div></div>
+      <div class="cnt-card cnt-total"><div class="num" id="cntTotal">-</div><div class="lbl">예식</div></div>
+      <div class="cnt-card" style="background:#F0F4FF"><div class="num" id="cntPairs" style="color:#3B4FC8">-</div><div class="lbl" style="color:#3B4FC8">이동구간</div></div>
       <div class="cnt-card cnt-safe"><div class="num" id="cntSafe">-</div><div class="lbl">🟢 안정</div></div>
       <div class="cnt-card cnt-warn"><div class="num" id="cntWarn">-</div><div class="lbl">🟡 주의</div></div>
       <div class="cnt-card cnt-danger"><div class="num" id="cntDanger">-</div><div class="lbl">🔴 위험</div></div>
@@ -452,7 +453,21 @@ async function fetchSchedules(dateStr){
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑦ 분석 엔진
+// ⑥-b 불가일정 로드 (추천 시 제외용)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let unavailableMgrs = new Set();
+
+async function fetchUnavailables(dateStr){
+  try{
+    const rows = await sbGet('unavailable_schedules',
+      `?date=eq.${dateStr}&select=manager_name`);
+    unavailableMgrs = new Set(rows.map(r => r.manager_name).filter(Boolean));
+  } catch(e){
+    unavailableMgrs = new Set();
+  }
+}
+
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toMins(t){ const [h,m]=(t||'00:00').split(':').map(Number); return h*60+m; }
 function fromMins(m){ return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
@@ -555,8 +570,9 @@ async function onDateChange(){
   document.getElementById('aiBtnMain').style.display='flex';
   document.getElementById('aiBtnMain').disabled=true;
 
-  // 스케줄 로드
+  // 스케줄 + 불가일정 동시 로드
   const ok = await fetchSchedules(dateStr);
+  await fetchUnavailables(dateStr);
   renderSchedList();
 
   if(ok && schedules.length > 0){
@@ -619,7 +635,8 @@ function renderResult(pairs, dateStr){
   const safes    = pairs.filter(p=>p.status==='safe');
   const d = new Date(dateStr+'T00:00:00');
 
-  document.getElementById('cntTotal').textContent  = pairs.length;
+  document.getElementById('cntTotal').textContent  = schedules.length;
+  document.getElementById('cntPairs').textContent  = pairs.length;
   document.getElementById('cntSafe').textContent   = safes.length;
   document.getElementById('cntWarn').textContent   = warnings.length;
   document.getElementById('cntDanger').textContent = dangers.length;
@@ -750,8 +767,8 @@ function findAltManager(p){
     if(s.backManager)  assignedMgrs.add(s.backManager);
   });
 
-  // 현재 매니저 제외 후 같은 예식장 지역 우선
-  const candidates = [...assignedMgrs].filter(m => m !== p.mgr);
+  // 현재 매니저 + 불가 등록 매니저 제외
+  const candidates = [...assignedMgrs].filter(m => m !== p.mgr && !unavailableMgrs.has(m));
   if(!candidates.length) return null;
 
   const targetRegion = p.prev.venue?.region || '';
