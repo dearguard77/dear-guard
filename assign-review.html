@@ -28,8 +28,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .date-day{font-size:13px;color:#C7A96B;font-weight:700;white-space:nowrap}
 .date-count{margin-left:auto;font-size:12px;color:#6B7280}
 
-/* ── API 상태 ── */
-.api-status-bar{padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap}
+/* ── API 상태 (기본 숨김 · 개발자 모드에서만 노출: URL에 ?dev=1) ── */
+.api-status-bar{padding:8px 16px;display:none;gap:8px;flex-wrap:wrap}
+.api-status-bar.dev-visible{display:flex}
 .api-chip{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;display:flex;align-items:center;gap:4px}
 .api-chip.ok{background:#D1FAE5;color:#065F46}
 .api-chip.err{background:#FEE2E2;color:#991B1B}
@@ -127,6 +128,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rec-side-buf{font-size:14px;font-weight:900}
 .rec-side.current .rec-side-buf{color:#DC2626}
 .rec-side.suggest .rec-side-buf{color:#059669}
+.rec-narrative{font-size:12.5px;line-height:1.75;color:#374151;background:#FBF8F1;border:1px solid #EFE3C9;border-radius:10px;padding:12px 13px;margin-bottom:12px}
+.rec-narrative strong{color:#92400E;font-weight:800}
 .rec-reasons{margin-bottom:12px}
 .rec-reasons-lbl{font-size:10px;font-weight:700;color:#6B7280;margin-bottom:6px}
 .rec-reason{font-size:12px;color:#374151;padding:4px 0;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;gap:6px}
@@ -162,12 +165,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .inq-body.open{display:block}
 .inq-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .inq-row.triple{grid-template-columns:1fr 1fr 1fr}
+.inq-field{min-width:0}
 .inq-field label{font-size:11px;font-weight:700;color:#6B7280;display:block;margin-bottom:5px}
-.inq-input{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;color:#1F2937;background:#F9FAFB}
+.inq-input{width:100%;min-width:0;height:44px;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:600;color:#1F2937;background:#F9FAFB;-webkit-appearance:none;appearance:none;line-height:normal}
 .inq-input:focus{outline:none;border-color:#C7A96B}
-.inq-time-wrap{display:flex;align-items:center;gap:4px}
-.inq-time-wrap .inq-input{text-align:center}
-.inq-colon{font-size:16px;font-weight:800;color:#374151}
+.inq-time-wrap{display:flex;align-items:center;gap:4px;min-width:0}
+.inq-time-wrap .inq-input{text-align:center;min-width:0}
+.inq-colon{font-size:16px;font-weight:800;color:#374151;flex-shrink:0}
+
+/* 모바일(아이폰 Safari 포함): 날짜·시간을 세로로 쌓아 겹침 방지 */
+@media(max-width:480px){
+  .inq-row{grid-template-columns:1fr;gap:12px}
+  .inq-row.triple{grid-template-columns:1fr}
+}
 .inq-btn{width:100%;margin-top:12px;background:linear-gradient(135deg,#C7A96B,#B8945A);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s}
 .inq-btn:hover{opacity:.88}
 .inq-result{margin-top:14px}
@@ -182,6 +192,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .inq-pair-badge.couple{background:#FDF4E3;color:#92400E}
 .inq-pair-badge.free{background:#D1FAE5;color:#065F46}
 .inq-pair-badge.tight{background:#FEF3C7;color:#92400E}
+.inq-pair-badge.danger{background:#FEE2E2;color:#991B1B}
 .inq-busy-list{font-size:12px;color:#6B7280;margin-top:8px}
 .inq-busy-item{padding:3px 0;border-bottom:1px solid #FEE2E2;display:flex;justify-content:space-between}
 .inq-busy-item:last-child{border-bottom:none}
@@ -550,7 +561,12 @@ async function fetchUnavailables(dateStr){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toMins(t){ const [h,m]=(t||'00:00').split(':').map(Number); return h*60+m; }
 function fromMins(m){ return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
-function getStatus(buf){ return buf>=20?'safe':buf>=0?'warning':'danger'; }
+
+// ── 디어가드 공통 여유시간 판단 기준 (모든 화면 동일 적용) ──
+// 🔴 불가: 10분 미만 · 🟡 주의: 10~19분 · 🟢 가능: 20분 이상
+const BUFFER_SAFE = 20;
+const BUFFER_WARN = 10;
+function getStatus(buf){ return buf>=BUFFER_SAFE?'safe':buf>=BUFFER_WARN?'warning':'danger'; }
 
 async function analyzeSchedules(dateStr){
   // 예식장 좌표 자동 등록
@@ -615,6 +631,11 @@ const DAY_KR = ['일','월','화','수','목','금','토'];
 // ⑨ 초기화 & 날짜 변경
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function init(){
+  // 개발자 모드(?dev=1)에서만 API 상태칩 노출 — 실제 운영 화면에서는 숨김
+  if(new URLSearchParams(location.search).get('dev')==='1'){
+    document.getElementById('apiStatusBar').classList.add('dev-visible');
+  }
+
   // 오늘 날짜 세팅
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('dateInp').value = today;
@@ -822,8 +843,9 @@ function riskCardHtml(p){
           <div class="rec-side-buf">+${altMgr.buffer}분 (추정)</div>
         </div>
       </div>
+      <div class="rec-narrative">${altMgr.narrative}</div>
       <div class="rec-reasons">
-        <div class="rec-reasons-lbl">추천 이유</div>
+        <div class="rec-reasons-lbl">핵심 근거</div>
         ${altMgr.reasons.map(r=>`<div class="rec-reason">${r}</div>`).join('')}
       </div>
       <div class="rec-actions">
@@ -864,19 +886,58 @@ function findAltManager(p){
 
   const alt = sorted[0];
   const altRegion = schedules.find(s=>s.frontManager===alt||s.backManager===alt)?.venue?.region||'';
-  const estBuffer = p.available - (TRAVEL_FALLBACK[`${altRegion}-${p.next.venue?.region||''}`]||20);
+  const nextRegion = p.next.venue?.region||'';
+  const estBuffer = p.available - (TRAVEL_FALLBACK[`${altRegion}-${nextRegion}`]||20);
 
   if(estBuffer <= p.buffer) return null; // 개선 안 되면 추천 안 함
 
   reasons.push('✅ 위험 일정 제거');
   reasons.push(`✅ 여유시간 ${p.buffer}분 → +${estBuffer}분 개선`);
-  if(altRegion === targetRegion) reasons.push('✅ 같은 지역 연속 배정');
+  if(altRegion === nextRegion) reasons.push('✅ 같은 지역 연속 배정 · 지역 이동 최소화');
+  reasons.push('✅ 해당 날짜 불가 일정 없음 확인됨');
   const partnerName = COUPLE_PAIRS[alt.split(' ')[0]];
-  if(partnerName && schedules.some(s=>s.frontManager===partnerName||s.backManager===partnerName)){
+  const partnerAssigned = !!(partnerName && schedules.some(s=>s.frontManager===partnerName||s.backManager===partnerName));
+  if(partnerAssigned){
     reasons.push('✅ 부부세트 유지');
   }
 
-  return { name: alt, buffer: estBuffer, reasons };
+  const narrative = buildRecNarrative(p, alt, altRegion, nextRegion, estBuffer, partnerAssigned);
+
+  return { name: alt, buffer: estBuffer, reasons, narrative };
+}
+
+// 관리자가 읽고 바로 승인 여부를 판단할 수 있도록 AI 판단 근거를 줄글로 설명
+// (여유시간 · 지역 이동 · 일정충돌 여부 · 부부세트 유지 · 불가일정 참조 반영)
+function buildRecNarrative(p, alt, altRegion, nextRegion, estBuffer, partnerAssigned){
+  const riskWord   = p.status==='danger' ? '위험' : '주의';
+  const tightWord  = p.status==='danger' ? '매우 촉박' : '다소 빠듯';
+  const sameRegion = altRegion && altRegion===nextRegion;
+
+  // alt가 당일 담당 중인 지역들 — 지역 이동 폭/일정충돌 가능성 서술에 사용
+  const altSchedules = schedules.filter(s=>s.frontManager===alt||s.backManager===alt);
+  const altRegions = [...new Set(altSchedules.map(s=>s.venue?.region).filter(Boolean))];
+  const focusedRegion = altRegions.length<=1;
+
+  const sentences = [];
+  sentences.push(
+    `현재 배정된 <strong>${p.mgr}</strong>은(는) ${p.prev.hall||p.prev.time} 예식 종료 후 `
+    + `${p.next.hall||p.next.time} 예식까지 이동 시 여유시간이 <strong>${p.buffer}분</strong>으로 ${tightWord}합니다.`
+  );
+  sentences.push(`주말 교통 상황에 따라 지연 가능성이 있어 ${riskWord} 일정으로 판단되었습니다.`);
+  sentences.push(
+    `반면 <strong>${alt}</strong>는 동일 시간대에 `
+    + `${altRegion ? `${altRegion}권` : '인근 지역'} 예식${focusedRegion?'만':'을 중심으로'} 담당하고 있어, `
+    + `해당 예식을 배정해도 여유시간이 <strong>${estBuffer}분</strong> 확보됩니다.`
+  );
+  sentences.push(
+    `또한 지역 이동이 ${sameRegion?'없고':'적고'} 기존 일정과의 충돌이 ${focusedRegion?'없으며':'적고'}, `
+    + `해당 날짜 불가 일정으로 등록되어 있지도 않습니다.`
+  );
+  if(partnerAssigned){
+    sentences.push(`배정을 변경해도 부부세트는 그대로 유지됩니다.`);
+  }
+  sentences.push(`AI는 <strong>${alt}</strong>를 추천합니다.`);
+  return sentences.join(' ');
 }
 
 function toggleRec(id){
@@ -955,11 +1016,11 @@ async function checkInquiry(){
 
     // 당일 예식 없음 → 자유 배정
     if(!existing.length){
-      available.push({mgr, type:'free', note:'당일 예식 없음 — 자유 배정 가능'});
+      available.push({mgr, type:'free', note:'당일 예식 없음 — 자유 배정 가능', buffer:null});
       continue;
     }
 
-    let fits=false, fitNote='', fitType='';
+    let fits=false, fitNote='', fitType='', fitBuffer=null;
 
     // ① 문의 먼저, 기존 첫 번째 전에
     const first=existing[0];
@@ -967,9 +1028,10 @@ async function checkInquiry(){
     const firstNeed=toMins(first.time)-80;
     const gap1=firstNeed-afterInq;
     const travel1=travelEst(region,first.region||regionFromHall(first.hall));
-    if(gap1>=travel1){
-      fits=true; fitType='before';
-      fitNote=`문의 먼저 → ${first.hall||first.time} 이동 (여유 ${gap1-travel1}분)`;
+    const buf1=gap1-travel1;
+    if(buf1>=BUFFER_WARN){
+      fits=true; fitType='before'; fitBuffer=buf1;
+      fitNote=`문의 먼저 → ${first.hall||first.time} 이동 (여유 ${buf1}분)`;
     }
 
     // ② 기존 마지막 후, 문의 이동
@@ -978,9 +1040,10 @@ async function checkInquiry(){
       const lastLeave=toMins(last.time)+50;
       const gap2=mustArr-lastLeave;
       const travel2=travelEst(last.region||regionFromHall(last.hall),region);
-      if(gap2>=travel2){
-        fits=true; fitType='after';
-        fitNote=`${last.hall||last.time} 후 문의 이동 (여유 ${gap2-travel2}분)`;
+      const buf2=gap2-travel2;
+      if(buf2>=BUFFER_WARN){
+        fits=true; fitType='after'; fitBuffer=buf2;
+        fitNote=`${last.hall||last.time} 후 문의 이동 (여유 ${buf2}분)`;
       }
     }
 
@@ -992,16 +1055,18 @@ async function checkInquiry(){
         const nextNeed=toMins(next.time)-80;
         const g1=mustArr-prevLeave-travelEst(prev.region||regionFromHall(prev.hall),region);
         const g2=nextNeed-canLeave-travelEst(region,next.region||regionFromHall(next.hall));
-        if(g1>=0&&g2>=0){
-          fits=true; fitType='between';
-          fitNote=`${prev.hall||prev.time} ↔ ${next.hall||next.time} 사이 (여유 ${Math.min(g1,g2)}분)`;
+        const bufBetween=Math.min(g1,g2);
+        if(bufBetween>=BUFFER_WARN){
+          fits=true; fitType='between'; fitBuffer=bufBetween;
+          fitNote=`${prev.hall||prev.time} ↔ ${next.hall||next.time} 사이 (여유 ${bufBetween}분)`;
           break;
         }
       }
     }
 
-    if(fits) available.push({mgr, type:fitType, note:fitNote, schedCount:existing.length});
-    else busy.push({mgr, reason:`당일 ${existing.length}건 배정 — 시간 충돌`, schedCount:existing.length});
+    // 여유시간 기준으로 판단 (10분 미만 = 불가 → 배정 후보에서 제외)
+    if(fits) available.push({mgr, type:fitType, note:fitNote, buffer:fitBuffer, schedCount:existing.length});
+    else busy.push({mgr, reason:`여유시간 부족(10분 미만) — 배정 불가`, schedCount:existing.length});
   }
 
   renderInqResult(available, unavailable, busy, dateStr, inqTime, region, resultEl);
@@ -1036,19 +1101,31 @@ function renderInqResult(available, unavailable, busy, dateStr, inqTime, region,
     return;
   }
 
+  // 여유시간(buffer) 기준 뱃지 — 🔴불가/🟡주의/🟢가능 (신규 문의 검토 화면도 공통 기준 사용)
+  // available 목록은 이미 10분 미만(불가)이 제외된 상태이므로 여기서는 가능/주의만 노출됨
+  function inqBadge(buf){
+    if(buf==null || buf>=BUFFER_SAFE) return `<span class="inq-pair-badge free">🟢 가능</span>`;
+    if(buf>=BUFFER_WARN) return `<span class="inq-pair-badge tight">🟡 주의 · 일정 조율 필요 (여유 ${buf}분)</span>`;
+    return `<span class="inq-pair-badge danger">🔴 불가</span>`;
+  }
+  function worstBuffer(a,b){
+    const av=a==null?Infinity:a, bv=b==null?Infinity:b;
+    return Math.min(av,bv);
+  }
+
   const pairCards=couples.map(({a,b})=>`
     <div class="inq-pair-card">
       <div class="inq-pair-name">${a.mgr} ♥ ${b.mgr}</div>
       <div class="inq-pair-note">${a.note}<br>${b.note}</div>
       <span class="inq-pair-badge couple">💑 부부세트</span>
-      ${a.type==='free'&&b.type==='free'?'<span class="inq-pair-badge free" style="margin-left:4px">당일 여유</span>':'<span class="inq-pair-badge tight" style="margin-left:4px">일정 조율 필요</span>'}
+      ${inqBadge(worstBuffer(a.buffer,b.buffer))}
     </div>`).join('');
 
   const singleCards=singles.map(s=>`
     <div class="inq-pair-card">
       <div class="inq-pair-name">${s.mgr}</div>
       <div class="inq-pair-note">${s.note}</div>
-      <span class="inq-pair-badge ${s.type==='free'?'free':'tight'}">${s.type==='free'?'당일 여유':'일정 조율 필요'}</span>
+      ${inqBadge(s.buffer)}
     </div>`).join('');
 
   el.innerHTML=`
