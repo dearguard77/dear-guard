@@ -469,10 +469,12 @@ async function analyzeSchedules(dateStr){
 
   // 매니저별 그룹
   const byMgr = {};
-  const addToMgr = (mgr, sched, role) => {
-    if(!mgr) return;
-    if(!byMgr[mgr]) byMgr[mgr] = [];
-    byMgr[mgr].push({...sched, role});
+  const addToMgr = (mgrField, sched, role) => {
+    if(!mgrField) return;
+    mgrField.split(',').map(m=>m.trim()).filter(Boolean).forEach(mgr => {
+      if(!byMgr[mgr]) byMgr[mgr] = [];
+      byMgr[mgr].push({...sched, role});
+    });
   };
   schedules.forEach(s => {
     addToMgr(s.frontManager, s, '앞');
@@ -550,6 +552,7 @@ async function onDateChange(){
   // 결과 초기화
   document.getElementById('resultWrap').style.display='none';
   document.getElementById('analyzingBox').style.display='none';
+  document.getElementById('aiBtnMain').style.display='flex';
   document.getElementById('aiBtnMain').disabled=true;
 
   // 스케줄 로드
