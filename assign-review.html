@@ -264,11 +264,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="inq-row-bottom">
       <div class="inq-field">
-        <label>예식장 지역</label>
-        <select class="inq-input" id="inq-region">
-          <option>대전</option><option>천안</option><option>청주</option>
-          <option>세종</option><option>아산</option><option>수원</option>
-          <option>전주</option><option>서울</option><option>기타</option>
+        <label>예식장</label>
+        <select class="inq-input" id="inq-venue" onchange="onInqVenueChange()">
+          <option value="">로딩 중…</option>
         </select>
       </div>
       <div class="inq-field">
@@ -276,6 +274,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <select class="inq-input" id="inq-optype">
           <option value="단측">단측</option>
           <option value="양측">양측</option>
+        </select>
+      </div>
+    </div>
+    <!-- 기타 선택 시 지역 직접 입력 -->
+    <div id="inq-region-row" style="display:none;margin-top:8px">
+      <div class="inq-field">
+        <label>지역 (기타 선택 시)</label>
+        <select class="inq-input" id="inq-region">
+          <option>대전</option><option>천안</option><option>청주</option>
+          <option>세종</option><option>아산</option>
         </select>
       </div>
     </div>
@@ -616,34 +624,39 @@ function getTeamExisting(mgrList,mgrMap){
 
 // 팀이 기존 예식들 + 신규 문의를 모두 소화할 수 있는지 확인
 // 반환: {ok, buffer, fitType, detail} or null
-function tryFitWithExisting(existing,inqTime,inqRegion){
+// travelFn(hall, region) → 이동시간(분). 없으면 지역 추정값 사용
+function tryFitWithExisting(existing,inqTime,inqRegion,travelFn){
   const mustArr=inqTime-80,canLeave=inqTime+50;
-  if(!existing.length)return{ok:true,buffer:999,fitType:'free',detail:''};
+  if(!existing.length)return{ok:true,buffer:999,fitType:'free'};
+  const getTrv=(hall,region)=>travelFn?travelFn(hall,region):travelEst(inqRegion,region||regionFromHall(hall));
   let best=null;
   // 문의 먼저 → 기존 첫번째
   if(inqTime<toMins(existing[0].time)){
     const f=existing[0];
-    const t=travelEst(inqRegion,f.region||regionFromHall(f.hall));
+    const t=getTrv(f.hall,f.region);
     const buf=(toMins(f.time)-80)-canLeave-t;
-    if(!best||buf>best.buffer)best={ok:buf>=10,buffer:buf,fitType:'before',travel:t,next:f,detail:`철수 ${fromMins(canLeave)} → ${f.hall||f.time} 도착 목표 ${fromMins(toMins(f.time)-80)}, 이동 ${t}분, 여유시간 ${buf}분`};
+    if(!best||buf>best.buffer)best={ok:buf>=10,buffer:buf,fitType:'before',travel:t,next:f,
+      fromVenue:'신규 예식장',toVenue:f.hall||f.time};
   }
   // 기존 마지막 → 문의
   const last=existing[existing.length-1];
   if(inqTime>toMins(last.time)){
-    const t=travelEst(last.region||regionFromHall(last.hall),inqRegion);
+    const t=getTrv(last.hall,last.region);
     const buf=mustArr-(toMins(last.time)+50)-t;
-    if(!best||buf>best.buffer)best={ok:buf>=10,buffer:buf,fitType:'after',travel:t,prev:last,detail:`${last.hall||last.time} 철수 ${fromMins(toMins(last.time)+50)} → 문의 도착 목표 ${fromMins(mustArr)}, 이동 ${t}분, 여유시간 ${buf}분`};
+    if(!best||buf>best.buffer)best={ok:buf>=10,buffer:buf,fitType:'after',travel:t,prev:last,
+      fromVenue:last.hall||last.time,toVenue:'신규 예식장'};
   }
   // 사이에 끼우기
   for(let i=0;i<existing.length-1;i++){
     const prev=existing[i],next=existing[i+1];
     if(inqTime>toMins(prev.time)&&inqTime<toMins(next.time)){
-      const tA=travelEst(prev.region||regionFromHall(prev.hall),inqRegion);
-      const tB=travelEst(inqRegion,next.region||regionFromHall(next.hall));
+      const tA=getTrv(prev.hall,prev.region);
+      const tB=getTrv(next.hall,next.region);
       const bA=mustArr-(toMins(prev.time)+50)-tA;
       const bB=(toMins(next.time)-80)-canLeave-tB;
       const buf=Math.min(bA,bB);
-      if(bA>=0&&bB>=0&&(!best||buf>best.buffer))best={ok:buf>=10,buffer:buf,fitType:'between',prev,next,tA,tB,bA,bB,detail:`${prev.hall||prev.time} ↔ ${next.hall||next.time} 사이, 최소 여유시간 ${buf}분`};
+      if(bA>=0&&bB>=0&&(!best||buf>best.buffer))best={ok:buf>=10,buffer:buf,fitType:'between',
+        prev,next,tA,tB,bA,bB,fromVenue:prev.hall,toVenue:next.hall};
     }
   }
   return best;
@@ -653,18 +666,65 @@ async function checkInquiry(){
   const dateStr=document.getElementById('inq-date').value;
   const hour=parseInt(document.getElementById('inq-hour').value);
   const min=parseInt(document.getElementById('inq-min').value);
-  const region=document.getElementById('inq-region').value;
-  const opType=document.getElementById('inq-optype').value; // '단측' or '양측'
+  const venueName=document.getElementById('inq-venue').value;
+  const opType=document.getElementById('inq-optype').value;
   const el=document.getElementById('inqResult');
   if(!dateStr){showToast('날짜를 입력해주세요');return;}
+  if(!venueName){showToast('예식장을 선택해주세요');return;}
+
   el.innerHTML=`<div style="text-align:center;padding:20px;color:#6B7280;font-size:13px">⏳ 확인 중…</div>`;
-  const inqTime=hour*60+min,timeStr=fromMins(inqTime);
+  const inqTime=hour*60+min,canLeave=inqTime+50,timeStr=fromMins(inqTime);
+
+  // ── 예식장 객체 조회 / 생성 ──
+  let inqVenueObj=venuesByName[venueName]||null;
+  let inqRegion='';
+  if(venueName==='__other__'){
+    inqRegion=document.getElementById('inq-region').value||'기타';
+  } else {
+    if(!inqVenueObj){
+      // 해당 날짜 스케줄에서 주소 찾기
+      const tempRows=await sbGet('schedules',`?hall=eq.${encodeURIComponent(venueName)}&select=address&limit=1`).catch(()=>[]);
+      if(tempRows[0]?.address) inqVenueObj=await ensureVenue(venueName,tempRows[0].address);
+    }
+    inqRegion=inqVenueObj?.region||regionFromHall(venueName)||'';
+  }
+
   const[unavRows,schedRows]=await Promise.all([
     sbGet('unavailable_schedules',`?date=eq.${dateStr}&select=manager_name`).catch(()=>[]),
     sbGet('schedules',`?date=eq.${dateStr}&select=id,hall,address,time,front_manager,back_manager,groom_name,bride_name&order=time.asc`).catch(()=>[]),
   ]);
   const unavSet=new Set(unavRows.map(r=>r.manager_name).filter(Boolean));
-  // 매니저별 예식 맵
+
+  // ── Kakao API로 이동시간 사전 계산 ──
+  // 신규 예식장 ↔ 기존 예식장들 이동시간 (canLeave 시간 기준)
+  const travelCache=new Map(); // hall → minutes
+  const uniqueHalls=[...new Set(schedRows.map(r=>r.hall).filter(Boolean))];
+  for(const hall of uniqueHalls){
+    if(hall===venueName){travelCache.set(hall,5);continue;}
+    let existObj=venuesByName[hall]||null;
+    if(!existObj){
+      const sr=schedRows.find(r=>r.hall===hall);
+      if(sr?.address) existObj=await ensureVenue(hall,sr.address);
+    }
+    let mins;
+    if(inqVenueObj?.lat&&existObj?.lat){
+      try{
+        el.innerHTML=`<div style="text-align:center;padding:20px;color:#6B7280;font-size:13px">⏳ 이동시간 계산 중: ${venueName||'신규'} ↔ ${hall}…</div>`;
+        mins=await getTravelMins(inqVenueObj,existObj,dateStr,canLeave);
+      }catch(e){
+        mins=travelEst(inqRegion,existObj?.region||regionFromHall(hall));
+      }
+    } else {
+      mins=travelEst(inqRegion,existObj?.region||regionFromHall(hall));
+    }
+    travelCache.set(hall,mins);
+  }
+  // travelFn: 예식장 이름 → 이동시간
+  const travelFn=(hall,region)=>travelCache.has(hall)?travelCache.get(hall):travelEst(inqRegion,region||regionFromHall(hall));
+
+  el.innerHTML=`<div style="text-align:center;padding:20px;color:#6B7280;font-size:13px">⏳ 배정 분석 중…</div>`;
+
+  // ── 매니저별 예식 맵 ──
   const mgrMap={};
   schedRows.forEach(r=>{
     const hall=r.hall||'',rg=regionFromHall(hall);
@@ -676,37 +736,30 @@ async function checkInquiry(){
   const curAssignHtml=schedRows.length?schedRows.map(r=>{
     const mgrs=[r.front_manager,r.back_manager].filter(Boolean).join(' / ');
     return`<div class="cur-assign-row"><span class="cur-assign-time">${(r.time||'').slice(0,5)}</span><span class="cur-assign-hall">${r.hall||'미정'}</span><span class="cur-assign-mgr">${mgrs||'-'}</span></div>`;
-  }).join(''):
-  `<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:8px">당일 배정된 예식 없음</div>`;
+  }).join(''):`<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:8px">당일 배정된 예식 없음</div>`;
 
   const scenarios=[];
-  const processed=new Set();
 
-  // 부부세트 단위로 처리
   for(const[mA,mB]of COUPLE_LIST){
     if(unavSet.has(mA)||unavSet.has(mB)){
-      scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],status:'unavail',unavailReason:'불가 일정 등록'});
-      processed.add(mA);processed.add(mB);continue;
+      scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],status:'unavail'});
+      continue;
     }
     const existing=getTeamExisting([mA,mB],mgrMap);
-    // 신규 문의가 기존과 직접 담당 가능?
-    const directFit=tryFitWithExisting(existing,inqTime,region);
+    const directFit=tryFitWithExisting(existing,inqTime,inqRegion,travelFn);
     if(directFit&&directFit.buffer>=10){
       scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],isCouple:true,
-        status:directFit.buffer>=20?'ok':'warn',buffer:directFit.buffer,fitType:directFit.fitType,
-        swapNeeded:false,existing,directFit,
-        existingChanges:existing.map(s=>({...s,action:'유지'}))
-      });
-      processed.add(mA);processed.add(mB);continue;
+        status:directFit.buffer>=20?'ok':'warn',buffer:directFit.buffer,
+        swapNeeded:false,existing,directFit,inqVenueName:venueName,
+        existingChanges:existing.map(s=>({...s,action:'유지'}))});
+      continue;
     }
-    // 기존 예식 중 하나를 다른 팀이 대신할 수 있는 스왑 시나리오
     let bestSwap=null;
     for(let i=0;i<existing.length;i++){
       const dropSched=existing[i];
       const remaining=existing.filter((_,j)=>j!==i);
-      const swapFit=tryFitWithExisting(remaining,inqTime,region);
+      const swapFit=tryFitWithExisting(remaining,inqTime,inqRegion,travelFn);
       if(!swapFit||swapFit.buffer<10)continue;
-      // 이 예식을 대신할 팀 찾기
       let replacer=null;
       for(const[rA,rB]of COUPLE_LIST){
         if(rA===mA||rB===mB)continue;
@@ -715,24 +768,20 @@ async function checkInquiry(){
         const rFit=tryFitWithExisting(rExisting,toMins(dropSched.time),dropSched.region||regionFromHall(dropSched.hall));
         if(rFit&&rFit.buffer>=10){replacer={team:`${rA} ♥ ${rB}`,fit:rFit};break;}
       }
-      if(replacer&&(!bestSwap||swapFit.buffer>bestSwap.swapFit.buffer)){
-        bestSwap={dropSched,replacer,swapFit};
-      }
+      if(replacer&&(!bestSwap||swapFit.buffer>bestSwap.swapFit.buffer))bestSwap={dropSched,replacer,swapFit};
     }
     if(bestSwap){
       const ec=existing.map(s=>s===bestSwap.dropSched?{...s,action:'교체',by:bestSwap.replacer.team}:{...s,action:'유지'});
       scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],isCouple:true,
         status:bestSwap.swapFit.buffer>=20?'ok':'warn',buffer:bestSwap.swapFit.buffer,
         swapNeeded:true,swapSched:bestSwap.dropSched,swapReplacer:bestSwap.replacer,
-        existing,directFit:bestSwap.swapFit,existingChanges:ec});
+        existing,directFit:bestSwap.swapFit,inqVenueName:venueName,existingChanges:ec});
     } else {
       scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],isCouple:true,
-        status:'fail',existing,existingChanges:existing.map(s=>({...s,action:'충돌'}))});
+        status:'fail',existing,inqVenueName:venueName,existingChanges:existing.map(s=>({...s,action:'충돌'}))});
     }
-    processed.add(mA);processed.add(mB);
   }
 
-  // 정렬: 스왑 없는 가능 > 스왑 있는 가능 > 주의 > 불가 > 불가등록
   const order={ok:0,warn:1,fail:2,unavail:3};
   scenarios.sort((a,b)=>{
     if(order[a.status]!==order[b.status])return order[a.status]-order[b.status];
@@ -741,7 +790,37 @@ async function checkInquiry(){
     return(b.buffer||0)-(a.buffer||0);
   });
 
-  renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,opType,el);
+  renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,inqRegion,opType,el);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 문의 예식장 드롭다운 로드
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function loadInqVenues(){
+  try{
+    const rows=await sbGet('schedules','?select=hall&not.hall.is.null&order=hall.asc&limit=500');
+    const halls=[...new Set(rows.map(r=>r.hall).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
+    const sel=document.getElementById('inq-venue');
+    if(!sel)return;
+    sel.innerHTML='<option value="">예식장 선택…</option>';
+    halls.forEach(h=>{
+      const o=document.createElement('option');
+      o.value=h; o.textContent=h;
+      sel.appendChild(o);
+    });
+    const other=document.createElement('option');
+    other.value='__other__'; other.textContent='기타 (지역 직접 선택)';
+    sel.appendChild(other);
+  }catch(e){
+    const sel=document.getElementById('inq-venue');
+    if(sel) sel.innerHTML='<option value="__other__">직접 입력</option>';
+    document.getElementById('inq-region-row').style.display='block';
+  }
+}
+
+function onInqVenueChange(){
+  const val=document.getElementById('inq-venue').value;
+  document.getElementById('inq-region-row').style.display=(val==='__other__')?'block':'none';
 }
 
 // 시나리오별 배지 텍스트
@@ -784,21 +863,27 @@ function buildProse(sc,inqTime,region){
   // 기존 예식 있음 + 교체 불필요
   if(!sc.swapNeeded){
     const fitType=sc.directFit?.fitType||'';
+    const travelMins=sc.directFit?.travel;
     const firstExist=existing[0];
     const lastExist=existing[existing.length-1];
+    const inqVName=sc.inqVenueName||'신규 예식장';
     let timing='';
     if(fitType==='before'&&firstExist){
       const dep=fromMins(inqTime+50);
       const arr=fromMins(toMins(firstExist.time)-80);
-      timing=`신규 ${timeStr} 예식 종료 후 철수 가능시각 ${dep}에 출발하면 ${firstExist.hall||firstExist.time}(${firstExist.time}) 도착 목표 ${arr}까지 여유시간 ${bufStr}이 확보됩니다.`;
+      const bufLabel=buf>=20?'🟢 가능':buf>=10?'🟡 주의':'🔴 불가';
+      timing=`<br><b>${inqVName} → ${firstExist.hall||firstExist.time}</b><br>철수 ${dep} 출발, 도착 목표 ${arr}${travelMins!=null?`, 예상 이동시간 ${travelMins}분`:''}, 여유시간 ${bufStr} ${bufLabel}`;
     } else if(fitType==='after'&&lastExist){
       const dep=fromMins(toMins(lastExist.time)+50);
       const arr=fromMins(inqTime-80);
-      timing=`${lastExist.hall||lastExist.time}(${lastExist.time}) 예식 종료 후 철수 가능시각 ${dep}에 출발하면 신규 ${timeStr} 예식 도착 목표 ${arr}까지 여유시간 ${bufStr}이 확보됩니다.`;
+      const bufLabel=buf>=20?'🟢 가능':buf>=10?'🟡 주의':'🔴 불가';
+      timing=`<br><b>${lastExist.hall||lastExist.time} → ${inqVName}</b><br>철수 ${dep} 출발, 도착 목표 ${arr}${travelMins!=null?`, 예상 이동시간 ${travelMins}분`:''}, 여유시간 ${bufStr} ${bufLabel}`;
     } else if(fitType==='between'){
-      timing=`기존 예식 사이에 신규 예식을 편성하며, 전후 이동 여유시간 최소 ${bufStr}이 확보됩니다.`;
+      const bA=sc.directFit?.bA,bB=sc.directFit?.bB;
+      timing=`<br>기존 예식 사이 편성 — 전 구간 여유시간 최소 ${bufStr}`;
+      if(bA!=null&&bB!=null) timing+=` (앞 ${bA}분 / 뒤 ${bB}분)`;
     }
-    return `${team}는 현재 <b>${existList}</b> 예식이 배정되어 있습니다. ${timing} 기존 예식 일정을 교체하지 않고 신규 ${timeStr} ${region} 예식을 함께 수행할 수 있습니다.`;
+    return `${team}는 현재 <b>${existList}</b> 예식이 배정되어 있습니다.${timing}<br>기존 예식 일정을 교체하지 않고 신규 예식을 함께 수행할 수 있습니다.`;
   }
 
   // 기존 예식 있음 + 교체 필요
@@ -929,6 +1014,7 @@ async function init(){
   document.getElementById('dateInp').value=today;
   document.getElementById('inq-date').value=today;
   await loadVenues();
+  await loadInqVenues();
   await onDateChange();
 }
 
