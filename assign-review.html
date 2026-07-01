@@ -210,7 +210,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .notice{margin:0 0 24px;background:#EFF6FF;border-radius:10px;padding:12px 14px;border:1px solid #BFDBFE}
 .notice p{font-size:12px;color:#1E40AF;line-height:1.7}
 
-/* 토스트 */
+/* 이동시간 검증 패널 */
+.travel-verify-btn{width:100%;margin-top:8px;background:#F3F4F6;color:#374151;border:none;border-radius:6px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px}
+.travel-verify-btn:hover{background:#E5E7EB}
+.travel-verify-panel{display:none;margin-top:6px;background:#F9FAFB;border-radius:8px;padding:10px 12px;border:1px solid #E5E7EB}
+.tv-row{display:flex;align-items:baseline;gap:6px;padding:3px 0;border-bottom:1px solid #F3F4F6;font-size:11px}
+.tv-row:last-child{border-bottom:none}
+.tv-label{color:#9CA3AF;font-weight:700;min-width:80px;flex-shrink:0}
+.tv-val{color:#374151;word-break:break-all}
+.tv-val.kakao{color:#059669;font-weight:700}
+.tv-val.estimate{color:#D97706;font-weight:700}
+.tv-val.err{color:#DC2626;font-weight:700}
+.verify-toggle{width:100%;margin-top:8px;background:#F3F4F6;color:#6B7280;border:none;border-radius:6px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px}
+.verify-panel{display:none;margin-top:6px;background:#F9FAFB;border-radius:8px;padding:10px 12px;border:1px solid #E5E7EB}
+.verify-row{display:grid;grid-template-columns:90px 1fr;gap:3px 8px;font-size:11px;padding:4px 0;border-bottom:1px solid #F3F4F6}
+.verify-row:last-child{border-bottom:none}
+.verify-lbl{color:#9CA3AF;font-weight:700}
+.verify-val{color:#374151;word-break:break-all}
+.method-kakao{color:#059669;font-weight:700}
+.method-est{color:#D97706;font-weight:700}
+.method-err{color:#DC2626;font-weight:700}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1F2937;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -696,31 +715,43 @@ async function checkInquiry(){
   const unavSet=new Set(unavRows.map(r=>r.manager_name).filter(Boolean));
 
   // ── Kakao API로 이동시간 사전 계산 ──
-  // 신규 예식장 ↔ 기존 예식장들 이동시간 (canLeave 시간 기준)
-  const travelCache=new Map(); // hall → minutes
+  const travelDetail=new Map(); // hall → {minutes, method, fromHall, toHall, fromAddr, toAddr, departTime}
   const uniqueHalls=[...new Set(schedRows.map(r=>r.hall).filter(Boolean))];
   for(const hall of uniqueHalls){
-    if(hall===venueName){travelCache.set(hall,5);continue;}
+    if(hall===venueName){
+      travelDetail.set(hall,{minutes:5,method:'same',fromHall:venueName,toHall:hall,fromAddr:inqVenueObj?.address||'',toAddr:inqVenueObj?.address||'',departTime:fromMins(canLeave)});
+      continue;
+    }
     let existObj=venuesByName[hall]||null;
     if(!existObj){
       const sr=schedRows.find(r=>r.hall===hall);
       if(sr?.address) existObj=await ensureVenue(hall,sr.address);
     }
-    let mins;
+    let mins, method;
     if(inqVenueObj?.lat&&existObj?.lat){
       try{
-        el.innerHTML=`<div style="text-align:center;padding:20px;color:#6B7280;font-size:13px">⏳ 이동시간 계산 중: ${venueName||'신규'} ↔ ${hall}…</div>`;
+        el.innerHTML=`<div style="text-align:center;padding:20px;color:#6B7280;font-size:13px">⏳ Kakao 이동시간 계산 중:<br><b>${venueName}</b> → <b>${hall}</b>…</div>`;
         mins=await getTravelMins(inqVenueObj,existObj,dateStr,canLeave);
+        method='kakao';
       }catch(e){
         mins=travelEst(inqRegion,existObj?.region||regionFromHall(hall));
+        method='estimate_err';
       }
     } else {
       mins=travelEst(inqRegion,existObj?.region||regionFromHall(hall));
+      method=inqVenueObj?.lat?'estimate_nocoord_dest':'estimate_nocoord_src';
     }
-    travelCache.set(hall,mins);
+    travelDetail.set(hall,{
+      minutes:mins, method,
+      fromHall:venueName, toHall:hall,
+      fromAddr:inqVenueObj?.address||'(주소 미등록)', toAddr:existObj?.address||'(주소 미등록)',
+      departTime:fromMins(canLeave),
+      inqLat:inqVenueObj?.lat, inqLng:inqVenueObj?.lng,
+      existLat:existObj?.lat, existLng:existObj?.lng,
+    });
   }
-  // travelFn: 예식장 이름 → 이동시간
-  const travelFn=(hall,region)=>travelCache.has(hall)?travelCache.get(hall):travelEst(inqRegion,region||regionFromHall(hall));
+  const travelCache=travelDetail; // alias for compatibility
+  const travelFn=(hall,region)=>{const d=travelDetail.get(hall);return d?d.minutes:travelEst(inqRegion,region||regionFromHall(hall));};
 
   el.innerHTML=`<div style="text-align:center;padding:20px;color:#6B7280;font-size:13px">⏳ 배정 분석 중…</div>`;
 
@@ -747,7 +778,15 @@ async function checkInquiry(){
     }
     const existing=getTeamExisting([mA,mB],mgrMap);
     const directFit=tryFitWithExisting(existing,inqTime,inqRegion,travelFn);
+    // 핵심 이동 구간 travelDetail 첨부
+    const enrichFit=(fit)=>{
+      if(!fit||fit.fitType==='free')return fit;
+      const keyHall=fit.fitType==='before'?fit.next?.hall:fit.fitType==='after'?fit.prev?.hall:null;
+      if(keyHall)fit.travelDetail=travelDetail.get(keyHall)||null;
+      return fit;
+    };
     if(directFit&&directFit.buffer>=10){
+      enrichFit(directFit);
       scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],isCouple:true,
         status:directFit.buffer>=20?'ok':'warn',buffer:directFit.buffer,
         swapNeeded:false,existing,directFit,inqVenueName:venueName,
@@ -759,6 +798,7 @@ async function checkInquiry(){
       const dropSched=existing[i];
       const remaining=existing.filter((_,j)=>j!==i);
       const swapFit=tryFitWithExisting(remaining,inqTime,inqRegion,travelFn);
+      enrichFit(swapFit);
       if(!swapFit||swapFit.buffer<10)continue;
       let replacer=null;
       for(const[rA,rB]of COUPLE_LIST){
@@ -790,7 +830,7 @@ async function checkInquiry(){
     return(b.buffer||0)-(a.buffer||0);
   });
 
-  renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,inqRegion,opType,el);
+  renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,inqRegion,opType,travelDetail,el);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -822,6 +862,42 @@ function onInqVenueChange(){
   const val=document.getElementById('inq-venue').value;
   document.getElementById('inq-region-row').style.display=(val==='__other__')?'block':'none';
 }
+
+// ─ 이동시간 검증 패널 생성 ─
+function buildVerifyPanel(sc,idx){
+  const td=sc.directFit?.travelDetail;
+  if(!td||td.method==='same'||td.method==='free')return'';
+  const panelId=`tv-${idx}-${(sc.team||'').replace(/[^a-z가-힣]/gi,'')}`;
+  const methodLabel={
+    kakao:'✅ Kakao Maps API (좌표 기반 실제 경로)',
+    estimate_err:'⚠️ 지역 추정값 (Kakao API 오류 발생)',
+    estimate_nocoord_src:'⚠️ 지역 추정값 (신규 예식장 좌표 미등록)',
+    estimate_nocoord_dest:'⚠️ 지역 추정값 (기존 예식장 좌표 미등록)',
+  }[td.method]||'⚠️ 지역 추정값';
+  const methodCls=td.method==='kakao'?'kakao':td.method.includes('err')?'err':'estimate';
+  const buf=sc.buffer??'-';
+  const bufLabel=typeof buf==='number'?(buf>=20?'🟢 가능':buf>=10?'🟡 주의':'🔴 불가'):'';
+  const bufStr=typeof buf==='number'?`${buf}분 ${bufLabel}`:`${buf}`;
+
+  let warningNote='';
+  if(td.method!=='kakao'){
+    warningNote=`<div class="tv-row"><span class="tv-label">주의</span><span class="tv-val err">좌표 미등록 예식장이 있어 지역 간 평균값 사용 중. 실제 카카오맵과 차이가 날 수 있습니다.<br>venues 테이블에 주소를 등록하면 정확한 계산이 가능합니다.</span></div>`;
+  }
+
+  return`<button class="travel-verify-btn" onclick="toggleTv('${panelId}')">🔍 이동시간 검증 정보 보기</button>
+  <div class="travel-verify-panel" id="${panelId}">
+    <div class="tv-row"><span class="tv-label">계산 방법</span><span class="tv-val ${methodCls}">${methodLabel}</span></div>
+    <div class="tv-row"><span class="tv-label">출발 예식장</span><span class="tv-val">${td.fromHall||'-'}</span></div>
+    <div class="tv-row"><span class="tv-label">출발 주소</span><span class="tv-val">${td.fromAddr||'(미등록)'}</span></div>
+    <div class="tv-row"><span class="tv-label">도착 예식장</span><span class="tv-val">${td.toHall||'-'}</span></div>
+    <div class="tv-row"><span class="tv-label">도착 주소</span><span class="tv-val">${td.toAddr||'(미등록)'}</span></div>
+    <div class="tv-row"><span class="tv-label">출발 시각</span><span class="tv-val">${td.departTime||'-'} (철수 가능시각 기준)</span></div>
+    <div class="tv-row"><span class="tv-label">예상 이동시간</span><span class="tv-val"><b>${td.minutes}분</b></span></div>
+    <div class="tv-row"><span class="tv-label">여유시간</span><span class="tv-val"><b>${bufStr}</b></span></div>
+    ${warningNote}
+  </div>`;
+}
+function toggleTv(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='block'?'none':'block';}
 
 // 시나리오별 배지 텍스트
 function inqStatusLabel(sc){
@@ -897,7 +973,43 @@ function buildProse(sc,inqTime,region){
   return prose;
 }
 
-function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,opType,el){
+// ── 이동시간 검증 패널 ──
+function travelVerifyHtml(sc,travelDetail,inqTime){
+  if(!travelDetail) return '';
+  const panelId=`vp-${sc.team.replace(/[♥\s]/g,'')}`;
+  const fit=sc.directFit;
+  const relevantHalls=new Set();
+  if(fit?.fitType==='before'&&fit.next?.hall) relevantHalls.add(fit.next.hall);
+  if(fit?.fitType==='after'&&fit.prev?.hall) relevantHalls.add(fit.prev.hall);
+  if(fit?.fitType==='between'){if(fit.prev?.hall)relevantHalls.add(fit.prev.hall);if(fit.next?.hall)relevantHalls.add(fit.next.hall);}
+  if(sc.swapSched?.hall) relevantHalls.add(sc.swapSched.hall);
+  const halls=relevantHalls.size>0?[...relevantHalls]:[...travelDetail.keys()].slice(0,3);
+  const rows=halls.map(hall=>{
+    const d=travelDetail.get(hall); if(!d) return '';
+    const methodLabel=
+      d.method==='kakao'?`<span class="method-kakao">✅ Kakao Maps API</span>`:
+      d.method==='same'?`<span style="color:#6B7280">ℹ️ 동일 예식장</span>`:
+      d.method==='estimate_err'?`<span class="method-err">❌ 지역 추정 (Kakao 오류)</span>`:
+      `<span class="method-est">⚠️ 지역 추정 (좌표 없음)</span>`;
+    const coordTxt=d.inqLat?`${d.inqLat.toFixed(4)},${d.inqLng.toFixed(4)} → ${d.existLat?.toFixed(4)||'?'},${d.existLng?.toFixed(4)||'?'}`:'좌표 미확보';
+    const warn=d.method!=='kakao'&&d.method!=='same';
+    return`<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #E5E7EB">
+      <div style="font-size:11px;font-weight:800;color:#1F2937;margin-bottom:4px">📍 ${d.fromHall} → ${d.toHall}</div>
+      <div class="verify-row"><span class="verify-lbl">출발 시각</span><span class="verify-val">${d.departTime}</span></div>
+      <div class="verify-row"><span class="verify-lbl">이동시간</span><span class="verify-val"><b>${d.minutes}분</b></span></div>
+      <div class="verify-row"><span class="verify-lbl">계산 방식</span><span class="verify-val">${methodLabel}</span></div>
+      <div class="verify-row"><span class="verify-lbl">출발 주소</span><span class="verify-val">${d.fromAddr||'미등록'}</span></div>
+      <div class="verify-row"><span class="verify-lbl">도착 주소</span><span class="verify-val">${d.toAddr||'미등록'}</span></div>
+      <div class="verify-row"><span class="verify-lbl">사용 좌표</span><span class="verify-val">${coordTxt}</span></div>
+      ${warn?`<div style="margin-top:4px;font-size:10px;color:#DC2626;font-weight:600">⚠️ Kakao API 미사용 — 실제값과 차이 발생 가능. venues 테이블에 예식장 좌표 등록 시 정확도 향상됩니다.</div>`:''}
+    </div>`;
+  }).join('');
+  if(!rows.trim()) return '';
+  return`<button class="verify-toggle" onclick="document.getElementById('${panelId}').style.display=document.getElementById('${panelId}').style.display==='block'?'none':'block'">🔍 이동시간 검증 정보 ▾</button>
+  <div class="verify-panel" id="${panelId}"><div style="font-size:11px;font-weight:800;color:#374151;margin-bottom:8px">이동시간 계산 상세</div>${rows}</div>`;
+}
+
+function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,opType,travelDetail,el){
   const d=new Date(dateStr+'T00:00:00');
   const dayKr=DAY_KR[d.getDay()];
   const isBothSide=(opType==='양측');
@@ -925,14 +1037,16 @@ function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,
     const badge=inqStatusLabel(sc);
     const badgeCls=inqBadgeCls(sc);
     const cardCls=sc.swapNeeded?'warn':st;
+    const verifyHtml=travelVerifyHtml(sc,travelDetail,inqTime);
     return`<div class="rec-card ${cardCls}">
       <div class="rec-card-rank">추천안 ${i+1}</div>
       <div class="rec-card-team">${sc.team}<span class="rec-status-badge badge-${badgeCls}">${badge}</span></div>
       <div class="rec-assignments">
-        <div class="rec-assign-row"><span class="rec-assign-icon">🆕</span><div class="rec-assign-text"><b>신규 ${timeStr} ${region}</b> <span class="rec-assign-tag tag-new">신규 배정</span></div></div>
+        <div class="rec-assign-row"><span class="rec-assign-icon">🆕</span><div class="rec-assign-text"><b>신규 ${timeStr} ${sc.inqVenueName||region}</b> <span class="rec-assign-tag tag-new">신규 배정</span></div></div>
         ${changesFor(sc)}
       </div>
       <div class="rec-prose ${cardCls}">${buildProse(sc,inqTime,region)}</div>
+      ${verifyHtml}
       <div class="rec-actions">
         <button class="rec-btn btn-keep" onclick="showToast('현재 배정 유지')">현재 유지</button>
         <button class="rec-btn btn-apply" onclick="showToast('✅ ${sc.team} 배정 완료 (관리자 확인 필요)')">추천안 적용</button>
