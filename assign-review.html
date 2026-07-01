@@ -415,17 +415,15 @@ async function ensureVenue(hall,address){
   // ① 주소 검색 (주소 있을 때)
   if(address){
     try{
-      const r=await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`,
-        {headers:{Authorization:`KakaoAK ${CONFIG.KAKAO_KEY}`}});
+      const r=await fetch(`/api/kakao-search?query=${encodeURIComponent(address)}`);
       const d=await r.json();
-      if(d.documents?.[0]){const doc=d.documents[0];geo={lat:parseFloat(doc.y),lng:parseFloat(doc.x),addr:doc.address?.address_name||address};}
+      if(d.documents?.[0]){const doc=d.documents[0];geo={lat:parseFloat(doc.y),lng:parseFloat(doc.x),addr:doc.address_name||doc.road_address_name||address};}
     }catch(e){}
   }
-  // ② 키워드 검색 (예식장 이름으로 검색 — 주소 없어도 동작)
+  // ② 예식장 이름으로 키워드 검색 (주소 없어도 동작)
   if(!geo){
     try{
-      const r=await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(hall)}&size=1`,
-        {headers:{Authorization:`KakaoAK ${CONFIG.KAKAO_KEY}`}});
+      const r=await fetch(`/api/kakao-search?query=${encodeURIComponent(hall)}`);
       const d=await r.json();
       if(d.documents?.[0]){const doc=d.documents[0];geo={lat:parseFloat(doc.y),lng:parseFloat(doc.x),addr:doc.address_name||doc.road_address_name||''};}
     }catch(e){}
