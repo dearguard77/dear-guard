@@ -4847,6 +4847,14 @@ async function rtLoadSchedule(){
   }
   // 인계 물품 textarea도 자동 반영 (기존 입력 내용 있으면 유지)
   rtFillHandoverItems();
+  // 이미 서명 완료된 인계확인서가 있으면: 물품(DB 저장값 폴백) + 3차 문구 자동 생성
+  if(hvCompleted && hvCompletedName){
+    const itemsElCert = document.getElementById('rt-handover-items');
+    if(itemsElCert && !itemsElCert.value.trim() && rtSchedule.handoverCertItems){
+      itemsElCert.value = rtSchedule.handoverCertItems;
+    }
+    rtGenStep3WithSignature(hvCompletedName);
+  }
 }
 
 function rtCopy(id){
@@ -5344,7 +5352,7 @@ async function rtSaveHandoverCertImage(viewOnly){
   // 수령 확인 체크 항목: 인계 물품 + 확인 절차 항목 (수령인이 실제로 체크한 항목과 동일)
   const checkItemsArr = [...itemsArr.map(it=>`${it} 수령`), '물품 직접 확인', '인계 내용 설명 확인'];
 
-  const phoneRaw = (document.getElementById('hv-phone')?.value || '').trim();
+  const phoneRaw = (document.getElementById('hv-phone')?.value || '').trim() || rtSchedule?.handoverCertPhone || '';
 
   // 관계/성함 통합값에서 표시용으로 그대로 사용 (예: "가방순이 김희애" 또는 "가방순이/김희애" 등 입력 형식 그대로)
   const nameDisplay = hvCompletedName || document.getElementById('hv-name')?.value?.trim() || '-';
