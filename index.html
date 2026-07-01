@@ -4143,7 +4143,8 @@ async function saveUnavail(){
             u.id !== uvEditId
           );
           if(partnerExisting){
-            const partnerUpdated = await sb.patch('unavailable_schedules', partnerExisting.id, row);
+            const partnerRow = { manager_name: partnerName, date, unavailable_type: uvType, memo: memo || null };
+            const partnerUpdated = await sb.patch('unavailable_schedules', partnerExisting.id, partnerRow);
             const pIdx = unavailables.findIndex(x => x.id === partnerExisting.id);
             if(pIdx !== -1) unavailables[pIdx] = rowToUnavail(Array.isArray(partnerUpdated)?partnerUpdated[0]:partnerUpdated);
             showToast(`✅ ${managerName} + ${partnerName} 불가일정이 함께 수정되었습니다`);
