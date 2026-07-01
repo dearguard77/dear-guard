@@ -377,6 +377,7 @@
     <button class="tab-btn" onclick="switchTab(&#39;unavail&#39;,this)">🚫 불가</button>
     <button class="tab-btn" id="nav-result-btn" onclick="switchTab(&#39;result&#39;,this)">📊 결과</button>
     <button class="tab-btn" id="nav-settle-btn" style="display:none" onclick="switchTab(&#39;settle&#39;,this)">💰 정산</button>
+    <button class="tab-btn" id="nav-assign-review-btn" style="display:none" onclick="location.href=&#39;assign-review.html&#39;">🤖 배정</button>
     <button class="tab-btn" id="nav-sheet-btn" style="display:none" onclick="window.open(&#39;https://docs.google.com/spreadsheets/d/1pw3lg2N3vvQ1HzoIbBbiZbNu-On1BtUytKT_qfwxXog/edit?gid=647308623#gid=647308623&#39;,&#39;_blank&#39;)">
       📋 시트
     </button>
@@ -1683,6 +1684,8 @@ function renderNav(){
   const navSettleBtn = document.getElementById('nav-settle-btn');
   if(bnavSettle)   bnavSettle.style.display   = isAdmin ? 'flex'  : 'none';
   if(navSettleBtn) navSettleBtn.style.display  = isAdmin ? 'block' : 'none';
+  const navAssignReviewBtn = document.getElementById('nav-assign-review-btn');
+  if(navAssignReviewBtn) navAssignReviewBtn.style.display = isAdmin ? 'block' : 'none';
   const navSheetBtn = document.getElementById('nav-sheet-btn');
   if(navSheetBtn)  navSheetBtn.style.display   = isAdmin ? 'block' : 'none';
   // 결과 탭 — 전체 표시 (renderResultTab 예식 드롭다운 초기화)
