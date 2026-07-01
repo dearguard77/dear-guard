@@ -9,34 +9,100 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F3F4F6;color:#1F2937;min-height:100vh}
+.page-wrap{max-width:760px;margin:0 auto}
 
-/* ── 헤더 ── */
+/* 헤더 */
 .hdr{background:#fff;border-bottom:1px solid #E5E7EB;padding:14px 20px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:200}
 .hdr-back{background:none;border:none;font-size:22px;cursor:pointer;color:#C7A96B;line-height:1;padding:0 4px}
 .hdr-title{font-size:17px;font-weight:800;color:#1F2937;letter-spacing:-.3px}
 .hdr-badge{margin-left:auto;background:#FEF3C7;color:#92400E;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px}
 
-/* ── API 설정 배너 ── */
-.setup-banner{background:#FEF3C7;border-bottom:2px solid #FDE68A;padding:10px 16px;display:flex;align-items:center;gap:8px}
-.setup-banner p{font-size:12px;color:#92400E;font-weight:600;flex:1}
-.setup-banner a{font-size:12px;color:#C7A96B;font-weight:700;text-decoration:none}
+/* 문의 검토 */
+.inq-section{margin:12px 16px;background:#fff;border-radius:14px;border:2px solid #C7A96B;overflow:hidden}
+.inq-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.inq-header-title{font-size:15px;font-weight:800;color:#1F2937}
+.inq-header-sub{font-size:11px;color:#9CA3AF;margin-top:1px}
+.inq-toggle{font-size:18px;color:#C7A96B;transition:transform .25s}
+.inq-toggle.open{transform:rotate(180deg)}
+.inq-body{display:none;padding:0 16px 16px;border-top:1px solid #F3F4F6}
+.inq-body.open{display:block}
+.inq-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.inq-field label{font-size:11px;font-weight:700;color:#6B7280;display:block;margin-bottom:5px}
+.inq-input{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;color:#1F2937;background:#F9FAFB}
+.inq-input:focus{outline:none;border-color:#C7A96B}
+.inq-time-wrap{display:flex;align-items:center;gap:4px}
+.inq-time-wrap .inq-input{text-align:center}
+.inq-colon{font-size:16px;font-weight:800;color:#374151}
+.inq-btn{width:100%;margin-top:12px;background:linear-gradient(135deg,#C7A96B,#B8945A);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s}
+.inq-btn:hover{opacity:.88}
+.inq-result{margin-top:14px}
 
-/* ── 날짜 선택 ── */
-.date-bar{background:#fff;padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #E5E7EB}
+/* 문의 결과 */
+.inq-res-hdr{border-radius:12px 12px 0 0;padding:13px 16px}
+.inq-res-hdr.ok{background:#059669;color:#fff}
+.inq-res-hdr.warn{background:#D97706;color:#fff}
+.inq-res-hdr.fail{background:#DC2626;color:#fff}
+.inq-res-hdr-title{font-size:14px;font-weight:800}
+.inq-res-hdr-sub{font-size:11px;opacity:.85;margin-top:3px}
+.inq-res-body{border:2px solid transparent;border-top:none;border-radius:0 0 12px 12px;padding:14px}
+.inq-res-body.ok{background:#F0FDF4;border-color:#86EFAC}
+.inq-res-body.warn{background:#FFFBEB;border-color:#FCD34D}
+.inq-res-body.fail{background:#FEF2F2;border-color:#FCA5A5}
+
+/* 현재 배정 현황 박스 */
+.cur-assign-box{background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1px solid #E5E7EB}
+.cur-assign-title{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.4px;margin-bottom:8px}
+.cur-assign-row{display:flex;align-items:baseline;gap:8px;padding:4px 0;border-bottom:1px solid #F3F4F6;font-size:12px}
+.cur-assign-row:last-child{border-bottom:none}
+.cur-assign-time{font-weight:800;color:#1F2937;min-width:36px}
+.cur-assign-hall{color:#374151;flex:1}
+.cur-assign-mgr{color:#C7A96B;font-weight:700;text-align:right;font-size:11px}
+
+/* 추천안 카드 */
+.rec-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;border-left:4px solid #E5E7EB}
+.rec-card:last-child{margin-bottom:0}
+.rec-card.ok{border-left-color:#059669}
+.rec-card.warn{border-left-color:#D97706}
+.rec-card.fail{border-left-color:#DC2626}
+.rec-card-rank{font-size:10px;font-weight:700;color:#9CA3AF;margin-bottom:6px;letter-spacing:.4px}
+.rec-card-team{font-size:15px;font-weight:800;color:#1F2937;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.rec-status-badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.badge-ok{background:#D1FAE5;color:#065F46}
+.badge-warn{background:#FEF3C7;color:#92400E}
+.badge-fail{background:#FEE2E2;color:#991B1B}
+
+.rec-assignments{background:#F9FAFB;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px}
+.rec-assign-row{display:flex;align-items:flex-start;gap:6px;padding:3px 0;line-height:1.5}
+.rec-assign-icon{flex-shrink:0;font-size:13px}
+.rec-assign-text{flex:1;color:#374151}
+.rec-assign-text b{color:#1F2937}
+.rec-assign-tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.tag-keep{background:#D1FAE5;color:#065F46}
+.tag-swap{background:#FEE2E2;color:#991B1B}
+.tag-new{background:#DBEAFE;color:#1D4ED8}
+
+.rec-prose{font-size:13px;color:#374151;line-height:1.8;margin-bottom:12px;padding:10px 12px;background:#F9FAFB;border-radius:8px;border-left:3px solid #E5E7EB}
+.rec-prose.ok{border-left-color:#059669}
+.rec-prose.warn{border-left-color:#D97706}
+.rec-prose.fail{border-left-color:#DC2626}
+
+.rec-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.rec-btn{border:none;border-radius:8px;padding:9px 6px;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .15s;text-align:center}
+.rec-btn:hover{opacity:.8}
+.btn-keep{background:#F3F4F6;color:#6B7280}
+.btn-apply{background:#059669;color:#fff}
+.btn-manual{background:#1F2937;color:#C7A96B}
+
+.inq-sec-label{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.4px;margin:10px 0 6px}
+
+/* 날짜 바 */
+.date-bar{background:#fff;padding:13px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #E5E7EB}
 .date-lbl{font-size:13px;color:#6B7280;font-weight:600;white-space:nowrap}
 .date-inp{border:1.5px solid #E5E7EB;border-radius:8px;padding:7px 12px;font-size:14px;font-weight:700;color:#1F2937;cursor:pointer;background:#F9FAFB;flex:1;max-width:180px}
 .date-day{font-size:13px;color:#C7A96B;font-weight:700;white-space:nowrap}
 .date-count{margin-left:auto;font-size:12px;color:#6B7280}
 
-/* ── API 상태 (기본 숨김 · 개발자 모드에서만 노출: URL에 ?dev=1) ── */
-.api-status-bar{padding:8px 16px;display:none;gap:8px;flex-wrap:wrap}
-.api-status-bar.dev-visible{display:flex}
-.api-chip{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;display:flex;align-items:center;gap:4px}
-.api-chip.ok{background:#D1FAE5;color:#065F46}
-.api-chip.err{background:#FEE2E2;color:#991B1B}
-.api-chip.pending{background:#F3F4F6;color:#6B7280}
-
-/* ── 예식 목록 ── */
+/* 예식 목록 */
 .section{padding:12px 16px 0}
 .section-title{font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin-bottom:8px}
 .sched-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
@@ -44,31 +110,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sched-time{font-size:15px;font-weight:900;color:#1F2937;min-width:42px}
 .sched-info{flex:1;min-width:0}
 .sched-couple{font-size:13px;font-weight:700;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sched-hall{font-size:11px;color:#6B7280;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sched-hall{font-size:11px;color:#6B7280;margin-top:1px}
 .sched-mgrs{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .sched-mgr{background:#FDF4E3;border:1px solid #F0D9A0;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;color:#92400E;white-space:nowrap}
 .sched-mgr.back{background:#F0F9FF;border-color:#BAE6FD;color:#0369A1}
-
-/* ── 빈 상태 ── */
-.empty-box{background:#fff;border-radius:12px;padding:32px;text-align:center;margin:8px 16px}
-.empty-box .emoji{font-size:32px;margin-bottom:8px}
+.empty-box{background:#fff;border-radius:12px;padding:32px;text-align:center;margin:8px 0}
 .empty-box p{font-size:14px;color:#6B7280}
 
-/* ── AI 리뷰 버튼 ── */
+/* AI 리뷰 버튼 */
 .ai-btn-wrap{padding:8px 16px 16px}
-.ai-btn{width:100%;background:linear-gradient(135deg,#1F2937 0%,#374151 100%);color:#C7A96B;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.2px;transition:opacity .15s}
+.ai-btn{width:100%;background:linear-gradient(135deg,#1F2937 0%,#374151 100%);color:#C7A96B;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
 .ai-btn:disabled{opacity:.5;cursor:not-allowed}
 .ai-btn:not(:disabled):hover{opacity:.9}
 .pulse{display:inline-block;width:8px;height:8px;background:#C7A96B;border-radius:50%;animation:pulse 1.4s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
 
-/* ── 분석 중 ── */
+/* 분석 중 */
 .analyzing{display:none;padding:28px 16px;text-align:center}
 .analyzing .spinner{width:36px;height:36px;border:3px solid #E5E7EB;border-top-color:#C7A96B;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .analyzing-msg{font-size:13px;color:#6B7280;font-weight:600}
 
-/* ── 결과 요약 ── */
+/* AI 리뷰 결과 */
 .result-wrap{display:none;padding:0 16px}
 .result-summary{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:12px}
 .result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -79,11 +142,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cnt-card .num{font-size:22px;font-weight:900;line-height:1}
 .cnt-card .lbl{font-size:10px;font-weight:700;margin-top:3px}
 .cnt-total{background:#F3F4F6}.cnt-total .num{color:#374151}.cnt-total .lbl{color:#6B7280}
+.cnt-pairs{background:#F0F4FF}.cnt-pairs .num{color:#3B4FC8}.cnt-pairs .lbl{color:#3B4FC8}
 .cnt-safe{background:#ECFDF5}.cnt-safe .num{color:#059669}.cnt-safe .lbl{color:#065F46}
 .cnt-warn{background:#FFFBEB}.cnt-warn .num{color:#D97706}.cnt-warn .lbl{color:#92400E}
 .cnt-danger{background:#FEF2F2}.cnt-danger .num{color:#DC2626}.cnt-danger .lbl{color:#991B1B}
 
-/* ── 위험/주의 카드 ── */
+/* 위험/주의 카드 */
 .detail-section{margin-bottom:12px}
 .detail-title{font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin-bottom:8px}
 .risk-card{border-radius:14px;padding:14px;margin-bottom:8px;border:2px solid transparent}
@@ -91,9 +155,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .risk-card.warning{background:#FFFDF0;border-color:#FDE68A}
 .risk-card.safe{background:#F0FDF4;border-color:#BBF7D0}
 .risk-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px}
-.risk-mgr{font-size:14px;font-weight:800;color:#1F2937;line-height:1.3}
-.risk-role{font-size:10px;color:#6B7280;font-weight:600;margin-top:2px}
-.risk-badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.risk-mgr{font-size:14px;font-weight:800;color:#1F2937}
+.risk-role{font-size:10px;color:#6B7280;margin-top:2px}
+.risk-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
 .badge-danger{background:#FEE2E2;color:#991B1B}
 .badge-warning{background:#FEF3C7;color:#92400E}
 .badge-safe{background:#D1FAE5;color:#065F46}
@@ -102,7 +166,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .risk-venue-time{font-size:17px;font-weight:900;color:#1F2937}
 .risk-venue-name{font-size:12px;font-weight:700;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .risk-venue-sub{font-size:10px;color:#6B7280;margin-top:2px}
-.risk-arrow{font-size:20px;color:#9CA3AF;align-self:center;flex-shrink:0;padding:0 2px}
+.risk-arrow{font-size:20px;color:#9CA3AF;align-self:center;flex-shrink:0}
 .risk-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:rgba(0,0,0,.04);border-radius:8px;padding:10px}
 .metric{text-align:center}
 .metric-lbl{font-size:10px;color:#6B7280;font-weight:600;margin-bottom:2px}
@@ -111,35 +175,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .metric-val.warning{color:#D97706}
 .metric-val.safe{color:#059669}
 .metric-src{font-size:9px;color:#9CA3AF;margin-top:1px}
-.rec-btn{width:100%;margin-top:10px;background:#1F2937;color:#C7A96B;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s}
-.rec-btn:hover{opacity:.85}
+.alt-btn{width:100%;margin-top:10px;background:#1F2937;color:#C7A96B;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
+.alt-btn:hover{opacity:.85}
+.alt-panel{display:none;margin-top:10px;background:#fff;border-radius:12px;padding:14px;border:2px solid #C7A96B}
+.alt-panel-title{font-size:13px;font-weight:800;color:#C7A96B;margin-bottom:12px}
+.alt-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.alt-side{border-radius:10px;padding:10px}
+.alt-side.current{background:#FEF2F2;border:1px solid #FECACA}
+.alt-side.suggest{background:#F0FDF4;border:1px solid #BBF7D0}
+.alt-side-lbl{font-size:10px;font-weight:700;margin-bottom:5px}
+.alt-side.current .alt-side-lbl{color:#991B1B}
+.alt-side.suggest .alt-side-lbl{color:#065F46}
+.alt-side-mgr{font-size:12px;font-weight:800;color:#1F2937;margin-bottom:3px}
+.alt-side-buf{font-size:14px;font-weight:900}
+.alt-side.current .alt-side-buf{color:#DC2626}
+.alt-side.suggest .alt-side-buf{color:#059669}
+.alt-reasons{margin-bottom:12px}
+.alt-reasons-lbl{font-size:10px;font-weight:700;color:#6B7280;margin-bottom:6px}
+.alt-reason{font-size:12px;color:#374151;padding:4px 0;border-bottom:1px solid #F3F4F6}
+.alt-reason:last-child{border-bottom:none}
+.alt-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn-alt-keep{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-alt-apply{background:#059669;color:#fff;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer}
 
-/* ── 추천안 패널 ── */
-.rec-panel{display:none;margin-top:10px;background:#fff;border-radius:12px;padding:14px;border:2px solid #C7A96B}
-.rec-panel-title{font-size:13px;font-weight:800;color:#C7A96B;margin-bottom:12px}
-.rec-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.rec-side{border-radius:10px;padding:10px}
-.rec-side.current{background:#FEF2F2;border:1px solid #FECACA}
-.rec-side.suggest{background:#F0FDF4;border:1px solid #BBF7D0}
-.rec-side-lbl{font-size:10px;font-weight:700;margin-bottom:5px}
-.rec-side.current .rec-side-lbl{color:#991B1B}
-.rec-side.suggest .rec-side-lbl{color:#065F46}
-.rec-side-mgr{font-size:12px;font-weight:800;color:#1F2937;margin-bottom:3px;line-height:1.3}
-.rec-side-buf{font-size:14px;font-weight:900}
-.rec-side.current .rec-side-buf{color:#DC2626}
-.rec-side.suggest .rec-side-buf{color:#059669}
-.rec-narrative{font-size:12.5px;line-height:1.75;color:#374151;background:#FBF8F1;border:1px solid #EFE3C9;border-radius:10px;padding:12px 13px;margin-bottom:12px}
-.rec-narrative strong{color:#92400E;font-weight:800}
-.rec-reasons{margin-bottom:12px}
-.rec-reasons-lbl{font-size:10px;font-weight:700;color:#6B7280;margin-bottom:6px}
-.rec-reason{font-size:12px;color:#374151;padding:4px 0;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;gap:6px}
-.rec-reason:last-child{border-bottom:none}
-.rec-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.btn-keep{background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer}
-.btn-apply{background:#059669;color:#fff;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer}
-.btn-apply:hover{opacity:.85}
-
-/* ── 안정 목록 ── */
 .safe-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
 .safe-item{background:#fff;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
 .safe-dot{width:8px;height:8px;border-radius:50%;background:#059669;flex-shrink:0}
@@ -147,80 +205,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .safe-mgr{font-size:12px;font-weight:700;color:#374151}
 .safe-route{font-size:11px;color:#6B7280;margin-top:1px}
 .safe-buf{font-size:13px;font-weight:800;color:#059669;white-space:nowrap}
-
-/* ── 안내 푸터 ── */
 .notice{margin:0 0 24px;background:#EFF6FF;border-radius:10px;padding:12px 14px;border:1px solid #BFDBFE}
 .notice p{font-size:12px;color:#1E40AF;line-height:1.7}
-.notice strong{font-weight:700}
 
-/* ── 신규 문의 검토 ── */
-.inq-section{margin:12px 16px;background:#fff;border-radius:14px;border:2px solid #C7A96B;overflow:hidden}
-.inq-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.inq-header-left{display:flex;align-items:center;gap:8px}
-.inq-header-title{font-size:15px;font-weight:800;color:#1F2937}
-.inq-header-sub{font-size:11px;color:#9CA3AF;margin-top:1px}
-.inq-toggle{font-size:18px;color:#C7A96B;transition:transform .25s}
-.inq-toggle.open{transform:rotate(180deg)}
-.inq-body{display:none;padding:0 16px 16px;border-top:1px solid #F3F4F6}
-.inq-body.open{display:block}
-.inq-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.inq-row.triple{grid-template-columns:1fr 1fr 1fr}
-.inq-field{min-width:0}
-.inq-field label{font-size:11px;font-weight:700;color:#6B7280;display:block;margin-bottom:5px}
-.inq-input{width:100%;min-width:0;height:44px;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:16px;font-weight:600;color:#1F2937;background:#F9FAFB;-webkit-appearance:none;appearance:none;line-height:normal}
-.inq-input:focus{outline:none;border-color:#C7A96B}
-.inq-time-wrap{display:flex;align-items:center;gap:4px;min-width:0}
-.inq-time-wrap .inq-input{text-align:center;min-width:0}
-.inq-colon{font-size:16px;font-weight:800;color:#374151;flex-shrink:0}
-
-/* 모바일(아이폰 Safari 포함): 날짜·시간을 세로로 쌓아 겹침 방지 */
-@media(max-width:480px){
-  .inq-row{grid-template-columns:1fr;gap:12px}
-  .inq-row.triple{grid-template-columns:1fr}
-}
-.inq-btn{width:100%;margin-top:12px;background:linear-gradient(135deg,#C7A96B,#B8945A);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s}
-.inq-btn:hover{opacity:.88}
-.inq-result{margin-top:14px}
-.inq-result-ok{background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px}
-.inq-result-fail{background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:14px}
-.inq-result-title{font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.inq-pair-card{background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:8px;border:1px solid #E5E7EB}
-.inq-pair-card:last-child{margin-bottom:0}
-.inq-pair-name{font-size:14px;font-weight:800;color:#1F2937}
-.inq-pair-note{font-size:11px;color:#6B7280;margin-top:3px;line-height:1.5}
-.inq-pair-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-top:5px}
-.inq-pair-badge.couple{background:#FDF4E3;color:#92400E}
-.inq-pair-badge.free{background:#D1FAE5;color:#065F46}
-.inq-pair-badge.tight{background:#FEF3C7;color:#92400E}
-.inq-pair-badge.danger{background:#FEE2E2;color:#991B1B}
-.inq-busy-list{font-size:12px;color:#6B7280;margin-top:8px}
-.inq-busy-item{padding:3px 0;border-bottom:1px solid #FEE2E2;display:flex;justify-content:space-between}
-.inq-busy-item:last-child{border-bottom:none}
+/* 토스트 */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1F2937;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-@media(max-width:380px){
-  .rec-compare{grid-template-columns:1fr}
+@media(max-width:480px){
   .result-counts{grid-template-columns:repeat(3,1fr)}
+  .rec-actions{grid-template-columns:1fr}
+  .alt-compare{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
+<div class="page-wrap">
 
-<!-- 헤더 -->
 <div class="hdr">
   <button class="hdr-back" onclick="history.back()">←</button>
   <div class="hdr-title">🤖 AI 배정 리뷰</div>
   <div class="hdr-badge">Beta</div>
 </div>
 
-<!-- Kakao API Key 미설정 안내 (설정 후 자동 숨김) -->
-<!-- 신규 문의 배정 검토 -->
+<!-- 신규 문의 검토 -->
 <div class="inq-section">
   <div class="inq-header" onclick="toggleInq()">
     <div>
       <div class="inq-header-title">📋 신규 문의 배정 검토</div>
-      <div class="inq-header-sub">날짜·시간·지역 입력 → 즉시 가능 여부 확인</div>
+      <div class="inq-header-sub">날짜·시간·지역 입력 → 교체안 즉시 분석</div>
     </div>
     <div class="inq-toggle" id="inqToggle">▼</div>
   </div>
@@ -240,13 +253,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           </select>
           <span class="inq-colon">:</span>
           <select class="inq-input" id="inq-min" style="flex:1">
-            <option value="0">00</option><option value="30">30</option>
+            <option value="0">00</option><option value="10">10</option>
+            <option value="20">20</option><option value="30">30</option>
+            <option value="40">40</option><option value="50">50</option>
           </select>
         </div>
       </div>
     </div>
-    <div class="inq-row">
-      <div class="inq-field" style="grid-column:1/-1">
+    <div class="inq-row" style="grid-template-columns:1fr;margin-top:8px">
+      <div class="inq-field">
         <label>예식장 지역</label>
         <select class="inq-input" id="inq-region">
           <option>대전</option><option>천안</option><option>청주</option>
@@ -260,24 +275,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<div class="setup-banner" id="setupBanner" style="display:none">
-  <p>⚠️ Kakao REST API Key를 설정하면 실제 이동시간이 사용됩니다. 현재는 추정값 사용 중.</p>
-  <a href="https://developers.kakao.com" target="_blank">키 발급 →</a>
-</div>
-
 <!-- 날짜 선택 -->
 <div class="date-bar">
   <span class="date-lbl">날짜</span>
   <input class="date-inp" type="date" id="dateInp" onchange="onDateChange()">
   <span class="date-day" id="dateDayLbl"></span>
   <span class="date-count" id="dateCountLbl"></span>
-</div>
-
-<!-- API 상태 -->
-<div class="api-status-bar" id="apiStatusBar">
-  <div class="api-chip pending" id="chipSb">⏳ Supabase</div>
-  <div class="api-chip pending" id="chipKakao">⏳ Kakao Maps</div>
-  <div class="api-chip pending" id="chipVenues">⏳ 예식장 DB</div>
 </div>
 
 <!-- 예식 목록 -->
@@ -289,18 +292,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- AI 리뷰 버튼 -->
 <div class="ai-btn-wrap">
   <button class="ai-btn" id="aiBtnMain" onclick="startReview()" disabled>
-    <span class="pulse"></span>
-    🤖 AI 일정 리뷰 시작
+    <span class="pulse"></span>🤖 AI 일정 리뷰 시작
   </button>
 </div>
 
-<!-- 분석 중 -->
 <div class="analyzing" id="analyzingBox">
   <div class="spinner"></div>
   <div class="analyzing-msg" id="analyzingMsg">이동시간 계산 중…</div>
 </div>
 
-<!-- 결과 -->
 <div class="result-wrap" id="resultWrap">
   <div class="result-summary">
     <div class="result-header">
@@ -309,10 +309,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="result-counts">
       <div class="cnt-card cnt-total"><div class="num" id="cntTotal">-</div><div class="lbl">예식</div></div>
-      <div class="cnt-card" style="background:#F0F4FF"><div class="num" id="cntPairs" style="color:#3B4FC8">-</div><div class="lbl" style="color:#3B4FC8">이동구간</div></div>
-      <div class="cnt-card cnt-safe"><div class="num" id="cntSafe">-</div><div class="lbl">🟢 안정</div></div>
+      <div class="cnt-card cnt-pairs"><div class="num" id="cntPairs">-</div><div class="lbl">이동구간</div></div>
+      <div class="cnt-card cnt-safe"><div class="num" id="cntSafe">-</div><div class="lbl">🟢 가능</div></div>
       <div class="cnt-card cnt-warn"><div class="num" id="cntWarn">-</div><div class="lbl">🟡 주의</div></div>
-      <div class="cnt-card cnt-danger"><div class="num" id="cntDanger">-</div><div class="lbl">🔴 위험</div></div>
+      <div class="cnt-card cnt-danger"><div class="num" id="cntDanger">-</div><div class="lbl">🔴 불가</div></div>
     </div>
   </div>
   <div id="riskSection"></div>
@@ -320,827 +320,548 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="notice" id="travelNotice"></div>
 </div>
 
+</div><!-- page-wrap -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ① CONFIG — Kakao REST API Key만 채우면 됩니다
-//    developers.kakao.com → 내 애플리케이션 → REST API 키
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CONFIG = {
-  SUPABASE_URL : 'https://fmvomfjmkbklhaaapkbk.supabase.co',
-  SUPABASE_KEY : 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2',
-  KAKAO_KEY    : '0cbd7b57e9c56e3f85624145076f6b4c',
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONFIG
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const CONFIG={
+  SUPABASE_URL:'https://fmvomfjmkbklhaaapkbk.supabase.co',
+  SUPABASE_KEY:'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2',
+  KAKAO_KEY:'0cbd7b57e9c56e3f85624145076f6b4c',
 };
 
-// 지역간 평균 이동시간 — Kakao API 연동 전 또는 API 실패 시 폴백
-const TRAVEL_FALLBACK = {
-  '청주-대전':48,'대전-청주':48,'청주-천안':40,'천안-청주':40,
-  '대전-천안':35,'천안-대전':35,'대전-세종':20,'세종-대전':20,
-  '천안-세종':30,'세종-천안':30,'청주-세종':45,'세종-청주':45,
-  '청주-청주':12,'대전-대전':12,'천안-천안':10,'세종-세종':10,
-};
-
-const COUPLE_PAIRS = {
+const COUPLE_PAIRS={
   '강성주':'전수연','전수연':'강성주','조윤성':'정선화','정선화':'조윤성',
   '김아희':'진효성','진효성':'김아희','김홍주':'양윤수','양윤수':'김홍주',
   '강미송':'노지훈','노지훈':'강미송','이승윤':'임우령','임우령':'이승윤',
   '김지현':'목수빈','목수빈':'김지현',
 };
+// 유니크 부부쌍 목록
+const COUPLE_LIST=[['강성주','전수연'],['조윤성','정선화'],['김아희','진효성'],
+  ['김홍주','양윤수'],['강미송','노지훈'],['이승윤','임우령'],['김지현','목수빈']];
+const ALL_MANAGERS=COUPLE_LIST.flat();
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ② Supabase 헬퍼
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const SB_HDR = () => ({
-  'Content-Type':'application/json',
-  'apikey': CONFIG.SUPABASE_KEY,
-  'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
-});
-async function sbGet(table, query=''){
-  const r = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${table}${query}`, { headers: SB_HDR() });
-  if(!r.ok) throw new Error(`Supabase ${table} error: ${r.status}`);
-  return r.json();
-}
-async function sbPost(table, body){
-  const r = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${table}`, {
-    method:'POST', headers:{...SB_HDR(),'Prefer':'return=representation'},
-    body: JSON.stringify(body),
-  });
-  if(!r.ok) throw new Error(`Supabase POST ${table}: ${r.status}`);
-  const rows = await r.json();
-  return Array.isArray(rows) ? rows[0] : rows;
-}
+const TRAVEL_FALLBACK={
+  '청주-대전':48,'대전-청주':48,'청주-천안':40,'천안-청주':40,
+  '대전-천안':35,'천안-대전':35,'대전-세종':20,'세종-대전':20,
+  '천안-세종':30,'세종-천안':30,'청주-세종':45,'세종-청주':45,
+  '청주-청주':12,'대전-대전':12,'천안-천안':10,'세종-세종':10,
+  '아산-천안':15,'천안-아산':15,'아산-대전':40,'대전-아산':40,
+};
+const DAY_KR=['일','월','화','수','목','금','토'];
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ③ Kakao API 헬퍼
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const KA_HDR = () => ({ 'Authorization': `KakaoAK ${CONFIG.KAKAO_KEY}` });
-let kakaoOk = false;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Supabase
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SB_H=()=>({'Content-Type':'application/json','apikey':CONFIG.SUPABASE_KEY,'Authorization':`Bearer ${CONFIG.SUPABASE_KEY}`});
+async function sbGet(t,q=''){const r=await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${t}${q}`,{headers:SB_H()});if(!r.ok)throw new Error(r.status);return r.json();}
+async function sbPost(t,b){const r=await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${t}`,{method:'POST',headers:{...SB_H(),'Prefer':'return=representation'},body:JSON.stringify(b)});const d=await r.json();return Array.isArray(d)?d[0]:d;}
 
-async function kakaoGeocode(address, hallName){
-  // 1) 주소 검색
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Kakao
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let venuesByName={};
+async function loadVenues(){try{const r=await sbGet('venues');r.forEach(v=>{venuesByName[v.name]=v;});}catch(e){}}
+async function ensureVenue(hall,address){
+  if(venuesByName[hall])return venuesByName[hall];
+  if(!CONFIG.KAKAO_KEY)return null;
   try{
-    const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`;
-    const r = await fetch(url, { headers: KA_HDR() });
-    const d = await r.json();
+    const url=`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address||hall)}`;
+    const r=await fetch(url,{headers:{Authorization:`KakaoAK ${CONFIG.KAKAO_KEY}`}});
+    const d=await r.json();
     if(d.documents?.[0]){
-      const doc = d.documents[0];
-      return { lat: parseFloat(doc.y), lng: parseFloat(doc.x), region: extractRegion(address) };
+      const doc=d.documents[0];
+      const geo={lat:parseFloat(doc.y),lng:parseFloat(doc.x)};
+      const reg=extractRegion(address||hall);
+      const v=await sbPost('venues',{name:hall,address:address||null,lat:geo.lat,lng:geo.lng,region:reg||null});
+      if(v?.id)venuesByName[hall]=v;
+      return v;
     }
-  } catch(e){}
-  // 2) 주소 실패 시 홀 이름으로 키워드 검색
-  try{
-    const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(hallName)}`;
-    const r = await fetch(url, { headers: KA_HDR() });
-    const d = await r.json();
-    if(d.documents?.[0]){
-      const doc = d.documents[0];
-      return { lat: parseFloat(doc.y), lng: parseFloat(doc.x), region: extractRegion(doc.address_name||hallName) };
-    }
-  } catch(e){}
+  }catch(e){}
   return null;
 }
-
-async function kakaoDirections(fromV, toV, dateStr, departMins){
-  const dt = new Date(dateStr + 'T00:00:00');
-  dt.setMinutes(dt.getMinutes() + departMins);
-  const pad = n => String(n).padStart(2,'0');
-  const deptTime = `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}${pad(dt.getHours())}${pad(dt.getMinutes())}`;
-  const url = `https://apis-navi.kakaomobility.com/v1/directions?`
-    + `origin=${fromV.lng},${fromV.lat}`
-    + `&destination=${toV.lng},${toV.lat}`
-    + `&departure_time=${deptTime}`
-    + `&priority=RECOMMEND`;
-  const r = await fetch(url, { headers: KA_HDR() });
-  if(!r.ok) throw new Error('Kakao Directions error: ' + r.status);
-  const d = await r.json();
-  const secs = d.routes?.[0]?.summary?.duration;
-  if(!secs) throw new Error('No route found');
-  return Math.ceil(secs / 60);
+async function kakaoDir(fromV,toV,dateStr,deptMins){
+  const dt=new Date(dateStr+'T00:00:00');dt.setMinutes(dt.getMinutes()+deptMins);
+  const p=n=>String(n).padStart(2,'0');
+  const ts=`${dt.getFullYear()}${p(dt.getMonth()+1)}${p(dt.getDate())}${p(dt.getHours())}${p(dt.getMinutes())}`;
+  const url=`https://apis-navi.kakaomobility.com/v1/directions?origin=${fromV.lng},${fromV.lat}&destination=${toV.lng},${toV.lat}&departure_time=${ts}&priority=RECOMMEND`;
+  const r=await fetch(url,{headers:{Authorization:`KakaoAK ${CONFIG.KAKAO_KEY}`}});
+  if(!r.ok)throw new Error(r.status);
+  const d=await r.json();
+  const secs=d.routes?.[0]?.summary?.duration;
+  if(!secs)throw new Error('no route');
+  return Math.ceil(secs/60);
 }
-
-function extractRegion(addr){
-  const CITIES = ['서울','인천','대전','대구','부산','광주','울산','수원','성남','고양','천안','청주','전주','창원','용인','세종','아산','평택','안양','부천'];
-  for(const c of CITIES){ if(addr.includes(c)) return c; }
-  const m = addr.match(/([가-힣]{2,})[시군]/);
-  return m ? m[1] : '';
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ④ Venues 캐시 (이름 → 객체)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let venuesByName = {};
-
-async function loadVenues(){
-  try{
-    const rows = await sbGet('venues');
-    venuesByName = {};
-    rows.forEach(v => { venuesByName[v.name] = v; });
-    setChip('chipVenues', 'ok', `✅ 예식장 DB (${rows.length}건)`);
-  } catch(e){
-    setChip('chipVenues', 'err', '❌ 예식장 DB 오류');
-  }
-}
-
-async function getOrCreateVenue(hallName, address){
-  if(venuesByName[hallName]) return venuesByName[hallName];
-  if(!CONFIG.KAKAO_KEY || !kakaoOk) return null; // Kakao 미설정 시 생략
-
-  setAnalyzingMsg(`좌표 등록 중: ${hallName}`);
-  const geo = await kakaoGeocode(address || hallName, hallName);
-  if(!geo) return null;
-
-  try{
-    const created = await sbPost('venues', {
-      name: hallName, address: address||null,
-      lat: geo.lat, lng: geo.lng, region: geo.region||null,
-    });
-    venuesByName[hallName] = created;
-    return created;
-  } catch(e){ return null; }
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑤ 이동시간 캐시
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function getCachedTravel(fromId, toId, weekday, hour){
-  try{
-    const rows = await sbGet('travel_time_cache',
-      `?from_venue_id=eq.${fromId}&to_venue_id=eq.${toId}&weekday=eq.${weekday}&departure_hour=eq.${hour}&select=travel_minutes`);
-    return rows?.[0]?.travel_minutes ?? null;
-  } catch(e){ return null; }
-}
-
-async function setCachedTravel(fromId, toId, weekday, hour, minutes){
-  try{
-    await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/travel_time_cache`, {
-      method:'POST',
-      headers:{...SB_HDR(),'Prefer':'resolution=merge-duplicates'},
-      body: JSON.stringify({ from_venue_id:fromId, to_venue_id:toId, weekday, departure_hour:hour, travel_minutes:minutes }),
-    });
-  } catch(e){}
-}
-
-async function getTravelMinutes(fromVenue, toVenue, dateStr, departMins){
-  const weekday = new Date(dateStr+'T00:00:00').getDay();
-  const hour    = Math.floor(departMins / 60);
-
-  // 같은 예식장
-  if(fromVenue && toVenue && fromVenue.id === toVenue.id) return 8;
-
+async function getTravelMins(fromV,toV,dateStr,deptMins){
+  if(fromV?.id===toV?.id)return 8;
+  const wday=new Date(dateStr+'T00:00:00').getDay();
+  const hour=Math.floor(deptMins/60);
   // 캐시 확인
-  if(fromVenue?.id && toVenue?.id){
-    const cached = await getCachedTravel(fromVenue.id, toVenue.id, weekday, hour);
-    if(cached !== null){
-      return cached;
-    }
-  }
-
-  // Kakao API 시도
-  if(CONFIG.KAKAO_KEY && kakaoOk && fromVenue?.lat && toVenue?.lat){
+  if(fromV?.id&&toV?.id){
     try{
-      setAnalyzingMsg(`이동시간 계산 중: ${fromVenue.region||'?'} → ${toVenue.region||'?'}`);
-      const mins = await kakaoDirections(fromVenue, toVenue, dateStr, departMins);
-      if(fromVenue?.id && toVenue?.id){
-        await setCachedTravel(fromVenue.id, toVenue.id, weekday, hour, mins);
-      }
+      const rows=await sbGet('travel_time_cache',`?from_venue_id=eq.${fromV.id}&to_venue_id=eq.${toV.id}&weekday=eq.${wday}&departure_hour=eq.${hour}&select=travel_minutes`);
+      if(rows?.[0]?.travel_minutes!=null)return rows[0].travel_minutes;
+    }catch(e){}
+    // Kakao API
+    try{
+      const mins=await kakaoDir(fromV,toV,dateStr,deptMins);
+      try{await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/travel_time_cache`,{method:'POST',headers:{...SB_H(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({from_venue_id:fromV.id,to_venue_id:toV.id,weekday:wday,departure_hour:hour,travel_minutes:mins})});}catch(e){}
       return mins;
-    } catch(e){}
+    }catch(e){}
   }
-
-  // 폴백: 지역 간 평균값
-  const key1 = `${fromVenue?.region||''}-${toVenue?.region||''}`;
-  const key2 = `${toVenue?.region||''}-${fromVenue?.region||''}`;
-  return TRAVEL_FALLBACK[key1] || TRAVEL_FALLBACK[key2] || 30;
+  // 폴백
+  const r1=fromV?.region||'',r2=toV?.region||'';
+  return TRAVEL_FALLBACK[`${r1}-${r2}`]||TRAVEL_FALLBACK[`${r2}-${r1}`]||35;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑥ 스케줄 로드
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let schedules = [];
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 공통 유틸
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toMins(t){const[h,m]=(t||'00:00').split(':').map(Number);return h*60+m;}
+function fromMins(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
+function extractRegion(addr=''){
+  const C=['서울','인천','대전','대구','부산','광주','울산','수원','성남','고양','천안','청주','전주','창원','세종','아산','평택','용인'];
+  for(const c of C)if(addr.includes(c))return c;
+  return '';
+}
+// 여유시간 기준: 🔴 10분 미만 / 🟡 10~19분 / 🟢 20분 이상
+function getStatus(buf){return buf>=20?'safe':buf>=10?'warning':'danger';}
+function statusLabel(status){return{safe:'🟢 가능',warning:'🟡 주의',danger:'🔴 불가'}[status];}
+function travelEst(r1,r2){if(!r1||!r2||r1===r2)return 10;return TRAVEL_FALLBACK[`${r1}-${r2}`]||TRAVEL_FALLBACK[`${r2}-${r1}`]||35;}
+function regionFromHall(hall=''){return extractRegion(hall);}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 스케줄 로드
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let schedules=[];
+let unavailableMgrs=new Set();
 
 async function fetchSchedules(dateStr){
-  setChip('chipSb','pending','⏳ Supabase');
   try{
-    const rows = await sbGet('schedules',
-      `?date=eq.${dateStr}&select=id,groom_name,bride_name,hall,address,time,front_manager,back_manager&order=time.asc`);
-    schedules = rows.map(r => ({
-      id:            r.id,
-      couple:        `${r.groom_name||''} ♥ ${r.bride_name||''}`,
-      hall:          r.hall || '',
-      address:       r.address || '',
-      time:          (r.time||'').slice(0,5),
-      frontManager:  r.front_manager || '',
-      backManager:   r.back_manager  || '',
-      venue:         null,  // 나중에 채워짐
+    const rows=await sbGet('schedules',`?date=eq.${dateStr}&select=id,groom_name,bride_name,hall,address,time,front_manager,back_manager&order=time.asc`);
+    schedules=rows.map(r=>({
+      id:r.id,couple:`${r.groom_name||''} ♥ ${r.bride_name||''}`,
+      hall:r.hall||'',address:r.address||'',time:(r.time||'').slice(0,5),
+      frontManager:r.front_manager||'',backManager:r.back_manager||'',venue:null,
     }));
-    setChip('chipSb','ok',`✅ Supabase (${schedules.length}건)`);
     return true;
-  } catch(e){
-    setChip('chipSb','err','❌ Supabase 오류');
-    return false;
-  }
+  }catch(e){return false;}
 }
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑥-b 불가일정 로드 (추천 시 제외용)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let unavailableMgrs = new Set();
-
 async function fetchUnavailables(dateStr){
-  try{
-    const rows = await sbGet('unavailable_schedules',
-      `?date=eq.${dateStr}&select=manager_name`);
-    unavailableMgrs = new Set(rows.map(r => r.manager_name).filter(Boolean));
-  } catch(e){
-    unavailableMgrs = new Set();
-  }
+  try{const r=await sbGet('unavailable_schedules',`?date=eq.${dateStr}&select=manager_name`);unavailableMgrs=new Set(r.map(x=>x.manager_name).filter(Boolean));}
+  catch(e){unavailableMgrs=new Set();}
 }
 
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function toMins(t){ const [h,m]=(t||'00:00').split(':').map(Number); return h*60+m; }
-function fromMins(m){ return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
-
-// ── 디어가드 공통 여유시간 판단 기준 (모든 화면 동일 적용) ──
-// 🔴 불가: 10분 미만 · 🟡 주의: 10~19분 · 🟢 가능: 20분 이상
-const BUFFER_SAFE = 20;
-const BUFFER_WARN = 10;
-function getStatus(buf){ return buf>=BUFFER_SAFE?'safe':buf>=BUFFER_WARN?'warning':'danger'; }
-
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AI 리뷰 (기존 배정 이동시간 분석)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function analyzeSchedules(dateStr){
-  // 예식장 좌표 자동 등록
-  const halls = [...new Set(schedules.map(s=>s.hall).filter(Boolean))];
+  const halls=[...new Set(schedules.map(s=>s.hall).filter(Boolean))];
   for(const hall of halls){
-    const s = schedules.find(x=>x.hall===hall);
-    const v = await getOrCreateVenue(hall, s?.address||'');
-    schedules.forEach(x=>{ if(x.hall===hall) x.venue=v; });
+    const s=schedules.find(x=>x.hall===hall);
+    const v=await ensureVenue(hall,s?.address||'');
+    schedules.forEach(x=>{if(x.hall===hall)x.venue=v;});
   }
-
-  // 매니저별 그룹
-  const byMgr = {};
-  const addToMgr = (mgrField, sched, role) => {
-    if(!mgrField) return;
-    mgrField.split(',').map(m=>m.trim()).filter(Boolean).forEach(mgr => {
-      if(!byMgr[mgr]) byMgr[mgr] = [];
-      byMgr[mgr].push({...sched, role});
-    });
-  };
-  schedules.forEach(s => {
-    addToMgr(s.frontManager, s, '앞');
-    if(s.backManager && s.backManager !== s.frontManager)
-      addToMgr(s.backManager, s, '뒤');
-  });
-
-  const pairs = [];
-  for(const [mgr, list] of Object.entries(byMgr)){
-    list.sort((a,b) => toMins(a.time) - toMins(b.time));
-    for(let i=0; i<list.length-1; i++){
-      const prev = list[i], next = list[i+1];
-      const departure  = toMins(prev.time) + 50;
-      const arrTarget  = toMins(next.time) - 80;
-      const available  = arrTarget - departure;
-      const travel     = await getTravelMinutes(prev.venue, next.venue, dateStr, departure);
-      const buffer     = available - travel;
-      const status     = getStatus(buffer);
-      const usedKakao  = !!(CONFIG.KAKAO_KEY && kakaoOk && prev.venue?.lat && next.venue?.lat);
-      pairs.push({ mgr, role:`${prev.role}→${next.role}`, prev, next, departure, arrTarget, available, travel, buffer, status, usedKakao });
+  const byMgr={};
+  const add=(f,sched,role)=>{if(!f)return;f.split(',').map(m=>m.trim()).filter(Boolean).forEach(m=>{if(!byMgr[m])byMgr[m]=[];byMgr[m].push({...sched,role});});};
+  schedules.forEach(s=>{add(s.frontManager,s,'앞');if(s.backManager&&s.backManager!==s.frontManager)add(s.backManager,s,'뒤');});
+  const pairs=[];
+  for(const[mgr,list]of Object.entries(byMgr)){
+    list.sort((a,b)=>toMins(a.time)-toMins(b.time));
+    for(let i=0;i<list.length-1;i++){
+      const prev=list[i],next=list[i+1];
+      const departure=toMins(prev.time)+50,arrTarget=toMins(next.time)-80;
+      const available=arrTarget-departure;
+      const travel=await getTravelMins(prev.venue,next.venue,dateStr,departure);
+      const buffer=available-travel,status=getStatus(buffer);
+      const usedKakao=!!(prev.venue?.lat&&next.venue?.lat);
+      pairs.push({mgr,role:`${prev.role}→${next.role}`,prev,next,departure,arrTarget,available,travel,buffer,status,usedKakao});
     }
   }
   return pairs;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑧ UI 헬퍼
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function setChip(id, type, txt){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.className = `api-chip ${type}`;
-  el.textContent = txt;
-}
-function setAnalyzingMsg(msg){ const el=document.getElementById('analyzingMsg'); if(el) el.textContent=msg; }
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
-}
-const DAY_KR = ['일','월','화','수','목','금','토'];
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑨ 초기화 & 날짜 변경
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function init(){
-  // 개발자 모드(?dev=1)에서만 API 상태칩 노출 — 실제 운영 화면에서는 숨김
-  if(new URLSearchParams(location.search).get('dev')==='1'){
-    document.getElementById('apiStatusBar').classList.add('dev-visible');
-  }
-
-  // 오늘 날짜 세팅
-  const today = new Date().toISOString().slice(0,10);
-  document.getElementById('dateInp').value = today;
-
-  // Kakao 키 확인
-  if(!CONFIG.KAKAO_KEY){
-    document.getElementById('setupBanner').style.display='flex';
-    setChip('chipKakao','err','⚠️ Kakao Key 미설정');
-  } else {
-    kakaoOk = true;
-    setChip('chipKakao','ok','✅ Kakao Maps');
-  }
-
-  // Venues 로드
-  await loadVenues();
-
-  // 스케줄 로드
-  await onDateChange();
-}
-
-async function onDateChange(){
-  const dateStr = document.getElementById('dateInp').value;
-  if(!dateStr) return;
-
-  // 날짜 표시
-  const d = new Date(dateStr+'T00:00:00');
-  document.getElementById('dateDayLbl').textContent = `(${DAY_KR[d.getDay()]})`;
-
-  // 결과 초기화
-  document.getElementById('resultWrap').style.display='none';
-  document.getElementById('analyzingBox').style.display='none';
-  document.getElementById('aiBtnMain').style.display='flex';
-  document.getElementById('aiBtnMain').disabled=true;
-
-  // 스케줄 + 불가일정 동시 로드
-  const ok = await fetchSchedules(dateStr);
-  await fetchUnavailables(dateStr);
-  renderSchedList();
-
-  if(ok && schedules.length > 0){
-    document.getElementById('aiBtnMain').disabled=false;
-  }
-}
-
-function renderSchedList(){
-  const el = document.getElementById('schedList');
-  const cnt = document.getElementById('dateCountLbl');
-  if(!schedules.length){
-    el.innerHTML=`<div class="empty-box"><div class="emoji">📭</div><p>해당 날짜에 배정된 예식이 없습니다</p></div>`;
-    cnt.textContent='';
-    return;
-  }
-  cnt.textContent = `${schedules.length}건`;
-  el.innerHTML = `<div class="sched-list">${
-    schedules.map(s=>`
-      <div class="sched-card">
-        <div class="sched-time">${s.time}</div>
-        <div class="sched-info">
-          <div class="sched-couple">${s.couple}</div>
-          <div class="sched-hall">${s.hall}</div>
-        </div>
-        <div class="sched-mgrs">
-          ${s.frontManager?`<div class="sched-mgr">${s.frontManager}</div>`:''}
-          ${s.backManager&&s.backManager!==s.frontManager?`<div class="sched-mgr back">${s.backManager}</div>`:''}
-        </div>
-      </div>
-    `).join('')
-  }</div>`;
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑩ 리뷰 실행
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function startReview(){
-  const dateStr = document.getElementById('dateInp').value;
+  const dateStr=document.getElementById('dateInp').value;
   document.getElementById('aiBtnMain').style.display='none';
   document.getElementById('analyzingBox').style.display='block';
-  setAnalyzingMsg('분석 준비 중…');
-
+  document.getElementById('analyzingMsg').textContent='분석 준비 중…';
   try{
-    const pairs = await analyzeSchedules(dateStr);
+    const pairs=await analyzeSchedules(dateStr);
     document.getElementById('analyzingBox').style.display='none';
-    renderResult(pairs, dateStr);
-  } catch(e){
+    renderResult(pairs,dateStr);
+  }catch(e){
     document.getElementById('analyzingBox').style.display='none';
     document.getElementById('aiBtnMain').style.display='flex';
-    showToast('❌ 분석 중 오류: ' + e.message);
+    showToast('❌ 오류: '+e.message);
   }
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑪ 결과 렌더링
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function renderResult(pairs, dateStr){
-  const dangers  = pairs.filter(p=>p.status==='danger');
-  const warnings = pairs.filter(p=>p.status==='warning');
-  const safes    = pairs.filter(p=>p.status==='safe');
-  const d = new Date(dateStr+'T00:00:00');
-
-  document.getElementById('cntTotal').textContent  = schedules.length;
-  document.getElementById('cntPairs').textContent  = pairs.length;
-  document.getElementById('cntSafe').textContent   = safes.length;
-  document.getElementById('cntWarn').textContent   = warnings.length;
-  document.getElementById('cntDanger').textContent = dangers.length;
-  document.getElementById('resultDateLbl').textContent = `${dateStr} (${DAY_KR[d.getDay()]})`;
-
-  // 위험·주의 카드
-  const riskEl = document.getElementById('riskSection');
-  let riskHtml = '';
-  if(dangers.length)  riskHtml += `<div class="detail-section"><div class="detail-title">🔴 위험 일정 — ${dangers.length}건</div>${dangers.map(riskCardHtml).join('')}</div>`;
-  if(warnings.length) riskHtml += `<div class="detail-section"><div class="detail-title">🟡 주의 일정 — ${warnings.length}건</div>${warnings.map(riskCardHtml).join('')}</div>`;
-  if(!dangers.length && !warnings.length){
-    riskHtml = `<div class="detail-section"><div style="background:#ECFDF5;border-radius:12px;padding:20px;text-align:center;margin-bottom:12px"><div style="font-size:28px;margin-bottom:6px">🎉</div><div style="font-size:14px;font-weight:700;color:#059669">모든 일정이 안정적입니다!</div></div></div>`;
-  }
-  riskEl.innerHTML = riskHtml;
-
-  // 안정 목록
-  const safeEl = document.getElementById('safeSection');
-  safeEl.innerHTML = safes.length ? `
-    <div class="detail-section">
-      <div class="detail-title">🟢 안정 일정 — ${safes.length}건</div>
-      <div class="safe-list">${safes.map(p=>`
-        <div class="safe-item">
-          <div class="safe-dot"></div>
-          <div class="safe-info">
-            <div class="safe-mgr">${p.mgr} <span style="font-size:10px;color:#9CA3AF">(${p.role})</span></div>
-            <div class="safe-route">${p.prev.hall||p.prev.time} → ${p.next.hall||p.next.time}</div>
-          </div>
-          <div class="safe-buf">+${p.buffer}분</div>
-        </div>
-      `).join('')}</div>
-    </div>` : '';
-
-  // 이동시간 출처 안내
-  const anyKakao = pairs.some(p=>p.usedKakao);
-  const noticeEl = document.getElementById('travelNotice');
-  noticeEl.innerHTML = anyKakao
-    ? `<p><strong>✅ Kakao Maps 연동</strong><br>실제 ${DAY_KR[d.getDay()]}요일 ${dateStr.slice(5)} 기준 이동시간이 적용됐습니다.</p>`
-    : `<p><strong>⚠️ 이동시간 안내</strong><br>현재 이동시간은 지역 간 평균 추정값입니다.<br>Kakao REST API Key 설정 시 실제 토/일 기준 이동시간으로 교체됩니다.</p>`;
-
-  const wrap = document.getElementById('resultWrap');
+function renderResult(pairs,dateStr){
+  const dangers=pairs.filter(p=>p.status==='danger');
+  const warnings=pairs.filter(p=>p.status==='warning');
+  const safes=pairs.filter(p=>p.status==='safe');
+  const d=new Date(dateStr+'T00:00:00');
+  document.getElementById('cntTotal').textContent=schedules.length;
+  document.getElementById('cntPairs').textContent=pairs.length;
+  document.getElementById('cntSafe').textContent=safes.length;
+  document.getElementById('cntWarn').textContent=warnings.length;
+  document.getElementById('cntDanger').textContent=dangers.length;
+  document.getElementById('resultDateLbl').textContent=`${dateStr} (${DAY_KR[d.getDay()]})`;
+  const riskEl=document.getElementById('riskSection');
+  let riskHtml='';
+  if(dangers.length)riskHtml+=`<div class="detail-section"><div class="detail-title">🔴 불가 — ${dangers.length}건</div>${dangers.map(riskCardHtml).join('')}</div>`;
+  if(warnings.length)riskHtml+=`<div class="detail-section"><div class="detail-title">🟡 주의 — ${warnings.length}건</div>${warnings.map(riskCardHtml).join('')}</div>`;
+  if(!dangers.length&&!warnings.length)riskHtml=`<div class="detail-section"><div style="background:#ECFDF5;border-radius:12px;padding:20px;text-align:center;margin-bottom:12px"><div style="font-size:28px;margin-bottom:6px">🎉</div><div style="font-size:14px;font-weight:700;color:#059669">모든 일정이 안정적입니다!</div></div></div>`;
+  riskEl.innerHTML=riskHtml;
+  const safeEl=document.getElementById('safeSection');
+  safeEl.innerHTML=safes.length?`<div class="detail-section"><div class="detail-title">🟢 가능 — ${safes.length}건</div><div class="safe-list">${safes.map(p=>`<div class="safe-item"><div class="safe-dot"></div><div class="safe-info"><div class="safe-mgr">${p.mgr} <span style="font-size:10px;color:#9CA3AF">(${p.role})</span></div><div class="safe-route">${p.prev.hall||p.prev.time} → ${p.next.hall||p.next.time}</div></div><div class="safe-buf">여유 +${p.buffer}분</div></div>`).join('')}</div></div>`:'';
+  const anyKakao=pairs.some(p=>p.usedKakao);
+  document.getElementById('travelNotice').innerHTML=anyKakao?`<p><strong>✅ Kakao Maps 연동</strong><br>실제 ${DAY_KR[d.getDay()]}요일 기준 이동시간이 적용됐습니다.</p>`:`<p><strong>⚠️ 이동시간 안내</strong><br>현재 이동시간은 지역 간 평균 추정값입니다. Kakao API 설정 시 실제 이동시간으로 교체됩니다.</p>`;
+  const wrap=document.getElementById('resultWrap');
   wrap.style.display='block';
   wrap.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function riskCardHtml(p){
-  const cls = p.status;
-  const badgeCls = cls==='danger'?'badge-danger':'badge-warning';
-  const statusTxt = cls==='danger'?'🔴 위험':'🟡 주의';
-  const bufTxt = p.buffer>=0?`+${p.buffer}분`:`${p.buffer}분`;
-  const bufCls = cls;
-  const recId = `rec-${p.mgr.replace(/[♥\s]/g,'')}-${p.prev.id}`;
-  const altMgr = findAltManager(p);
-
-  return `
-  <div class="risk-card ${cls}">
+  const cls=p.status;
+  const badgeCls=cls==='danger'?'badge-danger':cls==='warning'?'badge-warning':'badge-safe';
+  const bufTxt=p.buffer>=0?`+${p.buffer}분`:`${p.buffer}분`;
+  const bufCls=cls;
+  const altId=`alt-${p.mgr.replace(/[♥\s,]/g,'')}-${p.prev.id}`;
+  const altMgr=findAltManager(p);
+  return `<div class="risk-card ${cls}">
     <div class="risk-top">
-      <div>
-        <div class="risk-mgr">${p.mgr}</div>
-        <div class="risk-role">${p.role} 담당</div>
-      </div>
-      <div class="risk-badge ${badgeCls}">${statusTxt}</div>
+      <div><div class="risk-mgr">${p.mgr}</div><div class="risk-role">${p.role} 담당</div></div>
+      <div class="risk-badge ${badgeCls}">${statusLabel(cls)}</div>
     </div>
     <div class="risk-flow">
-      <div class="risk-venue">
-        <div class="risk-venue-time">${p.prev.time}</div>
-        <div class="risk-venue-name">${p.prev.hall}</div>
-        <div class="risk-venue-sub">철수 가능 ${fromMins(p.departure)}</div>
-      </div>
+      <div class="risk-venue"><div class="risk-venue-time">${p.prev.time}</div><div class="risk-venue-name">${p.prev.hall}</div><div class="risk-venue-sub">철수 가능 ${fromMins(p.departure)}</div></div>
       <div class="risk-arrow">→</div>
-      <div class="risk-venue">
-        <div class="risk-venue-time">${p.next.time}</div>
-        <div class="risk-venue-name">${p.next.hall}</div>
-        <div class="risk-venue-sub">도착 목표 ${fromMins(p.arrTarget)}</div>
-      </div>
+      <div class="risk-venue"><div class="risk-venue-time">${p.next.time}</div><div class="risk-venue-name">${p.next.hall}</div><div class="risk-venue-sub">도착 목표 ${fromMins(p.arrTarget)}</div></div>
     </div>
     <div class="risk-metrics">
-      <div class="metric">
-        <div class="metric-lbl">이동 가능시간</div>
-        <div class="metric-val">${p.available}분</div>
-      </div>
-      <div class="metric">
-        <div class="metric-lbl">예상 이동시간</div>
-        <div class="metric-val">${p.travel}분</div>
-        <div class="metric-src">${p.usedKakao?'Kakao':'추정값'}</div>
-      </div>
-      <div class="metric">
-        <div class="metric-lbl">여유시간</div>
-        <div class="metric-val ${bufCls}">${bufTxt}</div>
-      </div>
+      <div class="metric"><div class="metric-lbl">이동 가능시간</div><div class="metric-val">${p.available}분</div></div>
+      <div class="metric"><div class="metric-lbl">예상 이동시간</div><div class="metric-val">${p.travel}분</div><div class="metric-src">${p.usedKakao?'Kakao':'추정'}</div></div>
+      <div class="metric"><div class="metric-lbl">여유시간</div><div class="metric-val ${bufCls}">${bufTxt}</div></div>
     </div>
-    ${altMgr ? `
-    <button class="rec-btn" onclick="toggleRec('${recId}')">✨ AI 추천안 보기</button>
-    <div class="rec-panel" id="${recId}">
-      <div class="rec-panel-title">✨ AI 추천 배정안</div>
-      <div class="rec-compare">
-        <div class="rec-side current">
-          <div class="rec-side-lbl">현재 배정</div>
-          <div class="rec-side-mgr">${p.mgr}</div>
-          <div class="rec-side-buf">${bufTxt}</div>
-        </div>
-        <div class="rec-side suggest">
-          <div class="rec-side-lbl">추천 배정</div>
-          <div class="rec-side-mgr">${altMgr.name}</div>
-          <div class="rec-side-buf">+${altMgr.buffer}분 (추정)</div>
-        </div>
+    ${altMgr?`<button class="alt-btn" onclick="toggleAlt('${altId}')">✨ 대체 배정안 보기</button>
+    <div class="alt-panel" id="${altId}">
+      <div class="alt-panel-title">✨ AI 대체 배정안</div>
+      <div class="alt-compare">
+        <div class="alt-side current"><div class="alt-side-lbl">현재 배정</div><div class="alt-side-mgr">${p.mgr}</div><div class="alt-side-buf">${bufTxt}</div></div>
+        <div class="alt-side suggest"><div class="alt-side-lbl">추천 배정</div><div class="alt-side-mgr">${altMgr.name}</div><div class="alt-side-buf">+${altMgr.buffer}분 (추정)</div></div>
       </div>
-      <div class="rec-narrative">${altMgr.narrative}</div>
-      <div class="rec-reasons">
-        <div class="rec-reasons-lbl">핵심 근거</div>
-        ${altMgr.reasons.map(r=>`<div class="rec-reason">${r}</div>`).join('')}
+      <div class="alt-reasons"><div class="alt-reasons-lbl">추천 이유</div>${altMgr.reasons.map(r=>`<div class="alt-reason">${r}</div>`).join('')}</div>
+      <div class="alt-actions">
+        <button class="btn-alt-keep" onclick="toggleAlt('${altId}')">현재 유지</button>
+        <button class="btn-alt-apply" onclick="showToast('✅ ${altMgr.name}으로 변경 완료 (관리자 확인 필요)')">✅ 추천안 적용</button>
       </div>
-      <div class="rec-actions">
-        <button class="btn-keep" onclick="toggleRec('${recId}')">현재 배정 유지</button>
-        <button class="btn-apply" onclick="applyRec('${recId}','${p.mgr}','${altMgr.name}')">✅ 추천안 적용</button>
-      </div>
-    </div>
-    ` : `<div style="margin-top:8px;font-size:12px;color:#9CA3AF;text-align:center">당일 가용 매니저 부족 — 수동 재배정 필요</div>`}
+    </div>`:`<div style="margin-top:8px;font-size:12px;color:#9CA3AF;text-align:center">가용 매니저 부족 — 수동 재배정 필요</div>`}
   </div>`;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ⑫ 추천 매니저 탐색
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toggleAlt(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='block'?'none':'block';}
+
 function findAltManager(p){
-  // 당일 배정된 모든 매니저 목록
-  const assignedMgrs = new Set();
-  schedules.forEach(s => {
-    if(s.frontManager) assignedMgrs.add(s.frontManager);
-    if(s.backManager)  assignedMgrs.add(s.backManager);
+  const assignedMgrs=new Set();
+  schedules.forEach(s=>{s.frontManager&&s.frontManager.split(',').forEach(m=>assignedMgrs.add(m.trim()));s.backManager&&s.backManager.split(',').forEach(m=>assignedMgrs.add(m.trim()));});
+  const candidates=[...assignedMgrs].filter(m=>m!==p.mgr&&!unavailableMgrs.has(m));
+  if(!candidates.length)return null;
+  const targetRegion=p.prev.venue?.region||'';
+  const sorted=candidates.sort((a,b)=>{
+    const aReg=schedules.find(s=>(s.frontManager||'').includes(a)||(s.backManager||'').includes(a))?.venue?.region||'';
+    const bReg=schedules.find(s=>(s.frontManager||'').includes(b)||(s.backManager||'').includes(b))?.venue?.region||'';
+    return((bReg===targetRegion?1:0)+(COUPLE_PAIRS[b]?1:0))-((aReg===targetRegion?1:0)+(COUPLE_PAIRS[a]?1:0));
   });
+  const alt=sorted[0];
+  const altReg=schedules.find(s=>(s.frontManager||'').includes(alt)||(s.backManager||'').includes(alt))?.venue?.region||'';
+  const estBuf=p.available-(travelEst(altReg,p.next.venue?.region||'')||20);
+  if(estBuf<=p.buffer)return null;
+  const reasons=['✅ 여유시간 개선'];
+  if(altReg===targetRegion)reasons.push('✅ 같은 지역 배정');
+  const partner=COUPLE_PAIRS[alt];
+  if(partner&&assignedMgrs.has(partner))reasons.push('✅ 부부세트 유지');
+  return{name:alt,buffer:estBuf,reasons};
+}
 
-  // 현재 매니저 + 불가 등록 매니저 제외
-  const candidates = [...assignedMgrs].filter(m => m !== p.mgr && !unavailableMgrs.has(m));
-  if(!candidates.length) return null;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 신규 문의 검토
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toggleInq(){const b=document.getElementById('inqBody'),t=document.getElementById('inqToggle');const o=b.classList.toggle('open');t.classList.toggle('open',o);}
 
-  const targetRegion = p.prev.venue?.region || '';
-  const reasons = [];
+// 기존 스케줄 목록에서 팀이 담당하는 예식들을 가져옴
+function getTeamExisting(mgrList,mgrMap){
+  const seen=new Set();const result=[];
+  mgrList.forEach(mgr=>{(mgrMap[mgr]||[]).forEach(s=>{const key=`${s.time}-${s.hall}`;if(!seen.has(key)){seen.add(key);result.push(s);}});});
+  return result.sort((a,b)=>toMins(a.time)-toMins(b.time));
+}
 
-  // 같은 지역 우선 → 부부세트 체크
-  const sorted = candidates.sort((a,b) => {
-    const aReg = schedules.find(s=>s.frontManager===a||s.backManager===a)?.venue?.region||'';
-    const bReg = schedules.find(s=>s.frontManager===b||s.backManager===b)?.venue?.region||'';
-    const aScore = (aReg===targetRegion?1:0) + (COUPLE_PAIRS[a.split(' ')[0]]?1:0);
-    const bScore = (bReg===targetRegion?1:0) + (COUPLE_PAIRS[b.split(' ')[0]]?1:0);
-    return bScore - aScore;
-  });
-
-  const alt = sorted[0];
-  const altRegion = schedules.find(s=>s.frontManager===alt||s.backManager===alt)?.venue?.region||'';
-  const nextRegion = p.next.venue?.region||'';
-  const estBuffer = p.available - (TRAVEL_FALLBACK[`${altRegion}-${nextRegion}`]||20);
-
-  if(estBuffer <= p.buffer) return null; // 개선 안 되면 추천 안 함
-
-  reasons.push('✅ 위험 일정 제거');
-  reasons.push(`✅ 여유시간 ${p.buffer}분 → +${estBuffer}분 개선`);
-  if(altRegion === nextRegion) reasons.push('✅ 같은 지역 연속 배정 · 지역 이동 최소화');
-  reasons.push('✅ 해당 날짜 불가 일정 없음 확인됨');
-  const partnerName = COUPLE_PAIRS[alt.split(' ')[0]];
-  const partnerAssigned = !!(partnerName && schedules.some(s=>s.frontManager===partnerName||s.backManager===partnerName));
-  if(partnerAssigned){
-    reasons.push('✅ 부부세트 유지');
+// 팀이 기존 예식들 + 신규 문의를 모두 소화할 수 있는지 확인
+// 반환: {ok, buffer, fitType, detail} or null
+function tryFitWithExisting(existing,inqTime,inqRegion){
+  const mustArr=inqTime-80,canLeave=inqTime+50;
+  if(!existing.length)return{ok:true,buffer:999,fitType:'free',detail:''};
+  let best=null;
+  // 문의 먼저 → 기존 첫번째
+  if(inqTime<toMins(existing[0].time)){
+    const f=existing[0];
+    const t=travelEst(inqRegion,f.region||regionFromHall(f.hall));
+    const buf=(toMins(f.time)-80)-canLeave-t;
+    if(!best||buf>best.buffer)best={ok:buf>=10,buffer:buf,fitType:'before',travel:t,next:f,detail:`철수 ${fromMins(canLeave)} → ${f.hall||f.time} 도착 목표 ${fromMins(toMins(f.time)-80)}, 이동 ${t}분, 여유시간 ${buf}분`};
   }
-
-  const narrative = buildRecNarrative(p, alt, altRegion, nextRegion, estBuffer, partnerAssigned);
-
-  return { name: alt, buffer: estBuffer, reasons, narrative };
-}
-
-// 관리자가 읽고 바로 승인 여부를 판단할 수 있도록 AI 판단 근거를 줄글로 설명
-// (여유시간 · 지역 이동 · 일정충돌 여부 · 부부세트 유지 · 불가일정 참조 반영)
-function buildRecNarrative(p, alt, altRegion, nextRegion, estBuffer, partnerAssigned){
-  const riskWord   = p.status==='danger' ? '위험' : '주의';
-  const tightWord  = p.status==='danger' ? '매우 촉박' : '다소 빠듯';
-  const sameRegion = altRegion && altRegion===nextRegion;
-
-  // alt가 당일 담당 중인 지역들 — 지역 이동 폭/일정충돌 가능성 서술에 사용
-  const altSchedules = schedules.filter(s=>s.frontManager===alt||s.backManager===alt);
-  const altRegions = [...new Set(altSchedules.map(s=>s.venue?.region).filter(Boolean))];
-  const focusedRegion = altRegions.length<=1;
-
-  const sentences = [];
-  sentences.push(
-    `현재 배정된 <strong>${p.mgr}</strong>은(는) ${p.prev.hall||p.prev.time} 예식 종료 후 `
-    + `${p.next.hall||p.next.time} 예식까지 이동 시 여유시간이 <strong>${p.buffer}분</strong>으로 ${tightWord}합니다.`
-  );
-  sentences.push(`주말 교통 상황에 따라 지연 가능성이 있어 ${riskWord} 일정으로 판단되었습니다.`);
-  sentences.push(
-    `반면 <strong>${alt}</strong>는 동일 시간대에 `
-    + `${altRegion ? `${altRegion}권` : '인근 지역'} 예식${focusedRegion?'만':'을 중심으로'} 담당하고 있어, `
-    + `해당 예식을 배정해도 여유시간이 <strong>${estBuffer}분</strong> 확보됩니다.`
-  );
-  sentences.push(
-    `또한 지역 이동이 ${sameRegion?'없고':'적고'} 기존 일정과의 충돌이 ${focusedRegion?'없으며':'적고'}, `
-    + `해당 날짜 불가 일정으로 등록되어 있지도 않습니다.`
-  );
-  if(partnerAssigned){
-    sentences.push(`배정을 변경해도 부부세트는 그대로 유지됩니다.`);
+  // 기존 마지막 → 문의
+  const last=existing[existing.length-1];
+  if(inqTime>toMins(last.time)){
+    const t=travelEst(last.region||regionFromHall(last.hall),inqRegion);
+    const buf=mustArr-(toMins(last.time)+50)-t;
+    if(!best||buf>best.buffer)best={ok:buf>=10,buffer:buf,fitType:'after',travel:t,prev:last,detail:`${last.hall||last.time} 철수 ${fromMins(toMins(last.time)+50)} → 문의 도착 목표 ${fromMins(mustArr)}, 이동 ${t}분, 여유시간 ${buf}분`};
   }
-  sentences.push(`AI는 <strong>${alt}</strong>를 추천합니다.`);
-  return sentences.join(' ');
-}
-
-function toggleRec(id){
-  const el = document.getElementById(id);
-  if(el) el.style.display = el.style.display==='block' ? 'none' : 'block';
-}
-
-function applyRec(panelId, from, to){
-  document.getElementById(panelId).style.display='none';
-  // TODO: 실제 Supabase schedules 테이블 front_manager / back_manager 업데이트
-  showToast(`✅ ${to} 로 배정 변경 완료 (관리자 확인 필요)`);
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 신규 문의 배정 검토
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const ALL_MANAGERS = [...new Set(Object.keys(COUPLE_PAIRS))];
-
-function toggleInq(){
-  const body = document.getElementById('inqBody');
-  const tog  = document.getElementById('inqToggle');
-  const open = body.classList.toggle('open');
-  tog.classList.toggle('open', open);
-}
-
-function travelEst(r1, r2){
-  if(!r1||!r2||r1===r2) return 10;
-  return TRAVEL_FALLBACK[`${r1}-${r2}`]||TRAVEL_FALLBACK[`${r2}-${r1}`]||35;
-}
-function regionFromHall(hall=''){
-  const CITIES=['대전','천안','청주','세종','아산','수원','전주','서울'];
-  for(const c of CITIES){ if(hall.includes(c)) return c; }
-  return '';
+  // 사이에 끼우기
+  for(let i=0;i<existing.length-1;i++){
+    const prev=existing[i],next=existing[i+1];
+    if(inqTime>toMins(prev.time)&&inqTime<toMins(next.time)){
+      const tA=travelEst(prev.region||regionFromHall(prev.hall),inqRegion);
+      const tB=travelEst(inqRegion,next.region||regionFromHall(next.hall));
+      const bA=mustArr-(toMins(prev.time)+50)-tA;
+      const bB=(toMins(next.time)-80)-canLeave-tB;
+      const buf=Math.min(bA,bB);
+      if(bA>=0&&bB>=0&&(!best||buf>best.buffer))best={ok:buf>=10,buffer:buf,fitType:'between',prev,next,tA,tB,bA,bB,detail:`${prev.hall||prev.time} ↔ ${next.hall||next.time} 사이, 최소 여유시간 ${buf}분`};
+    }
+  }
+  return best;
 }
 
 async function checkInquiry(){
-  const dateStr = document.getElementById('inq-date').value;
-  const hour    = parseInt(document.getElementById('inq-hour').value);
-  const min     = parseInt(document.getElementById('inq-min').value);
-  const region  = document.getElementById('inq-region').value;
-  const resultEl= document.getElementById('inqResult');
-
-  if(!dateStr){ showToast('날짜를 입력해주세요'); return; }
-
-  resultEl.innerHTML = `<div style="text-align:center;padding:16px;color:#6B7280;font-size:13px">⏳ 확인 중…</div>`;
-
-  const inqTime  = hour*60+min;
-  const mustArr  = inqTime - 80;   // 도착 목표
-  const canLeave = inqTime + 50;   // 철수 가능
-
-  // 해당 날짜 불가 + 예식 동시 조회
-  const [unavRows, schedRows] = await Promise.all([
+  const dateStr=document.getElementById('inq-date').value;
+  const hour=parseInt(document.getElementById('inq-hour').value);
+  const min=parseInt(document.getElementById('inq-min').value);
+  const region=document.getElementById('inq-region').value;
+  const el=document.getElementById('inqResult');
+  if(!dateStr){showToast('날짜를 입력해주세요');return;}
+  el.innerHTML=`<div style="text-align:center;padding:20px;color:#6B7280;font-size:13px">⏳ 확인 중…</div>`;
+  const inqTime=hour*60+min,timeStr=fromMins(inqTime);
+  const[unavRows,schedRows]=await Promise.all([
     sbGet('unavailable_schedules',`?date=eq.${dateStr}&select=manager_name`).catch(()=>[]),
-    sbGet('schedules',`?date=eq.${dateStr}&select=id,hall,time,front_manager,back_manager&order=time.asc`).catch(()=>[]),
+    sbGet('schedules',`?date=eq.${dateStr}&select=id,hall,address,time,front_manager,back_manager,groom_name,bride_name&order=time.asc`).catch(()=>[]),
   ]);
-
-  const unavSet = new Set(unavRows.map(r=>r.manager_name).filter(Boolean));
-
-  // 매니저별 기존 예식 맵핑
-  const mgrMap = {};
+  const unavSet=new Set(unavRows.map(r=>r.manager_name).filter(Boolean));
+  // 매니저별 예식 맵
+  const mgrMap={};
   schedRows.forEach(r=>{
-    const add=(f)=>{ if(!f)return; f.split(',').map(m=>m.trim()).filter(Boolean).forEach(m=>{
-      if(!mgrMap[m])mgrMap[m]=[];
-      mgrMap[m].push({time:r.time,hall:r.hall||'',region:regionFromHall(r.hall||'')});
-    });};
-    add(r.front_manager); add(r.back_manager);
+    const hall=r.hall||'',rg=regionFromHall(hall);
+    const add=(f)=>{if(!f)return;f.split(',').map(m=>m.trim()).filter(Boolean).forEach(m=>{if(!mgrMap[m])mgrMap[m]=[];mgrMap[m].push({time:(r.time||'').slice(0,5),hall,region:rg,id:r.id});});};
+    add(r.front_manager);add(r.back_manager);
   });
 
-  // 각 매니저 가능 여부 판별
-  const available=[], unavailable=[], busy=[];
+  // 현재 배정 현황 포맷
+  const curAssignHtml=schedRows.length?schedRows.map(r=>{
+    const mgrs=[r.front_manager,r.back_manager].filter(Boolean).join(' / ');
+    return`<div class="cur-assign-row"><span class="cur-assign-time">${(r.time||'').slice(0,5)}</span><span class="cur-assign-hall">${r.hall||'미정'}</span><span class="cur-assign-mgr">${mgrs||'-'}</span></div>`;
+  }).join(''):
+  `<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:8px">당일 배정된 예식 없음</div>`;
 
-  for(const mgr of ALL_MANAGERS){
-    if(unavSet.has(mgr)){ unavailable.push({mgr, reason:'불가 등록'}); continue; }
+  const scenarios=[];
+  const processed=new Set();
 
-    const existing=(mgrMap[mgr]||[]).sort((a,b)=>toMins(a.time)-toMins(b.time));
-
-    // 당일 예식 없음 → 자유 배정
-    if(!existing.length){
-      available.push({mgr, type:'free', note:'당일 예식 없음 — 자유 배정 가능', buffer:null});
-      continue;
+  // 부부세트 단위로 처리
+  for(const[mA,mB]of COUPLE_LIST){
+    if(unavSet.has(mA)||unavSet.has(mB)){
+      scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],status:'unavail',unavailReason:'불가 일정 등록'});
+      processed.add(mA);processed.add(mB);continue;
     }
-
-    let fits=false, fitNote='', fitType='', fitBuffer=null;
-
-    // ① 문의 먼저, 기존 첫 번째 전에
-    const first=existing[0];
-    const afterInq=canLeave;
-    const firstNeed=toMins(first.time)-80;
-    const gap1=firstNeed-afterInq;
-    const travel1=travelEst(region,first.region||regionFromHall(first.hall));
-    const buf1=gap1-travel1;
-    if(buf1>=BUFFER_WARN){
-      fits=true; fitType='before'; fitBuffer=buf1;
-      fitNote=`문의 먼저 → ${first.hall||first.time} 이동 (여유 ${buf1}분)`;
+    const existing=getTeamExisting([mA,mB],mgrMap);
+    // 신규 문의가 기존과 직접 담당 가능?
+    const directFit=tryFitWithExisting(existing,inqTime,region);
+    if(directFit&&directFit.buffer>=10){
+      scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],isCouple:true,
+        status:directFit.buffer>=20?'ok':'warn',buffer:directFit.buffer,fitType:directFit.fitType,
+        swapNeeded:false,existing,directFit,
+        existingChanges:existing.map(s=>({...s,action:'유지'}))
+      });
+      processed.add(mA);processed.add(mB);continue;
     }
-
-    // ② 기존 마지막 후, 문의 이동
-    if(!fits){
-      const last=existing[existing.length-1];
-      const lastLeave=toMins(last.time)+50;
-      const gap2=mustArr-lastLeave;
-      const travel2=travelEst(last.region||regionFromHall(last.hall),region);
-      const buf2=gap2-travel2;
-      if(buf2>=BUFFER_WARN){
-        fits=true; fitType='after'; fitBuffer=buf2;
-        fitNote=`${last.hall||last.time} 후 문의 이동 (여유 ${buf2}분)`;
+    // 기존 예식 중 하나를 다른 팀이 대신할 수 있는 스왑 시나리오
+    let bestSwap=null;
+    for(let i=0;i<existing.length;i++){
+      const dropSched=existing[i];
+      const remaining=existing.filter((_,j)=>j!==i);
+      const swapFit=tryFitWithExisting(remaining,inqTime,region);
+      if(!swapFit||swapFit.buffer<10)continue;
+      // 이 예식을 대신할 팀 찾기
+      let replacer=null;
+      for(const[rA,rB]of COUPLE_LIST){
+        if(rA===mA||rB===mB)continue;
+        if(unavSet.has(rA)||unavSet.has(rB))continue;
+        const rExisting=getTeamExisting([rA,rB],mgrMap);
+        const rFit=tryFitWithExisting(rExisting,toMins(dropSched.time),dropSched.region||regionFromHall(dropSched.hall));
+        if(rFit&&rFit.buffer>=10){replacer={team:`${rA} ♥ ${rB}`,fit:rFit};break;}
+      }
+      if(replacer&&(!bestSwap||swapFit.buffer>bestSwap.swapFit.buffer)){
+        bestSwap={dropSched,replacer,swapFit};
       }
     }
-
-    // ③ 기존 예식들 사이에 끼우기
-    if(!fits){
-      for(let i=0;i<existing.length-1;i++){
-        const prev=existing[i], next=existing[i+1];
-        const prevLeave=toMins(prev.time)+50;
-        const nextNeed=toMins(next.time)-80;
-        const g1=mustArr-prevLeave-travelEst(prev.region||regionFromHall(prev.hall),region);
-        const g2=nextNeed-canLeave-travelEst(region,next.region||regionFromHall(next.hall));
-        const bufBetween=Math.min(g1,g2);
-        if(bufBetween>=BUFFER_WARN){
-          fits=true; fitType='between'; fitBuffer=bufBetween;
-          fitNote=`${prev.hall||prev.time} ↔ ${next.hall||next.time} 사이 (여유 ${bufBetween}분)`;
-          break;
-        }
-      }
+    if(bestSwap){
+      const ec=existing.map(s=>s===bestSwap.dropSched?{...s,action:'교체',by:bestSwap.replacer.team}:{...s,action:'유지'});
+      scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],isCouple:true,
+        status:bestSwap.swapFit.buffer>=20?'ok':'warn',buffer:bestSwap.swapFit.buffer,
+        swapNeeded:true,swapSched:bestSwap.dropSched,swapReplacer:bestSwap.replacer,
+        existing,directFit:bestSwap.swapFit,existingChanges:ec});
+    } else {
+      scenarios.push({team:`${mA} ♥ ${mB}`,teamList:[mA,mB],isCouple:true,
+        status:'fail',existing,existingChanges:existing.map(s=>({...s,action:'충돌'}))});
     }
-
-    // 여유시간 기준으로 판단 (10분 미만 = 불가 → 배정 후보에서 제외)
-    if(fits) available.push({mgr, type:fitType, note:fitNote, buffer:fitBuffer, schedCount:existing.length});
-    else busy.push({mgr, reason:`여유시간 부족(10분 미만) — 배정 불가`, schedCount:existing.length});
+    processed.add(mA);processed.add(mB);
   }
 
-  renderInqResult(available, unavailable, busy, dateStr, inqTime, region, resultEl);
+  // 정렬: 스왑 없는 가능 > 스왑 있는 가능 > 주의 > 불가 > 불가등록
+  const order={ok:0,warn:1,fail:2,unavail:3};
+  scenarios.sort((a,b)=>{
+    if(order[a.status]!==order[b.status])return order[a.status]-order[b.status];
+    if(!a.swapNeeded&&b.swapNeeded)return-1;
+    if(a.swapNeeded&&!b.swapNeeded)return 1;
+    return(b.buffer||0)-(a.buffer||0);
+  });
+
+  renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,el);
 }
 
-function renderInqResult(available, unavailable, busy, dateStr, inqTime, region, el){
-  const d=new Date(dateStr+'T00:00:00');
-  const dayKr=['일','월','화','수','목','금','토'][d.getDay()];
+function buildProse(sc,inqTime,region){
   const timeStr=fromMins(inqTime);
+  const team=sc.team;
+  if(sc.status==='fail'){
+    const cnt=sc.existing?.length||0;
+    return `${team}는 당일 ${cnt}건의 예식이 배정되어 있으며, 신규 ${timeStr} ${region} 예식과 시간 조율이 불가합니다. 이동 여유시간 부족으로 현재 배정 그대로는 수용이 어렵습니다.`;
+  }
+  if(sc.status==='unavail'){return `${team}는 해당 날짜에 불가 일정이 등록되어 있어 배정할 수 없습니다.`;}
 
-  // 가능한 커플 조합 찾기
-  const availNames=new Set(available.map(a=>a.mgr));
-  const couples=[];
-  const used=new Set();
-  for(const a of available){
-    const partner=COUPLE_PAIRS[a.mgr];
-    if(partner&&availNames.has(partner)&&!used.has(a.mgr)&&!used.has(partner)){
-      couples.push({a, b:available.find(x=>x.mgr===partner)});
-      used.add(a.mgr); used.add(partner);
+  const cntExist=sc.existing?.length||0;
+  const fitType=sc.directFit?.fitType||'';
+  const buf=sc.buffer||0;
+  const bufStr=buf>=999?'충분':buf+'분';
+
+  let prose='';
+
+  if(fitType==='free'){
+    prose=`${team}는 해당 날짜에 배정된 예식이 없습니다. 신규 ${timeStr} ${region} 예식을 이동 제약 없이 투입할 수 있으며, 기존 예식 교체가 필요하지 않습니다. 가장 단순하고 안전한 배정안입니다.`;
+  } else if(!sc.swapNeeded){
+    const firstExist=sc.existing?.[0];
+    const lastExist=sc.existing?.[sc.existing.length-1];
+    let timingDetail='';
+    if(fitType==='before'&&firstExist){
+      timingDetail=`신규 ${timeStr} 예식 철수 후 ${firstExist.hall||firstExist.time}(${firstExist.time}) 도착 목표까지 여유시간이 ${bufStr}입니다.`;
+    } else if(fitType==='after'&&lastExist){
+      timingDetail=`${lastExist.hall||lastExist.time}(${lastExist.time}) 종료 후 신규 ${timeStr} ${region} 예식 도착 목표까지 여유시간이 ${bufStr}입니다.`;
+    } else if(fitType==='between'){
+      timingDetail=`기존 예식 사이에 신규 문의를 편성하며, 전후 이동 여유시간 최소 ${bufStr}입니다.`;
     }
+    prose=`${team}는 현재 ${cntExist}건의 예식이 배정되어 있습니다. ${timingDetail} 기존 예식 교체 없이 신규 문의를 수용할 수 있습니다.`;
+  } else {
+    const dropH=sc.swapSched?.hall||sc.swapSched?.time||'';
+    const dropT=sc.swapSched?.time||'';
+    const repl=sc.swapReplacer?.team||'';
+    prose=`${team}를 신규 ${timeStr} ${region} 예식에 배정하면 기존 ${dropH}(${dropT}) 담당이 공백이 됩니다. 이 예식을 ${repl}로 교체하면 전체 일정을 소화할 수 있습니다. 신규 배정 후 이동 여유시간은 ${bufStr}으로 ${buf>=20?'안정적입니다':'주의가 필요합니다'}.`;
   }
-  const singles=available.filter(a=>!used.has(a.mgr));
-
-  if(!available.length){
-    el.innerHTML=`
-      <div class="inq-result-fail">
-        <div class="inq-result-title" style="color:#991B1B">❌ ${dateStr} (${dayKr}) ${timeStr} ${region} — 배정 불가</div>
-        <div style="font-size:12px;color:#6B7280;margin-bottom:8px">가능한 매니저가 없습니다.</div>
-        ${busy.length?`<div class="inq-busy-list">${busy.map(b=>`<div class="inq-busy-item"><span>${b.mgr}</span><span style="color:#DC2626">${b.reason}</span></div>`).join('')}</div>`:''}
-        ${unavailable.length?`<div style="font-size:11px;color:#9CA3AF;margin-top:8px">불가 등록: ${unavailable.map(u=>u.mgr).join(', ')}</div>`:''}
-      </div>`;
-    return;
-  }
-
-  // 여유시간(buffer) 기준 뱃지 — 🔴불가/🟡주의/🟢가능 (신규 문의 검토 화면도 공통 기준 사용)
-  // available 목록은 이미 10분 미만(불가)이 제외된 상태이므로 여기서는 가능/주의만 노출됨
-  function inqBadge(buf){
-    if(buf==null || buf>=BUFFER_SAFE) return `<span class="inq-pair-badge free">🟢 가능</span>`;
-    if(buf>=BUFFER_WARN) return `<span class="inq-pair-badge tight">🟡 주의 · 일정 조율 필요 (여유 ${buf}분)</span>`;
-    return `<span class="inq-pair-badge danger">🔴 불가</span>`;
-  }
-  function worstBuffer(a,b){
-    const av=a==null?Infinity:a, bv=b==null?Infinity:b;
-    return Math.min(av,bv);
-  }
-
-  const pairCards=couples.map(({a,b})=>`
-    <div class="inq-pair-card">
-      <div class="inq-pair-name">${a.mgr} ♥ ${b.mgr}</div>
-      <div class="inq-pair-note">${a.note}<br>${b.note}</div>
-      <span class="inq-pair-badge couple">💑 부부세트</span>
-      ${inqBadge(worstBuffer(a.buffer,b.buffer))}
-    </div>`).join('');
-
-  const singleCards=singles.map(s=>`
-    <div class="inq-pair-card">
-      <div class="inq-pair-name">${s.mgr}</div>
-      <div class="inq-pair-note">${s.note}</div>
-      ${inqBadge(s.buffer)}
-    </div>`).join('');
-
-  el.innerHTML=`
-    <div class="inq-result-ok">
-      <div class="inq-result-title" style="color:#065F46">✅ ${dateStr} (${dayKr}) ${timeStr} ${region} — 배정 가능</div>
-      ${couples.length?`<div style="font-size:11px;font-weight:700;color:#065F46;margin-bottom:8px">추천 부부세트 (${couples.length}조)</div>${pairCards}`:''}
-      ${singles.length?`<div style="font-size:11px;font-weight:700;color:#374151;margin:${couples.length?'10px':0} 0 8px">개별 가능 매니저</div>${singleCards}`:''}
-      ${busy.length?`<div style="font-size:11px;color:#9CA3AF;margin-top:8px;line-height:1.7">시간 충돌: ${busy.map(b=>b.mgr).join(', ')}</div>`:''}
-      ${unavailable.length?`<div style="font-size:11px;color:#9CA3AF;margin-top:4px">불가 등록: ${unavailable.map(u=>u.mgr).join(', ')}</div>`:''}
-    </div>`;
+  return prose;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 시작
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,el){
+  const d=new Date(dateStr+'T00:00:00');
+  const dayKr=DAY_KR[d.getDay()];
+  const okCnt=scenarios.filter(s=>s.status==='ok').length;
+  const warnCnt=scenarios.filter(s=>s.status==='warn').length;
+  const failCnt=scenarios.filter(s=>s.status==='fail').length;
+  const unavCnt=scenarios.filter(s=>s.status==='unavail').length;
+  const overallSt=okCnt>0?'ok':warnCnt>0?'warn':'fail';
+  const overallEmoji={ok:'✅',warn:'⚠️',fail:'❌'}[overallSt];
+  const overallTxt={ok:'배정 가능',warn:'타이트 (주의 필요)',fail:'배정 불가'}[overallSt];
+
+  // 상위 3개 추천안 (가능/주의) + 나머지는 간략
+  const topRecs=scenarios.filter(s=>s.status==='ok'||s.status==='warn').slice(0,3);
+  const failList=scenarios.filter(s=>s.status==='fail'||s.status==='unavail');
+
+  const recCards=topRecs.map((sc,i)=>{
+    const st=sc.status;
+    const bufStr=sc.buffer>=999?'여유 충분':`여유시간 ${sc.buffer}분`;
+    const prose=buildProse(sc,inqTime,region);
+    const changesHtml=sc.existingChanges?.length?sc.existingChanges.map(c=>{
+      if(c.action==='유지')return`<div class="rec-assign-row"><span class="rec-assign-icon">📌</span><div class="rec-assign-text"><b>${c.hall||c.time}(${c.time})</b> <span class="rec-assign-tag tag-keep">유지</span></div></div>`;
+      if(c.action==='교체')return`<div class="rec-assign-row"><span class="rec-assign-icon">🔄</span><div class="rec-assign-text"><b>${c.hall||c.time}(${c.time})</b> <span class="rec-assign-tag tag-swap">교체 필요</span> → ${c.by||'대체팀'}</div></div>`;
+      return`<div class="rec-assign-row"><span class="rec-assign-icon">⚠️</span><div class="rec-assign-text"><b>${c.hall||c.time}</b> <span class="rec-assign-tag tag-swap">시간 충돌</span></div></div>`;
+    }).join(''):'<div class="rec-assign-row"><span class="rec-assign-icon">✨</span><div class="rec-assign-text">기존 예식 없음 — 신규 단독 투입</div></div>';
+    return`<div class="rec-card ${st}">
+      <div class="rec-card-rank">추천안 ${i+1}</div>
+      <div class="rec-card-team">${sc.team}<span class="rec-status-badge badge-${st==='ok'?'ok':st==='warn'?'warn':'fail'}">${statusLabel(st)}</span></div>
+      <div class="rec-assignments">
+        <div class="rec-assign-row"><span class="rec-assign-icon">🆕</span><div class="rec-assign-text"><b>신규 ${timeStr} ${region}</b> <span class="rec-assign-tag tag-new">신규 배정</span></div></div>
+        ${changesHtml}
+      </div>
+      <div class="rec-prose ${st}">${prose}</div>
+      <div class="rec-actions">
+        <button class="rec-btn btn-keep" onclick="showToast('현재 배정 유지')">현재 유지</button>
+        <button class="rec-btn btn-apply" onclick="showToast('✅ ${sc.team} 배정 완료 (관리자 확인 필요)')">추천안 적용</button>
+        <button class="rec-btn btn-manual" onclick="showToast('수동 조정 모드')">수동 조정</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const failHtml=failList.length?`<div class="inq-sec-label" style="margin-top:${topRecs.length?'14px':'0'}">배정 불가 — ${failList.length}팀</div>${failList.map(sc=>`<div class="rec-card fail"><div class="rec-card-team">${sc.team}<span class="rec-status-badge badge-fail">🔴 ${sc.status==='unavail'?'불가 등록':'불가'}</span></div><div class="rec-prose fail">${buildProse(sc,inqTime,region)}</div></div>`).join('')}`:'';
+
+  el.innerHTML=`<div>
+    <div class="inq-res-hdr ${overallSt}">
+      <div class="inq-res-hdr-title">${overallEmoji} ${dateStr} (${dayKr}) ${timeStr} ${region} — ${overallTxt}</div>
+      <div class="inq-res-hdr-sub">🟢 가능 ${okCnt}팀 &nbsp;|&nbsp; 🟡 주의 ${warnCnt}팀 &nbsp;|&nbsp; 🔴 불가 ${failCnt}팀 &nbsp;|&nbsp; ⛔ 등록불가 ${unavCnt}팀</div>
+    </div>
+    <div class="inq-res-body ${overallSt}">
+      <div class="cur-assign-box">
+        <div class="cur-assign-title">현재 당일 배정 현황</div>
+        ${curAssignHtml}
+      </div>
+      ${topRecs.length?`<div class="inq-sec-label">AI 추천 배정안</div>${recCards}`:''}
+      ${failHtml}
+    </div>
+  </div>`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UI 공통
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+async function init(){
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('dateInp').value=today;
+  document.getElementById('inq-date').value=today;
+  await loadVenues();
+  await onDateChange();
+}
+
+async function onDateChange(){
+  const dateStr=document.getElementById('dateInp').value;
+  if(!dateStr)return;
+  const d=new Date(dateStr+'T00:00:00');
+  document.getElementById('dateDayLbl').textContent=`(${DAY_KR[d.getDay()]})`;
+  document.getElementById('resultWrap').style.display='none';
+  document.getElementById('analyzingBox').style.display='none';
+  document.getElementById('aiBtnMain').style.display='flex';
+  document.getElementById('aiBtnMain').disabled=true;
+  const ok=await fetchSchedules(dateStr);
+  await fetchUnavailables(dateStr);
+  renderSchedList();
+  if(ok&&schedules.length>0)document.getElementById('aiBtnMain').disabled=false;
+}
+
+function renderSchedList(){
+  const el=document.getElementById('schedList');
+  const cnt=document.getElementById('dateCountLbl');
+  if(!schedules.length){el.innerHTML=`<div class="empty-box"><p>해당 날짜에 배정된 예식이 없습니다</p></div>`;cnt.textContent='';return;}
+  cnt.textContent=`${schedules.length}건`;
+  el.innerHTML=`<div class="sched-list">${schedules.map(s=>`<div class="sched-card"><div class="sched-time">${s.time}</div><div class="sched-info"><div class="sched-couple">${s.couple}</div><div class="sched-hall">${s.hall}</div></div><div class="sched-mgrs">${s.frontManager?`<div class="sched-mgr">${s.frontManager}</div>`:''} ${s.backManager&&s.backManager!==s.frontManager?`<div class="sched-mgr back">${s.backManager}</div>`:''}</div></div>`).join('')}</div>`;
+}
+
 init();
 </script>
 </body>
