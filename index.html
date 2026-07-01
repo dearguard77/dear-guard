@@ -460,43 +460,51 @@
     <div class="stats-grid" id="stats-grid"></div>
 
     <!-- 운영 바로가기 (관리자 전용) -->
-    <div id="home-admin-shortcuts" style="display:none;margin-bottom:20px">
-      <div class="sec-header" style="margin-bottom:8px"><h2>운영 바로가기</h2></div>
-      <div class="shortcuts-grid">
-        <button onclick="switchTab('settle',document.getElementById('nav-settle-btn'))" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-          <div style="font-size:22px">💰</div>
-          <div style="font-size:14px;font-weight:800;color:#111827">정산관리</div>
-          <div style="font-size:11px;color:#9CA3AF">계약금 · 잔금 · 매니저 정산</div>
-        </button>
-        <button onclick="location.href='assign-review.html'" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-          <div style="font-size:22px">🤖</div>
-          <div style="font-size:14px;font-weight:800;color:#111827">배정관리</div>
-          <div style="font-size:11px;color:#9CA3AF">예식별 인원 배정</div>
-        </button>
+    <div id="home-admin-shortcuts" style="display:none;margin-bottom:16px">
+      <div class="sec-header" style="margin-bottom:0;cursor:pointer" onclick="toggleShortcutContent('admin')">
+        <h2>운영 바로가기 <span id="shortcut-admin-icon" style="font-size:11px;color:#C7A96B">▸</span></h2>
+      </div>
+      <div id="shortcut-admin-content" style="display:none;margin-top:8px">
+        <div class="shortcuts-grid">
+          <button onclick="switchTab('settle',document.getElementById('nav-settle-btn'))" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:22px">💰</div>
+            <div style="font-size:14px;font-weight:800;color:#111827">정산관리</div>
+            <div style="font-size:11px;color:#9CA3AF">계약금 · 잔금 · 매니저 정산</div>
+          </button>
+          <button onclick="location.href='assign-review.html'" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:22px">🤖</div>
+            <div style="font-size:14px;font-weight:800;color:#111827">배정관리</div>
+            <div style="font-size:11px;color:#9CA3AF">예식별 인원 배정</div>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- 매뉴얼 바로가기 (매니저 전용) -->
-    <div id="home-manager-shortcuts" style="display:none;margin-bottom:20px">
-      <div class="sec-header" style="margin-bottom:8px"><h2>운영 바로가기</h2></div>
-      <button onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px">
-        <div style="font-size:26px">📖</div>
-        <div>
-          <div style="font-size:14px;font-weight:800;color:#111827">매뉴얼</div>
-          <div style="font-size:11px;color:#9CA3AF">현장 운영 가이드</div>
-        </div>
-      </button>
+    <div id="home-manager-shortcuts" style="display:none;margin-bottom:16px">
+      <div class="sec-header" style="margin-bottom:0;cursor:pointer" onclick="toggleShortcutContent('manager')">
+        <h2>운영 바로가기 <span id="shortcut-manager-icon" style="font-size:11px;color:#C7A96B">▸</span></h2>
+      </div>
+      <div id="shortcut-manager-content" style="display:none;margin-top:8px">
+        <button onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px">
+          <div style="font-size:26px">📖</div>
+          <div>
+            <div style="font-size:14px;font-weight:800;color:#111827">매뉴얼</div>
+            <div style="font-size:11px;color:#9CA3AF">현장 운영 가이드</div>
+          </div>
+        </button>
+      </div>
     </div>
 
-    <div class="sec-header" id="upcoming-header" style="margin-top:8px;cursor:pointer" onclick="toggleHomeSection('upcoming')">
-      <h2>다가오는 일정 <span id="upcoming-toggle-icon" style="font-size:11px;color:#C7A96B">▾</span></h2>
+    <div class="sec-header" id="upcoming-header" style="margin-top:8px">
+      <h2>다가오는 일정</h2>
       <span>D-7 이내</span>
     </div>
     <div id="upcoming-list"></div>
 
     <!-- 본식 준비 체크 & 잔금 확인 알림 카드 -->
-    <div class="sec-header" id="precheck-header" style="margin-top:20px;cursor:pointer" onclick="toggleHomeSection('precheck')">
-      <h2>&#x1F4B0; 본식 준비 체크 &amp; 잔금 확인 <span id="precheck-toggle-icon" style="font-size:11px;color:#C7A96B">▾</span></h2>
+    <div class="sec-header" id="precheck-header" style="margin-top:20px">
+      <h2>💰 본식 준비 체크 &amp; 잔금 확인</h2>
       <span>D-8 ~ D-10</span>
     </div>
     <div id="precheck-reminder-list"></div>
@@ -1701,6 +1709,15 @@ function renderNav(){
 }
 
 const HOME_SECTION_LIST_IDS = { upcoming: 'upcoming-list', precheck: 'precheck-reminder-list' };
+function toggleShortcutContent(type){
+  const content = document.getElementById(`shortcut-${type}-content`);
+  const icon    = document.getElementById(`shortcut-${type}-icon`);
+  if(!content||!icon) return;
+  const isHidden = content.style.display === 'none' || content.style.display === '';
+  content.style.display = isHidden ? 'block' : 'none';
+  icon.textContent = isHidden ? '▾' : '▸';
+}
+
 function toggleHomeSection(key){
   const list = document.getElementById(HOME_SECTION_LIST_IDS[key]);
   const icon = document.getElementById(key + '-toggle-icon');
@@ -1732,17 +1749,6 @@ function renderAll(){
   renderPrecheckReminder();
   renderCalendar();
   renderScheduleList();
-  // 모바일에서는 다가오는 일정/본식준비체크 섹션이 기본 접힘 상태
-  if(window.innerWidth <= 768){
-    const uIcon = document.getElementById('upcoming-toggle-icon');
-    const pIcon = document.getElementById('precheck-toggle-icon');
-    const uList = document.getElementById('upcoming-list');
-    const pList = document.getElementById('precheck-reminder-list');
-    if(uIcon) uIcon.textContent = '▸';
-    if(pIcon) pIcon.textContent = '▸';
-    if(uList && uList.style.display !== 'none') uList.style.display = 'none';
-    if(pList && pList.style.display !== 'none') pList.style.display = 'none';
-  }
 }
 
 function renderBanner(){
