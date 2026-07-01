@@ -36,9 +36,7 @@
   .tab-panel.active{display:block}
 
   /* BOTTOM NAV */
-  /* transform으로 별도 컴포지팅 레이어를 만들어, 토글 등으로 페이지 높이가 바뀔 때
-     iOS Safari에서 fixed 요소가 즉시 재렌더링되지 않아 콘텐츠와 겹쳐 보이는 버그를 방지 */
-  #bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #E8DFD0;padding:8px 0 12px;display:flex;justify-content:space-around;z-index:50;transform:translateZ(0);-webkit-transform:translateZ(0);will-change:transform}
+  #bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid #E8DFD0;padding:8px 0 12px;display:flex;justify-content:space-around;z-index:50}
   .bnav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 20px;font-size:10px;color:#9CA3AF;font-weight:400}
   .bnav-btn.active{color:#C7A96B;font-weight:700}
   .bnav-icon{font-size:20px}
@@ -58,6 +56,7 @@
   .sec-header{margin-bottom:14px}
   .sec-header h2{font-size:18px;font-weight:800;color:#111827;display:inline}
   .sec-header span{font-size:12px;color:#9CA3AF;margin-left:8px}
+  .shortcuts-grid{display:grid !important;grid-template-columns:1fr 1fr;gap:10px}
 
   /* TODAY CARD */
   .today-card{background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:20px 22px;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.05);position:relative;overflow:hidden;margin-bottom:12px}
@@ -333,8 +332,8 @@
       border-radius:10px;
     }
 
-    /* 홈 화면 스크롤 최소화 — 모바일에서 운영 바로가기 기본 접힘 (다가오는 일정 / 본식준비체크는 항상 표시) */
-    #adminShortcuts-body, #managerShortcuts-body{display:none}
+    /* 홈 화면 스크롤 최소화 — 모바일에서 다가오는 일정 / 본식준비체크 기본 접힘 */
+    #upcoming-list, #precheck-reminder-list{display:none}
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -462,10 +461,8 @@
 
     <!-- 운영 바로가기 (관리자 전용) -->
     <div id="home-admin-shortcuts" style="display:none;margin-bottom:20px">
-      <div class="sec-header" id="adminShortcuts-header" style="margin-bottom:8px;cursor:pointer" onclick="toggleHomeSection('adminShortcuts')">
-        <h2>운영 바로가기 <span id="adminShortcuts-toggle-icon" style="font-size:11px;color:#C7A96B">▾</span></h2>
-      </div>
-      <div id="adminShortcuts-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="sec-header" style="margin-bottom:8px"><h2>운영 바로가기</h2></div>
+      <div class="shortcuts-grid">
         <button onclick="switchTab('settle',document.getElementById('nav-settle-btn'))" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
           <div style="font-size:22px">💰</div>
           <div style="font-size:14px;font-weight:800;color:#111827">정산관리</div>
@@ -481,29 +478,25 @@
 
     <!-- 매뉴얼 바로가기 (매니저 전용) -->
     <div id="home-manager-shortcuts" style="display:none;margin-bottom:20px">
-      <div class="sec-header" id="managerShortcuts-header" style="margin-bottom:8px;cursor:pointer" onclick="toggleHomeSection('managerShortcuts')">
-        <h2>운영 바로가기 <span id="managerShortcuts-toggle-icon" style="font-size:11px;color:#C7A96B">▾</span></h2>
-      </div>
-      <div id="managerShortcuts-body">
-        <button onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px">
-          <div style="font-size:26px">📖</div>
-          <div>
-            <div style="font-size:14px;font-weight:800;color:#111827">매뉴얼</div>
-            <div style="font-size:11px;color:#9CA3AF">현장 운영 가이드</div>
-          </div>
-        </button>
-      </div>
+      <div class="sec-header" style="margin-bottom:8px"><h2>운영 바로가기</h2></div>
+      <button onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px">
+        <div style="font-size:26px">📖</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#111827">매뉴얼</div>
+          <div style="font-size:11px;color:#9CA3AF">현장 운영 가이드</div>
+        </div>
+      </button>
     </div>
 
-    <div class="sec-header" id="upcoming-header" style="margin-top:8px">
-      <h2>다가오는 일정</h2>
+    <div class="sec-header" id="upcoming-header" style="margin-top:8px;cursor:pointer" onclick="toggleHomeSection('upcoming')">
+      <h2>다가오는 일정 <span id="upcoming-toggle-icon" style="font-size:11px;color:#C7A96B">▾</span></h2>
       <span>D-7 이내</span>
     </div>
     <div id="upcoming-list"></div>
 
     <!-- 본식 준비 체크 & 잔금 확인 알림 카드 -->
-    <div class="sec-header" id="precheck-header" style="margin-top:20px">
-      <h2>&#x1F4B0; 본식 준비 체크 &amp; 잔금 확인</h2>
+    <div class="sec-header" id="precheck-header" style="margin-top:20px;cursor:pointer" onclick="toggleHomeSection('precheck')">
+      <h2>&#x1F4B0; 본식 준비 체크 &amp; 잔금 확인 <span id="precheck-toggle-icon" style="font-size:11px;color:#C7A96B">▾</span></h2>
       <span>D-8 ~ D-10</span>
     </div>
     <div id="precheck-reminder-list"></div>
@@ -1707,19 +1700,14 @@ function renderNav(){
   if(homeManagerShortcuts) homeManagerShortcuts.style.display = isAdmin ? 'none'  : 'block';
 }
 
-const HOME_SECTION_LIST_IDS = { adminShortcuts: 'adminShortcuts-body', managerShortcuts: 'managerShortcuts-body' };
+const HOME_SECTION_LIST_IDS = { upcoming: 'upcoming-list', precheck: 'precheck-reminder-list' };
 function toggleHomeSection(key){
   const list = document.getElementById(HOME_SECTION_LIST_IDS[key]);
   const icon = document.getElementById(key + '-toggle-icon');
   if(!list || !icon) return;
-  // ⚠️ list.style.display(인라인)만 보면 모바일 CSS(@media)로 기본 숨김된 상태를 감지하지 못해
-  //    첫 클릭이 무반응처럼 보이는 버그가 있었음 → 실제 계산된 스타일로 판단
-  const isHidden = getComputedStyle(list).display === 'none';
+  const isHidden = list.style.display === 'none' || list.style.display === '';
   list.style.display = isHidden ? 'block' : 'none';
   icon.textContent = isHidden ? '▾' : '▸';
-  // iOS Safari에서 토글로 페이지 높이가 바뀔 때 하단 고정 네비게이션이 즉시 재배치되지 않고
-  // 콘텐츠와 겹쳐 보이는 버그가 있어, 미세한 스크롤을 강제로 발생시켜 재렌더링을 유도
-  requestAnimationFrame(()=>{ window.scrollBy(0,1); window.scrollBy(0,-1); });
 }
 
 function renderUserDrop(){
@@ -1744,12 +1732,16 @@ function renderAll(){
   renderPrecheckReminder();
   renderCalendar();
   renderScheduleList();
-  // 모바일에서는 운영 바로가기 섹션이 기본 접힘 상태이므로 토글 아이콘도 맞춰줌
+  // 모바일에서는 다가오는 일정/본식준비체크 섹션이 기본 접힘 상태
   if(window.innerWidth <= 768){
-    const aIcon = document.getElementById('adminShortcuts-toggle-icon');
-    const mIcon = document.getElementById('managerShortcuts-toggle-icon');
-    if(aIcon) aIcon.textContent = '▸';
-    if(mIcon) mIcon.textContent = '▸';
+    const uIcon = document.getElementById('upcoming-toggle-icon');
+    const pIcon = document.getElementById('precheck-toggle-icon');
+    const uList = document.getElementById('upcoming-list');
+    const pList = document.getElementById('precheck-reminder-list');
+    if(uIcon) uIcon.textContent = '▸';
+    if(pIcon) pIcon.textContent = '▸';
+    if(uList && uList.style.display !== 'none') uList.style.display = 'none';
+    if(pList && pList.style.display !== 'none') pList.style.display = 'none';
   }
 }
 
