@@ -150,7 +150,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .notice p{font-size:12px;color:#1E40AF;line-height:1.7}
 .notice strong{font-weight:700}
 
-/* ── 토스트 ── */
+/* ── 신규 문의 검토 ── */
+.inq-section{margin:12px 16px;background:#fff;border-radius:14px;border:2px solid #C7A96B;overflow:hidden}
+.inq-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.inq-header-left{display:flex;align-items:center;gap:8px}
+.inq-header-title{font-size:15px;font-weight:800;color:#1F2937}
+.inq-header-sub{font-size:11px;color:#9CA3AF;margin-top:1px}
+.inq-toggle{font-size:18px;color:#C7A96B;transition:transform .25s}
+.inq-toggle.open{transform:rotate(180deg)}
+.inq-body{display:none;padding:0 16px 16px;border-top:1px solid #F3F4F6}
+.inq-body.open{display:block}
+.inq-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.inq-row.triple{grid-template-columns:1fr 1fr 1fr}
+.inq-field label{font-size:11px;font-weight:700;color:#6B7280;display:block;margin-bottom:5px}
+.inq-input{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;color:#1F2937;background:#F9FAFB}
+.inq-input:focus{outline:none;border-color:#C7A96B}
+.inq-time-wrap{display:flex;align-items:center;gap:4px}
+.inq-time-wrap .inq-input{text-align:center}
+.inq-colon{font-size:16px;font-weight:800;color:#374151}
+.inq-btn{width:100%;margin-top:12px;background:linear-gradient(135deg,#C7A96B,#B8945A);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s}
+.inq-btn:hover{opacity:.88}
+.inq-result{margin-top:14px}
+.inq-result-ok{background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:14px}
+.inq-result-fail{background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:14px}
+.inq-result-title{font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.inq-pair-card{background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:8px;border:1px solid #E5E7EB}
+.inq-pair-card:last-child{margin-bottom:0}
+.inq-pair-name{font-size:14px;font-weight:800;color:#1F2937}
+.inq-pair-note{font-size:11px;color:#6B7280;margin-top:3px;line-height:1.5}
+.inq-pair-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-top:5px}
+.inq-pair-badge.couple{background:#FDF4E3;color:#92400E}
+.inq-pair-badge.free{background:#D1FAE5;color:#065F46}
+.inq-pair-badge.tight{background:#FEF3C7;color:#92400E}
+.inq-busy-list{font-size:12px;color:#6B7280;margin-top:8px}
+.inq-busy-item{padding:3px 0;border-bottom:1px solid #FEE2E2;display:flex;justify-content:space-between}
+.inq-busy-item:last-child{border-bottom:none}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1F2937;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -170,6 +204,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <!-- Kakao API Key 미설정 안내 (설정 후 자동 숨김) -->
+<!-- 신규 문의 배정 검토 -->
+<div class="inq-section">
+  <div class="inq-header" onclick="toggleInq()">
+    <div>
+      <div class="inq-header-title">📋 신규 문의 배정 검토</div>
+      <div class="inq-header-sub">날짜·시간·지역 입력 → 즉시 가능 여부 확인</div>
+    </div>
+    <div class="inq-toggle" id="inqToggle">▼</div>
+  </div>
+  <div class="inq-body" id="inqBody">
+    <div class="inq-row">
+      <div class="inq-field">
+        <label>예식 날짜</label>
+        <input class="inq-input" type="date" id="inq-date">
+      </div>
+      <div class="inq-field">
+        <label>예식 시간</label>
+        <div class="inq-time-wrap">
+          <select class="inq-input" id="inq-hour" style="flex:1">
+            <option>09</option><option>10</option><option>11</option>
+            <option selected>12</option><option>13</option><option>14</option>
+            <option>15</option><option>16</option><option>17</option><option>18</option>
+          </select>
+          <span class="inq-colon">:</span>
+          <select class="inq-input" id="inq-min" style="flex:1">
+            <option value="0">00</option><option value="30">30</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="inq-row">
+      <div class="inq-field" style="grid-column:1/-1">
+        <label>예식장 지역</label>
+        <select class="inq-input" id="inq-region">
+          <option>대전</option><option>천안</option><option>청주</option>
+          <option>세종</option><option>아산</option><option>수원</option>
+          <option>전주</option><option>서울</option><option>기타</option>
+        </select>
+      </div>
+    </div>
+    <button class="inq-btn" onclick="checkInquiry()">🔍 배정 가능 여부 확인</button>
+    <div class="inq-result" id="inqResult"></div>
+  </div>
+</div>
+
 <div class="setup-banner" id="setupBanner" style="display:none">
   <p>⚠️ Kakao REST API Key를 설정하면 실제 이동시간이 사용됩니다. 현재는 추정값 사용 중.</p>
   <a href="https://developers.kakao.com" target="_blank">키 발급 →</a>
@@ -809,6 +888,177 @@ function applyRec(panelId, from, to){
   document.getElementById(panelId).style.display='none';
   // TODO: 실제 Supabase schedules 테이블 front_manager / back_manager 업데이트
   showToast(`✅ ${to} 로 배정 변경 완료 (관리자 확인 필요)`);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 신규 문의 배정 검토
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const ALL_MANAGERS = [...new Set(Object.keys(COUPLE_PAIRS))];
+
+function toggleInq(){
+  const body = document.getElementById('inqBody');
+  const tog  = document.getElementById('inqToggle');
+  const open = body.classList.toggle('open');
+  tog.classList.toggle('open', open);
+}
+
+function travelEst(r1, r2){
+  if(!r1||!r2||r1===r2) return 10;
+  return TRAVEL_FALLBACK[`${r1}-${r2}`]||TRAVEL_FALLBACK[`${r2}-${r1}`]||35;
+}
+function regionFromHall(hall=''){
+  const CITIES=['대전','천안','청주','세종','아산','수원','전주','서울'];
+  for(const c of CITIES){ if(hall.includes(c)) return c; }
+  return '';
+}
+
+async function checkInquiry(){
+  const dateStr = document.getElementById('inq-date').value;
+  const hour    = parseInt(document.getElementById('inq-hour').value);
+  const min     = parseInt(document.getElementById('inq-min').value);
+  const region  = document.getElementById('inq-region').value;
+  const resultEl= document.getElementById('inqResult');
+
+  if(!dateStr){ showToast('날짜를 입력해주세요'); return; }
+
+  resultEl.innerHTML = `<div style="text-align:center;padding:16px;color:#6B7280;font-size:13px">⏳ 확인 중…</div>`;
+
+  const inqTime  = hour*60+min;
+  const mustArr  = inqTime - 80;   // 도착 목표
+  const canLeave = inqTime + 50;   // 철수 가능
+
+  // 해당 날짜 불가 + 예식 동시 조회
+  const [unavRows, schedRows] = await Promise.all([
+    sbGet('unavailable_schedules',`?date=eq.${dateStr}&select=manager_name`).catch(()=>[]),
+    sbGet('schedules',`?date=eq.${dateStr}&select=id,hall,time,front_manager,back_manager&order=time.asc`).catch(()=>[]),
+  ]);
+
+  const unavSet = new Set(unavRows.map(r=>r.manager_name).filter(Boolean));
+
+  // 매니저별 기존 예식 맵핑
+  const mgrMap = {};
+  schedRows.forEach(r=>{
+    const add=(f)=>{ if(!f)return; f.split(',').map(m=>m.trim()).filter(Boolean).forEach(m=>{
+      if(!mgrMap[m])mgrMap[m]=[];
+      mgrMap[m].push({time:r.time,hall:r.hall||'',region:regionFromHall(r.hall||'')});
+    });};
+    add(r.front_manager); add(r.back_manager);
+  });
+
+  // 각 매니저 가능 여부 판별
+  const available=[], unavailable=[], busy=[];
+
+  for(const mgr of ALL_MANAGERS){
+    if(unavSet.has(mgr)){ unavailable.push({mgr, reason:'불가 등록'}); continue; }
+
+    const existing=(mgrMap[mgr]||[]).sort((a,b)=>toMins(a.time)-toMins(b.time));
+
+    // 당일 예식 없음 → 자유 배정
+    if(!existing.length){
+      available.push({mgr, type:'free', note:'당일 예식 없음 — 자유 배정 가능'});
+      continue;
+    }
+
+    let fits=false, fitNote='', fitType='';
+
+    // ① 문의 먼저, 기존 첫 번째 전에
+    const first=existing[0];
+    const afterInq=canLeave;
+    const firstNeed=toMins(first.time)-80;
+    const gap1=firstNeed-afterInq;
+    const travel1=travelEst(region,first.region||regionFromHall(first.hall));
+    if(gap1>=travel1){
+      fits=true; fitType='before';
+      fitNote=`문의 먼저 → ${first.hall||first.time} 이동 (여유 ${gap1-travel1}분)`;
+    }
+
+    // ② 기존 마지막 후, 문의 이동
+    if(!fits){
+      const last=existing[existing.length-1];
+      const lastLeave=toMins(last.time)+50;
+      const gap2=mustArr-lastLeave;
+      const travel2=travelEst(last.region||regionFromHall(last.hall),region);
+      if(gap2>=travel2){
+        fits=true; fitType='after';
+        fitNote=`${last.hall||last.time} 후 문의 이동 (여유 ${gap2-travel2}분)`;
+      }
+    }
+
+    // ③ 기존 예식들 사이에 끼우기
+    if(!fits){
+      for(let i=0;i<existing.length-1;i++){
+        const prev=existing[i], next=existing[i+1];
+        const prevLeave=toMins(prev.time)+50;
+        const nextNeed=toMins(next.time)-80;
+        const g1=mustArr-prevLeave-travelEst(prev.region||regionFromHall(prev.hall),region);
+        const g2=nextNeed-canLeave-travelEst(region,next.region||regionFromHall(next.hall));
+        if(g1>=0&&g2>=0){
+          fits=true; fitType='between';
+          fitNote=`${prev.hall||prev.time} ↔ ${next.hall||next.time} 사이 (여유 ${Math.min(g1,g2)}분)`;
+          break;
+        }
+      }
+    }
+
+    if(fits) available.push({mgr, type:fitType, note:fitNote, schedCount:existing.length});
+    else busy.push({mgr, reason:`당일 ${existing.length}건 배정 — 시간 충돌`, schedCount:existing.length});
+  }
+
+  renderInqResult(available, unavailable, busy, dateStr, inqTime, region, resultEl);
+}
+
+function renderInqResult(available, unavailable, busy, dateStr, inqTime, region, el){
+  const d=new Date(dateStr+'T00:00:00');
+  const dayKr=['일','월','화','수','목','금','토'][d.getDay()];
+  const timeStr=fromMins(inqTime);
+
+  // 가능한 커플 조합 찾기
+  const availNames=new Set(available.map(a=>a.mgr));
+  const couples=[];
+  const used=new Set();
+  for(const a of available){
+    const partner=COUPLE_PAIRS[a.mgr];
+    if(partner&&availNames.has(partner)&&!used.has(a.mgr)&&!used.has(partner)){
+      couples.push({a, b:available.find(x=>x.mgr===partner)});
+      used.add(a.mgr); used.add(partner);
+    }
+  }
+  const singles=available.filter(a=>!used.has(a.mgr));
+
+  if(!available.length){
+    el.innerHTML=`
+      <div class="inq-result-fail">
+        <div class="inq-result-title" style="color:#991B1B">❌ ${dateStr} (${dayKr}) ${timeStr} ${region} — 배정 불가</div>
+        <div style="font-size:12px;color:#6B7280;margin-bottom:8px">가능한 매니저가 없습니다.</div>
+        ${busy.length?`<div class="inq-busy-list">${busy.map(b=>`<div class="inq-busy-item"><span>${b.mgr}</span><span style="color:#DC2626">${b.reason}</span></div>`).join('')}</div>`:''}
+        ${unavailable.length?`<div style="font-size:11px;color:#9CA3AF;margin-top:8px">불가 등록: ${unavailable.map(u=>u.mgr).join(', ')}</div>`:''}
+      </div>`;
+    return;
+  }
+
+  const pairCards=couples.map(({a,b})=>`
+    <div class="inq-pair-card">
+      <div class="inq-pair-name">${a.mgr} ♥ ${b.mgr}</div>
+      <div class="inq-pair-note">${a.note}<br>${b.note}</div>
+      <span class="inq-pair-badge couple">💑 부부세트</span>
+      ${a.type==='free'&&b.type==='free'?'<span class="inq-pair-badge free" style="margin-left:4px">당일 여유</span>':'<span class="inq-pair-badge tight" style="margin-left:4px">일정 조율 필요</span>'}
+    </div>`).join('');
+
+  const singleCards=singles.map(s=>`
+    <div class="inq-pair-card">
+      <div class="inq-pair-name">${s.mgr}</div>
+      <div class="inq-pair-note">${s.note}</div>
+      <span class="inq-pair-badge ${s.type==='free'?'free':'tight'}">${s.type==='free'?'당일 여유':'일정 조율 필요'}</span>
+    </div>`).join('');
+
+  el.innerHTML=`
+    <div class="inq-result-ok">
+      <div class="inq-result-title" style="color:#065F46">✅ ${dateStr} (${dayKr}) ${timeStr} ${region} — 배정 가능</div>
+      ${couples.length?`<div style="font-size:11px;font-weight:700;color:#065F46;margin-bottom:8px">추천 부부세트 (${couples.length}조)</div>${pairCards}`:''}
+      ${singles.length?`<div style="font-size:11px;font-weight:700;color:#374151;margin:${couples.length?'10px':0} 0 8px">개별 가능 매니저</div>${singleCards}`:''}
+      ${busy.length?`<div style="font-size:11px;color:#9CA3AF;margin-top:8px;line-height:1.7">시간 충돌: ${busy.map(b=>b.mgr).join(', ')}</div>`:''}
+      ${unavailable.length?`<div style="font-size:11px;color:#9CA3AF;margin-top:4px">불가 등록: ${unavailable.map(u=>u.mgr).join(', ')}</div>`:''}
+    </div>`;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
