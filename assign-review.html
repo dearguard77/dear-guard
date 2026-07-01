@@ -27,6 +27,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .inq-body{display:none;padding:0 16px 16px;border-top:1px solid #F3F4F6}
 .inq-body.open{display:block}
 .inq-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.inq-row-bottom{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media(max-width:360px){.inq-row-bottom{grid-template-columns:1fr}}
 .inq-field label{font-size:11px;font-weight:700;color:#6B7280;display:block;margin-bottom:5px}
 .inq-input{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;color:#1F2937;background:#F9FAFB}
 .inq-input:focus{outline:none;border-color:#C7A96B}
@@ -260,13 +262,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
       </div>
     </div>
-    <div class="inq-row" style="grid-template-columns:1fr;margin-top:8px">
+    <div class="inq-row-bottom">
       <div class="inq-field">
         <label>예식장 지역</label>
         <select class="inq-input" id="inq-region">
           <option>대전</option><option>천안</option><option>청주</option>
           <option>세종</option><option>아산</option><option>수원</option>
           <option>전주</option><option>서울</option><option>기타</option>
+        </select>
+      </div>
+      <div class="inq-field">
+        <label>운영 구분</label>
+        <select class="inq-input" id="inq-optype">
+          <option value="단측">단측</option>
+          <option value="양측">양측</option>
         </select>
       </div>
     </div>
@@ -429,7 +438,12 @@ function extractRegion(addr=''){
 }
 // 여유시간 기준: 🔴 10분 미만 / 🟡 10~19분 / 🟢 20분 이상
 function getStatus(buf){return buf>=20?'safe':buf>=10?'warning':'danger';}
-function statusLabel(status){return{safe:'🟢 가능',warning:'🟡 주의',danger:'🔴 불가'}[status];}
+function statusLabel(status){
+  return{
+    safe:'🟢 가능', warning:'🟡 주의', danger:'🔴 불가',
+    ok:'🟢 배정 가능', warn:'🟡 교체 필요', fail:'🔴 배정 불가', unavail:'🔴 불가 등록'
+  }[status]||'';
+}
 function travelEst(r1,r2){if(!r1||!r2||r1===r2)return 10;return TRAVEL_FALLBACK[`${r1}-${r2}`]||TRAVEL_FALLBACK[`${r2}-${r1}`]||35;}
 function regionFromHall(hall=''){return extractRegion(hall);}
 
@@ -640,6 +654,7 @@ async function checkInquiry(){
   const hour=parseInt(document.getElementById('inq-hour').value);
   const min=parseInt(document.getElementById('inq-min').value);
   const region=document.getElementById('inq-region').value;
+  const opType=document.getElementById('inq-optype').value; // '단측' or '양측'
   const el=document.getElementById('inqResult');
   if(!dateStr){showToast('날짜를 입력해주세요');return;}
   el.innerHTML=`<div style="text-align:center;padding:20px;color:#6B7280;font-size:13px">⏳ 확인 중…</div>`;
@@ -726,7 +741,7 @@ async function checkInquiry(){
     return(b.buffer||0)-(a.buffer||0);
   });
 
-  renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,el);
+  renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,opType,el);
 }
 
 function buildProse(sc,inqTime,region){
@@ -768,38 +783,40 @@ function buildProse(sc,inqTime,region){
   return prose;
 }
 
-function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,el){
+function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,opType,el){
   const d=new Date(dateStr+'T00:00:00');
   const dayKr=DAY_KR[d.getDay()];
-  const okCnt=scenarios.filter(s=>s.status==='ok').length;
-  const warnCnt=scenarios.filter(s=>s.status==='warn').length;
-  const failCnt=scenarios.filter(s=>s.status==='fail').length;
-  const unavCnt=scenarios.filter(s=>s.status==='unavail').length;
-  const overallSt=okCnt>0?'ok':warnCnt>0?'warn':'fail';
-  const overallEmoji={ok:'✅',warn:'⚠️',fail:'❌'}[overallSt];
-  const overallTxt={ok:'배정 가능',warn:'타이트 (주의 필요)',fail:'배정 불가'}[overallSt];
-
-  // 상위 3개 추천안 (가능/주의) + 나머지는 간략
-  const topRecs=scenarios.filter(s=>s.status==='ok'||s.status==='warn').slice(0,3);
+  const isBothSide=(opType==='양측');
+  const okList=scenarios.filter(s=>s.status==='ok');
+  const warnList=scenarios.filter(s=>s.status==='warn');
   const failList=scenarios.filter(s=>s.status==='fail'||s.status==='unavail');
 
-  const recCards=topRecs.map((sc,i)=>{
+  // 전체 상태 판정 (단측: 1팀, 양측: 2팀 필요)
+  let overallSt;
+  if(isBothSide){ const tot=okList.length+warnList.length; overallSt=okList.length>=2?'ok':tot>=2?'warn':'fail'; }
+  else { overallSt=okList.length>0?'ok':warnList.length>0?'warn':'fail'; }
+  const overallEmoji={ok:'✅',warn:'⚠️',fail:'❌'}[overallSt];
+  const overallTxt={ok:'배정 가능',warn:'타이트 (주의 필요)',fail:'배정 불가'}[overallSt];
+  const opLabel=isBothSide?'양측 (4인)':'단측 (2인)';
+
+  const changesFor=(sc)=>sc.existingChanges?.length?sc.existingChanges.map(c=>{
+    if(c.action==='유지')return`<div class="rec-assign-row"><span class="rec-assign-icon">📌</span><div class="rec-assign-text"><b>${c.hall||c.time}(${c.time})</b> <span class="rec-assign-tag tag-keep">유지</span></div></div>`;
+    if(c.action==='교체')return`<div class="rec-assign-row"><span class="rec-assign-icon">🔄</span><div class="rec-assign-text"><b>${c.hall||c.time}(${c.time})</b> <span class="rec-assign-tag tag-swap">교체 필요</span> → ${c.by||'대체팀'}</div></div>`;
+    return`<div class="rec-assign-row"><span class="rec-assign-icon">⚠️</span><div class="rec-assign-text"><b>${c.hall||c.time}</b> <span class="rec-assign-tag tag-swap">시간 충돌</span></div></div>`;
+  }).join(''):'<div class="rec-assign-row"><span class="rec-assign-icon">✨</span><div class="rec-assign-text">기존 예식 없음 — 신규 단독 투입</div></div>';
+
+  // ── 단측 카드 ──
+  const singleCards=[...okList,...warnList].slice(0,3).map((sc,i)=>{
     const st=sc.status;
-    const bufStr=sc.buffer>=999?'여유 충분':`여유시간 ${sc.buffer}분`;
-    const prose=buildProse(sc,inqTime,region);
-    const changesHtml=sc.existingChanges?.length?sc.existingChanges.map(c=>{
-      if(c.action==='유지')return`<div class="rec-assign-row"><span class="rec-assign-icon">📌</span><div class="rec-assign-text"><b>${c.hall||c.time}(${c.time})</b> <span class="rec-assign-tag tag-keep">유지</span></div></div>`;
-      if(c.action==='교체')return`<div class="rec-assign-row"><span class="rec-assign-icon">🔄</span><div class="rec-assign-text"><b>${c.hall||c.time}(${c.time})</b> <span class="rec-assign-tag tag-swap">교체 필요</span> → ${c.by||'대체팀'}</div></div>`;
-      return`<div class="rec-assign-row"><span class="rec-assign-icon">⚠️</span><div class="rec-assign-text"><b>${c.hall||c.time}</b> <span class="rec-assign-tag tag-swap">시간 충돌</span></div></div>`;
-    }).join(''):'<div class="rec-assign-row"><span class="rec-assign-icon">✨</span><div class="rec-assign-text">기존 예식 없음 — 신규 단독 투입</div></div>';
+    const badge=statusLabel(st)||'';
     return`<div class="rec-card ${st}">
       <div class="rec-card-rank">추천안 ${i+1}</div>
-      <div class="rec-card-team">${sc.team}<span class="rec-status-badge badge-${st==='ok'?'ok':st==='warn'?'warn':'fail'}">${statusLabel(st)}</span></div>
+      <div class="rec-card-team">${sc.team}<span class="rec-status-badge badge-${st==='ok'?'ok':st==='warn'?'warn':'fail'}">${badge}</span></div>
       <div class="rec-assignments">
         <div class="rec-assign-row"><span class="rec-assign-icon">🆕</span><div class="rec-assign-text"><b>신규 ${timeStr} ${region}</b> <span class="rec-assign-tag tag-new">신규 배정</span></div></div>
-        ${changesHtml}
+        ${changesFor(sc)}
       </div>
-      <div class="rec-prose ${st}">${prose}</div>
+      <div class="rec-prose ${st}">${buildProse(sc,inqTime,region)}</div>
       <div class="rec-actions">
         <button class="rec-btn btn-keep" onclick="showToast('현재 배정 유지')">현재 유지</button>
         <button class="rec-btn btn-apply" onclick="showToast('✅ ${sc.team} 배정 완료 (관리자 확인 필요)')">추천안 적용</button>
@@ -808,11 +825,53 @@ function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,
     </div>`;
   }).join('');
 
-  const failHtml=failList.length?`<div class="inq-sec-label" style="margin-top:${topRecs.length?'14px':'0'}">배정 불가 — ${failList.length}팀</div>${failList.map(sc=>`<div class="rec-card fail"><div class="rec-card-team">${sc.team}<span class="rec-status-badge badge-fail">🔴 ${sc.status==='unavail'?'불가 등록':'불가'}</span></div><div class="rec-prose fail">${buildProse(sc,inqTime,region)}</div></div>`).join('')}`:'';
+  // ── 양측 카드 (2팀 조합) ──
+  const pool=[...okList,...warnList];
+  const bothCards=(()=>{
+    if(pool.length<2) return`<div class="rec-card fail"><div class="rec-card-rank">추천안</div><div class="rec-card-team" style="color:#DC2626">양측 배정 불가<span class="rec-status-badge badge-fail">🔴 배정 불가</span></div><div class="rec-prose fail">현재 가용 팀이 ${pool.length}팀으로, 양측 운영에 필요한 2팀이 부족합니다.</div></div>`;
+    const combos=[];
+    for(let i=0;i<pool.length-1&&combos.length<3;i++){
+      for(let j=i+1;j<pool.length&&combos.length<3;j++){
+        const t1=pool[i],t2=pool[j];
+        const st=(t1.status==='ok'&&t2.status==='ok')?'ok':'warn';
+        combos.push({t1,t2,st});
+      }
+    }
+    return combos.map((c,i)=>{
+      const {t1,t2,st}=c;
+      const badge=statusLabel(st)||'';
+      const swapNeeded=t1.swapNeeded||t2.swapNeeded;
+      return`<div class="rec-card ${st}">
+        <div class="rec-card-rank">추천안 ${i+1} [양측 2팀]</div>
+        <div class="rec-card-team" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#6B7280;min-width:22px">1팀</span><b>${t1.team}</b></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#6B7280;min-width:22px">2팀</span><b>${t2.team}</b></div>
+          <span class="rec-status-badge badge-${st==='ok'?'ok':'warn'}">${badge}</span>
+        </div>
+        <div class="rec-assignments">
+          <div class="rec-assign-row"><span class="rec-assign-icon">🆕</span><div class="rec-assign-text"><b>신규 ${timeStr} ${region}</b> <span class="rec-assign-tag tag-new">양측 배정</span></div></div>
+          ${swapNeeded?'<div class="rec-assign-row"><span class="rec-assign-icon">🔄</span><div class="rec-assign-text">기존 예식 일부 교체 필요 — 아래 설명 참조</div></div>':'<div class="rec-assign-row"><span class="rec-assign-icon">📌</span><div class="rec-assign-text">기존 예식 교체 없이 양측 배정 가능</div></div>'}
+        </div>
+        <div class="rec-prose ${st}"><b>[1팀 ${t1.team}]</b> ${buildProse(t1,inqTime,region)}<br><br><b>[2팀 ${t2.team}]</b> ${buildProse(t2,inqTime,region)}<br><br>두 부부세트 모두 투입 가능하므로 양측 운영에 필요한 4인 배정이 가능합니다.</div>
+        <div class="rec-actions">
+          <button class="rec-btn btn-keep" onclick="showToast('현재 배정 유지')">현재 유지</button>
+          <button class="rec-btn btn-apply" onclick="showToast('✅ 양측 배정 완료 (관리자 확인 필요)')">추천안 적용</button>
+          <button class="rec-btn btn-manual" onclick="showToast('수동 조정 모드')">수동 조정</button>
+        </div>
+      </div>`;
+    }).join('');
+  })();
 
+  const topCardsHtml=isBothSide?bothCards:singleCards;
+  const failHtml=failList.length?`<div class="inq-sec-label" style="margin-top:${topCardsHtml?'14px':'0'}">배정 불가 — ${failList.length}팀</div>${failList.map(sc=>{
+    const badge=statusLabel(sc.status)||'🔴 불가';
+    return`<div class="rec-card fail"><div class="rec-card-team">${sc.team}<span class="rec-status-badge badge-fail">${badge}</span></div><div class="rec-prose fail">${buildProse(sc,inqTime,region)}</div></div>`;
+  }).join('')}`:'';
+
+  const okCnt=okList.length,warnCnt=warnList.length,failCnt=failList.filter(s=>s.status==='fail').length,unavCnt=failList.filter(s=>s.status==='unavail').length;
   el.innerHTML=`<div>
     <div class="inq-res-hdr ${overallSt}">
-      <div class="inq-res-hdr-title">${overallEmoji} ${dateStr} (${dayKr}) ${timeStr} ${region} — ${overallTxt}</div>
+      <div class="inq-res-hdr-title">${overallEmoji} ${dateStr} (${dayKr}) ${timeStr} ${region} · ${opLabel} — ${overallTxt}</div>
       <div class="inq-res-hdr-sub">🟢 가능 ${okCnt}팀 &nbsp;|&nbsp; 🟡 주의 ${warnCnt}팀 &nbsp;|&nbsp; 🔴 불가 ${failCnt}팀 &nbsp;|&nbsp; ⛔ 등록불가 ${unavCnt}팀</div>
     </div>
     <div class="inq-res-body ${overallSt}">
@@ -820,10 +879,13 @@ function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,
         <div class="cur-assign-title">현재 당일 배정 현황</div>
         ${curAssignHtml}
       </div>
-      ${topRecs.length?`<div class="inq-sec-label">AI 추천 배정안</div>${recCards}`:''}
+      ${topCardsHtml?`<div class="inq-sec-label">AI 추천 배정안 ${isBothSide?'(양측 2팀 조합)':'(단측 1팀)'}</div>${topCardsHtml}`:''}
       ${failHtml}
     </div>
   </div>`;
+}
+
+
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
