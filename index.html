@@ -32,6 +32,9 @@
 
   /* MAIN */
   #main{max-width:900px;margin:0 auto;padding:24px 16px 100px}
+  /* 직인 이미지 투명 처리 */
+  .dear-stamp{width:80px;height:auto;object-fit:contain;background:transparent !important;background-color:transparent !important;border:none !important;box-shadow:none !important;mix-blend-mode:normal !important}
+  .stamp-wrap,.stamp-box,.seal-box,.handover-stamp-wrap{background:transparent !important;background-color:transparent !important;border:none !important;box-shadow:none !important}
   .tab-panel{display:none}
   .tab-panel.active{display:block}
 
@@ -3923,8 +3926,6 @@ function renderUnavailList(){
 
 // ─── 폼 OPEN / CLOSE ─────────────────────────────────────────────────────────
 // ── 부부/짝꿍 세트 매니저 목록 ──────────────────────────────────────────────
-// 디어가드 직인 (인계확인서 등에 사용)
-const STAMP_FULL_BASE64 = 'data:image/jpeg;base64,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';
 
 const COUPLE_PAIRS = {
   '강성주':'전수연', '전수연':'강성주',
@@ -5320,38 +5321,16 @@ async function rtSaveHandoverCertImage(viewOnly){
   const s = rtSchedule;
   if(!s || !hvCompletedAt) return;
 
-  // 도장 JPEG 검은 배경 → 투명 PNG 변환
-  // 실측 결과 배경 픽셀은 (예: R48,G0,B11)처럼 미세한 붉은기를 띤 검정이라
-  // 채도 기준만으로는 배경을 못 거르므로, 밝기(maxC) 우선 판정으로 변경
-  const stampDataUrl = await new Promise(resolve => {
-    const img = new Image();
-    img.onload = function(){
-      const cvs = document.createElement('canvas');
-      cvs.width = img.width; cvs.height = img.height;
-      const ctx = cvs.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, cvs.width, cvs.height);
-      const d = imageData.data;
-      for(let i = 0; i < d.length; i += 4){
-        const r = d[i], g = d[i+1], b = d[i+2];
-        const maxC = Math.max(r, g, b);
-        const minC = Math.min(r, g, b);
-        const saturation = maxC - minC;
-        if(maxC < 70){
-          // 밝기 자체가 매우 낮으면(검정 배경 + JPEG 압축 노이즈) 채도와 무관하게 완전 투명
-          d[i+3] = 0;
-        } else if(maxC < 130 && saturation < 30){
-          // 어두운 회색 전이 구간: 진짜 무채색일 때만 점진적 투명 처리
-          d[i+3] = Math.round((maxC - 70) / 60 * 255);
-        }
-        // 그 외(채도가 높은 빨간 글씨 등)는 그대로 보존
-      }
-      ctx.putImageData(imageData, 0, 0);
-      resolve(cvs.toDataURL('image/png'));
-    };
-    img.onerror = () => resolve('');
-    img.src = STAMP_FULL_BASE64;
-  });
+  // stamp.png (투명 PNG) 직접 로드 → data URL 변환 (픽셀 조작 불필요)
+  const stampDataUrl = await fetch('stamp.png')
+    .then(r => r.blob())
+    .then(blob => new Promise(res => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result);
+      reader.onerror = () => res('');
+      reader.readAsDataURL(blob);
+    }))
+    .catch(() => '');
 
   // 정확한 인계 일시 (연-월-일 시:분:초까지)
   const dt = hvCompletedAt;
@@ -5446,7 +5425,7 @@ async function rtSaveHandoverCertImage(viewOnly){
             <div style="font-size:11px;color:#9CA3AF;font-weight:700;margin-bottom:10px;text-align:center">수령인 서명</div>
             <div style="display:flex;align-items:flex-end;justify-content:center;gap:14px;min-height:90px">
               ${hvSignatureDataUrl ? `<img src="${hvSignatureDataUrl}" style="max-width:240px;max-height:90px;display:block">` : `<div style="color:#EF4444;font-size:12px">서명 이미지를 불러오지 못했습니다</div>`}
-              ${stampDataUrl ? `<img src="${stampDataUrl}" style="width:66px;height:66px;display:block;flex-shrink:0">` : ''}
+              ${stampDataUrl ? `<img src="${stampDataUrl}" class="dear-stamp" style="width:80px;height:auto;display:block;flex-shrink:0;object-fit:contain;background:transparent !important;border:none;box-shadow:none">` : ''}
             </div>
           </div>
         </div>
@@ -5475,7 +5454,7 @@ async function rtSaveHandoverCertImage(viewOnly){
       scale: 2,
       backgroundColor: '#ffffff',
       useCORS: true,
-      allowTaint: false,
+      allowTaint: true,
       logging: false,
       onclone: (clonedDoc) => {
         const el = clonedDoc.getElementById('hv-cert-capture');
