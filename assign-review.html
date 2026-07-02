@@ -1093,7 +1093,68 @@ function buildProse(sc,inqTime,region){
   return prose;
 }
 
-// ── 이동시간 검증 패널 ──
+// 양측 전용 prose - 신규 투입팀과 기존 예식 대체팀 명확히 분리
+function buildBothSideProse(t1,t2,t1Rep,t2Rep,inqTime,timeStr,region){
+  // 각 팀을 양측 신규 투입팀 관점에서 설명 (buildProse 재사용 금지 - 단측 로직 혼동 방지)
+  const lines=[];
+
+  const mkLine=(t,extRep,label)=>{
+    const existAll=(t.existing||[]);
+    const existList=existAll.map(s=>`${s.time} ${s.hall||''}`).join(', ');
+    const swapSched=t.swapSched;
+    const fd=t.failedDirectFit;
+
+    if(!t.swapNeeded||!swapSched){
+      // ── 교체 없이 신규 투입 가능 ──
+      if(!existAll.length){
+        lines.push(`<b>[신규 ${label} ${t.team}]</b> 당일 배정된 예식이 없어 신규 ${timeStr} ${region} 예식에 제약 없이 투입 가능합니다.`);
+      } else {
+        const fit=t.directFit;
+        let timing='';
+        if(fit?.fitType==='before'&&fit.next){
+          timing=`신규 예식 철수 후 ${fit.next.hall||fit.next.time}(${fit.next.time}) 이동, 여유시간 ${fit.buffer}분`;
+        } else if(fit?.fitType==='after'&&fit.prev){
+          timing=`${fit.prev.hall||fit.prev.time}(${fit.prev.time}) 종료 후 신규 예식 이동, 여유시간 ${fit.buffer}분`;
+        } else if(fit?.fitType==='between'){
+          timing=`기존 예식 사이 편성, 최소 여유시간 ${fit.buffer}분`;
+        }
+        lines.push(`<b>[신규 ${label} ${t.team}]</b> 현재 <b>${existList}</b> 배정 중. 신규 ${timeStr} ${region} 예식과 함께 수행 가능합니다. ${timing}`);
+      }
+    } else {
+      // ── 신규 투입 시 기존 예식과 충돌 → 기존 예식 대체팀 필요 ──
+      const dropH=swapSched.hall||swapSched.time||'';
+      const dropT=swapSched.time||'';
+      let conflictDetail='';
+      if(fd?.travel!=null){
+        const bv=fd.buffer>=0?`+${fd.buffer}분`:`${fd.buffer}분`;
+        const sm=fd.buffer>=20?'🟢':fd.buffer>=10?'🟡':'🔴';
+        conflictDetail=` <b>(예상 이동시간 ${fd.travel}분, 여유시간 ${bv} ${sm})</b>`;
+      }
+      let line=`<b>[신규 ${label} ${t.team}]</b> 현재 <b>${existList||dropH+'('+dropT+')'}</b> 배정 중.`;
+      line+=` 신규 ${timeStr} ${region} 예식에 투입할 경우, 기존 <b>${dropH}(${dropT})</b> 예식과 이동 시간이 충돌합니다.${conflictDetail}`;
+      // extRep = 콤보 외부 대체팀 (신규 투입 2팀과 반드시 다른 팀)
+      if(extRep?.team){
+        line+=`<br>&nbsp;&nbsp;→ 기존 <b>${dropH}(${dropT})</b> 대체 담당: <b>${extRep.team}</b> (신규 투입 ${label}과 별도 팀)`;
+      } else {
+        line+=`<br>&nbsp;&nbsp;→ ⚠️ 기존 <b>${dropH}(${dropT})</b>을 대신할 대체팀을 찾을 수 없습니다.`;
+      }
+      lines.push(line);
+    }
+  };
+
+  mkLine(t1,t1Rep,'1팀');
+  mkLine(t2,t2Rep,'2팀');
+
+  const anySwap=t1.swapNeeded||t2.swapNeeded;
+  const hasRep=((!t1.swapNeeded||t1Rep?.team)&&(!t2.swapNeeded||t2Rep?.team));
+  if(anySwap&&hasRep){
+    lines.push(`<br>위 기존 예식 교체 조정 후 양측 운영에 필요한 4인 배정이 가능합니다.`);
+  } else if(!anySwap){
+    lines.push(`<br>기존 예식 교체 없이 양측 운영에 필요한 4인 배정이 가능합니다.`);
+  }
+
+  return lines.join('<br>');
+}
 function travelVerifyHtml(sc,travelDetail,inqTime){
   if(!travelDetail) return '';
   const panelId=`vp-${sc.team.replace(/[♥\s]/g,'')}`;
@@ -1177,38 +1238,74 @@ function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,
     </div>`;
   }).join('');
 
-  // ── 양측 카드 (2팀 조합) ──
+  // ── 양측 카드 (2팀 조합) - 신규 투입팀 ≠ 기존 예식 대체팀 보장 ──
   const pool=[...okList,...warnList];
   const bothCards=(()=>{
     if(pool.length<2) return`<div class="rec-card fail"><div class="rec-card-rank">추천안</div><div class="rec-card-team" style="color:#DC2626">양측 배정 불가<span class="rec-status-badge badge-fail">🔴 배정 불가</span></div><div class="rec-prose fail">현재 가용 팀이 ${pool.length}팀으로, 양측 운영에 필요한 2팀이 부족합니다.</div></div>`;
-    const combos=[];
-    for(let i=0;i<pool.length-1&&combos.length<3;i++){
-      for(let j=i+1;j<pool.length&&combos.length<3;j++){
+
+    const validCombos=[];
+    for(let i=0;i<pool.length-1&&validCombos.length<3;i++){
+      for(let j=i+1;j<pool.length&&validCombos.length<3;j++){
         const t1=pool[i],t2=pool[j];
+        const comboNames=new Set([t1.team,t2.team]);
+
+        // swap replacer가 콤보 팀 내부 → 콤보 외부 팀으로 대체 탐색
+        let t1Rep=t1.swapReplacer, t2Rep=t2.swapReplacer;
+        let t1Valid=true, t2Valid=true;
+
+        if(t1.swapNeeded&&t1Rep&&comboNames.has(t1Rep.team)){
+          // t1의 replacer가 콤보 내부 → 콤보 외부의 여유 팀 탐색 (swapNeeded 없는 팀 우선)
+          const alt=scenarios.find(s=>!comboNames.has(s.team)&&s.status!=='fail'&&s.status!=='unavail'&&!s.swapNeeded)
+                  ||scenarios.find(s=>!comboNames.has(s.team)&&s.status!=='fail'&&s.status!=='unavail');
+          if(alt) t1Rep={team:alt.team};
+          else{t1Valid=false;}
+        }
+        if(t2.swapNeeded&&t2Rep&&comboNames.has(t2Rep.team)){
+          // t2의 replacer가 콤보 내부 → t1Rep와도 겹치지 않는 외부 팀 탐색
+          const excl=new Set([...comboNames,t1Rep?.team].filter(Boolean));
+          const alt=scenarios.find(s=>!excl.has(s.team)&&s.status!=='fail'&&s.status!=='unavail'&&!s.swapNeeded)
+                  ||scenarios.find(s=>!excl.has(s.team)&&s.status!=='fail'&&s.status!=='unavail');
+          if(alt) t2Rep={team:alt.team};
+          else{t2Valid=false;}
+        }
+
+        // 대체팀 없으면 이 조합은 양측 배정 불가 → 제외
+        if(!t1Valid||!t2Valid) continue;
+
         const st=(t1.status==='ok'&&t2.status==='ok')?'ok':'warn';
-        combos.push({t1,t2,st});
+        validCombos.push({t1,t2,t1Rep,t2Rep,st});
       }
     }
-    return combos.map((c,i)=>{
-      const {t1,t2,st}=c;
+
+    if(!validCombos.length) return`<div class="rec-card fail"><div class="rec-card-rank">추천안</div><div class="rec-card-team" style="color:#DC2626">양측 배정 불가<span class="rec-status-badge badge-fail">🔴 배정 불가</span></div><div class="rec-prose fail">신규 투입 2팀 외에 기존 예식을 대신할 대체팀이 없어 양측 배정이 어렵습니다.</div></div>`;
+
+    return validCombos.map((c,i)=>{
+      const {t1,t2,t1Rep,t2Rep,st}=c;
       const swapNeeded=t1.swapNeeded||t2.swapNeeded;
       const cardSt=swapNeeded?'warn':st;
       const badge=swapNeeded?'🟡 기존 예식 교체 필요':st==='ok'?'🟢 신규+기존 모두 가능':'🟡 주의 필요';
       const badgeCls=swapNeeded?'warn':st==='ok'?'ok':'warn';
       const sk1=`bs_${Date.now()}_${i}_1`;const sk2=`bs_${Date.now()}_${i}_2`;
       _inqScs[sk1]=t1;_inqScs[sk2]=t2;
+
+      // 기존 예식 교체 내역 표시 (대체팀 명시)
+      let swapRows='';
+      if(t1.swapNeeded&&t1.swapSched) swapRows+=`<div class="rec-assign-row"><span class="rec-assign-icon">🔄</span><div class="rec-assign-text">${t1.swapSched.hall||t1.swapSched.time}(${t1.swapSched.time}) <span class="rec-assign-tag tag-swap">교체</span> 기존: ${t1.team} → 대체: <b>${t1Rep?.team||'미정'}</b></div></div>`;
+      if(t2.swapNeeded&&t2.swapSched) swapRows+=`<div class="rec-assign-row"><span class="rec-assign-icon">🔄</span><div class="rec-assign-text">${t2.swapSched.hall||t2.swapSched.time}(${t2.swapSched.time}) <span class="rec-assign-tag tag-swap">교체</span> 기존: ${t2.team} → 대체: <b>${t2Rep?.team||'미정'}</b></div></div>`;
+
       return`<div class="rec-card ${cardSt}">
         <div class="rec-card-rank">추천안 ${i+1} [양측 2팀]</div>
         <div class="rec-card-team" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <div style="font-size:10px;font-weight:700;color:#6B7280;margin-bottom:2px">신규 투입</div>
           <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#6B7280;min-width:22px">1팀</span><b>${t1.team}</b></div>
           <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#6B7280;min-width:22px">2팀</span><b>${t2.team}</b></div>
-          <span class="rec-status-badge badge-${badgeCls}">${badge}</span>
+          <span class="rec-status-badge badge-${badgeCls}" style="margin-top:4px">${badge}</span>
         </div>
         <div class="rec-assignments">
-          <div class="rec-assign-row"><span class="rec-assign-icon">🆕</span><div class="rec-assign-text"><b>신규 ${timeStr} ${region}</b> <span class="rec-assign-tag tag-new">양측 배정</span></div></div>
-          ${swapNeeded?'<div class="rec-assign-row"><span class="rec-assign-icon">🔄</span><div class="rec-assign-text">기존 예식 일부 교체 필요 — 아래 설명 참조</div></div>':'<div class="rec-assign-row"><span class="rec-assign-icon">📌</span><div class="rec-assign-text">기존 예식 교체 없이 양측 배정 가능</div></div>'}
+          <div class="rec-assign-row"><span class="rec-assign-icon">🆕</span><div class="rec-assign-text"><b>신규 ${timeStr} ${region}</b> <span class="rec-assign-tag tag-new">양측 4인 배정</span></div></div>
+          ${swapRows||'<div class="rec-assign-row"><span class="rec-assign-icon">📌</span><div class="rec-assign-text">기존 예식 교체 없이 양측 배정 가능</div></div>'}
         </div>
-        <div class="rec-prose ${cardSt}"><b>[1팀 ${t1.team}]</b> ${buildProse(t1,inqTime,region)}<br><br><b>[2팀 ${t2.team}]</b> ${buildProse(t2,inqTime,region)}<br><br>두 부부세트 모두 투입 가능하므로 양측 운영에 필요한 4인 배정이 가능합니다.</div>
+        <div class="rec-prose ${cardSt}">${buildBothSideProse(t1,t2,t1Rep,t2Rep,inqTime,timeStr,region)}</div>
         <div class="rec-actions">
           <button class="rec-btn btn-keep" onclick="showToast('현재 배정 유지')">현재 유지</button>
           <button class="rec-btn btn-apply" onclick="applyRec('${sk1}','${sk2}')">추천안 적용</button>
