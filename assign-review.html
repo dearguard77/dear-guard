@@ -848,10 +848,18 @@ async function checkInquiry(){
       const swapFit=tryFitWithExisting(remaining,inqTime,inqRegion,travelFn);
       enrichFit(swapFit);
       if(!swapFit||swapFit.buffer<10)continue;
+      // 드롭 예식의 기존 담당자 → 대체팀 후보에서 반드시 제외 (같은 예식 담당자는 대체 불가)
+      const dropRow=schedRows.find(r=>r.id===dropSched.id);
+      const dropMgrs=new Set([
+        ...(dropRow?.front_manager||'').split(','),
+        ...(dropRow?.back_manager||'').split(',')
+      ].map(m=>m.trim()).filter(Boolean));
+
       let replacer=null;
       for(const[rA,rB]of COUPLE_LIST){
-        if(rA===mA||rB===mB)continue;
-        if(unavSet.has(rA)||unavSet.has(rB))continue;
+        if(rA===mA||rB===mB)continue;                    // 현재 신규 투입팀 제외
+        if(unavSet.has(rA)||unavSet.has(rB))continue;    // 불가 등록자 제외
+        if(dropMgrs.has(rA)||dropMgrs.has(rB))continue; // 드롭 예식 기존 담당자 제외 ← 핵심
         const rExisting=getTeamExisting([rA,rB],mgrMap);
         const rFit=tryFitWithExisting(rExisting,toMins(dropSched.time),dropSched.region||regionFromHall(dropSched.hall));
         if(rFit&&rFit.buffer>=10){replacer={team:`${rA} ♥ ${rB}`,fit:rFit};break;}
@@ -1254,19 +1262,49 @@ function renderInqResult(scenarios,curAssignHtml,dateStr,inqTime,timeStr,region,
         let t1Valid=true, t2Valid=true;
 
         if(t1.swapNeeded&&t1Rep&&comboNames.has(t1Rep.team)){
-          // t1의 replacer가 콤보 내부 → 콤보 외부의 여유 팀 탐색 (swapNeeded 없는 팀 우선)
-          const alt=scenarios.find(s=>!comboNames.has(s.team)&&s.status!=='fail'&&s.status!=='unavail'&&!s.swapNeeded)
-                  ||scenarios.find(s=>!comboNames.has(s.team)&&s.status!=='fail'&&s.status!=='unavail');
+          // t1 replacer가 콤보 내부 → 외부 팀 탐색 (드롭 예식 기존 담당자도 제외)
+          const dropRow1=lastSchedRows.find(r=>r.id===t1.swapSched?.id);
+          const drop1Mgrs=new Set([...(dropRow1?.front_manager||'').split(','),...(dropRow1?.back_manager||'').split(',')].map(m=>m.trim()).filter(Boolean));
+          const isOk1=(s)=>!comboNames.has(s.team)&&s.status!=='fail'&&s.status!=='unavail'&&!(s.teamList?.some(m=>drop1Mgrs.has(m)));
+          const alt=scenarios.find(s=>isOk1(s)&&!s.swapNeeded)||scenarios.find(s=>isOk1(s));
           if(alt) t1Rep={team:alt.team};
           else{t1Valid=false;}
         }
         if(t2.swapNeeded&&t2Rep&&comboNames.has(t2Rep.team)){
-          // t2의 replacer가 콤보 내부 → t1Rep와도 겹치지 않는 외부 팀 탐색
+          // t2 replacer가 콤보 내부 → 외부 팀 탐색 (드롭 예식 기존 담당자 + t1Rep 중복 제외)
+          const dropRow2=lastSchedRows.find(r=>r.id===t2.swapSched?.id);
+          const drop2Mgrs=new Set([...(dropRow2?.front_manager||'').split(','),...(dropRow2?.back_manager||'').split(',')].map(m=>m.trim()).filter(Boolean));
           const excl=new Set([...comboNames,t1Rep?.team].filter(Boolean));
-          const alt=scenarios.find(s=>!excl.has(s.team)&&s.status!=='fail'&&s.status!=='unavail'&&!s.swapNeeded)
-                  ||scenarios.find(s=>!excl.has(s.team)&&s.status!=='fail'&&s.status!=='unavail');
+          const isOk2=(s)=>!excl.has(s.team)&&s.status!=='fail'&&s.status!=='unavail'&&!(s.teamList?.some(m=>drop2Mgrs.has(m)));
+          const alt=scenarios.find(s=>isOk2(s)&&!s.swapNeeded)||scenarios.find(s=>isOk2(s));
           if(alt) t2Rep={team:alt.team};
           else{t2Valid=false;}
+        }
+
+        // t1Rep/t2Rep가 콤보 외부라도 드롭 예식 기존 담당자이면 무효
+        if(t1.swapNeeded&&t1Rep&&!comboNames.has(t1Rep.team)){
+          const dropRow1=lastSchedRows.find(r=>r.id===t1.swapSched?.id);
+          const drop1Mgrs=new Set([...(dropRow1?.front_manager||'').split(','),...(dropRow1?.back_manager||'').split(',')].map(m=>m.trim()).filter(Boolean));
+          const repPair=COUPLE_LIST.find(([a,b])=>`${a} ♥ ${b}`===t1Rep.team);
+          if(repPair&&(drop1Mgrs.has(repPair[0])||drop1Mgrs.has(repPair[1]))){
+            // 기존 담당자가 replacer → 재탐색
+            const isOk=(s)=>!comboNames.has(s.team)&&s.status!=='fail'&&s.status!=='unavail'&&!(s.teamList?.some(m=>drop1Mgrs.has(m)));
+            const alt=scenarios.find(s=>isOk(s)&&!s.swapNeeded)||scenarios.find(s=>isOk(s));
+            if(alt) t1Rep={team:alt.team};
+            else{t1Valid=false;}
+          }
+        }
+        if(t2.swapNeeded&&t2Rep&&!comboNames.has(t2Rep.team)){
+          const dropRow2=lastSchedRows.find(r=>r.id===t2.swapSched?.id);
+          const drop2Mgrs=new Set([...(dropRow2?.front_manager||'').split(','),...(dropRow2?.back_manager||'').split(',')].map(m=>m.trim()).filter(Boolean));
+          const repPair=COUPLE_LIST.find(([a,b])=>`${a} ♥ ${b}`===t2Rep.team);
+          if(repPair&&(drop2Mgrs.has(repPair[0])||drop2Mgrs.has(repPair[1]))){
+            const excl=new Set([...comboNames,t1Rep?.team].filter(Boolean));
+            const isOk=(s)=>!excl.has(s.team)&&s.status!=='fail'&&s.status!=='unavail'&&!(s.teamList?.some(m=>drop2Mgrs.has(m)));
+            const alt=scenarios.find(s=>isOk(s)&&!s.swapNeeded)||scenarios.find(s=>isOk(s));
+            if(alt) t2Rep={team:alt.team};
+            else{t2Valid=false;}
+          }
         }
 
         // 대체팀 없으면 이 조합은 양측 배정 불가 → 제외
