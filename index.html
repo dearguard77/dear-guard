@@ -704,14 +704,14 @@
         <!-- 봉투 접수 -->
         <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:8px">
           <div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:6px">📪 봉투 접수</div>
-          <input id="rt-env-names" class="form-input" placeholder="전달자명 (예: 강성주, 전수연) — 비워두면 미출력" style="font-size:12px">
+          <input id="rt-env-names" class="form-input" placeholder="전달자명 (예: 강성주, 전수연) — 비워두면 미출력" style="font-size:12px" oninput="rtAutoSaveClosing()">
         </div>
         <!-- 식권 배부 -->
         <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px">
           <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">🎫 식권 배부</div>
-          <input id="rt-tkt-names" class="form-input" placeholder="대상자명 (예: 강성주, 전수연) — 비워두면 미출력" style="font-size:12px;margin-bottom:6px">
+          <input id="rt-tkt-names" class="form-input" placeholder="대상자명 (예: 강성주, 전수연) — 비워두면 미출력" style="font-size:12px;margin-bottom:6px" oninput="rtAutoSaveClosing()">
           <div style="display:flex;align-items:center;gap:6px">
-            <input id="rt-tkt-count" class="form-input" type="number" value="1" min="1" style="font-size:12px;width:70px">
+            <input id="rt-tkt-count" class="form-input" type="number" value="1" min="1" style="font-size:12px;width:70px" oninput="rtAutoSaveClosing()">
             <span style="font-size:12px;color:#6B7280">장</span>
           </div>
         </div>
@@ -5030,7 +5030,25 @@ function getClosingItems(){
   return items;
 }
 
-// 인계 물품 자동 연동 (예식 선택 시 rtLoadSchedule에서 호출)
+// 추가 상황 입력 즉시 Supabase 자동 저장 (디바운스 1초)
+let _closingAutoSaveTimer = null;
+function rtAutoSaveClosing(){
+  clearTimeout(_closingAutoSaveTimer);
+  _closingAutoSaveTimer = setTimeout(async () => {
+    if(!rtSchedule?.id) return; // 예식 선택 전이면 저장 생략
+    const closingJson = JSON.stringify({
+      envNames: document.getElementById('rt-env-names')?.value?.trim() || '',
+      tktNames: document.getElementById('rt-tkt-names')?.value?.trim() || '',
+      tktCount: document.getElementById('rt-tkt-count')?.value?.trim() || '1',
+    });
+    try{
+      await sb.patch('schedules', rtSchedule.id, { handover_cert_closing: closingJson });
+      rtSchedule.handoverCertClosing = closingJson;
+    }catch(e){ console.warn('[DG] 마감 후 상황 자동 저장 실패:', e); }
+  }, 1000);
+}
+
+
 function rtFillHandoverItems(){
   const itemsEl = document.getElementById('rt-handover-items');
   const d = rtResultData;
