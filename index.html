@@ -698,22 +698,16 @@
         <textarea id="rt-handover-items" class="form-input" rows="3" style="font-size:12px;resize:vertical" placeholder="· 축의금 및 봉투가 담긴 레디백&#10;· 방명록&#10;· 잔여 식권"></textarea>
       </div>
 
-      <!-- 추가 상황 선택 -->
+      <!-- 추가 상황 다중 입력 -->
       <div style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">추가 상황</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="없음" checked onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 없음</label>
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="봉투접수" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 봉투 접수</label>
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;font-weight:600"><input type="radio" name="rt-closing" value="식권배부" onchange="rtClosingChange(this.value)" style="accent-color:#C7A96B"> 식권 배부</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:700;color:#374151">추가 상황</div>
+          <div style="display:flex;gap:6px">
+            <button onclick="rtAddClosingItem('envelope')" style="background:#fff;border:1px solid #C7A96B;color:#C7A96B;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">+ 봉투 접수</button>
+            <button onclick="rtAddClosingItem('ticket')" style="background:#fff;border:1px solid #374151;color:#374151;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">+ 식권 배부</button>
+          </div>
         </div>
-        <div id="rt-closing-envelope" style="display:none;margin-bottom:8px">
-          <input id="rt-env-name" class="form-input" placeholder="이름" style="font-size:12px;margin-bottom:6px">
-          <input id="rt-env-content" class="form-input" placeholder="내용 (예: 봉투 1개)" style="font-size:12px">
-        </div>
-        <div id="rt-closing-ticket" style="display:none;margin-bottom:8px">
-          <input id="rt-tkt-name" class="form-input" placeholder="대상자" style="font-size:12px;margin-bottom:6px">
-          <input id="rt-tkt-count" class="form-input" type="number" placeholder="수량" style="font-size:12px">
-        </div>
+        <div id="rt-closing-list"></div>
       </div>
       <!-- 전자 인계확인서 -->
       <div style="margin-bottom:14px">
@@ -4992,9 +4986,52 @@ function rtGenStep2(){
   document.getElementById('rt-out-2').value = txt;
 }
 
-function rtClosingChange(val){
-  document.getElementById('rt-closing-envelope').style.display = val==='봉투접수' ? 'block' : 'none';
-  document.getElementById('rt-closing-ticket').style.display   = val==='식권배부'  ? 'block' : 'none';
+// 마감 후 상황 카드 추가
+function rtAddClosingItem(type){
+  const list = document.getElementById('rt-closing-list');
+  if(!list) return;
+  const id = 'closing-' + Date.now();
+  const card = document.createElement('div');
+  card.id = id;
+  card.dataset.closingType = type;
+  card.style.cssText = 'background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:8px';
+  if(type === 'envelope'){
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:#C7A96B">📪 봉투 접수</span>
+        <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:#9CA3AF;font-size:12px;cursor:pointer;font-weight:700">삭제</button>
+      </div>
+      <input data-field="name" class="form-input" placeholder="전달자명" style="font-size:12px;margin-bottom:6px">
+      <input data-field="content" class="form-input" placeholder="내용 (선택)" style="font-size:12px">`;
+  } else {
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:#374151">🎫 식권 배부</span>
+        <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:#9CA3AF;font-size:12px;cursor:pointer;font-weight:700">삭제</button>
+      </div>
+      <input data-field="name" class="form-input" placeholder="대상자명" style="font-size:12px;margin-bottom:6px">
+      <input data-field="count" class="form-input" type="number" placeholder="수량" style="font-size:12px">`;
+  }
+  list.appendChild(card);
+}
+
+// 마감 후 상황 모든 항목 문자열 배열로 수집
+function getClosingItems(){
+  const items = [];
+  document.querySelectorAll('#rt-closing-list > [data-closing-type]').forEach(card => {
+    const type = card.dataset.closingType;
+    const nameEl = card.querySelector('[data-field="name"]');
+    const name = nameEl?.value?.trim() || '';
+    if(!name) return;
+    if(type === 'envelope'){
+      const content = card.querySelector('[data-field="content"]')?.value?.trim() || '';
+      items.push(`식 종료 후 ${name}님께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`);
+    } else {
+      const count = card.querySelector('[data-field="count"]')?.value?.trim() || '1';
+      items.push(`식 종료 후 ${name}님 식권 ${count}장을 배부하였습니다.`);
+    }
+  });
+  return items;
 }
 
 // 인계 물품 자동 연동 (예식 선택 시 rtLoadSchedule에서 호출)
@@ -5017,7 +5054,7 @@ function rtGenStep3(){
     return;
   }
 
-  const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
+  const val = ''; // getClosingItems()로 대체
   const d = rtResultData;
   const t = rtTarget;
 
@@ -5033,17 +5070,11 @@ function rtGenStep3(){
   const pwLine = pw ? `\n\n🔒 레디백 비밀번호는 사전 안내주신\n${pw}로 설정해두었습니다 :)` : '';
   let txt = `📦 ${handoverName}님께 아래 물품과 함께\n전달 완료하였습니다.\n\n${itemsList}${pwLine}\n\n🌸 화환 사진과 인계확인서도 함께 전달드립니다.`;
 
-  // ── 추가 상황 (선택했을 때만 덧붙임) ──
-  if(val === '봉투접수'){
-    const name    = document.getElementById('rt-env-name')?.value?.trim()    || '○○';
-    const content = document.getElementById('rt-env-content')?.value?.trim() || '봉투';
-    txt += `\n\n식 종료 후 ${name}님께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`;
-  } else if(val === '식권배부'){
-    const name  = document.getElementById('rt-tkt-name')?.value?.trim()  || '○○';
-    const count = document.getElementById('rt-tkt-count')?.value?.trim() || '1';
-    txt += `\n\n식 종료 후 ${name}님 식권 ${count}장을 배부하였습니다.`;
+  // ── 추가 상황 (다중 항목 순서대로 출력) ──
+  const closingItems = getClosingItems();
+  if(closingItems.length > 0){
+    txt += '\n\n' + closingItems.join('\n\n');
   }
-  // val === '없음'이면 추가 문구 없이 인계 안내만 출력
 
   document.getElementById('rt-out-3').value = txt;
 }
@@ -5067,7 +5098,7 @@ function rtOpenHandoverCert(){
     : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
 
   // 물품 항목(수령 확인) + 절차 확인 항목(직접확인/설명확인) — 모두 수령인이 실제로 체크해야 함
-  const procedureItems = ['물품 직접 확인', '인계 내용 설명 확인'];
+  const procedureItems = ['수령 물품을 직접 확인하였습니다.', '인계 내용에 대한 설명을 들었습니다.'];
 
   hvChecks = {};
   items.forEach((_, i) => { hvChecks['item'+i] = false; });
@@ -5241,6 +5272,9 @@ function rtCompleteHandover(){
 
   showToast('✅ 인계확인서 서명이 완료되었습니다');
 
+  // 서명 완료 직후 이미지 미리보기 자동 노출
+  setTimeout(() => rtSaveHandoverCertImage(true), 300);
+
   // 새로고침해도 작성 상태가 유지되도록 schedules 테이블에 저장
   if(rtSchedule?.id){
     sb.patch('schedules', rtSchedule.id, {
@@ -5274,9 +5308,8 @@ function rtCompleteHandover(){
   }
 }
 
-// B안: 인계확인서 서명 완료를 중심으로 문구 재구성
 function rtGenStep3WithSignature(name){
-  const val = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
+  const closingItems = getClosingItems();
   const d = rtResultData;
   const t = rtTarget;
 
@@ -5293,14 +5326,8 @@ function rtGenStep3WithSignature(name){
 
   let txt = `📦 ${name}님께 인계 완료되었습니다.\n\n인계확인서가 정상적으로 작성되었으며,\n수령인 본인이 직접 항목을 확인하고\n전자서명까지 완료하셨습니다.\n\n${itemsList}${pwLine}`;
 
-  if(val === '봉투접수'){
-    const envName    = document.getElementById('rt-env-name')?.value?.trim()    || '○○';
-    const envContent = document.getElementById('rt-env-content')?.value?.trim() || '봉투';
-    txt += `\n\n식 종료 후 ${envName}님께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`;
-  } else if(val === '식권배부'){
-    const tktName  = document.getElementById('rt-tkt-name')?.value?.trim()  || '○○';
-    const tktCount = document.getElementById('rt-tkt-count')?.value?.trim() || '1';
-    txt += `\n\n식 종료 후 ${tktName}님 식권 ${tktCount}장을 배부하였습니다.`;
+  if(closingItems.length > 0){
+    txt += '\n\n' + closingItems.join('\n\n');
   }
 
   txt += `\n\n🌸 화환 사진과 인계확인서도 함께 전달드립니다.`;
@@ -5342,29 +5369,16 @@ async function rtSaveHandoverCertImage(viewOnly){
     ? itemsRaw.split(/[\n,，、]/).map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
     : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
   // 수령 확인 체크 항목: 인계 물품 + 확인 절차 항목 (수령인이 실제로 체크한 항목과 동일)
-  const checkItemsArr = [...itemsArr.map(it=>`${it} 수령`), '물품 직접 확인', '인계 내용 설명 확인'];
+  const checkItemsArr = [...itemsArr.map(it=>`${it} 수령`), '수령 물품을 직접 확인하였습니다.', '인계 내용에 대한 설명을 들었습니다.'];
 
   const phoneRaw = (document.getElementById('hv-phone')?.value || '').trim() || rtSchedule?.handoverCertPhone || '';
 
   // 관계/성함 통합값에서 표시용으로 그대로 사용 (예: "가방순이 김희애" 또는 "가방순이/김희애" 등 입력 형식 그대로)
   const nameDisplay = hvCompletedName || document.getElementById('hv-name')?.value?.trim() || '-';
 
-  // 접수 마감 후 상황 — 선택된 내용이 있을 때만 출력
-  const closingVal = document.querySelector('input[name="rt-closing"]:checked')?.value || '없음';
-  let closingText = '';
-  if(closingVal === '봉투접수'){
-    const envName    = document.getElementById('rt-env-name')?.value?.trim()    || '';
-    const envContent = document.getElementById('rt-env-content')?.value?.trim() || '';
-    if(envName){
-      closingText = `식 종료 후 ${envName}님${envContent ? ' '+envContent+'이(가)' : ''} 추가 접수되어\n별도 개봉 없이 레디백에 동봉하였습니다.`;
-    }
-  } else if(closingVal === '식권배부'){
-    const tktName  = document.getElementById('rt-tkt-name')?.value?.trim()  || '';
-    const tktCount = document.getElementById('rt-tkt-count')?.value?.trim() || '1';
-    if(tktName){
-      closingText = `식 종료 후 ${tktName}님 식권 ${tktCount}장을 배부하였습니다.`;
-    }
-  }
+  // 접수 마감 후 상황 — 다중 항목 수집
+  const closingItems = getClosingItems();
+  const closingText = closingItems.join('\n\n');
 
   const div = document.createElement('div');
   div.id = 'hv-cert-capture';
@@ -5473,7 +5487,14 @@ async function rtSaveHandoverCertImage(viewOnly){
       overlay.id = 'hv-cert-viewer';
       overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:4000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px';
       overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
-      overlay.innerHTML = `<div style="position:relative;max-width:640px;width:100%"><button onclick="document.getElementById('hv-cert-viewer').remove()" style="position:sticky;top:0;float:right;background:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;z-index:1;margin-bottom:8px">✕</button><img src="${dataUrl}" style="width:100%;border-radius:12px;display:block;clear:both"></div>`;
+      overlay.innerHTML = `<div style="position:relative;max-width:640px;width:100%">
+        <button onclick="document.getElementById('hv-cert-viewer').remove()" style="position:sticky;top:0;float:right;background:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;z-index:1;margin-bottom:8px">✕</button>
+        <div style="clear:both;background:#1F2937;color:#fff;border-radius:10px;padding:12px 16px;margin-bottom:10px;font-size:13px;line-height:1.7;text-align:center">
+          📱 이미지를 <b>길게 눌러</b> 저장해주세요 😊<br>
+          <span style="font-size:12px;color:#D1D5DB">카카오톡에서 저장이 안 될 경우<br>Safari / Chrome으로 열어 다시 시도해주세요.</span>
+        </div>
+        <img src="${dataUrl}" style="width:100%;border-radius:12px;display:block">
+      </div>`;
       document.body.appendChild(overlay);
       showToast('👁 인계확인서를 열람합니다');
     } else {
