@@ -698,16 +698,23 @@
         <textarea id="rt-handover-items" class="form-input" rows="3" style="font-size:12px;resize:vertical" placeholder="· 축의금 및 봉투가 담긴 레디백&#10;· 방명록&#10;· 잔여 식권"></textarea>
       </div>
 
-      <!-- 추가 상황 다중 입력 -->
+      <!-- 추가 상황 고정 입력 -->
       <div style="margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:700;color:#374151">추가 상황</div>
-          <div style="display:flex;gap:6px">
-            <button onclick="rtAddClosingItem('envelope')" style="background:#fff;border:1px solid #C7A96B;color:#C7A96B;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">+ 봉투 접수</button>
-            <button onclick="rtAddClosingItem('ticket')" style="background:#fff;border:1px solid #374151;color:#374151;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer">+ 식권 배부</button>
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">추가 상황</div>
+        <!-- 봉투 접수 -->
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:6px">📪 봉투 접수</div>
+          <input id="rt-env-names" class="form-input" placeholder="전달자명 (예: 강성주, 전수연) — 비워두면 미출력" style="font-size:12px">
+        </div>
+        <!-- 식권 배부 -->
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px">
+          <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">🎫 식권 배부</div>
+          <input id="rt-tkt-names" class="form-input" placeholder="대상자명 (예: 강성주, 전수연) — 비워두면 미출력" style="font-size:12px;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <input id="rt-tkt-count" class="form-input" type="number" value="1" min="1" style="font-size:12px;width:70px">
+            <span style="font-size:12px;color:#6B7280">장</span>
           </div>
         </div>
-        <div id="rt-closing-list"></div>
       </div>
       <!-- 전자 인계확인서 -->
       <div style="margin-bottom:14px">
@@ -1443,6 +1450,7 @@ function rowToSchedule(row){
     handoverCertPhone:     row.handover_cert_phone     || '',
     handoverCertSignature: row.handover_cert_signature || '',
     handoverCertItems:     row.handover_cert_items     || '',
+    handoverCertClosing:   row.handover_cert_closing   || '',
   };
 }
 
@@ -4709,7 +4717,7 @@ async function rtLoadSchedule(){
 
   // schedules 메모리 캐시가 오래됐을 수 있으므로 식권 관련 최신값 재조회
   try {
-    const fresh = await sb.get('schedules', `?id=eq.${id}&select=ticket_total_groom,ticket_total_bride,handover_person,dashboard_token,groom_token,bride_token,groom_contact_name,groom_contact_phone,bride_contact_name,bride_contact_phone,groom_handover_name,groom_handover_phone,groom_handoff_items,groom_password,bride_handover_name,bride_handover_phone,bride_handoff_items,bride_password,handover_cert_completed,handover_cert_at,handover_cert_name,handover_cert_phone,handover_cert_signature,handover_cert_items`);
+    const fresh = await sb.get('schedules', `?id=eq.${id}&select=ticket_total_groom,ticket_total_bride,handover_person,dashboard_token,groom_token,bride_token,groom_contact_name,groom_contact_phone,bride_contact_name,bride_contact_phone,groom_handover_name,groom_handover_phone,groom_handoff_items,groom_password,bride_handover_name,bride_handover_phone,bride_handoff_items,bride_password,handover_cert_completed,handover_cert_at,handover_cert_name,handover_cert_phone,handover_cert_signature,handover_cert_items,handover_cert_closing`);
     if(fresh && fresh[0]){
       const f = fresh[0];
       rtSchedule.ticketTotalGroom  = f.ticket_total_groom || 0;
@@ -4738,6 +4746,17 @@ async function rtLoadSchedule(){
       rtSchedule.handoverCertPhone     = f.handover_cert_phone     || '';
       rtSchedule.handoverCertSignature = f.handover_cert_signature || '';
       rtSchedule.handoverCertItems     = f.handover_cert_items     || '';
+      rtSchedule.handoverCertClosing   = f.handover_cert_closing   || '';
+      // 마감 후 상황 고정 필드 복원
+      try{
+        const cl = f.handover_cert_closing ? JSON.parse(f.handover_cert_closing) : {};
+        const envEl   = document.getElementById('rt-env-names');
+        const tktNEl  = document.getElementById('rt-tkt-names');
+        const tktCEl  = document.getElementById('rt-tkt-count');
+        if(envEl)  envEl.value  = cl.envNames || '';
+        if(tktNEl) tktNEl.value = cl.tktNames || '';
+        if(tktCEl) tktCEl.value = cl.tktCount || '1';
+      }catch(e){}
     }
   } catch(e){ console.warn('[DG] 예식 최신값 재조회 실패:', e); }
 
@@ -4986,51 +5005,28 @@ function rtGenStep2(){
   document.getElementById('rt-out-2').value = txt;
 }
 
-// 마감 후 상황 카드 추가
-function rtAddClosingItem(type){
-  const list = document.getElementById('rt-closing-list');
-  if(!list) return;
-  const id = 'closing-' + Date.now();
-  const card = document.createElement('div');
-  card.id = id;
-  card.dataset.closingType = type;
-  card.style.cssText = 'background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:8px';
-  if(type === 'envelope'){
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:12px;font-weight:700;color:#C7A96B">📪 봉투 접수</span>
-        <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:#9CA3AF;font-size:12px;cursor:pointer;font-weight:700">삭제</button>
-      </div>
-      <input data-field="name" class="form-input" placeholder="전달자명" style="font-size:12px;margin-bottom:6px">
-      <input data-field="content" class="form-input" placeholder="내용 (선택)" style="font-size:12px">`;
-  } else {
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:12px;font-weight:700;color:#374151">🎫 식권 배부</span>
-        <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:#9CA3AF;font-size:12px;cursor:pointer;font-weight:700">삭제</button>
-      </div>
-      <input data-field="name" class="form-input" placeholder="대상자명" style="font-size:12px;margin-bottom:6px">
-      <input data-field="count" class="form-input" type="number" placeholder="수량" style="font-size:12px">`;
-  }
-  list.appendChild(card);
+// 콤마 구분 이름 → "강성주님, 전수연님" 형식 변환
+function rtFormatNames(input){
+  return (input||'').split(',')
+    .map(n=>n.trim()).filter(Boolean)
+    .map(n=>n.endsWith('님')?n:n+'님')
+    .join(', ');
 }
 
-// 마감 후 상황 모든 항목 문자열 배열로 수집
+// 마감 후 상황 — 고정 필드에서 문자열 배열로 수집
 function getClosingItems(){
   const items = [];
-  document.querySelectorAll('#rt-closing-list > [data-closing-type]').forEach(card => {
-    const type = card.dataset.closingType;
-    const nameEl = card.querySelector('[data-field="name"]');
-    const name = nameEl?.value?.trim() || '';
-    if(!name) return;
-    if(type === 'envelope'){
-      const content = card.querySelector('[data-field="content"]')?.value?.trim() || '';
-      items.push(`식 종료 후 ${name}님께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`);
-    } else {
-      const count = card.querySelector('[data-field="count"]')?.value?.trim() || '1';
-      items.push(`식 종료 후 ${name}님 식권 ${count}장을 배부하였습니다.`);
-    }
-  });
+  const envNames = document.getElementById('rt-env-names')?.value?.trim();
+  if(envNames){
+    const formatted = rtFormatNames(envNames);
+    items.push(`식 종료 후 ${formatted}께서 봉투를 전달해주셨으며,\n별도 개봉 없이 레디백에 동봉하였습니다.`);
+  }
+  const tktNames = document.getElementById('rt-tkt-names')?.value?.trim();
+  if(tktNames){
+    const formatted = rtFormatNames(tktNames);
+    const count = document.getElementById('rt-tkt-count')?.value?.trim() || '1';
+    items.push(`식 종료 후 ${formatted} 식권 ${count}장을 배부하였습니다.`);
+  }
   return items;
 }
 
@@ -5277,6 +5273,11 @@ function rtCompleteHandover(){
 
   // 새로고침해도 작성 상태가 유지되도록 schedules 테이블에 저장
   if(rtSchedule?.id){
+    const closingJson = JSON.stringify({
+      envNames: document.getElementById('rt-env-names')?.value?.trim() || '',
+      tktNames: document.getElementById('rt-tkt-names')?.value?.trim() || '',
+      tktCount: document.getElementById('rt-tkt-count')?.value?.trim() || '1',
+    });
     sb.patch('schedules', rtSchedule.id, {
       handover_cert_completed: true,
       handover_cert_at:        hvCompletedAt.toISOString(),
@@ -5284,6 +5285,7 @@ function rtCompleteHandover(){
       handover_cert_phone:     hvCompletedPhone,
       handover_cert_signature: hvSignatureDataUrl,
       handover_cert_items:     hvCompletedItems,
+      handover_cert_closing:   closingJson,
     }).then(updated => {
       // 메모리 캐시도 동기화
       rtSchedule.handoverCertCompleted = true;
@@ -5368,17 +5370,14 @@ async function rtSaveHandoverCertImage(viewOnly){
   const itemsArr = itemsRaw
     ? itemsRaw.split(/[\n,，、]/).map(l=>l.trim().replace(/^[·\-•]\s*/,'')).filter(Boolean)
     : ['축의금 및 봉투가 담긴 레디백', '방명록', '잔여 식권'];
-  // 수령 확인 체크 항목: 인계 물품 + 확인 절차 항목 (수령인이 실제로 체크한 항목과 동일)
-  const checkItemsArr = [...itemsArr.map(it=>`${it} 수령`), '수령 물품을 직접 확인하였습니다.', '인계 내용에 대한 설명을 들었습니다.'];
+  // 확인 절차 항목 (수령인이 체크)
+  const procedureItems = ['수령 물품을 직접 확인하셨습니다.', '인계 내용에 대한 설명을 들으셨습니다.'];
 
   const phoneRaw = (document.getElementById('hv-phone')?.value || '').trim() || rtSchedule?.handoverCertPhone || '';
-
-  // 관계/성함 통합값에서 표시용으로 그대로 사용 (예: "가방순이 김희애" 또는 "가방순이/김희애" 등 입력 형식 그대로)
   const nameDisplay = hvCompletedName || document.getElementById('hv-name')?.value?.trim() || '-';
 
   // 접수 마감 후 상황 — 다중 항목 수집
   const closingItems = getClosingItems();
-  const closingText = closingItems.join('\n\n');
 
   const div = document.createElement('div');
   div.id = 'hv-cert-capture';
@@ -5419,15 +5418,22 @@ async function rtSaveHandoverCertImage(viewOnly){
           <div style="flex:1;font-weight:700">${esc(phoneRaw||'-')}</div>
         </div>
 
-        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">수령 확인</div>
-        ${checkItemsArr.map(it=>`<div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#374151;padding:5px 0">
+        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">인계 품목</div>
+        ${itemsArr.map(it=>`<div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#374151;padding:5px 0">
           <span style="color:#10B981;font-weight:900;font-size:15px">☑</span>${esc(it)}
         </div>`).join('')}
 
-        ${closingText ? `
+        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-top:18px;margin-bottom:10px">확인 사항</div>
+        ${procedureItems.map(it=>`<div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#374151;padding:5px 0">
+          <span style="color:#10B981;font-weight:900;font-size:15px">☑</span>${esc(it)}
+        </div>`).join('')}
+
+        ${closingItems.length ? `
         <div style="margin-top:24px">
           <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">접수 마감 후 상황</div>
-          <div style="background:#FAFAF9;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;font-size:13px;color:#374151;line-height:1.7;white-space:pre-line">${esc(closingText)}</div>
+          <div style="background:#FAFAF9;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;font-size:13px;color:#374151;line-height:1.7">
+            ${closingItems.map(item=>`<div style="margin-bottom:${closingItems.length>1?'10px':'0'}">· ${esc(item)}</div>`).join('')}
+          </div>
         </div>` : ''}
 
         <div style="margin-top:30px;border-top:2px solid #C7A96B;padding-top:20px">
