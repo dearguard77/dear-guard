@@ -5001,14 +5001,15 @@ function rtAddClosingItem(type){
         <span style="font-size:12px;font-weight:700;color:#C7A96B">📪 봉투 접수</span>
         <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:#9CA3AF;font-size:12px;cursor:pointer;font-weight:700">삭제</button>
       </div>
-      <input data-field="name" class="form-input" placeholder="ex)전달자명(짱구, 철수, 훈이)" style="font-size:12px;margin-bottom:6px">
+      <input data-field="name" class="form-input" placeholder="전달자명" style="font-size:12px;margin-bottom:6px">
+      <input data-field="content" class="form-input" placeholder="내용 (선택)" style="font-size:12px">`;
   } else {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:12px;font-weight:700;color:#374151">🎫 식권 배부</span>
         <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;color:#9CA3AF;font-size:12px;cursor:pointer;font-weight:700">삭제</button>
       </div>
-      <input data-field="name" class="form-input" placeholder="대상자명(흰둥이, 짱아,맹구)" style="font-size:12px;margin-bottom:6px">
+      <input data-field="name" class="form-input" placeholder="대상자명" style="font-size:12px;margin-bottom:6px">
       <input data-field="count" class="form-input" type="number" placeholder="수량" style="font-size:12px">`;
   }
   list.appendChild(card);
