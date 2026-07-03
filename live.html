@@ -825,6 +825,8 @@ function subscribeRealtime(){
   ws.onopen=()=>{
     ws.send(JSON.stringify({topic:`realtime:public:contribution_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'1'}));
     ws.send(JSON.stringify({topic:`realtime:public:operation_logs:schedule_id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'2'}));
+    // schedules 인계정보 변경 실시간 수신 (contribution.html saveHandover 반영)
+    ws.send(JSON.stringify({topic:`realtime:public:schedules:id=eq.${schedule.id}`,event:'phx_join',payload:{},ref:'3'}));
   };
   ws.onmessage=async e=>{
     try{
@@ -836,6 +838,13 @@ function subscribeRealtime(){
       if(topic.includes('operation_logs')){
         const fresh=await sb.get('operation_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`);
         opsLogs=fresh;renderOpsList();
+      } else if(topic.includes('schedules')){
+        // schedules 업데이트 → 인계정보 재fetch 후 화면 갱신
+        const freshRows=await sb.get('schedules',`?id=eq.${schedule.id}`);
+        if(freshRows&&freshRows.length){
+          Object.assign(schedule,freshRows[0]);
+          renderHandoverInfo(schedule,logs);
+        }
       } else {
         await loadLogs();
       }
