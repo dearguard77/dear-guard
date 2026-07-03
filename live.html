@@ -463,7 +463,7 @@ async function loadLogs(){
     const oldIds=new Set(logs.map(l=>l.id));
     nl.forEach(l=>{if(!oldIds.has(l.id))newIds.add(l.id);});
     logs=nl;opsLogs=no;preShares=np;
-    renderStats();renderList();renderOpsList();applyWeddingMode();
+    renderStats();renderList();renderOpsList();applyWeddingMode();renderHandover();
     showUpdBadge();
     se('last-upd','갱신 '+fmtTime(new Date().toISOString()));
   }catch(e){console.error('[DG] loadLogs',e);}
@@ -733,18 +733,32 @@ function renderHandover(){
   var gCard=document.getElementById('groom-info-card');
   var gBody=document.getElementById('groom-info-body');
   if(gCard&&gBody){
-    // ★ bride 토큰이면 신랑측 카드 숨김
-    var showG=currentViewSide!=='bride'&&((mode!=='단측')||hasGroom||(!hasGroom&&!hasBride));
+    // bride 토큰이면 신랑측 카드 숨김. groom 토큰이면 항상 표시. 양측/대시보드면 단측 조건 적용
+    var showG=currentViewSide!=='bride'&&(currentViewSide==='groom'||(mode!=='단측')||hasGroom||(!hasGroom&&!hasBride));
     gCard.style.display=showG?'':'none';
-    if(showG) gBody.innerHTML=buildInfoHtml(s.groom_handover_name,s.groom_handover_phone,s.groom_handoff_items,s.groom_password,s.groom_live1,s.groom_live2);
+    if(showG) gBody.innerHTML=buildInfoHtml(
+      s.groom_handover_name  || s.groom_contact_name  || '',
+      s.groom_handover_phone || s.groom_contact_phone || '',
+      s.groom_handoff_items,
+      s.groom_password,
+      s.groom_live1,
+      s.groom_live2
+    );
   }
   var bCard=document.getElementById('bride-info-card');
   var bBody=document.getElementById('bride-info-body');
   if(bCard&&bBody){
-    // ★ groom 토큰이면 신부측 카드 숨김
-    var showB=currentViewSide!=='groom'&&((mode!=='단측')||hasBride);
+    // groom 토큰이면 신부측 카드 숨김. bride 토큰이면 항상 표시. 양측/대시보드면 단측 조건 적용
+    var showB=currentViewSide!=='groom'&&(currentViewSide==='bride'||(mode!=='단측')||hasBride);
     bCard.style.display=showB?'':'none';
-    if(showB) bBody.innerHTML=buildInfoHtml(s.bride_handover_name,s.bride_handover_phone,s.bride_handoff_items,s.bride_password,s.bride_live1,s.bride_live2);
+    if(showB) bBody.innerHTML=buildInfoHtml(
+      s.bride_handover_name  || s.bride_contact_name  || '',
+      s.bride_handover_phone || s.bride_contact_phone || '',
+      s.bride_handoff_items,
+      s.bride_password,
+      s.bride_live1,
+      s.bride_live2
+    );
   }
   function setLiveBtn(id,url){
     var el=document.getElementById(id);
@@ -843,7 +857,7 @@ function subscribeRealtime(){
         const freshRows=await sb.get('schedules',`?id=eq.${schedule.id}`);
         if(freshRows&&freshRows.length){
           Object.assign(schedule,freshRows[0]);
-          renderHandoverInfo(schedule,logs);
+          renderHandover();
         }
       } else {
         await loadLogs();
