@@ -1315,6 +1315,18 @@ function resetForm(){
 // ── 접수 저장 ── [수정4: currentSchedule 없을때 goSelectSchedule 호출]
 async function submitEntry(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');goSelectSchedule();return;}
+
+  // 입력 누락 확인 팝업 (필수 차단 아님 - 확인 누르면 그대로 접수)
+  const _checkName = document.getElementById('guest-name').value.trim();
+  const _checkAmt  = Number((document.getElementById('amount-input').value||'').replace(/,/g,''))||st.amount||0;
+  const _warns = [];
+  if(!_checkName)              _warns.push('이름 없음');
+  if(Number(_checkAmt) <= 0)  _warns.push('금액 0원 또는 미입력');
+  if(_warns.length > 0){
+    const _ok = confirm('입력 누락 항목이 있습니다.\n\n' + _warns.map(w=>'- '+w).join('\n') + '\n\n이대로 접수하시겠습니까?');
+    if(!_ok) return;
+  }
+
   const amount=Number((document.getElementById('amount-input').value||'').replace(/,/g,''))||st.amount;
   const _side = st.side==='groom'?'신랑측':'신부측';
   const _sideMaxSeq = logs.filter(l=>l.side===_side).reduce((m,l)=>Math.max(m,l.seq||0),0);
