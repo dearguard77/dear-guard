@@ -730,11 +730,13 @@ function renderHandover(){
   var mode=s.wedding_mode||'양측';
   var hasGroom=logs.some(function(l){return l.side==='신랑측';});
   var hasBride=logs.some(function(l){return l.side==='신부측';});
+  // 인계정보 자체 존재 여부 (정보가 있으면 접수 여부와 무관하게 표시)
+  var hasGroomInfo=!!(s.groom_handover_name||s.groom_contact_name||s.groom_handoff_items||s.groom_password||s.groom_live1);
+  var hasBrideInfo=!!(s.bride_handover_name||s.bride_contact_name||s.bride_handoff_items||s.bride_password||s.bride_live1);
   var gCard=document.getElementById('groom-info-card');
   var gBody=document.getElementById('groom-info-body');
   if(gCard&&gBody){
-    // bride 토큰이면 신랑측 카드 숨김. groom 토큰이면 항상 표시. 양측/대시보드면 단측 조건 적용
-    var showG=currentViewSide!=='bride'&&(currentViewSide==='groom'||(mode!=='단측')||hasGroom||(!hasGroom&&!hasBride));
+    var showG=currentViewSide!=='bride'&&(currentViewSide==='groom'||hasGroomInfo||(mode!=='단측')||hasGroom||(!hasGroom&&!hasBride));
     gCard.style.display=showG?'':'none';
     if(showG) gBody.innerHTML=buildInfoHtml(
       s.groom_handover_name  || s.groom_contact_name  || '',
@@ -748,8 +750,7 @@ function renderHandover(){
   var bCard=document.getElementById('bride-info-card');
   var bBody=document.getElementById('bride-info-body');
   if(bCard&&bBody){
-    // groom 토큰이면 신부측 카드 숨김. bride 토큰이면 항상 표시. 양측/대시보드면 단측 조건 적용
-    var showB=currentViewSide!=='groom'&&(currentViewSide==='bride'||(mode!=='단측')||hasBride);
+    var showB=currentViewSide!=='groom'&&(currentViewSide==='bride'||hasBrideInfo||(mode!=='단측')||hasBride);
     bCard.style.display=showB?'':'none';
     if(showB) bBody.innerHTML=buildInfoHtml(
       s.bride_handover_name  || s.bride_contact_name  || '',
