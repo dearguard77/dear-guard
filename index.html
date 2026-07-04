@@ -4980,7 +4980,7 @@ function rtGenStep2(){
   const tktRem   = d.ticketByside ? `${tk.remain}장` : '-';
   // 현장 진행 상황 섹션: 선택된 항목이 있을 때만 출력
   const situationBlock = sitStr
-    ? `\n\n━━━━━━━━━━━━━━━━━━━\n📋 현장 진행 상황\n━━━━━━━━━━━━━━━━━━━\n\n${sitStr}`
+    ? `\n\n━━━━━━━\n📋 현장 진행 상황\n━━━━━━━\n\n${sitStr}`
     : '';
   // 특이사항 섹션: 입력된 내용이 있을 때만 출력
   const notesBlock = notes ? `\n\n📝 특이사항\n${notes}` : '';
@@ -4989,9 +4989,9 @@ function rtGenStep2(){
 오늘 소중한 결혼식 진심으로 축하드립니다 🤍
 디어가드 결과 보고 드립니다.
 
-━━━━━━━━━━━━━━━━━━━
+━━━━━━━
 📊 현장 결과 요약
-━━━━━━━━━━━━━━━━━━━
+━━━━━━━
 
 👥 총 접수 인원: ${guests}
 💰 총 축의금: ${amount}
@@ -5080,6 +5080,8 @@ function rtGenStep3(){
     else if(bName)          handoverName = `신부측 ${bName}`;
     pw = [d.groomPw, d.bridePw].filter(Boolean).join(' / ');
   }
+
+  console.log('[handover]', t, { groom: d.handoverByside?.groom, bride: d.handoverByside?.bride, selected: handoverName, hvCompleted, hvCompletedName });
 
   // 인계확인서 서명이 완료된 경우 → 서명완료 강조형(B안) 사용
   // 단, 이름은 측별 인계자(handoverName)를 우선 사용 (hvCompletedName 교차 사용 금지)
