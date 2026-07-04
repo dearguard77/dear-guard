@@ -4606,8 +4606,8 @@ function renderResultTab(){
   const sel = document.getElementById('rt-schedule-sel');
   if(sel){
     const todayMs = Date.now();
-    const fromDate = new Date(todayMs - 15*24*3600*1000).toISOString().slice(0,10);
-    const toDate   = new Date(todayMs + 15*24*3600*1000).toISOString().slice(0,10);
+    const fromDate = new Date(todayMs - 7*24*3600*1000).toISOString().slice(0,10);
+    const toDate   = new Date(todayMs + 7*24*3600*1000).toISOString().slice(0,10);
 
     // 권한별 필터: 관리자는 전체, 매니저는 본인 담당 예식만
     const isAdmin = ADMIN_NAMES.includes(currentUser.name);
