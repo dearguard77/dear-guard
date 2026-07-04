@@ -4841,8 +4841,8 @@ async function rtLoadSchedule(){
   const bHandoverName  = rtSchedule.brideHandoverName || rtSchedule.brideContactName  || '';
   const bHandoverPhone = rtSchedule.brideHandoverPhone || rtSchedule.brideContactPhone || '';
   const handoverByside = {
-    groom: gHandoverName ? `${gHandoverName}${gHandoverPhone ? ' ('+gHandoverPhone+')' : ''}` : commonHandover,
-    bride: bHandoverName ? `${bHandoverName}${bHandoverPhone ? ' ('+bHandoverPhone+')' : ''}` : commonHandover,
+    groom: gHandoverName ? `${gHandoverName}${gHandoverPhone ? ' ('+gHandoverPhone+')' : ''}` : '',
+    bride: bHandoverName ? `${bHandoverName}${bHandoverPhone ? ' ('+bHandoverPhone+')' : ''}` : '',
   };
   const itemsByside = {
     groom: rtSchedule.groomHandoffItems || '',
@@ -5074,15 +5074,34 @@ function rtGenStep3(){
 
   // ── 인계 안내 (항상 출력) ──
   let handoverName = '', pw = '';
-  if(t === '신랑님'){ handoverName = d.handoverByside?.groom || '○○'; pw = d.groomPw || ''; }
-  else if(t === '신부님'){ handoverName = d.handoverByside?.bride || '○○'; pw = d.bridePw || ''; }
-  else { handoverName = [d.handoverByside?.groom, d.handoverByside?.bride].filter(Boolean).join(' / ') || '○○'; pw = [d.groomPw, d.bridePw].filter(Boolean).join(' / '); }
+  if(t === '신랑님'){
+    // 신랑측 인계자만 사용 — 없으면 빈 값 (신부측 인계자 절대 사용 안 함)
+    handoverName = d.handoverByside?.groom || '';
+    pw = d.groomPw || '';
+  } else if(t === '신부님'){
+    // 신부측 인계자만 사용 — 없으면 빈 값 (신랑측 인계자 절대 사용 안 함)
+    handoverName = d.handoverByside?.bride || '';
+    pw = d.bridePw || '';
+  } else {
+    // 신랑신부님: 각 측 인계자를 구분 표시
+    const gName = d.handoverByside?.groom || '';
+    const bName = d.handoverByside?.bride || '';
+    if(gName && bName)      handoverName = `신랑측 ${gName} / 신부측 ${bName}`;
+    else if(gName)          handoverName = `신랑측 ${gName}`;
+    else if(bName)          handoverName = `신부측 ${bName}`;
+    else                    handoverName = '';
+    pw = [d.groomPw, d.bridePw].filter(Boolean).join(' / ');
+  }
   const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
   const itemsList = itemsRaw
     ? itemsRaw.split('\n').filter(l=>l.trim()).map(l=>'✔️ '+l.trim().replace(/^[·\-•]\s*/,'')).join('\n')
     : '✔️ 축의금 및 봉투가 담긴 레디백\n✔️ 방명록\n✔️ 잔여 식권\n✔️ 기타 전달 물품';
   const pwLine = pw ? `\n\n🔒 레디백 비밀번호는 사전 안내주신\n${pw}로 설정해두었습니다 :)` : '';
-  let txt = `📦 ${handoverName}님께 아래 물품과 함께\n전달 완료하였습니다.\n\n${itemsList}${pwLine}\n\n🌸 화환 사진과 인계확인서도 함께 전달드립니다.`;
+  // 인계자 정보 있으면 "○○님께", 없으면 인계 완료 안내만
+  const headerLine = handoverName
+    ? `📦 ${handoverName}님께 아래 물품과 함께\n전달 완료하였습니다.`
+    : `📦 아래 물품과 함께 인계 완료되었습니다.\n(인계자 정보가 확인되지 않습니다)`;
+  let txt = `${headerLine}\n\n${itemsList}${pwLine}\n\n🌸 화환 사진과 인계확인서도 함께 전달드립니다.`;
 
   // ── 추가 상황 (다중 항목 순서대로 출력) ──
   const closingItems = getClosingItems();
