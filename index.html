@@ -4989,9 +4989,9 @@ function rtGenStep2(){
 오늘 소중한 결혼식 진심으로 축하드립니다 🤍
 디어가드 결과 보고 드립니다.
 
-━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━
 📊 현장 결과 요약
-━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━
 
 👥 총 접수 인원: ${guests}
 💰 총 축의금: ${amount}
@@ -5061,37 +5061,34 @@ function rtFillHandoverItems(){
 }
 
 function rtGenStep3(){
-  // 인계확인서 서명이 이미 완료된 상태라면, 일반 문구가 아닌
-  // "서명완료 강조형(B안)"으로 생성해야 함 (수동으로 문구 생성 버튼을 다시 눌러도 덮어쓰이지 않도록)
-  if(hvCompleted && hvCompletedName){
-    rtGenStep3WithSignature(hvCompletedName);
-    return;
-  }
-
-  const val = ''; // getClosingItems()로 대체
   const d = rtResultData;
   const t = rtTarget;
 
-  // ── 인계 안내 (항상 출력) ──
+  // ── 보고 대상에 맞는 측별 인계자 먼저 결정 (hvCompleted 여부와 무관)
   let handoverName = '', pw = '';
   if(t === '신랑님'){
-    // 신랑측 인계자만 사용 — 없으면 빈 값 (신부측 인계자 절대 사용 안 함)
     handoverName = d.handoverByside?.groom || '';
     pw = d.groomPw || '';
   } else if(t === '신부님'){
-    // 신부측 인계자만 사용 — 없으면 빈 값 (신랑측 인계자 절대 사용 안 함)
     handoverName = d.handoverByside?.bride || '';
     pw = d.bridePw || '';
   } else {
-    // 신랑신부님: 각 측 인계자를 구분 표시
     const gName = d.handoverByside?.groom || '';
     const bName = d.handoverByside?.bride || '';
     if(gName && bName)      handoverName = `신랑측 ${gName} / 신부측 ${bName}`;
     else if(gName)          handoverName = `신랑측 ${gName}`;
     else if(bName)          handoverName = `신부측 ${bName}`;
-    else                    handoverName = '';
     pw = [d.groomPw, d.bridePw].filter(Boolean).join(' / ');
   }
+
+  // 인계확인서 서명이 완료된 경우 → 서명완료 강조형(B안) 사용
+  // 단, 이름은 측별 인계자(handoverName)를 우선 사용 (hvCompletedName 교차 사용 금지)
+  if(hvCompleted && hvCompletedName){
+    rtGenStep3WithSignature(handoverName || hvCompletedName);
+    return;
+  }
+
+  const val = ''; // getClosingItems()로 대체
   const itemsRaw = document.getElementById('rt-handover-items')?.value?.trim() || '';
   const itemsList = itemsRaw
     ? itemsRaw.split('\n').filter(l=>l.trim()).map(l=>'✔️ '+l.trim().replace(/^[·\-•]\s*/,'')).join('\n')
