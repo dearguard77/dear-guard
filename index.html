@@ -515,6 +515,12 @@
   <div id="tab-calendar" class="tab-panel">
     <div style="background:#fff;border-radius:16px;padding:24px;border:1px solid #E5E7EB">
       <div class="sec-header"><h2>월간 캘린더</h2><span id="cal-tab-subtitle">예식 일정 전체 보기</span></div>
+      <!-- 관리자 전용 매니저 필터 드롭다운 -->
+      <div id="cal-manager-filter-wrap" style="display:none;margin-bottom:12px">
+        <select id="cal-manager-filter" class="form-input" style="font-size:13px;max-width:200px" onchange="renderCalendar()">
+          <option value="">전체 매니저 보기</option>
+        </select>
+      </div>
       <div id="cal-my-only-wrap" style="display:none;margin-bottom:12px">
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#374151;cursor:pointer">
           <input type="checkbox" id="cal-my-only" onchange="toggleCalendarMyOnly()" style="width:15px;height:15px;accent-color:#C7A96B">
@@ -1934,18 +1940,38 @@ function renderCalendar(){
   const firstDay = new Date(calYear,calMonth,1).getDay();
   const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
   const days = [...Array(firstDay).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
+  const isAdminCal = ADMIN_NAMES.includes(currentUser.name);
+
+  // ── 관리자 전용 매니저 필터 드롭다운 초기화 ──
+  const calMgrWrap = document.getElementById('cal-manager-filter-wrap');
+  const calMgrSel  = document.getElementById('cal-manager-filter');
+  if(calMgrWrap) calMgrWrap.style.display = isAdminCal ? 'block' : 'none';
+  if(isAdminCal && calMgrSel && calMgrSel.options.length <= 1){
+    // USERS에서 매니저 목록 채우기 (최초 1회)
+    calMgrSel.innerHTML = '<option value="">전체 매니저 보기</option>'
+      + USERS.map(u => `<option value="${u.name}">${u.name}</option>`).join('');
+  }
+  const calMgrSelected = (isAdminCal && calMgrSel) ? calMgrSel.value : '';
+
 const vs = visible(); // 권한 필터 적용된 일정
 // ★ 관리자 전용 내 일정만 보기 필터
 let vsFiltered = vs;
-if(calendarMyOnly && ADMIN_NAMES.includes(currentUser.name)){
+if(calendarMyOnly && isAdminCal){
   vsFiltered = vs.filter(s =>
     (s.frontManager || '').includes(currentUser.name) ||
     (s.backManager  || '').includes(currentUser.name)
   );
 }
+// ★ 관리자 전용 매니저 필터 (매니저 선택 시 적용)
+if(isAdminCal && calMgrSelected){
+  vsFiltered = vsFiltered.filter(s =>
+    (s.frontManager || '').includes(calMgrSelected) ||
+    (s.backManager  || '').includes(calMgrSelected)
+  );
+}
 // 체크박스 표시/숨김
 const myOnlyWrap = document.getElementById('cal-my-only-wrap');
-if(myOnlyWrap) myOnlyWrap.style.display = ADMIN_NAMES.includes(currentUser.name) ? 'block' : 'none';
+if(myOnlyWrap) myOnlyWrap.style.display = isAdminCal ? 'block' : 'none';
 const byDay = day => {
     if(!day) return [];
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
@@ -1960,17 +1986,22 @@ const byDay = day => {
     const hasBride = !!(s.brideName || '').trim();
     return sum + (hasGroom && hasBride ? 2 : 1);
   }, 0);
-  const isAdminCal = ADMIN_NAMES.includes(currentUser.name);
   const calSubEl = document.getElementById('cal-tab-subtitle');
-  if(calSubEl) calSubEl.textContent = calendarMyOnly && isAdminCal
-    ? `${calYear}년 ${calMonth+1}월 · 내 일정 ${calMonthCnt}건`
-    : `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
+  // subtitle: 매니저 필터 > 내 일정만 > 전체 순으로 표시
+  if(calSubEl){
+    if(isAdminCal && calMgrSelected)
+      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · ${calMgrSelected} 일정 ${calMonthCnt}건`;
+    else if(calendarMyOnly && isAdminCal)
+      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · 내 일정 ${calMonthCnt}건`;
+    else
+      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
+  }
   wrap.innerHTML = `
     <div class="cal-nav">
       <button class="btn btn-ghost sm" onclick="calMove(-1)">‹ 이전</button>
       <div style="text-align:center">
         <div class="cal-nav-title">${calYear}년 ${calMonth+1}월</div>
-        <div style="font-size:11px;color:#C7A96B;font-weight:700;margin-top:2px">예식 총 ${calMonthCnt}건</div>
+        <div style="font-size:11px;color:#C7A96B;font-weight:700;margin-top:2px">${calMgrSelected ? `${calMgrSelected} ${calMonthCnt}건` : `예식 총 ${calMonthCnt}건`}</div>
         ${isAdminCal ? `<div style="font-size:10px;color:#9CA3AF;margin-top:2px">🎒 레디백 예상 ${readybagCnt}개</div>` : ''}
         <div class="cal-jump-wrap">
           <select id="cal-year-select" class="cal-jump-select" onchange="jumpCalendarMonth()">
