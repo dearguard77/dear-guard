@@ -2027,7 +2027,7 @@ const byDay = day => {
         const isHoliday=idx%7===0;const isSat=idx%7===6;
         const dayCol=isToday?'#C7A96B':isHoliday?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum=isToday?`<span class="cal-today-circle">${day}</span>`:day;
-        const pills = ss.slice(0,4).map(s => {
+        const pills = ss.slice(0,5).map(s => {
           const name = (s.brideName||s.groomName||'예식');
           return `<div class="cal-event-pill"
             style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).color};cursor:pointer"
@@ -2035,9 +2035,9 @@ const byDay = day => {
             ${sideIcon(s)} ${esc(s.time)} ${esc(name)}
           </div>`;
         }).join('');
-        const more = ss.length > 4
+        const more = ss.length > 5
           ? `<div style="font-size:9px;color:#9CA3AF;text-align:center;cursor:pointer"
-              onclick="event.stopPropagation();openDetail(${ss[4].id})">+${ss.length-4}개 더</div>`
+              onclick="event.stopPropagation();openDetail(${ss[5].id})">+${ss.length-5}개 더</div>`
           : '';
         const clickAttr = ss.length ? `onclick="openDetail(${ss[0].id})" style="cursor:pointer"` : '';
         return `<div class="cal-cell${isToday?' today':''}${ss.length?' has-events':''}" ${clickAttr}>
