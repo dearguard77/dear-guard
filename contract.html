@@ -250,6 +250,23 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="section-body" id="sec-payment-body">
       <div id="payment-rows"></div>
+      <div id="couple-discount-row" style="display:none;padding:8px 0;border-bottom:1px solid #F5F3F0;font-size:13px;display:flex;justify-content:space-between;align-items:baseline">
+        <span style="color:#C7A96B;font-weight:700">짝꿍 할인</span>
+        <span style="color:#C7A96B;font-weight:700">-10,000원</span>
+      </div>
+      <!-- 짝꿍 할인코드 입력 영역 -->
+      <div style="margin-top:14px;padding:14px;background:#F9F7F4;border:1px solid #E8E3DC;border-radius:10px">
+        <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">🤝 짝꿍 할인코드</div>
+        <div style="font-size:11px;color:#6B7280;line-height:1.6;margin-bottom:10px">
+          짝꿍 할인을 받으시는 경우, 추천해주신 분의 이름+휴대폰 뒷자리 4자리를 입력해주세요.<br>
+          짝꿍 할인코드는 계약 1건당 1개만 적용 가능하며, 중복 적용은 불가합니다.
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="couple-code-input" class="form-input" placeholder="예: 전수연1234" style="flex:1;font-size:13px">
+          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">짝꿍코드 적용</button>
+        </div>
+        <div id="couple-code-msg" style="margin-top:8px;font-size:12px;display:none"></div>
+      </div>
       <div style="margin-top:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:6px">
         ※ 본 계약서는 배상 범위 및 책임 기준을 명확히 하기 위해 정가 기준으로 작성됩니다.
       </div>
@@ -538,6 +555,11 @@ let schedule = null;
 let signaturePad = null;
 const agrees = {1:false,2:false,3:false,4:false};
 
+// 짝꿍코드 상태
+let coupleDiscountApplied = false;   // 유효 코드 적용 완료 여부
+let coupleDiscountAmount  = 0;       // 할인 금액 (적용 시 10000)
+let coupleDiscountCode    = '';      // 적용된 코드 문자열
+
 const getToken = () => new URLSearchParams(location.search).get('t') || '';
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
@@ -634,15 +656,116 @@ function renderInfo(){
 function renderPayment(){
   const s = schedule;
   const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
+  const baseBalance = Number(s.balance_price) || 0;
+  const displayBalance = baseBalance - coupleDiscountAmount; // 짝꿍 할인 차감
   const rows = [
     ['총 계약 금액', s.total_price,   true],
     ['계약금',       s.deposit_price, false],
-    ['잔금',         s.balance_price, false],
+    ['잔금',         displayBalance,  false],
   ];
   const html = rows.map(([l,v,gold])=>`
     <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val${gold?' gold':''}">${fmt(v)}</span></div>
   `).join('');
   document.getElementById('payment-rows').innerHTML = html;
+  // 짝꿍 할인 행 표시/숨김
+  const discRow = document.getElementById('couple-discount-row');
+  if(discRow) discRow.style.display = coupleDiscountApplied ? 'flex' : 'none';
+}
+
+// ── 짝꿍코드 적용 ──
+/*
+  [운영 규칙]
+  A코드로 B가 계약하면 A코드는 사용 완료 처리됩니다.
+  이후 A코드는 재사용할 수 없습니다.
+  B는 A코드를 사용해 짝꿍 할인을 1회 받았으므로,
+  이후 C가 B코드로 계약하더라도 B에게 추가 할인은 중복 적용하지 않습니다.
+  다만 C는 B코드 사용으로 1만원 할인을 받을 수 있습니다.
+  - 각 코드는 추천용으로 최대 1회만 사용 가능
+  - 각 계약자는 짝꿍 할인 혜택을 최대 1회만 적용 가능
+  - 계약서 화면에서는 코드 1개만 적용 가능
+*/
+function showCoupleMsg(msg, isError){
+  const el = document.getElementById('couple-code-msg');
+  if(!el) return;
+  el.style.display = 'block';
+  el.style.color = isError ? '#DC2626' : '#059669';
+  el.textContent = msg;
+}
+
+async function applyCoupleCode(){
+  if(coupleDiscountApplied){
+    showCoupleMsg('이미 짝꿍코드가 적용되었습니다. 계약 1건당 1개의 코드만 사용할 수 있습니다.', true);
+    return;
+  }
+  const code = (document.getElementById('couple-code-input')?.value || '').trim();
+  if(!code){ showCoupleMsg('코드를 입력해주세요.', true); return; }
+
+  const btn = document.getElementById('couple-code-btn');
+  if(btn){ btn.disabled = true; btn.textContent = '확인 중…'; }
+
+  try {
+    // 전체 schedules 조회 (코드 주인 탐색 + 사용 여부 확인)
+    const rows = await sb.get('schedules', '?select=id,groom_name,bride_name,groom_phone,bride_phone,couple_discount_code');
+
+    // 현재 계약서 예식의 신랑/신부 코드 생성 (자기 자신 코드 판별)
+    const selfCodes = [];
+    if(schedule?.groom_name && schedule?.groom_phone){
+      const g = String(schedule.groom_phone).replace(/\D/g,'');
+      selfCodes.push((schedule.groom_name) + g.slice(-4));
+    }
+    if(schedule?.bride_name && schedule?.bride_phone){
+      const b = String(schedule.bride_phone).replace(/\D/g,'');
+      selfCodes.push((schedule.bride_name) + b.slice(-4));
+    }
+
+    // 1) 자기 자신의 코드인지 확인
+    if(selfCodes.includes(code)){
+      showCoupleMsg('본인 코드로는 짝꿍 할인을 적용할 수 없습니다.', true);
+      return;
+    }
+
+    // 2) 이미 다른 계약에서 사용된 코드인지 확인
+    const alreadyUsed = rows.some(r => r.id !== schedule.id && r.couple_discount_code === code);
+    if(alreadyUsed){
+      showCoupleMsg('이미 사용된 짝꿍코드입니다.', true);
+      return;
+    }
+
+    // 3) 코드 주인이 schedules에 존재하는지 확인
+    const ownerExists = rows.some(r => {
+      const gCode = r.groom_name && r.groom_phone
+        ? r.groom_name + String(r.groom_phone).replace(/\D/g,'').slice(-4) : '';
+      const bCode = r.bride_name && r.bride_phone
+        ? r.bride_name + String(r.bride_phone).replace(/\D/g,'').slice(-4) : '';
+      return gCode === code || bCode === code;
+    });
+
+    if(!ownerExists){
+      showCoupleMsg('일치하는 짝꿍코드를 찾을 수 없습니다. 이름과 휴대폰 뒷자리 4자리를 확인해주세요.', true);
+      return;
+    }
+
+    // ✅ 유효한 코드 — 할인 적용
+    coupleDiscountApplied = true;
+    coupleDiscountAmount  = 10000;
+    coupleDiscountCode    = code;
+
+    // 입력칸·버튼 비활성화
+    const inp = document.getElementById('couple-code-input');
+    if(inp){ inp.disabled = true; inp.style.background='#F3F4F6'; }
+    if(btn){ btn.disabled = true; btn.textContent = '적용 완료'; btn.style.background='#9CA3AF'; }
+
+    showCoupleMsg('짝꿍코드가 적용되었습니다. 짝꿍 할인 -10,000원이 잔금에 반영되었습니다.', false);
+    renderPayment();
+
+  } catch(e){
+    showCoupleMsg('코드 확인 중 오류가 발생했습니다: '+e.message, true);
+  } finally {
+    if(!coupleDiscountApplied && btn){
+      btn.disabled = false;
+      btn.textContent = '짝꿍코드 적용';
+    }
+  }
 }
 
 // ── 섹션 토글 ──
@@ -807,13 +930,20 @@ async function submitContract(){
     } catch(e){ console.warn('[DG] 서명 이미지 업로드 실패:', e); }
 
     // DB 저장
+    const baseBalance = Number(schedule.balance_price) || 0;
+    const finalBalance = baseBalance - coupleDiscountAmount;
     await sb.patch('schedules', schedule.id, {
-      contract_signed:    true,
-      contract_signed_at: signedAt,
-      contract_signature: sigDataUrl,
-      contract_pdf_url:   pdfUrl,
-      contract_version:   '1.0',
-      contract_signer:    signerName,
+      contract_signed:         true,
+      contract_signed_at:      signedAt,
+      contract_signature:      sigDataUrl,
+      contract_pdf_url:        pdfUrl,
+      contract_version:        '1.0',
+      contract_signer:         signerName,
+      // 짝꿍코드 (유효 코드 적용 시에만 저장)
+      couple_discount_code:    coupleDiscountApplied ? coupleDiscountCode   : null,
+      couple_discount_status:  coupleDiscountApplied ? 'approved'           : 'empty',
+      couple_discount_amount:  coupleDiscountApplied ? coupleDiscountAmount : 0,
+      balance_price:           coupleDiscountApplied ? finalBalance : (schedule.balance_price || null),
     });
 
     Object.assign(schedule, {
