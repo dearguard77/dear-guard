@@ -1078,6 +1078,8 @@
           <!-- 자유 메모 -->
           <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:6px">내부 운영 메모</div>
           <textarea class="form-input" id="fm-contract-text" rows="4" placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부, 기타 계약 관련 내용" style="resize:vertical;line-height:1.8;background:#fff;border-color:#E9D5FF;font-size:13px"></textarea>
+          <!-- 짝꿍할인 취소 버튼 (관리자 + 적용된 경우만 표시) -->
+          <div id="fm-couple-cancel-wrap"></div>
         </div>
       </div>
      <!-- ── 섹션 3.5: 정산 정보 (관리자 전용) ── -->
@@ -1958,27 +1960,46 @@ function renderPrecheckReminder(){
   }).join('');
 }
 
-// 계약자 선택 → 짝꿍코드 자동 생성 (관리자 전용)
+// 대표계약자 선택 / 짝꿍코드 자동 생성 (관리자 전용)
 function renderCoupleCode(){
-  const owner = document.querySelector('input[name="contract-owner"]:checked')?.value || '';
-  const codeEl = document.getElementById('f-couple-code-value');
-  const displayEl = document.getElementById('f-couple-code-display');
-  if(!owner || !codeEl || !displayEl){ if(displayEl) displayEl.style.display='none'; return; }
-  let name = '', phone = '';
-  if(owner === 'groom'){
-    name  = (document.getElementById('f-groom')?.value  || '').trim();
-    phone = (document.getElementById('f-groom-phone')?.value || '').trim();
+  const isAdmin    = ADMIN_NAMES.includes(currentUser?.name);
+  const groomName  = (document.getElementById('f-groom')?.value  || '').trim();
+  const brideName  = (document.getElementById('f-bride')?.value  || '').trim();
+  const groomPhone = (document.getElementById('f-groom-phone')?.value || '').replace(/\D/g,'');
+  const bridePhone = (document.getElementById('f-bride-phone')?.value || '').replace(/\D/g,'');
+
+  // 양측 = 신랑·신부 모두 이름 있음
+  const isBothSide = !!(groomName && brideName);
+  const ownerWrap  = document.getElementById('f-contract-owner-wrap');
+
+  // 양측일 때만 관리자에게 대표계약자 라디오 표시
+  if(ownerWrap) ownerWrap.style.display = (isAdmin && isBothSide) ? 'block' : 'none';
+
+  // 대표계약자 결정
+  let owner = '';
+  if(isBothSide){
+    // 양측: 라디오 선택값 사용
+    owner = document.querySelector('input[name="contract-owner"]:checked')?.value || '';
   } else {
-    name  = (document.getElementById('f-bride')?.value  || '').trim();
-    phone = (document.getElementById('f-bride-phone')?.value || '').trim();
+    // 단측: 자동 결정 (라디오 숨김)
+    if(groomName && !brideName)       owner = 'groom';
+    else if(brideName && !groomName)  owner = 'bride';
   }
-  const digits = phone.replace(/\D/g,'').slice(-4);
-  if(name && digits){
-    codeEl.textContent = name + digits;
-    displayEl.style.display = 'block';
-  } else {
-    codeEl.textContent = '';
-    displayEl.style.display = 'none';
+
+  // 대표 짝꿍코드 생성
+  const name  = owner === 'groom' ? groomName  : owner === 'bride' ? brideName  : '';
+  const phone = owner === 'groom' ? groomPhone : owner === 'bride' ? bridePhone : '';
+  const digits = phone.slice(-4);
+  const codeEl    = document.getElementById('f-couple-code-value');
+  const displayEl = document.getElementById('f-couple-code-display');
+  if(codeEl && displayEl){
+    if(name && digits){
+      codeEl.textContent = name + digits;
+      displayEl.style.display = 'block';
+    } else {
+      codeEl.textContent = '';
+      displayEl.style.display = 'none';
+    }
   }
 }
 
@@ -2576,15 +2597,15 @@ async function openPrecheckModal(id){
             <div style="font-weight:700;color:#374151;margin-bottom:6px">🤝 계약자 / 짝꿍코드</div>
             ${s.contractOwner ? `<div style="color:#6B7280;margin-bottom:2px">계약자: <span style="font-weight:700;color:#374151">${s.contractOwner === 'groom' ? '신랑' : '신부'}</span></div>` : ''}
             ${s.coupleReferralCode ? `<div style="color:#6B7280">대표 짝꿍코드: <span style="font-weight:800;color:#C7A96B;font-size:14px">${esc(s.coupleReferralCode)}</span></div>` : ''}
-            ${s.coupleDiscountStatus === 'approved' && s.coupleDiscountCode ? `
-            <div style="margin-top:8px;padding:8px 10px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:6px">
-              <div style="font-size:11px;color:#92400E;font-weight:700;margin-bottom:4px">✅ 짝꿍할인 적용 중</div>
-              <div style="font-size:11px;color:#374151;margin-bottom:6px">사용 코드: <b>${esc(s.coupleDiscountCode)}</b> · -10,000원</div>
-              <button onclick="cancelCoupleDiscount(${id})"
-                style="width:100%;background:#DC2626;color:#fff;border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:700;cursor:pointer">
-                ❌ 짝꿍할인 취소
-              </button>
-            </div>` : ''}
+          </div>` : ''}
+          ${ADMIN_NAMES.includes(currentUser.name) && s.coupleDiscountStatus === 'approved' && s.coupleDiscountCode ? `
+          <div style="margin-top:10px;padding:10px 14px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;font-size:12px">
+            <div style="font-size:11px;color:#92400E;font-weight:700;margin-bottom:4px">✅ 짝꿍할인 적용 중</div>
+            <div style="font-size:11px;color:#374151;margin-bottom:8px">사용 코드: <b>${esc(s.coupleDiscountCode)}</b> · -10,000원</div>
+            <button onclick="cancelCoupleDiscount(${id})"
+              style="width:100%;background:#DC2626;color:#fff;border:none;border-radius:6px;padding:7px;font-size:12px;font-weight:700;cursor:pointer">
+              ❌ 짝꿍할인 취소 (관리자)
+            </button>
           </div>` : ''}
         </div>
         <div style="border-top:1px solid #E5E7EB;padding-top:12px">
@@ -2803,13 +2824,17 @@ async function cancelCoupleDiscount(id){
     // 잔금 복원: balance_price + 10,000
     const restoredBalance = (Number(s.balancePrice) || 0) + 10000;
 
-    // 취소 이력 메모 (기존 메모 아래에 추가)
+    // admin_memo에서 couple_discount 체크 제거 + 취소 이력 메모 추가
     const today = new Date().toISOString().slice(0,10);
     const memoEntry = `짝꿍 할인 취소\n취소 코드: ${usedCode}\n취소일: ${today}\n처리자: ${currentUser.name}`;
     const existingAm = s.adminMemo || {};
     const existingText = existingAm.text || '';
     const newText = existingText ? existingText + '\n\n' + memoEntry : memoEntry;
-    const newAdminMemo = { ...existingAm, text: newText };
+    const newAdminMemo = {
+      ...existingAm,
+      couple_discount: false,  // 계약참고 프리셋에서도 제거
+      text: newText,
+    };
 
     await sb.patch('schedules', id, {
       couple_discount_code:   null,
@@ -2817,6 +2842,8 @@ async function cancelCoupleDiscount(id){
       couple_discount_amount: 0,
       balance_price:          restoredBalance,
       admin_memo:             newAdminMemo,
+      // 기존 PDF/PNG는 짝꿍할인 내역 포함 → 재생성 유도를 위해 초기화
+      contract_pdf_url:       null,
     });
 
     // 로컬 상태 업데이트
@@ -2825,6 +2852,7 @@ async function cancelCoupleDiscount(id){
     s.coupleDiscountAmount = 0;
     s.balancePrice         = restoredBalance;
     s.adminMemo            = newAdminMemo;
+    s.contractPdfUrl       = '';
 
     showToast('✅ 짝꿍할인이 취소되었습니다. 잔금이 복원되었습니다.');
     closeDetail();
@@ -3084,11 +3112,24 @@ function openForm(id){
   if(document.getElementById('fm-contract-text'))
     document.getElementById('fm-contract-text').value  = formContractMemo.text || '';
   renderContractChecks();
+
+  // 계약참고 탭 짝꿍할인 취소 버튼 (관리자 + 적용됐을 때만)
+  const cancelWrap = document.getElementById('fm-couple-cancel-wrap');
+  if(cancelWrap){
+    if(ADMIN_NAMES.includes(currentUser.name) && s?.coupleDiscountStatus === 'approved' && s?.coupleDiscountCode){
+      cancelWrap.innerHTML = `<div style="margin-top:12px;padding:10px 12px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px">
+        <div style="font-size:11px;color:#92400E;font-weight:700;margin-bottom:4px">✅ 짝꿍할인 적용 중</div>
+        <div style="font-size:11px;color:#374151;margin-bottom:8px">사용 코드: <b>${esc(s.coupleDiscountCode)}</b> · -10,000원</div>
+        <button onclick="cancelCoupleDiscount(${s.id})" style="width:100%;background:#DC2626;color:#fff;border:none;border-radius:6px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">❌ 짝꿍할인 취소 (관리자)</button>
+      </div>`;
+    } else {
+      cancelWrap.innerHTML = '';
+    }
+  }
+
   FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
   if(ADMIN_NAMES.includes(currentUser.name)){
-    // 계약자 필드 표시 + 기존 값 복원
-    const ownerWrap = document.getElementById('f-contract-owner-wrap');
-    if(ownerWrap) ownerWrap.style.display = 'block';
+    // 계약자 필드는 renderCoupleCode에서 양측 여부에 따라 자동 표시/숨김 처리
     const ownerVal = s?.contractOwner || '';
     if(ownerVal){
       const radio = document.getElementById(ownerVal === 'groom' ? 'f-owner-groom' : 'f-owner-bride');
@@ -3096,7 +3137,7 @@ function openForm(id){
     } else {
       document.querySelectorAll('input[name="contract-owner"]').forEach(r => r.checked = false);
     }
-    renderCoupleCode();
+    renderCoupleCode(); // 양측 여부 판단 + 코드 생성
 
     document.getElementById('f-total-price').value  = s?.totalPrice  || '';
     document.getElementById('f-deposit-price').value = s?.depositPrice || '';
@@ -3334,7 +3375,14 @@ function getFormValues(){
     groomPhone:   (document.getElementById('f-groom-phone')?.value || '').trim(),
     brideName:    (document.getElementById('f-bride')?.value       || '').trim(),
     bridePhone:   (document.getElementById('f-bride-phone')?.value || '').trim(),
-    contractOwner: document.querySelector('input[name="contract-owner"]:checked')?.value || '',
+    contractOwner: (()=>{
+      const g = (document.getElementById('f-groom')?.value || '').trim();
+      const b = (document.getElementById('f-bride')?.value || '').trim();
+      if(g && b) return document.querySelector('input[name="contract-owner"]:checked')?.value || '';
+      if(g && !b) return 'groom';
+      if(b && !g) return 'bride';
+      return '';
+    })(),
     // couple_referral_code: 계약자 기준 이름+연락처 뒷4자리 자동 생성
     coupleReferralCode: (()=>{
       const owner = document.querySelector('input[name="contract-owner"]:checked')?.value || '';
