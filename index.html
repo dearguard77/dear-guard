@@ -2835,6 +2835,7 @@ async function cancelCoupleDiscount(id){
 }
 
 
+function copyContractGuide(contractUrl, id){
   const s = id ? schedules.find(x => x.id === id) : null;
   const referralCode = s?.coupleReferralCode || '';
   const referralBlock = referralCode ? `
