@@ -2842,8 +2842,7 @@ async function cancelCoupleDiscount(id){
       couple_discount_amount: 0,
       balance_price:          restoredBalance,
       admin_memo:             newAdminMemo,
-      // 기존 PDF/PNG는 짝꿍할인 내역 포함 → 재생성 유도를 위해 초기화
-      contract_pdf_url:       null,
+      contract_pdf_url:       null, // 짝꿍할인 포함된 구 PDF 제거 → contract.html에서 재저장 필요
     });
 
     // 로컬 상태 업데이트
@@ -2852,7 +2851,21 @@ async function cancelCoupleDiscount(id){
     s.coupleDiscountAmount = 0;
     s.balancePrice         = restoredBalance;
     s.adminMemo            = newAdminMemo;
-    s.contractPdfUrl       = '';
+    s.contractPdfUrl       = ''; // 로컬도 초기화
+
+    // 폼(계약참고/정산)이 현재 열려있으면 즉시 반영
+    if(formId === id){
+      formContractMemo = { ...newAdminMemo };
+      formContractMemo['couple_discount'] = false;
+      renderContractChecks();
+      syncContractMemoToSettlement();
+      // 잔금 필드도 복원값으로 갱신
+      const balEl = document.getElementById('f-balance-price');
+      if(balEl) balEl.value = restoredBalance;
+      // 계약참고 탭 취소 버튼 제거
+      const cw = document.getElementById('fm-couple-cancel-wrap');
+      if(cw) cw.innerHTML = '';
+    }
 
     showToast('✅ 짝꿍할인이 취소되었습니다. 잔금이 복원되었습니다.');
     closeDetail();
