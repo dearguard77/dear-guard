@@ -373,10 +373,10 @@ input,select,textarea{font-family:inherit;outline:none}
           <table class="refund-table">
             <thead><tr><th>취소 시점</th><th>환불 기준</th></tr></thead>
             <tbody>
-              <tr><td>계약일로부터 3일 이내</td><td style="color:var(--green);font-weight:700">전액 환불</td></tr>
-              <tr><td>계약일로부터 7일 이내</td><td>총 금액의 10% 공제 후 환불</td></tr>
-              <tr><td>계약일로부터 14일 이내</td><td>총 금액의 20% 공제 후 환불</td></tr>
-              <tr><td>계약일로부터 14일 초과</td><td style="color:var(--red);font-weight:700">환불 불가</td></tr>
+              <tr><td>계약일로부터 3일 이내</td><td style="color:var(--green);font-weight:700">계약금 전액 환불</td></tr>
+              <tr><td>계약일로부터 7일 이내</td><td>계약금에서 총 금액의 10% 공제 후 환불</td></tr>
+              <tr><td>계약일로부터 14일 이내</td><td>계약금에서 총 금액의 20% 공제 후 환불</td></tr>
+              <tr><td>계약일로부터 14일 초과</td><td style="color:var(--red);font-weight:700">총 금액 전액 환불 불가</td></tr>
             </tbody>
           </table>
           <p style="margin-top:8px;font-size:11px;color:var(--text3)">고객 측 사유로 인한 일정 변경 및 취소 과정에서 발생하는 추가 비용은 고객 부담으로 진행될 수 있습니다.</p>
@@ -1262,10 +1262,10 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
     <table class="pdf-refund">
       <thead><tr><th>취소 시점</th><th>환불 기준</th></tr></thead>
       <tbody>
-        <tr><td>계약일로부터 3일 이내</td><td style="color:#059669;font-weight:700">전액 환불</td></tr>
-        <tr><td>계약일로부터 7일 이내</td><td>총 금액의 10% 공제 후 환불</td></tr>
-        <tr><td>계약일로부터 14일 이내</td><td>총 금액의 20% 공제 후 환불</td></tr>
-        <tr><td>계약일로부터 14일 초과</td><td style="color:#DC2626;font-weight:700">환불 불가</td></tr>
+        <tr><td>계약일로부터 3일 이내</td><td style="color:#059669;font-weight:700">계약금 전액 환불</td></tr>
+        <tr><td>계약일로부터 7일 이내</td><td>계약금에서 총 금액의 10% 공제 후 환불</td></tr>
+        <tr><td>계약일로부터 14일 이내</td><td>계약금에서 총 금액의 20% 공제 후 환불</td></tr>
+        <tr><td>계약일로부터 14일 초과</td><td style="color:#DC2626;font-weight:700">총 금액 전액 환불 불가</td></tr>
       </tbody>
     </table>
 
