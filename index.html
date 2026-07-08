@@ -868,19 +868,35 @@
         <div class="form-grid">
           <div class="form-field">
             <label class="form-label">신랑 이름</label>
-            <input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)">
+            <input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)" oninput="renderCoupleCode()">
           </div>
           <div class="form-field">
             <label class="form-label">신랑 연락처</label>
-            <input class="form-input" id="f-groom-phone" type="tel" placeholder="010-1234-5678">
+            <input class="form-input" id="f-groom-phone" type="tel" placeholder="010-1234-5678" oninput="renderCoupleCode()">
           </div>
           <div class="form-field">
             <label class="form-label">신부 이름</label>
-            <input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)">
+            <input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)" oninput="renderCoupleCode()">
           </div>
           <div class="form-field">
             <label class="form-label">신부 연락처</label>
-            <input class="form-input" id="f-bride-phone" type="tel" placeholder="010-5678-1234">
+            <input class="form-input" id="f-bride-phone" type="tel" placeholder="010-5678-1234" oninput="renderCoupleCode()">
+          </div>
+          <!-- 계약자 / 짝꿍코드 — 관리자 전용 -->
+          <div class="form-field span" id="f-contract-owner-wrap" style="display:none">
+            <label class="form-label">계약자 <span style="color:#EF4444">*</span></label>
+            <div style="display:flex;gap:20px;align-items:center;margin-bottom:6px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer">
+                <input type="radio" name="contract-owner" id="f-owner-groom" value="groom" onchange="renderCoupleCode()" style="accent-color:#C7A96B"> 신랑
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer">
+                <input type="radio" name="contract-owner" id="f-owner-bride" value="bride" onchange="renderCoupleCode()" style="accent-color:#C7A96B"> 신부
+              </label>
+            </div>
+            <div id="f-couple-code-display" style="display:none;background:#F9F7F4;border:1px solid #E8E3DC;border-radius:8px;padding:10px 14px;font-size:13px">
+              <span style="color:#6B7280;font-weight:600">대표 짝꿍코드: </span>
+              <span id="f-couple-code-value" style="font-weight:800;color:#C7A96B;font-size:15px;letter-spacing:.5px"></span>
+            </div>
           </div>
           <div class="form-field">
             <label class="form-label">예식일 <span style="color:#EF4444">*</span></label>
@@ -1460,6 +1476,8 @@ function rowToSchedule(row){
     coupleDiscountCode:    row.couple_discount_code    || '',
     coupleDiscountStatus:  row.couple_discount_status  || '',
     coupleDiscountAmount:  row.couple_discount_amount  || 0,
+    contractOwner:         row.contract_owner          || '',
+    coupleReferralCode:    row.couple_referral_code    || '',
   };
 }
 
@@ -1494,6 +1512,8 @@ function scheduleToRow(v, notes, cl){
     field_memo:      v.fieldMemo      || {},
     admin_memo:      v.adminMemo      || {},
     handover_person: v.handoverPerson || null,
+    contract_owner:  v.contractOwner  || null,
+    couple_referral_code: v.coupleReferralCode || null,
   };
 }
 
@@ -1936,6 +1956,30 @@ function renderPrecheckReminder(){
         </div>
       </div>`;
   }).join('');
+}
+
+// 계약자 선택 → 짝꿍코드 자동 생성 (관리자 전용)
+function renderCoupleCode(){
+  const owner = document.querySelector('input[name="contract-owner"]:checked')?.value || '';
+  const codeEl = document.getElementById('f-couple-code-value');
+  const displayEl = document.getElementById('f-couple-code-display');
+  if(!owner || !codeEl || !displayEl){ if(displayEl) displayEl.style.display='none'; return; }
+  let name = '', phone = '';
+  if(owner === 'groom'){
+    name  = (document.getElementById('f-groom')?.value  || '').trim();
+    phone = (document.getElementById('f-groom-phone')?.value || '').trim();
+  } else {
+    name  = (document.getElementById('f-bride')?.value  || '').trim();
+    phone = (document.getElementById('f-bride-phone')?.value || '').trim();
+  }
+  const digits = phone.replace(/\D/g,'').slice(-4);
+  if(name && digits){
+    codeEl.textContent = name + digits;
+    displayEl.style.display = 'block';
+  } else {
+    codeEl.textContent = '';
+    displayEl.style.display = 'none';
+  }
 }
 
 function renderCalendar(){
@@ -2527,6 +2571,12 @@ async function openPrecheckModal(id){
             style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">
             💰 잔금 안내
           </button>
+          ${ADMIN_NAMES.includes(currentUser.name) && (s.contractOwner || s.coupleReferralCode) ? `
+          <div style="margin-top:12px;padding:10px 14px;background:#F9F7F4;border:1px solid #E8E3DC;border-radius:8px;font-size:12px">
+            <div style="font-weight:700;color:#374151;margin-bottom:6px">🤝 계약자 / 짝꿍코드</div>
+            ${s.contractOwner ? `<div style="color:#6B7280;margin-bottom:2px">계약자: <span style="font-weight:700;color:#374151">${s.contractOwner === 'groom' ? '신랑' : '신부'}</span></div>` : ''}
+            ${s.coupleReferralCode ? `<div style="color:#6B7280">대표 짝꿍코드: <span style="font-weight:800;color:#C7A96B;font-size:14px">${esc(s.coupleReferralCode)}</span></div>` : ''}
+          </div>` : ''}
         </div>
         <div style="border-top:1px solid #E5E7EB;padding-top:12px">
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">🔒 사전체크 잠금 관리</div>
@@ -2712,7 +2762,7 @@ async function openContractModal(id){
               style="flex:1;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               📝 계약 링크 복사
             </button>
-            <button onclick="copyContractGuide('${contractUrl}')"
+            <button onclick="copyContractGuide('${contractUrl}', ${id})"
               style="flex:1;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               💬 계약 안내문
             </button>
@@ -2729,7 +2779,16 @@ async function openContractModal(id){
   document.body.style.overflow = 'hidden';
 }
 
-function copyContractGuide(contractUrl){
+function copyContractGuide(contractUrl, id){
+  const s = id ? schedules.find(x => x.id === id) : null;
+  const referralCode = s?.coupleReferralCode || '';
+  const referralBlock = referralCode ? `
+짝꿍코드: ${referralCode}
+
+추천받으신 분은 전자계약서 내 짝꿍코드 입력란에 위 코드를 입력해주시면 됩니다.
+짝꿍코드는 계약 1건당 1개만 발급되며, 1회만 사용 가능합니다.
+짝꿍코드 입력은 계약일로부터 1주일 이내까지만 가능합니다.
+` : '';
   const guide = `[디어가드 계약 완료] 전자 계약서 링크 전달드립니다 :)
 
 계약 및 운영 안내 내용을 확인하신 후,
@@ -2741,11 +2800,7 @@ ${contractUrl}
 전자 계약 완료 후에는
 계약 확인서 PDF가 자동 저장되며,
 언제든 다시 다운로드 가능합니다 😊
-
-짝꿍코드는 이름+휴대폰 뒷자리로 적용되며,
-(예: 홍길동1234)
-할인 적용은 1회만 가능합니다 🤍
-
+${referralBlock}
 궁금하신 점은 언제든
 디어가드 카카오톡 채널로 편하게 문의 주세요!`;
   navigator.clipboard.writeText(guide).then(function(){
@@ -2975,6 +3030,18 @@ function openForm(id){
   renderContractChecks();
   FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
   if(ADMIN_NAMES.includes(currentUser.name)){
+    // 계약자 필드 표시 + 기존 값 복원
+    const ownerWrap = document.getElementById('f-contract-owner-wrap');
+    if(ownerWrap) ownerWrap.style.display = 'block';
+    const ownerVal = s?.contractOwner || '';
+    if(ownerVal){
+      const radio = document.getElementById(ownerVal === 'groom' ? 'f-owner-groom' : 'f-owner-bride');
+      if(radio){ radio.checked = true; }
+    } else {
+      document.querySelectorAll('input[name="contract-owner"]').forEach(r => r.checked = false);
+    }
+    renderCoupleCode();
+
     document.getElementById('f-total-price').value  = s?.totalPrice  || '';
     document.getElementById('f-deposit-price').value = s?.depositPrice || '';
     // 짝꿍코드 승인 시 DB에 저장된 할인 적용 잔금(balance_price) 반영
@@ -3211,6 +3278,18 @@ function getFormValues(){
     groomPhone:   (document.getElementById('f-groom-phone')?.value || '').trim(),
     brideName:    (document.getElementById('f-bride')?.value       || '').trim(),
     bridePhone:   (document.getElementById('f-bride-phone')?.value || '').trim(),
+    contractOwner: document.querySelector('input[name="contract-owner"]:checked')?.value || '',
+    // couple_referral_code: 계약자 기준 이름+연락처 뒷4자리 자동 생성
+    coupleReferralCode: (()=>{
+      const owner = document.querySelector('input[name="contract-owner"]:checked')?.value || '';
+      const name  = owner === 'groom'
+        ? (document.getElementById('f-groom')?.value  || '').trim()
+        : (document.getElementById('f-bride')?.value  || '').trim();
+      const phone = owner === 'groom'
+        ? (document.getElementById('f-groom-phone')?.value || '').replace(/\D/g,'')
+        : (document.getElementById('f-bride-phone')?.value || '').replace(/\D/g,'');
+      return (name && phone.length >= 4) ? name + phone.slice(-4) : '';
+    })(),
     date:          document.getElementById('f-date')?.value    || '',
     time,
     arrivalTime,
