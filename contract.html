@@ -612,13 +612,13 @@ async function init(){
       showCoupleMsg('짝꿍코드가 이미 적용되었습니다.\n짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.', false);
     } else if(schedule.couple_discount_status === 'cancelled'){
       // ② 관리자가 취소한 경우 → 입력칸 비운 채로 기한 체크만
+      showCoupleMsg('짝꿍 할인이 취소된 계약입니다. 이미지 저장 버튼으로 최신 계약서를 새로 저장해주세요.', false);
       if(schedule.contract_signed && schedule.contract_signed_at){
         const signedMs  = new Date(schedule.contract_signed_at).getTime();
         const diffDays  = (Date.now() - signedMs) / (1000 * 60 * 60 * 24);
         if(diffDays > 7){
           lockInput();
           if(btn){ btn.textContent = '기간 만료'; }
-          showCoupleMsg('짝꿍코드 입력 가능 기간이 종료되었습니다.\n짝꿍 할인은 계약일로부터 1주일 이내에만 신청 가능합니다.', true);
         }
         // 7일 이내: 취소 후 재입력 가능 (활성 상태)
       }
@@ -717,43 +717,38 @@ function renderPayment(){
   const s = schedule;
   const fmt = n => n != null ? Number(n).toLocaleString()+'원' : '—';
   const am = s.admin_memo || {};
-  const baseBalance = Number(s.balance_price) || 0;
 
-  // 적용된 프리셋 할인 수집 (체크된 항목만)
+  // ── 기준 잔금 = 총 계약 금액 - 계약금 (할인 전, balance_price 미사용) ──
+  const totalPrice   = Number(s.total_price)   || 0;
+  const depositPrice = Number(s.deposit_price) || 0;
+  const baseBalance  = totalPrice - depositPrice;
+
+  // ── 적용된 할인 수집 ──
   const appliedPresets = PRESET_DISCOUNT_DEFS.filter(d => am[d.key]);
-  const etcDiscount = am.etc_discount ? (Number(am.etc_discount_amount) || 0) * 10000 : 0;
+  const etcDiscount    = am.etc_discount ? (Number(am.etc_discount_amount) || 0) * 10000 : 0;
+  const coupleTotal    = coupleDiscountApplied ? 10000 : 0;
+  const totalDiscount  = appliedPresets.reduce((sum, d) => sum + d.amount, 0) + etcDiscount + coupleTotal;
 
-  // 모든 할인 합산 → 최종잔금 계산
-  const presetTotal   = appliedPresets.reduce((sum, d) => sum + d.amount, 0) + etcDiscount;
-  const coupleTotal   = coupleDiscountApplied ? 10000 : 0;
-  const totalDiscount = presetTotal + coupleTotal;
-  const finalBalance  = baseBalance - totalDiscount; // 모든 할인 차감 후 최종잔금
-
+  // ── 최종 잔금 = 기준 잔금 - 모든 할인 (1회만) ──
+  const finalBalance  = baseBalance - totalDiscount;
   const hasAnyDiscount = totalDiscount > 0;
 
   let html = `
-    <div class="info-row"><span class="info-lbl gold">총 계약 금액</span><span class="info-val gold">${fmt(s.total_price)}</span></div>
-    <div class="info-row"><span class="info-lbl">계약금</span><span class="info-val">${fmt(s.deposit_price)}</span></div>`;
+    <div class="info-row"><span class="info-lbl gold">총 계약 금액</span><span class="info-val gold">${fmt(totalPrice)}</span></div>
+    <div class="info-row"><span class="info-lbl">계약금</span><span class="info-val">${fmt(depositPrice)}</span></div>
+    <div class="info-row"><span class="info-lbl">잔금</span><span class="info-val">${fmt(baseBalance)}</span></div>`;
 
   if(hasAnyDiscount){
-    // 잔금(기준) → 프리셋 할인들 → 짝꿍할인 → 최종잔금 순서로 표시
-    html += `<div class="info-row"><span class="info-lbl">잔금</span><span class="info-val">${fmt(baseBalance)}</span></div>`;
-    // 프리셋 할인 각각 순회 표시
     appliedPresets.forEach(d => {
       html += `<div class="info-row"><span class="info-lbl" style="color:#C7A96B">${esc(d.label)}</span><span class="info-val" style="color:#C7A96B">-${d.amount.toLocaleString()}원</span></div>`;
     });
     if(etcDiscount > 0){
       html += `<div class="info-row"><span class="info-lbl" style="color:#C7A96B">기타 할인</span><span class="info-val" style="color:#C7A96B">-${etcDiscount.toLocaleString()}원</span></div>`;
     }
-    // 짝꿍 할인 (coupleDiscountApplied 가 true일 때만)
     if(coupleDiscountApplied){
       html += `<div class="info-row"><span class="info-lbl" style="color:#C7A96B">짝꿍 할인</span><span class="info-val" style="color:#C7A96B">-10,000원</span></div>`;
     }
-    // 최종잔금 = 잔금 - 모든 할인 합산
     html += `<div class="info-row" style="border-top:1.5px solid #C7A96B;padding-top:8px"><span class="info-lbl" style="font-weight:700">최종 잔금</span><span class="info-val" style="font-weight:700">${fmt(Math.max(0, finalBalance))}</span></div>`;
-  } else {
-    // 할인 없으면 잔금만 표시
-    html += `<div class="info-row"><span class="info-lbl">잔금</span><span class="info-val">${fmt(baseBalance)}</span></div>`;
   }
 
   document.getElementById('payment-rows').innerHTML = html;
