@@ -718,10 +718,14 @@ function renderPayment(){
   const fmt = n => n != null ? Number(n).toLocaleString()+'원' : '—';
   const am = s.admin_memo || {};
 
-  // ── 기준 잔금 = 총 계약 금액 - 계약금 (할인 전, balance_price 미사용) ──
-  const totalPrice   = Number(s.total_price)   || 0;
-  const depositPrice = Number(s.deposit_price) || 0;
-  const baseBalance  = totalPrice - depositPrice;
+  // ── 정가 기준 (계약금으로 팀 구성 판단) ──
+  const depositPrice = Number(s.deposit_price) || 150000;
+  // 계약금 20만원 이상이면 4인 2팀, 아니면 2인 1팀
+  const isDoubleTeam = depositPrice >= 200000;
+  const listPrice    = isDoubleTeam ? 700000 : 400000; // 정가: 2인1팀 40만 / 4인2팀 70만
+
+  // ── 기준 잔금 = 정가 - 계약금 (할인 전) ──
+  const baseBalance  = listPrice - depositPrice;
 
   // ── 적용된 할인 수집 ──
   const appliedPresets = PRESET_DISCOUNT_DEFS.filter(d => am[d.key]);
@@ -730,11 +734,11 @@ function renderPayment(){
   const totalDiscount  = appliedPresets.reduce((sum, d) => sum + d.amount, 0) + etcDiscount + coupleTotal;
 
   // ── 최종 잔금 = 기준 잔금 - 모든 할인 (1회만) ──
-  const finalBalance  = baseBalance - totalDiscount;
+  const finalBalance   = baseBalance - totalDiscount;
   const hasAnyDiscount = totalDiscount > 0;
 
   let html = `
-    <div class="info-row"><span class="info-lbl gold">총 계약 금액</span><span class="info-val gold">${fmt(totalPrice)}</span></div>
+    <div class="info-row"><span class="info-lbl gold">총 계약 금액</span><span class="info-val gold">${fmt(listPrice)}</span></div>
     <div class="info-row"><span class="info-lbl">계약금</span><span class="info-val">${fmt(depositPrice)}</span></div>
     <div class="info-row"><span class="info-lbl">잔금</span><span class="info-val">${fmt(baseBalance)}</span></div>`;
 
