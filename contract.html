@@ -257,12 +257,14 @@ input,select,textarea{font-family:inherit;outline:none}
       <!-- 짝꿍 할인코드 입력 영역 -->
       <div style="margin-top:14px;padding:14px;background:#F9F7F4;border:1px solid #E8E3DC;border-radius:10px">
         <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">🤝 짝꿍 할인코드</div>
-        <div style="font-size:11px;color:#6B7280;line-height:1.6;margin-bottom:10px">
-          짝꿍 할인을 받으시는 경우, 추천해주신 분의 이름+휴대폰 뒷자리 4자리를 입력해주세요.<br>
-          짝꿍 할인코드는 계약 1건당 1개만 적용 가능하며, 중복 적용은 불가합니다.
+        <div style="font-size:11px;color:#6B7280;line-height:1.8;margin-bottom:10px">
+          짝꿍 할인을 받으시는 경우, 추천해주신 분께 전달받은 짝꿍코드를 입력해주세요.<br>
+          계약서 서명 완료 후에도 입력 가능하지만, <b style="color:#374151">계약일로부터 1주일 이내</b>까지만 적용 가능합니다.<br>
+          짝꿍 할인코드는 계약 1건당 1개만 적용 가능하며, 중복 적용은 불가합니다.<br>
+          <span style="color:#9CA3AF">예: 홍길동1234</span>
         </div>
         <div style="display:flex;gap:8px">
-          <input id="couple-code-input" class="form-input" placeholder="예: 전수연1234" style="flex:1;font-size:13px">
+          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px">
           <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">짝꿍코드 적용</button>
         </div>
         <div id="couple-code-msg" style="margin-top:8px;font-size:12px;display:none"></div>
@@ -588,17 +590,33 @@ async function init(){
       // ※ 짝꿍코드 입력칸은 서명 완료와 무관하게 유지 — 이미 적용 시에만 아래에서 비활성화
     }
 
-    // 짝꿍코드 이미 적용된 상태 복원
+    // 짝꿍코드 상태 처리 (우선순위: 이미적용 > 기한만료 > 활성)
+    const inp = document.getElementById('couple-code-input');
+    const btn = document.getElementById('couple-code-btn');
+    const lockInput = () => { if(inp){ inp.disabled=true; inp.style.background='#F3F4F6'; } if(btn){ btn.disabled=true; btn.style.background='#9CA3AF'; } };
+
     if(schedule.couple_discount_status === 'approved' && schedule.couple_discount_code){
+      // ① 이미 정상 적용된 경우
       coupleDiscountApplied = true;
       coupleDiscountAmount  = schedule.couple_discount_amount || 10000;
       coupleDiscountCode    = schedule.couple_discount_code;
-      const inp = document.getElementById('couple-code-input');
-      const btn = document.getElementById('couple-code-btn');
-      if(inp){ inp.value = schedule.couple_discount_code; inp.disabled = true; inp.style.background='#F3F4F6'; }
-      if(btn){ btn.disabled = true; btn.textContent = '적용 완료'; btn.style.background='#9CA3AF'; }
-      showCoupleMsg('이미 짝꿍코드가 적용되었습니다. 계약 1건당 1개의 코드만 사용할 수 있습니다.', false);
+      if(inp){ inp.value = schedule.couple_discount_code; }
+      lockInput();
+      if(btn){ btn.textContent = '적용 완료'; }
+      showCoupleMsg('짝꿍코드가 이미 적용되었습니다.\n짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.', false);
+    } else if(schedule.contract_signed && schedule.contract_signed_at){
+      // ② 서명은 완료됐으나 코드 미적용 → 기한(7일) 체크
+      const signedMs  = new Date(schedule.contract_signed_at).getTime();
+      const nowMs     = Date.now();
+      const diffDays  = (nowMs - signedMs) / (1000 * 60 * 60 * 24);
+      if(diffDays > 7){
+        lockInput();
+        if(btn){ btn.textContent = '기간 만료'; }
+        showCoupleMsg('짝꿍코드 입력 가능 기간이 종료되었습니다.\n짝꿍 할인은 계약일로부터 1주일 이내에만 신청 가능합니다.', true);
+      }
+      // 7일 이내면 활성 상태 유지 (별도 처리 없음)
     }
+    // ③ 서명 전이거나 7일 이내 → 입력 가능 상태 유지
 
     document.getElementById('loading').style.display='none';
     document.getElementById('app').style.display='block';
@@ -719,8 +737,18 @@ function showCoupleMsg(msg, isError){
 
 async function applyCoupleCode(){
   if(coupleDiscountApplied){
-    showCoupleMsg('이미 짝꿍코드가 적용되었습니다. 계약 1건당 1개의 코드만 사용할 수 있습니다.', true);
+    showCoupleMsg('짝꿍코드가 이미 적용되었습니다.\n짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.', true);
     return;
+  }
+
+  // 계약일 기준 7일 기한 체크
+  if(schedule.contract_signed && schedule.contract_signed_at){
+    const signedMs = new Date(schedule.contract_signed_at).getTime();
+    const diffDays = (Date.now() - signedMs) / (1000 * 60 * 60 * 24);
+    if(diffDays > 7){
+      showCoupleMsg('짝꿍코드 입력 가능 기간이 종료되었습니다.\n짝꿍 할인은 계약일로부터 1주일 이내에만 신청 가능합니다.', true);
+      return;
+    }
   }
   const code = (document.getElementById('couple-code-input')?.value || '').trim();
   if(!code){ showCoupleMsg('코드를 입력해주세요.', true); return; }
@@ -730,7 +758,14 @@ async function applyCoupleCode(){
 
   try {
     // 전체 schedules 조회 (코드 주인 탐색 + 사용 여부 확인)
-    const rows = await sb.get('schedules', '?select=id,groom_name,bride_name,groom_phone,bride_phone,couple_discount_code');
+    // couple_discount_status: 코드 사용 여부(used_code)와 할인 적용 여부(received_discount)를 분리 관리
+    //   - couple_discount_code: 이 계약자가 직접 사용한 코드 (없으면 null)
+    //   - couple_discount_status: 'approved' = 할인 혜택을 받은 상태 (코드 사용 또는 추천 리워드)
+    // 운영 규칙:
+    //   - 각 코드는 1회만 사용 가능 (B가 A코드 사용 시 A코드 사용 완료)
+    //   - 각 계약자는 할인 혜택 1회 한정 (신규 고객 할인 OR 추천인 리워드 중 1회)
+    //   - 코드 소유자(A)의 대표코드는 코드 사용 여부와 무관하게 유지 (B코드는 계속 살아있음)
+    const rows = await sb.get('schedules', '?select=id,groom_name,bride_name,groom_phone,bride_phone,couple_discount_code,couple_discount_status,balance_price');
 
     // 현재 계약서 예식의 신랑/신부 코드 생성 (자기 자신 코드 판별)
     const selfCodes = [];
@@ -770,7 +805,30 @@ async function applyCoupleCode(){
       return;
     }
 
-    // ✅ 유효한 코드 — 할인 적용 + DB 즉시 저장 (서명 완료 여부와 무관)
+    // ✅ 유효한 코드 — 추천인(코드 소유자) 리워드 적용 후 본인 할인 저장
+    // 추천인 리워드: 코드 소유자가 아직 할인 혜택을 받지 않은 경우에만 1만원 차감
+    const ownerRow = rows.find(r => {
+      const gCode = r.groom_name && r.groom_phone
+        ? r.groom_name + String(r.groom_phone).replace(/\D/g,'').slice(-4) : '';
+      const bCode = r.bride_name && r.bride_phone
+        ? r.bride_name + String(r.bride_phone).replace(/\D/g,'').slice(-4) : '';
+      return gCode === code || bCode === code;
+    });
+    if(ownerRow && ownerRow.couple_discount_status !== 'approved'){
+      // 추천인은 아직 할인을 받지 않은 경우에만 리워드 적용
+      const ownerBalance = Number(ownerRow.balance_price) || 0;
+      try{
+        await sb.patch('schedules', ownerRow.id, {
+          couple_discount_status: 'approved',
+          couple_discount_amount: 10000,
+          balance_price: Math.max(0, ownerBalance - 10000),
+          // couple_discount_code는 변경 안 함 (추천인이 직접 코드를 사용한 게 아님)
+        });
+      }catch(e){
+        console.warn('[DG] 추천인 리워드 적용 실패 (본인 할인은 계속 진행):', e);
+      }
+    }
+    // 이미 할인을 받은 추천인은 추가 리워드 없음 (couple_discount_status === 'approved')
     const baseBalance = Number(schedule.balance_price) || 0;
     const finalBalance = baseBalance - 10000;
 
