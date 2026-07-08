@@ -1457,6 +1457,9 @@ function rowToSchedule(row){
     handoverCertSignature: row.handover_cert_signature || '',
     handoverCertItems:     row.handover_cert_items     || '',
     handoverCertClosing:   row.handover_cert_closing   || '',
+    coupleDiscountCode:    row.couple_discount_code    || '',
+    coupleDiscountStatus:  row.couple_discount_status  || '',
+    coupleDiscountAmount:  row.couple_discount_amount  || 0,
   };
 }
 
@@ -2948,6 +2951,19 @@ function openForm(id){
   formContractMemo = s?.adminMemo    ? {...s.adminMemo}    : {};
   // 기타 할인 금액 복원
   if(formContractMemo['etc_discount_amount'] === undefined) formContractMemo['etc_discount_amount'] = '';
+
+  // ── 짝꿍코드 자동 연동 ──
+  // contract.html에서 짝꿍코드가 승인된 경우 계약참고 couple_discount 자동 체크
+  if(s?.coupleDiscountStatus === 'approved' && s?.coupleDiscountCode){
+    formContractMemo['couple_discount'] = true;
+    // 내부운영메모에 짝꿍코드 기록 (중복 방지)
+    const memoEntry = `짝꿍 할인 적용\n사용 코드 : ${s.coupleDiscountCode}`;
+    const existingText = formContractMemo.text || '';
+    if(!existingText.includes(s.coupleDiscountCode)){
+      formContractMemo.text = existingText ? existingText + '\n\n' + memoEntry : memoEntry;
+    }
+  }
+
   if(document.getElementById('fm-field-text'))
     document.getElementById('fm-field-text').value       = formFieldMemo.text || '';
   if(document.getElementById('fm-field-urgent'))
@@ -2961,9 +2977,15 @@ function openForm(id){
   if(ADMIN_NAMES.includes(currentUser.name)){
     document.getElementById('f-total-price').value  = s?.totalPrice  || '';
     document.getElementById('f-deposit-price').value = s?.depositPrice || '';
+    // 짝꿍코드 승인 시 DB에 저장된 할인 적용 잔금(balance_price) 반영
     document.getElementById('f-balance-price').value = s?.balancePrice || '';
     document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
-    calcSettlement();
+    // couple_discount 체크된 상태로 정산 재계산
+    if(s?.coupleDiscountStatus === 'approved'){
+      syncContractMemoToSettlement();
+    } else {
+      calcSettlement();
+    }
   }
   // ── 매니저 권한: 기본정보/담당자 readonly 처리 ──
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);

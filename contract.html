@@ -585,6 +585,19 @@ async function init(){
       document.getElementById('signed-sub-text').textContent = `서명 완료: ${at}`;
       document.getElementById('submit-btn').disabled = true;
       document.getElementById('submit-btn').textContent = '🔒 이미 서명 완료된 계약서입니다';
+      // ※ 짝꿍코드 입력칸은 서명 완료와 무관하게 유지 — 이미 적용 시에만 아래에서 비활성화
+    }
+
+    // 짝꿍코드 이미 적용된 상태 복원
+    if(schedule.couple_discount_status === 'approved' && schedule.couple_discount_code){
+      coupleDiscountApplied = true;
+      coupleDiscountAmount  = schedule.couple_discount_amount || 10000;
+      coupleDiscountCode    = schedule.couple_discount_code;
+      const inp = document.getElementById('couple-code-input');
+      const btn = document.getElementById('couple-code-btn');
+      if(inp){ inp.value = schedule.couple_discount_code; inp.disabled = true; inp.style.background='#F3F4F6'; }
+      if(btn){ btn.disabled = true; btn.textContent = '적용 완료'; btn.style.background='#9CA3AF'; }
+      showCoupleMsg('이미 짝꿍코드가 적용되었습니다. 계약 1건당 1개의 코드만 사용할 수 있습니다.', false);
     }
 
     document.getElementById('loading').style.display='none';
@@ -657,19 +670,31 @@ function renderPayment(){
   const s = schedule;
   const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
   const baseBalance = Number(s.balance_price) || 0;
-  const displayBalance = baseBalance - coupleDiscountAmount; // 짝꿍 할인 차감
-  const rows = [
-    ['총 계약 금액', s.total_price,   true],
+  const displayBalance = baseBalance - coupleDiscountAmount;
+
+  // 상단 고정 행 (총계약금액, 계약금)
+  const topRows = [
+    ['총 계약 금액', s.total_price, true],
     ['계약금',       s.deposit_price, false],
-    ['잔금',         displayBalance,  false],
   ];
-  const html = rows.map(([l,v,gold])=>`
+  let html = topRows.map(([l,v,gold])=>`
     <div class="info-row"><span class="info-lbl">${esc(l)}</span><span class="info-val${gold?' gold':''}">${fmt(v)}</span></div>
   `).join('');
+
+  // 할인 내역이 있으면 상품금액 → 할인 → 최종잔금으로 분리 표시
+  if(coupleDiscountApplied){
+    html += `
+    <div class="info-row"><span class="info-lbl" style="color:#374151">상품금액</span><span class="info-val">${fmt(baseBalance)}</span></div>
+    <div class="info-row"><span class="info-lbl" style="color:#C7A96B">짝꿍 할인</span><span class="info-val" style="color:#C7A96B">-10,000원</span></div>
+    <div class="info-row" style="border-top:1.5px solid #C7A96B;padding-top:8px"><span class="info-lbl" style="font-weight:700">최종 잔금</span><span class="info-val" style="font-weight:700">${fmt(displayBalance)}</span></div>`;
+  } else {
+    html += `<div class="info-row"><span class="info-lbl">잔금</span><span class="info-val">${fmt(baseBalance)}</span></div>`;
+  }
   document.getElementById('payment-rows').innerHTML = html;
-  // 짝꿍 할인 행 표시/숨김
+
+  // 짝꿍 할인 별도 행은 새 구조에 포함되므로 숨김
   const discRow = document.getElementById('couple-discount-row');
-  if(discRow) discRow.style.display = coupleDiscountApplied ? 'flex' : 'none';
+  if(discRow) discRow.style.display = 'none';
 }
 
 // ── 짝꿍코드 적용 ──
@@ -745,7 +770,28 @@ async function applyCoupleCode(){
       return;
     }
 
-    // ✅ 유효한 코드 — 할인 적용
+    // ✅ 유효한 코드 — 할인 적용 + DB 즉시 저장 (서명 완료 여부와 무관)
+    const baseBalance = Number(schedule.balance_price) || 0;
+    const finalBalance = baseBalance - 10000;
+
+    try{
+      await sb.patch('schedules', schedule.id, {
+        couple_discount_code:   code,
+        couple_discount_status: 'approved',
+        couple_discount_amount: 10000,
+        balance_price:          finalBalance,
+      });
+      // schedule 로컬 객체 동기화
+      schedule.couple_discount_code   = code;
+      schedule.couple_discount_status = 'approved';
+      schedule.couple_discount_amount = 10000;
+      schedule.balance_price          = finalBalance;
+    }catch(saveErr){
+      showCoupleMsg('코드 저장 중 오류가 발생했습니다: '+saveErr.message, true);
+      if(btn){ btn.disabled = false; btn.textContent = '짝꿍코드 적용'; }
+      return;
+    }
+
     coupleDiscountApplied = true;
     coupleDiscountAmount  = 10000;
     coupleDiscountCode    = code;
