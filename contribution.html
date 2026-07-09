@@ -1188,8 +1188,32 @@ async function initSeqIfNeeded(){
 
 function subscribeRealtime(){
   const ws=new WebSocket(`wss://fmvomfjmkbklhaaapkbk.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`);
-  ws.onopen=()=>ws.send(JSON.stringify({topic:`realtime:public:contribution_logs:schedule_id=eq.${currentSchedule.id}`,event:'phx_join',payload:{},ref:'1'}));
-  ws.onmessage=async(e)=>{ const msg=JSON.parse(e.data); if(['INSERT','UPDATE','DELETE'].includes(msg.event)) await loadLogs(); };
+  ws.onopen=()=>{
+    // 접수 내역 구독 (contribution_logs)
+    ws.send(JSON.stringify({topic:`realtime:public:contribution_logs:schedule_id=eq.${currentSchedule.id}`,event:'phx_join',payload:{},ref:'1'}));
+    // 인계정보/운영메모 구독 (schedules) — 양측 화면 동기화
+    ws.send(JSON.stringify({topic:`realtime:public:schedules:id=eq.${currentSchedule.id}`,event:'phx_join',payload:{},ref:'2'}));
+  };
+  ws.onmessage=async(e)=>{
+    try{
+      const msg=JSON.parse(e.data);
+      const evtType=msg.event||(msg.payload&&msg.payload.type)||'';
+      const isMutation=['INSERT','UPDATE','DELETE'].includes(evtType)||['INSERT','UPDATE','DELETE'].includes(msg.payload&&msg.payload.type);
+      if(!isMutation) return;
+      const topic=msg.topic||'';
+      if(topic.includes('schedules')){
+        // schedules 변경 → 인계정보 재fetch 후 양측 화면 갱신
+        const freshRows=await sb.get('schedules',`?id=eq.${currentSchedule.id}&select=*`);
+        if(freshRows&&freshRows.length){
+          Object.assign(currentSchedule,freshRows[0]);
+          loadHandover();
+        }
+      } else {
+        // contribution_logs 변경 → 접수 내역 갱신
+        await loadLogs();
+      }
+    }catch(err){console.error('[DG] realtime error',err);}
+  };
   ws.onclose=()=>setTimeout(subscribeRealtime,3000);
 }
 
