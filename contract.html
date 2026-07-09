@@ -257,11 +257,9 @@ input,select,textarea{font-family:inherit;outline:none}
       <!-- 짝꿍 할인코드 입력 영역 -->
       <div style="margin-top:14px;padding:14px;background:#F9F7F4;border:1px solid #E8E3DC;border-radius:10px">
         <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">🤝 짝꿍 할인코드</div>
-        <div style="font-size:11px;color:#6B7280;line-height:1.8;margin-bottom:10px">
-          짝꿍 할인을 받으시는 경우, 추천해주신 분께 전달받은 짝꿍코드를 입력해주세요.<br>
-          계약서 서명 완료 후에도 입력 가능하지만, <b style="color:#374151">계약일로부터 1주일 이내</b>까지만 적용 가능합니다.<br>
-          짝꿍 할인코드는 계약 1건당 1개만 적용 가능하며, 중복 적용은 불가합니다.<br>
-          <span style="color:#9CA3AF">예: 홍길동1234</span>
+        <div style="font-size:12px;color:#6B7280;line-height:1.7;margin-bottom:10px">
+          추천받으신 분의 짝꿍코드를 입력해주세요.<br>
+          <span style="color:#9CA3AF">• 계약일로부터 1주일 이내 입력 가능&nbsp;&nbsp;• 계약당 1회 적용</span>
         </div>
         <div style="display:flex;gap:8px">
           <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px">
@@ -615,7 +613,7 @@ async function init(){
       if(inp){ inp.value = coupleDiscountCode; }
       lockInput();
       if(btn){ btn.textContent = '적용 완료'; }
-      showCoupleMsg('짝꿍코드가 이미 적용되었습니다.\n짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.', false);
+      showCoupleMsg('🟢 짝꿍할인이 적용되었습니다. (-10,000원)', false);
     } else if(schedule.couple_discount_status === 'cancelled'){
       showCoupleMsg('짝꿍 할인이 취소된 계약입니다. 이미지 저장 버튼으로 최신 계약서를 새로 저장해주세요.', false);
       if(schedule.contract_signed && schedule.contract_signed_at){
@@ -793,7 +791,7 @@ async function applyCoupleCode(){
 
   if(thisContractApplied && schedule.couple_discount_status !== 'cancelled'){
     // 현재 계약의 기존 할인 → "이미 사용된 코드" 오류 아님, "이미 적용됨"으로 표시
-    showCoupleMsg('짝꿍코드가 이미 적용되었습니다.\n짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.', false);
+    showCoupleMsg('🟢 짝꿍할인이 적용되었습니다. (-10,000원)', false);
     return;
   }
 
@@ -833,8 +831,8 @@ async function applyCoupleCode(){
       return;
     }
 
-    // schedules 전체 조회 (코드 주인 탐색)
-    const rows = await sb.get('schedules', '?select=id,groom_name,bride_name,groom_phone,bride_phone,couple_referral_code,couple_discount_code,couple_discount_status,balance_price');
+    // schedules 전체 조회 (코드 주인 탐색 + admin_memo 포함)
+    const rows = await sb.get('schedules', '?select=id,groom_name,bride_name,groom_phone,bride_phone,couple_referral_code,couple_discount_code,couple_discount_status,couple_discount_amount,balance_price,admin_memo');
 
     // ── 검증 2: 본인 코드 확인 ──
     const selfCodes = [];
@@ -848,14 +846,14 @@ async function applyCoupleCode(){
       return;
     }
 
-    // ── 검증 3: schedules.couple_discount_code 이중 확인 (미등록 케이스 대비) ──
+    // ── 검증 3: schedules.couple_discount_code 이중 확인 ──
     const alreadyUsedInSched = rows.some(r => r.id !== schedule.id && r.couple_discount_code === code);
     if(alreadyUsedInSched){
       showCoupleMsg('이미 사용된 짝꿍코드입니다.', true);
       return;
     }
 
-    // ── 검증 4: 코드 주인 확인 (couple_referral_code 우선, fallback: 이름+전화번호) ──
+    // ── 검증 4: 코드 주인 확인 ──
     let ownerRow = rows.find(r => r.couple_referral_code === code);
     if(!ownerRow){
       ownerRow = rows.find(r => {
@@ -871,22 +869,55 @@ async function applyCoupleCode(){
       return;
     }
 
-    // ✅ 유효한 코드 — 추천인(코드 소유자) 리워드 적용 후 본인 할인 저장
-    // 추천인 리워드: 코드 소유자가 아직 할인 혜택을 받지 않은 경우에만 1만원 차감
-    if(ownerRow && ownerRow.couple_discount_status !== 'approved'){
-      const ownerBalance = Number(ownerRow.balance_price) || 0;
+    // ✅ 유효한 코드 — A 할인 적용 + B 리워드 자동 적용
+    const currentName = schedule.groom_name || schedule.bride_name || '';
+    const ownerName   = ownerRow.groom_name || ownerRow.bride_name || '';
+
+    // ── B(코드 소유자) 자동 리워드 처리 ──
+    const bAm = ownerRow.admin_memo || {};
+    const bAlreadyHasDiscount =
+      ownerRow.couple_discount_status === 'approved' ||
+      (ownerRow.couple_discount_code && ownerRow.couple_discount_code.trim() !== '') ||
+      Number(ownerRow.couple_discount_amount) > 0 ||
+      bAm.couple_discount === true;
+
+    if(!bAlreadyHasDiscount){
+      // B에게 아직 할인 없음 → 자동 리워드 적용
+      const bBalance  = Number(ownerRow.balance_price) || 0;
+      const bMemoTxt  = `내 대표 짝꿍코드 사용으로 할인 적용\n사용 계약자: ${currentName}\n사용 코드: ${code}`;
+      const newBAm    = {
+        ...bAm,
+        couple_discount: true,
+        couple_referral_reward_from_schedule: schedule.id, // 취소 추적용 마킹
+        text: bAm.text ? bAm.text + '\n\n' + bMemoTxt : bMemoTxt,
+      };
       try{
         await sb.patch('schedules', ownerRow.id, {
           couple_discount_status: 'approved',
           couple_discount_amount: 10000,
-          balance_price: Math.max(0, ownerBalance - 10000),
+          balance_price: Math.max(0, bBalance - 10000),
+          admin_memo: newBAm,
         });
       }catch(e){
-        console.warn('[DG] 추천인 리워드 적용 실패 (본인 할인은 계속 진행):', e);
+        console.warn('[DG] B 자동 리워드 적용 실패 (A 할인은 계속 진행):', e);
       }
+    } else {
+      // B 이미 할인 있음 → 메모만 추가
+      const bMemoTxt  = `내 대표코드(${code})가 ${currentName} 계약자에 의해 사용되었으나 기존 짝꿍할인 적용 이력이 있어 추가 할인은 적용하지 않음`;
+      const newBAm    = { ...bAm, text: bAm.text ? bAm.text + '\n\n' + bMemoTxt : bMemoTxt };
+      try{ await sb.patch('schedules', ownerRow.id, { admin_memo: newBAm }); }catch(e){}
     }
-    const baseBalance = Number(schedule.balance_price) || 0;
+
+    // ── A(코드 입력자) 할인 적용 ──
+    const baseBalance  = Number(schedule.balance_price) || 0;
     const finalBalance = baseBalance - 10000;
+    const aAm          = schedule.admin_memo || {};
+    const aMemoTxt     = `짝꿍 할인 적용\n사용 코드: ${code}`;
+    const newAAm       = {
+      ...aAm,
+      couple_discount: true,
+      text: aAm.text ? aAm.text + '\n\n' + aMemoTxt : aMemoTxt,
+    };
 
     try{
       await sb.patch('schedules', schedule.id, {
@@ -894,11 +925,13 @@ async function applyCoupleCode(){
         couple_discount_status: 'approved',
         couple_discount_amount: 10000,
         balance_price:          finalBalance,
+        admin_memo:             newAAm,
       });
       schedule.couple_discount_code   = code;
       schedule.couple_discount_status = 'approved';
       schedule.couple_discount_amount = 10000;
       schedule.balance_price          = finalBalance;
+      schedule.admin_memo             = newAAm;
     }catch(saveErr){
       showCoupleMsg('코드 저장 중 오류가 발생했습니다: '+saveErr.message, true);
       if(btn){ btn.disabled = false; btn.textContent = '짝꿍코드 적용'; }
@@ -931,7 +964,7 @@ async function applyCoupleCode(){
     if(inp){ inp.disabled = true; inp.style.background='#F3F4F6'; }
     if(btn){ btn.disabled = true; btn.textContent = '적용 완료'; btn.style.background='#9CA3AF'; }
 
-    showCoupleMsg('짝꿍코드가 적용되었습니다. 짝꿍 할인 -10,000원이 잔금에 반영되었습니다.', false);
+    showCoupleMsg('🟢 짝꿍할인이 적용되었습니다. (-10,000원)', false);
     renderPayment();
 
   } catch(e){
