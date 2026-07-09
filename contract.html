@@ -547,6 +547,7 @@ const sb = {
   h: {'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
   url: (t,q='') => `${SUPABASE_URL}/rest/v1/${t}${q}`,
   async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
+  async post(t,b){ const r=await fetch(sb.url(t),{method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
   async patch(t,id,b){ const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
   async upload(bucket,path,blob){ const r=await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`,{method:'POST',headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':blob.type},body:blob}); return r; },
 };
@@ -873,6 +874,26 @@ async function applyCoupleCode(){
     const currentName = schedule.groom_name || schedule.bride_name || '';
     const ownerName   = ownerRow.groom_name || ownerRow.bride_name || '';
 
+    // ── referral_code_usages에 사용 이력 먼저 등록 (필수 — 실패 시 할인 적용 자체를 중단) ──
+    // 중복 방지의 기준이 되는 테이블이므로, 이 insert가 실패하면 절대 할인을 적용하지 않음
+    let usageInsertRow;
+    try{
+      const inserted = await sb.post('referral_code_usages', {
+        used_code:            code,
+        referrer_name:        ownerName,
+        used_by_name:         currentName,
+        used_by_schedule_id:  schedule.id,
+        source:               'contract',
+        status:               'active',
+      });
+      usageInsertRow = Array.isArray(inserted) ? inserted[0] : inserted;
+    }catch(usageInsertErr){
+      console.error('[DG] referral_code_usages 등록 실패 — 할인 적용 중단:', usageInsertErr);
+      showCoupleMsg('사용 이력 저장 중 오류가 발생하여 할인 적용이 중단되었습니다. 잠시 후 다시 시도해주세요.', true);
+      if(btn){ btn.disabled = false; btn.textContent = '짝꿍코드 적용'; }
+      return;
+    }
+
     // ── B(코드 소유자) 자동 리워드 처리 ──
     const bAm = ownerRow.admin_memo || {};
     const bAlreadyHasDiscount =
@@ -932,26 +953,14 @@ async function applyCoupleCode(){
       schedule.couple_discount_amount = 10000;
       schedule.admin_memo             = newAAm;
     }catch(saveErr){
+      // A 할인 적용 실패 — 이미 등록한 usage row를 cancelled로 되돌려 코드 재사용 가능하게 함
+      if(usageInsertRow?.id){
+        try{ await sb.patch('referral_code_usages', usageInsertRow.id, { status: 'cancelled' }); }
+        catch(rollbackErr){ console.error('[DG] usage row 롤백 실패:', rollbackErr); }
+      }
       showCoupleMsg('코드 저장 중 오류가 발생했습니다: '+saveErr.message, true);
       if(btn){ btn.disabled = false; btn.textContent = '짝꿍코드 적용'; }
       return;
-    }
-
-    // ── referral_code_usages에 사용 이력 등록 ──
-    // (신규 계약자가 입력한 코드만 기록, 신규 계약자의 대표코드는 기록 안 함)
-    try{
-      const ownerName   = ownerRow.groom_name || ownerRow.bride_name || '';
-      const currentName = schedule.groom_name || schedule.bride_name || '';
-      await sb.post('referral_code_usages', {
-        used_code:            code,
-        referrer_name:        ownerName,
-        used_by_name:         currentName,
-        used_by_schedule_id:  schedule.id,
-        source:               'contract',
-        status:               'active',
-      });
-    }catch(e){
-      console.warn('[DG] 사용이력 등록 실패 (할인은 이미 적용됨):', e);
     }
 
     coupleDiscountApplied = true;
