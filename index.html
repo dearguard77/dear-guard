@@ -2507,14 +2507,26 @@ function openDetail(id){
 
     ${ADMIN_NAMES.includes(currentUser.name) ? (() => {
       const am = s.adminMemo || {};
-      const checkedItems = CONTRACT_CHECKS.filter(c => am[c.key])
+      // 짝꿍할인 적용 여부 판단 기준을 수정 폼(openForm)과 동일하게 맞춤
+      // → admin_memo.couple_discount 값이 누락되어 있어도 상세모달 최초 오픈 시 바로 반영되도록 함
+      const hasCoupleDiscount =
+        am.couple_discount === true ||
+        s.coupleDiscountStatus === 'approved' ||
+        Number(s.coupleDiscountAmount) > 0 ||
+        !!s.coupleDiscountCode;
+      const effectiveAm = hasCoupleDiscount ? { ...am, couple_discount: true } : am;
+      const checkedItems = CONTRACT_CHECKS.filter(c => effectiveAm[c.key])
         .map(c => `<span style="background:#F3E8FF;color:#7C3AED;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;display:inline-block;margin:2px">${c.label}</span>`)
         .join('');
-      if(!checkedItems && !am.text) return '';
+      // 사용된 짝꿍코드 안내 — 메모 텍스트에 이미 코드가 포함돼 있지 않을 때만 별도로 표시 (중복 방지)
+      const codeNote = (hasCoupleDiscount && s.coupleDiscountCode && !(am.text||'').includes(s.coupleDiscountCode))
+        ? `사용 코드: ${s.coupleDiscountCode}` : '';
+      if(!checkedItems && !am.text && !codeNote) return '';
       return `<div class="detail-sec">
         <div class="detail-sec-title" style="color:#7C3AED">📝 계약 참고 메모 <span style="font-size:10px;background:#E9D5FF;color:#7C3AED;border-radius:6px;padding:1px 8px">관리자 전용</span></div>
         <div style="background:#FDF4FF;border:1.5px solid #E9D5FF;border-radius:10px;padding:14px 16px">
           ${checkedItems ? `<div style="margin-bottom:${am.text?'10px':'0'};display:flex;flex-wrap:wrap;gap:4px">${checkedItems}</div>` : ''}
+          ${codeNote ? `<div style="font-size:12px;color:#7C3AED;font-weight:700;margin-bottom:${am.text?'8px':'0'}">${esc(codeNote)}</div>` : ''}
           ${am.text ? `<div style="font-size:13px;color:#374151;white-space:pre-wrap;line-height:1.8">${esc(am.text)}</div>` : ''}
         </div>
       </div>`;
@@ -3029,6 +3041,7 @@ async function openReferralModal(){
     _referralUsages = await sb.get('referral_code_usages',
       '?select=used_code,referrer_name,used_by_name,used_by_schedule_id,status,created_at&order=created_at.desc&limit=200');
   }catch(e){ _referralUsages = []; }
+  console.log('referral_code_usages rows:', _referralUsages);
   renderReferralList();
 }
 
@@ -3040,6 +3053,8 @@ function renderReferralList(){
   const q = (document.getElementById('referral-search-input')?.value || '').trim().toLowerCase();
   const el = document.getElementById('referral-list');
   if(!el) return;
+  console.log('짝꿍코드 조회 keyword:', q);
+  console.log('schedules rows:', schedules);
 
   // 짝꿍코드 목록 생성: schedules.couple_referral_code(또는 fallback 계산 코드) + referral_code_usages.used_code 합집합
   // → 사용 상태는 반드시 referral_code_usages 기준으로 판단 (schedules에 코드가 있다고 무조건 사용가능으로 표시하지 않음)
@@ -3099,6 +3114,7 @@ function renderReferralList(){
   }));
 
   const allRows = [...rows, ...needsOwnerRows];
+  console.log('merged result:', allRows);
 
   // 검색 필터 (이름, 짝꿍코드, 사용자명, referrer_name, 휴대폰 뒷자리 포함)
   const filtered = q
