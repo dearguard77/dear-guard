@@ -2961,27 +2961,55 @@ function renderReferralList(){
   const el = document.getElementById('referral-list');
   if(!el) return;
 
-  // schedules에서 couple_referral_code 기준 목록 생성
-  const rows = schedules.filter(s => s.coupleReferralCode || s.groomName || s.brideName).map(s => {
-    const refCode = s.coupleReferralCode || '';
-    const name    = [s.groomName, s.brideName].filter(Boolean).join(' / ');
-    const usage   = _referralUsages.find(u => u.used_code === refCode && u.status === 'active');
-    const isUsed  = !!usage;
-    // 이 코드를 사용한 계약자 정보
-    const usedBy  = usage ? (usage.used_by_name || '사용자 정보 없음') : null;
-    // 내가 사용한 코드 (이 계약이 받은 짝꿍할인)
-    const myCode  = s.coupleDiscountCode || '';
-    const myStatus = s.coupleDiscountStatus || '';
-    return { s, refCode, name, isUsed, usedBy, myCode, myStatus };
-  }).filter(r => r.refCode); // 코드 없는 예식 제외
+  // 짝꿍코드 목록 생성: schedules.couple_referral_code + referral_code_usages.used_code 합집합 (중복 코드는 하나로 합침)
+  // → 사용 상태는 반드시 referral_code_usages 기준으로 판단 (schedules에 코드가 있다고 무조건 사용가능으로 표시하지 않음)
+  const codeMap = new Map(); // refCode -> { s: 코드 소유 예식(없으면 legacy), usages: [] }
 
-  // 검색 필터
+  schedules.forEach(s => {
+    const code = s.coupleReferralCode;
+    if(!code) return;
+    if(!codeMap.has(code)) codeMap.set(code, { s, usages: [] });
+    else if(!codeMap.get(code).s) codeMap.get(code).s = s;
+  });
+
+  _referralUsages.forEach(u => {
+    const code = u.used_code;
+    if(!code) return;
+    if(!codeMap.has(code)) codeMap.set(code, { s: null, usages: [] }); // legacy 코드(schedules에 없음)
+    codeMap.get(code).usages.push(u);
+  });
+
+  const rows = Array.from(codeMap.entries()).map(([refCode, info]) => {
+    const s = info.s;
+    const usages = info.usages;
+    // 상태 판단: active 이력이 있으면 무조건 사용완료, 없고 cancelled만 있으면 사용가능(취소됨), 이력 자체가 없으면 사용가능
+    const activeUsage    = usages.find(u => u.status === 'active');
+    const cancelledUsage = usages.find(u => u.status === 'cancelled');
+    const isUsed      = !!activeUsage;
+    const isCancelled = !isUsed && !!cancelledUsage;
+    const usedBy      = activeUsage ? (activeUsage.used_by_name || '사용자 정보 없음') : null;
+    const referrerName = (activeUsage || cancelledUsage || usages[0])?.referrer_name || '';
+    // 이름: 등록된 예식이 있으면 예식 이름, 없으면(legacy) referrer_name 사용
+    const name = s ? [s.groomName, s.brideName].filter(Boolean).join(' / ') : referrerName;
+    // 검색용 휴대폰 뒷자리
+    const phoneTail = s
+      ? [s.groomPhone, s.bridePhone].filter(Boolean).map(p => String(p).replace(/\D/g,'').slice(-4)).join(' ')
+      : '';
+    // 내가 사용한 코드 (이 계약이 받은 짝꿍할인) — 등록된 예식이 있을 때만 존재
+    const myCode   = s?.coupleDiscountCode || '';
+    const myStatus = s?.coupleDiscountStatus || '';
+    return { refCode, name, isUsed, isCancelled, usedBy, referrerName, phoneTail, myCode, myStatus };
+  });
+
+  // 검색 필터 (이름, 짝꿍코드, 사용자명, referrer_name, 휴대폰 뒷자리 포함)
   const filtered = q
     ? rows.filter(r =>
         r.name.toLowerCase().includes(q) ||
         r.refCode.toLowerCase().includes(q) ||
         (r.usedBy||'').toLowerCase().includes(q) ||
-        (r.myCode||'').toLowerCase().includes(q))
+        (r.referrerName||'').toLowerCase().includes(q) ||
+        (r.myCode||'').toLowerCase().includes(q) ||
+        (r.phoneTail||'').includes(q))
     : rows;
 
   if(!filtered.length){
@@ -3006,6 +3034,7 @@ function renderReferralList(){
         대표 짝꿍코드: <b style="font-size:14px;color:#C7A96B;letter-spacing:.5px">${esc(r.refCode)}</b>
       </div>
       ${r.isUsed ? `<div style="font-size:11px;color:#92400E;margin-bottom:4px">→ 사용자: ${esc(r.usedBy||'')}</div>` : ''}
+      ${r.isCancelled ? `<div style="font-size:11px;color:#6B7280;margin-bottom:4px">→ 이전 사용 취소됨 (재사용 가능)</div>` : ''}
       ${myDiscount}
     </div>`;
   }).join('');
