@@ -599,11 +599,18 @@ async function init(){
     coupleDiscountCode    = '';
     if(inp) inp.value = '';
 
-    if(schedule.couple_discount_status === 'approved' && schedule.couple_discount_code){
+    // 현재 계약의 짝꿍할인 적용 여부 (신규: status='approved' / 레거시: code 또는 amount 기준)
+    const alreadyApplied =
+      schedule.couple_discount_status === 'approved' ||
+      (schedule.couple_discount_code && schedule.couple_discount_code.trim() !== '') ||
+      (Number(schedule.couple_discount_amount) > 0);
+
+    if(alreadyApplied && schedule.couple_discount_status !== 'cancelled'){
+      // 이미 적용됨 (신규 + 레거시 모두) — referral_code_usages 검증 없이 기존 할인으로 처리
       coupleDiscountApplied = true;
-      coupleDiscountAmount  = schedule.couple_discount_amount || 10000;
-      coupleDiscountCode    = schedule.couple_discount_code;
-      if(inp){ inp.value = schedule.couple_discount_code; }
+      coupleDiscountAmount  = Number(schedule.couple_discount_amount) || 10000;
+      coupleDiscountCode    = schedule.couple_discount_code || '';
+      if(inp){ inp.value = coupleDiscountCode; }
       lockInput();
       if(btn){ btn.textContent = '적용 완료'; }
       showCoupleMsg('짝꿍코드가 이미 적용되었습니다.\n짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.', false);
@@ -773,8 +780,16 @@ function showCoupleMsg(msg, isError){
 }
 
 async function applyCoupleCode(){
-  if(coupleDiscountApplied){
-    showCoupleMsg('짝꿍코드가 이미 적용되었습니다.\n짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.', true);
+  // 현재 계약에 이미 짝꿍할인 적용 여부 (신규 + 레거시 모두) — referral_code_usages 조회 전에 먼저 확인
+  const thisContractApplied =
+    coupleDiscountApplied ||
+    schedule.couple_discount_status === 'approved' ||
+    (schedule.couple_discount_code && schedule.couple_discount_code.trim() !== '') ||
+    (Number(schedule.couple_discount_amount) > 0);
+
+  if(thisContractApplied && schedule.couple_discount_status !== 'cancelled'){
+    // 현재 계약의 기존 할인 → "이미 사용된 코드" 오류 아님, "이미 적용됨"으로 표시
+    showCoupleMsg('짝꿍코드가 이미 적용되었습니다.\n짝꿍 할인은 계약 1건당 1회만 적용 가능합니다.', false);
     return;
   }
 
@@ -795,9 +810,21 @@ async function applyCoupleCode(){
 
   try {
     // ── 검증 1: referral_code_usages에서 이미 사용된 코드 확인 (레거시 포함) ──
-    const usageRows = await sb.get('referral_code_usages',
-      `?used_code=eq.${encodeURIComponent(code)}&status=eq.active&select=id`).catch(()=>[]);
-    if(usageRows && usageRows.length > 0){
+    // 조회 실패 = 검증 실패 → 할인 적용 차단 (fail-safe)
+    let usageRows;
+    try{
+      usageRows = await sb.get('referral_code_usages',
+        `?used_code=eq.${encodeURIComponent(code)}&status=eq.active&select=id`);
+    }catch(usageErr){
+      console.error('[DG] referral_code_usages 조회 실패 — 안전을 위해 차단:', usageErr);
+      showCoupleMsg('코드 검증 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', true);
+      return; // 조회 실패 시 절대 진행하지 않음
+    }
+    // 디버그: 중복 조회 결과 확인
+    console.log('referral_code_usages 중복조회:', code, usageRows);
+    if(Array.isArray(usageRows) && usageRows.length > 0){
+      // 이 블록 진입 시 아래 작업은 절대 실행되지 않음:
+      // - 짝꿍 할인 적용 / 잔금 차감 / couple_discount_code 저장 / referral_code_usages insert
       showCoupleMsg('이미 사용된 짝꿍코드입니다.', true);
       return;
     }
