@@ -895,7 +895,7 @@ async function applyCoupleCode(){
         await sb.patch('schedules', ownerRow.id, {
           couple_discount_status: 'approved',
           couple_discount_amount: 10000,
-          balance_price: Math.max(0, bBalance - 10000),
+          // balance_price는 변경하지 않음 — index.html 정산에서 couple_discount로 동적 계산
           admin_memo: newBAm,
         });
       }catch(e){
@@ -924,13 +924,12 @@ async function applyCoupleCode(){
         couple_discount_code:   code,
         couple_discount_status: 'approved',
         couple_discount_amount: 10000,
-        balance_price:          finalBalance,
+        // balance_price는 변경하지 않음 — index.html 정산에서 couple_discount로 동적 계산
         admin_memo:             newAAm,
       });
       schedule.couple_discount_code   = code;
       schedule.couple_discount_status = 'approved';
       schedule.couple_discount_amount = 10000;
-      schedule.balance_price          = finalBalance;
       schedule.admin_memo             = newAAm;
     }catch(saveErr){
       showCoupleMsg('코드 저장 중 오류가 발생했습니다: '+saveErr.message, true);
