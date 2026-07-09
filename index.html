@@ -477,6 +477,11 @@
             <div style="font-size:14px;font-weight:800;color:#111827">배정관리</div>
             <div style="font-size:11px;color:#9CA3AF">예식별 인원 배정</div>
           </button>
+          <button onclick="openReferralModal()" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:22px">🤝</div>
+            <div style="font-size:14px;font-weight:800;color:#111827">짝꿍코드 조회</div>
+            <div style="font-size:11px;color:#9CA3AF">코드 발급 · 사용 현황</div>
+          </button>
         </div>
       </div>
     </div>
@@ -836,6 +841,20 @@
 </div>
  
  <!-- TOAST -->
+<!-- 짝꿍코드 조회 모달 (관리자 전용) -->
+<div id="referralModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px">
+  <div style="background:#fff;border-radius:16px;padding:20px;max-width:520px;width:100%;margin:40px auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:800;color:#1F2937">🤝 짝꿍코드 조회</div>
+      <button onclick="closeReferralModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9CA3AF">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input id="referral-search-input" class="form-input" placeholder="이름 또는 짝꿍코드 검색" style="flex:1;font-size:13px" oninput="renderReferralList()">
+    </div>
+    <div id="referral-list" style="max-height:440px;overflow-y:auto"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <!-- DETAIL MODAL -->
@@ -2851,7 +2870,56 @@ async function cancelCoupleDiscount(id){
     s.coupleDiscountAmount = 0;
     s.balancePrice         = restoredBalance;
     s.adminMemo            = newAdminMemo;
-    s.contractPdfUrl       = ''; // 로컬도 초기화
+    s.contractPdfUrl       = '';
+
+    // referral_code_usages에서 해당 이력 cancelled 처리 (코드 재사용 가능하게)
+    try{
+      const usageRows = await sb.get('referral_code_usages',
+        `?used_by_schedule_id=eq.${id}&used_code=eq.${encodeURIComponent(usedCode)}&status=eq.active&select=id`);
+      if(usageRows && usageRows.length > 0){
+        await sb.patch('referral_code_usages', usageRows[0].id, { status: 'cancelled' });
+      }
+    }catch(e){
+      console.warn('[DG] 사용이력 취소 실패 (할인 취소는 이미 완료됨):', e);
+    }
+
+    // B(코드 소유자)의 자동 리워드도 함께 취소
+    // — A가 사용한 코드(usedCode)로 B를 찾고, couple_referral_reward_from_schedule=A.id인 경우만 취소
+    try{
+      const allSched = await sb.get('schedules',
+        '?select=id,groom_name,bride_name,groom_phone,bride_phone,couple_referral_code,couple_discount_status,couple_discount_amount,balance_price,admin_memo');
+      const bSched = allSched.find(r => {
+        if(r.couple_referral_code === usedCode) return true;
+        const gCode = r.groom_name && r.groom_phone
+          ? r.groom_name + String(r.groom_phone).replace(/\D/g,'').slice(-4) : '';
+        const bCode = r.bride_name && r.bride_phone
+          ? r.bride_name + String(r.bride_phone).replace(/\D/g,'').slice(-4) : '';
+        return gCode === usedCode || bCode === usedCode;
+      });
+      if(bSched){
+        const bAm = bSched.admin_memo || {};
+        // A가 B코드를 사용하면서 자동 적용된 리워드인 경우에만 취소
+        if(String(bAm.couple_referral_reward_from_schedule) === String(id)){
+          const bRestoredBalance = (Number(bSched.balance_price) || 0) + 10000;
+          const bName = s.groomName || s.brideName || '계약자';
+          const bMemoTxt = `짝꿍 대표코드 사용 리워드 취소\n사유: 사용 계약자(${bName}) 계약의 짝꿍할인 취소됨\n처리자: ${currentUser.name}`;
+          const newBAm = {
+            ...bAm,
+            couple_discount: false,
+            couple_referral_reward_from_schedule: null,
+            text: bAm.text ? bAm.text + '\n\n' + bMemoTxt : bMemoTxt,
+          };
+          await sb.patch('schedules', bSched.id, {
+            couple_discount_status: 'cancelled',
+            couple_discount_amount: 0,
+            balance_price: bRestoredBalance,
+            admin_memo: newBAm,
+          });
+        }
+      }
+    }catch(e){
+      console.warn('[DG] B 자동 리워드 취소 실패:', e);
+    }
 
     // 폼(계약참고/정산)이 현재 열려있으면 즉시 반영
     if(formId === id){
@@ -2873,6 +2941,81 @@ async function cancelCoupleDiscount(id){
   }catch(e){
     showToast('❌ 취소 실패: '+e.message);
   }
+}
+
+
+// ── 짝꿍코드 조회 모달 (관리자 전용) ─────────────────────────────────────
+let _referralUsages = []; // referral_code_usages 캐시
+
+async function openReferralModal(){
+  if(!ADMIN_NAMES.includes(currentUser.name)){ showToast('⚠️ 관리자만 사용 가능합니다'); return; }
+  document.getElementById('referralModal').style.display = 'flex';
+  document.getElementById('referral-search-input').value = '';
+  document.getElementById('referral-list').innerHTML = '<div style="text-align:center;padding:20px;color:#9CA3AF;font-size:13px">로딩 중…</div>';
+  try{
+    _referralUsages = await sb.get('referral_code_usages',
+      '?select=used_code,referrer_name,used_by_name,used_by_schedule_id,status,created_at&order=created_at.desc&limit=200');
+  }catch(e){ _referralUsages = []; }
+  renderReferralList();
+}
+
+function closeReferralModal(){
+  document.getElementById('referralModal').style.display = 'none';
+}
+
+function renderReferralList(){
+  const q = (document.getElementById('referral-search-input')?.value || '').trim().toLowerCase();
+  const el = document.getElementById('referral-list');
+  if(!el) return;
+
+  // schedules에서 couple_referral_code 기준 목록 생성
+  const rows = schedules.filter(s => s.coupleReferralCode || s.groomName || s.brideName).map(s => {
+    const refCode = s.coupleReferralCode || '';
+    const name    = [s.groomName, s.brideName].filter(Boolean).join(' / ');
+    const usage   = _referralUsages.find(u => u.used_code === refCode && u.status === 'active');
+    const isUsed  = !!usage;
+    // 이 코드를 사용한 계약자 정보
+    const usedBy  = usage ? (usage.used_by_name || '사용자 정보 없음') : null;
+    // 내가 사용한 코드 (이 계약이 받은 짝꿍할인)
+    const myCode  = s.coupleDiscountCode || '';
+    const myStatus = s.coupleDiscountStatus || '';
+    return { s, refCode, name, isUsed, usedBy, myCode, myStatus };
+  }).filter(r => r.refCode); // 코드 없는 예식 제외
+
+  // 검색 필터
+  const filtered = q
+    ? rows.filter(r =>
+        r.name.toLowerCase().includes(q) ||
+        r.refCode.toLowerCase().includes(q) ||
+        (r.usedBy||'').toLowerCase().includes(q) ||
+        (r.myCode||'').toLowerCase().includes(q))
+    : rows;
+
+  if(!filtered.length){
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:#9CA3AF;font-size:13px">' +
+      (q ? '검색 결과 없음' : '짝꿍코드가 등록된 예식이 없습니다') + '</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(r => {
+    const badgeUsed  = r.isUsed
+      ? '<span style="background:#FEF3C7;color:#92400E;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">사용완료</span>'
+      : '<span style="background:#D1FAE5;color:#065F46;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">사용가능</span>';
+    const myDiscount = r.myStatus === 'approved'
+      ? `<div style="font-size:11px;color:#059669;margin-top:3px">✅ 내가 받은 짝꿍할인: ${esc(r.myCode)||'코드 없음'}</div>`
+      : '';
+    return `<div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:700;color:#1F2937">${esc(r.name)}</span>
+        ${badgeUsed}
+      </div>
+      <div style="font-size:12px;color:#374151;margin-bottom:4px">
+        대표 짝꿍코드: <b style="font-size:14px;color:#C7A96B;letter-spacing:.5px">${esc(r.refCode)}</b>
+      </div>
+      ${r.isUsed ? `<div style="font-size:11px;color:#92400E;margin-bottom:4px">→ 사용자: ${esc(r.usedBy||'')}</div>` : ''}
+      ${myDiscount}
+    </div>`;
+  }).join('');
 }
 
 
@@ -2982,6 +3125,10 @@ async function executeDelete(){
   if(!deleteTargetId || !ADMIN_NAMES.includes(currentUser.name)) return;
   const id = deleteTargetId;
   try {
+    // ⚠️ 예식 삭제는 schedules 레코드만 삭제합니다.
+    // 짝꿍할인 취소(couple_discount, referral_code_usages 등)는
+    // 상세모달 > 계약참고 탭의 "짝꿍할인 취소" 버튼에서만 처리합니다.
+    // 예식 삭제 시 다른 계약의 짝꿍할인 내역은 절대 건드리지 않습니다.
     await sb.delete('schedules', id);
     schedules = schedules.filter(s => s.id !== id);
     closeDeleteModal();
@@ -2993,9 +3140,10 @@ async function executeDelete(){
   }
 }
 async function deleteSch(id){
-  if(!ADMIN_NAMES.includes(currentUser.name)) return; // 관리자만 실행 가능
+  if(!ADMIN_NAMES.includes(currentUser.name)) return;
   if(!confirm('정말 삭제하시겠습니까?')) return;
   try {
+    // ⚠️ schedules 레코드만 삭제 — 짝꿍할인/referral_code_usages는 건드리지 않음
     await sb.delete('schedules', id);
     schedules=schedules.filter(s=>s.id!==id);
     renderAll(); showToast('🗑️ 예식이 삭제되었습니다');
