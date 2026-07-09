@@ -599,11 +599,13 @@ async function init(){
     coupleDiscountCode    = '';
     if(inp) inp.value = '';
 
-    // 현재 계약의 짝꿍할인 적용 여부 (신규: status='approved' / 레거시: code 또는 amount 기준)
+    // 현재 계약의 짝꿍할인 적용 여부 (신규: status='approved' / 레거시: code·amount·admin_memo 기준)
+    const am = schedule.admin_memo || {};
     const alreadyApplied =
       schedule.couple_discount_status === 'approved' ||
       (schedule.couple_discount_code && schedule.couple_discount_code.trim() !== '') ||
-      (Number(schedule.couple_discount_amount) > 0);
+      (Number(schedule.couple_discount_amount) > 0) ||
+      am.couple_discount === true; // 계약참고 프리셋에 "짝꿍할인 -1" 체크된 레거시 계약
 
     if(alreadyApplied && schedule.couple_discount_status !== 'cancelled'){
       // 이미 적용됨 (신규 + 레거시 모두) — referral_code_usages 검증 없이 기존 할인으로 처리
@@ -780,12 +782,14 @@ function showCoupleMsg(msg, isError){
 }
 
 async function applyCoupleCode(){
-  // 현재 계약에 이미 짝꿍할인 적용 여부 (신규 + 레거시 모두) — referral_code_usages 조회 전에 먼저 확인
+  // 현재 계약에 이미 짝꿍할인 적용 여부 (신규 + 레거시 + 수동 적용 모두) — referral_code_usages 조회 전에 먼저 확인
+  const _am = schedule.admin_memo || {};
   const thisContractApplied =
     coupleDiscountApplied ||
     schedule.couple_discount_status === 'approved' ||
     (schedule.couple_discount_code && schedule.couple_discount_code.trim() !== '') ||
-    (Number(schedule.couple_discount_amount) > 0);
+    (Number(schedule.couple_discount_amount) > 0) ||
+    _am.couple_discount === true; // 계약참고 프리셋 "짝꿍할인 -1" 레거시 계약
 
   if(thisContractApplied && schedule.couple_discount_status !== 'cancelled'){
     // 현재 계약의 기존 할인 → "이미 사용된 코드" 오류 아님, "이미 적용됨"으로 표시
