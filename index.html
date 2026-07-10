@@ -3204,23 +3204,38 @@ function copyContractGuide(contractUrl, id){
   }
   const honorific = owner === 'bride' ? '신부님' : (owner === 'groom' ? '신랑님' : '신랑신부님');
 
-  const referralBlock = referralCode ? `
-🤝 짝꿍코드
-${referralCode}
-추천받으실 분께 위 코드를 전달해 주세요 :)
-` : '';
+  const guide = referralCode
+    ? `[디어가드 계약 완료] ${honorific}😊
+전자 계약서 링크 전달 드립니다 :)
 
-  const guide = `[디어가드 계약 완료] ${honorific}😊
-전자계약서 링크 전달드립니다:)
+계약 및 운영 안내 내용을 확인하신 후,
+전자서명 진행 부탁드리겠습니다.
 
-👇 전자계약서
+👉전자 계약서
 ${contractUrl}
 
 서명 완료 후에도
 계약일로부터 1주일 이내라면
 짝꿍코드 입력이 가능합니다.
 
-${referralBlock}
+💌 짝꿍코드  (${referralCode})
+
+추천받으실 분께 위 코드를 전달해 주세요 :)
+
+궁금하신 점은 언제든
+디어가드 카카오톡 채널로 문의 부탁드립니다🤍`
+    : `[디어가드 계약 완료] ${honorific}😊
+전자 계약서 링크 전달 드립니다 :)
+
+계약 및 운영 안내 내용을 확인하신 후,
+전자서명 진행 부탁드리겠습니다.
+
+👉전자 계약서
+${contractUrl}
+
+서명 완료 후에도
+계약일로부터 1주일 이내라면
+짝꿍코드 입력이 가능합니다.
 
 궁금하신 점은 언제든
 디어가드 카카오톡 채널로 문의 부탁드립니다🤍`;
