@@ -73,6 +73,13 @@ input,select,textarea{font-family:inherit;outline:none}
 .memo-rule-panel{display:none;position:absolute;right:0;top:calc(100% + 4px);z-index:50;width:230px;background:#fff;border:1px solid #FCD34D;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);padding:10px 12px;font-size:10px;color:#92400E;line-height:1.6;text-align:left}
 .memo-rule-wrap:hover .memo-rule-panel{display:block}
 .memo-rule-panel.show{display:block}
+.ho-acc-head{cursor:pointer;display:flex;align-items:center;gap:5px;user-select:none}
+.ho-acc-arrow{font-size:9px;color:#9CA3AF;display:inline-block;transition:transform .15s;flex-shrink:0}
+.ho-acc.open .ho-acc-arrow{transform:rotate(90deg)}
+.ho-acc-summary{font-size:11px;color:#6B7280;padding:2px 0 0 14px;cursor:pointer}
+.ho-acc.open .ho-acc-summary{display:none}
+.ho-acc-body{display:none;margin-top:6px}
+.ho-acc.open .ho-acc-body{display:block}
 .ho-label{font-size:10px;font-weight:700;color:#6B7280;margin-bottom:3px}
 .ho-input{width:100%;border:1.5px solid #E0E0E0;border-radius:6px;padding:5px 8px;font-size:12px;color:#111;background:#fff;transition:border-color .15s}
 .ho-input:focus{border-color:#C7A96B;outline:none}
@@ -347,8 +354,13 @@ input,select,textarea{font-family:inherit;outline:none}
 
       <!-- 🤵 신랑측 패널 -->
       <div class="ho-pane active" id="ho-pane-g">
-        <div class="ho-section">
-          <div class="ho-section-title" style="color:#2563EB">인계자 정보</div>
+        <div class="ho-section ho-acc open" id="ho-acc-g-owner">
+          <div class="ho-acc-head" onclick="toggleHoSection('ho-acc-g-owner')">
+            <span class="ho-acc-arrow">▶</span>
+            <span class="ho-section-title" style="color:#2563EB;margin-bottom:0">인계자 정보</span>
+          </div>
+          <div class="ho-acc-summary" id="ho-sum-g-owner" onclick="toggleHoSection('ho-acc-g-owner')">미입력</div>
+          <div class="ho-acc-body">
           <div style="display:flex;gap:8px;align-items:stretch">
             <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
               <div><div class="ho-label">성함</div><input id="g-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
@@ -359,16 +371,29 @@ input,select,textarea{font-family:inherit;outline:none}
               <input id="g-ho-pw" class="pw-mini-inp" placeholder="123" maxlength="3" oninput="saveHandover()">
             </div>
           </div>
+          </div>
         </div>
-        <div class="ho-section">
-          <div class="ho-section-title">인계 물품</div>
+        <div class="ho-section ho-acc open" id="ho-acc-g-items">
+          <div class="ho-acc-head" onclick="toggleHoSection('ho-acc-g-items')">
+            <span class="ho-acc-arrow">▶</span>
+            <span class="ho-section-title" style="margin-bottom:0">인계 물품</span>
+          </div>
+          <div class="ho-acc-summary" id="ho-sum-g-items" onclick="toggleHoSection('ho-acc-g-items')">미입력</div>
+          <div class="ho-acc-body">
           <textarea id="g-ho-items" class="ho-textarea" rows="3" placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권" oninput="saveHandover()"></textarea>
+          </div>
         </div>
-        <div class="ho-section">
-          <div class="ho-section-title">📹 LIVE 링크</div>
+        <div class="ho-section ho-acc open" id="ho-acc-g-live">
+          <div class="ho-acc-head" onclick="toggleHoSection('ho-acc-g-live')">
+            <span class="ho-acc-arrow">▶</span>
+            <span class="ho-section-title" style="margin-bottom:0">📹 LIVE 링크</span>
+          </div>
+          <div class="ho-acc-summary" id="ho-sum-g-live" onclick="toggleHoSection('ho-acc-g-live')">미등록</div>
+          <div class="ho-acc-body">
           <div style="display:flex;flex-direction:column;gap:5px">
             <div><div class="ho-label">LIVE 1</div><input id="g-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
             <div><div class="ho-label">LIVE 2</div><input id="g-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+          </div>
           </div>
         </div>
         <div class="ho-section" style="flex-shrink:0">
@@ -415,8 +440,13 @@ input,select,textarea{font-family:inherit;outline:none}
 
       <!-- 👰 신부측 패널 -->
       <div class="ho-pane" id="ho-pane-b">
-        <div class="ho-section">
-          <div class="ho-section-title" style="color:#DB2777">인계자 정보</div>
+        <div class="ho-section ho-acc open" id="ho-acc-b-owner">
+          <div class="ho-acc-head" onclick="toggleHoSection('ho-acc-b-owner')">
+            <span class="ho-acc-arrow">▶</span>
+            <span class="ho-section-title" style="color:#DB2777;margin-bottom:0">인계자 정보</span>
+          </div>
+          <div class="ho-acc-summary" id="ho-sum-b-owner" onclick="toggleHoSection('ho-acc-b-owner')">미입력</div>
+          <div class="ho-acc-body">
           <div style="display:flex;gap:8px;align-items:stretch">
             <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0">
               <div><div class="ho-label">성함</div><input id="b-ho-name" class="ho-input" placeholder="홍길동" oninput="saveHandover()"></div>
@@ -427,16 +457,29 @@ input,select,textarea{font-family:inherit;outline:none}
               <input id="b-ho-pw" class="pw-mini-inp" placeholder="567" maxlength="3" oninput="saveHandover()">
             </div>
           </div>
+          </div>
         </div>
-        <div class="ho-section">
-          <div class="ho-section-title">인계 물품</div>
+        <div class="ho-section ho-acc open" id="ho-acc-b-items">
+          <div class="ho-acc-head" onclick="toggleHoSection('ho-acc-b-items')">
+            <span class="ho-acc-arrow">▶</span>
+            <span class="ho-section-title" style="margin-bottom:0">인계 물품</span>
+          </div>
+          <div class="ho-acc-summary" id="ho-sum-b-items" onclick="toggleHoSection('ho-acc-b-items')">미입력</div>
+          <div class="ho-acc-body">
           <textarea id="b-ho-items" class="ho-textarea" rows="3" placeholder="· 레디백&#10;· 방명록&#10;· 남은 식권" oninput="saveHandover()"></textarea>
+          </div>
         </div>
-        <div class="ho-section">
-          <div class="ho-section-title">📹 LIVE 링크</div>
+        <div class="ho-section ho-acc open" id="ho-acc-b-live">
+          <div class="ho-acc-head" onclick="toggleHoSection('ho-acc-b-live')">
+            <span class="ho-acc-arrow">▶</span>
+            <span class="ho-section-title" style="margin-bottom:0">📹 LIVE 링크</span>
+          </div>
+          <div class="ho-acc-summary" id="ho-sum-b-live" onclick="toggleHoSection('ho-acc-b-live')">미등록</div>
+          <div class="ho-acc-body">
           <div style="display:flex;flex-direction:column;gap:5px">
             <div><div class="ho-label">LIVE 1</div><input id="b-live1" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
             <div><div class="ho-label">LIVE 2</div><input id="b-live2" class="ho-input" placeholder="https://..." oninput="saveHandover()"></div>
+          </div>
           </div>
         </div>
         <div class="ho-section" style="flex-shrink:0">
@@ -929,6 +972,11 @@ async function selectSchedule(id){
     await loadPreShares();
     loadOpsLogs();
     loadHandover();
+    _hoAutoCollapsed = false;
+    ['ho-acc-g-owner','ho-acc-g-items','ho-acc-g-live','ho-acc-b-owner','ho-acc-b-items','ho-acc-b-live'].forEach(function(accId){
+      const accEl = document.getElementById(accId);
+      if(accEl) accEl.classList.add('open');
+    });
     subscribeRealtime();
   } catch(e){ console.error('[DG] 예식 로드 실패:',e); showToast('⚠️ 예식 로드 실패: '+e.message); }
 }
@@ -1088,9 +1136,11 @@ function loadHandover(){
   if(!s.groom_handover_phone && s.groom_contact_phone) sv('g-ho-phone', s.groom_contact_phone);
   if(!s.bride_handover_name  && s.bride_contact_name)  sv('b-ho-name',  s.bride_contact_name);
   if(!s.bride_handover_phone && s.bride_contact_phone) sv('b-ho-phone', s.bride_contact_phone);
+  updateHoSummaries();
 }
 function saveHandover(){
   if(!currentSchedule) return;
+  updateHoSummaries();
   clearTimeout(_hoSaveTimer);
   _hoSaveTimer=setTimeout(function(){
     const body={
@@ -1131,6 +1181,44 @@ function toggleMemoRule(panelId, e){
 document.addEventListener('click', function(){
   document.querySelectorAll('.memo-rule-panel.show').forEach(function(p){ p.classList.remove('show'); });
 });
+
+// 인계자 정보 / 인계 물품 / LIVE 링크 아코디언 토글 — 순수 UI, 데이터/저장 로직과 무관
+function toggleHoSection(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('open');
+}
+function setHoSummary(id, text){
+  var el = document.getElementById(id);
+  if(el) el.textContent = text;
+}
+function summarizeHoItems(text){
+  if(!text) return '미입력';
+  var items = text.split('\n').map(function(s){ return s.replace(/^[·•\-\s]+/, '').trim(); }).filter(Boolean);
+  return items.length ? items.join(' · ') : '미입력';
+}
+function summarizeHoLive(l1, l2){
+  var cnt = [l1, l2].filter(Boolean).length;
+  return cnt > 0 ? cnt + '개 등록됨' : '미등록';
+}
+function updateHoSummaries(){
+  setHoSummary('ho-sum-g-owner', gv('g-ho-name') ? (gv('g-ho-name') + (gv('g-ho-phone') ? ' · ' + gv('g-ho-phone') : '')) : '미입력');
+  setHoSummary('ho-sum-b-owner', gv('b-ho-name') ? (gv('b-ho-name') + (gv('b-ho-phone') ? ' · ' + gv('b-ho-phone') : '')) : '미입력');
+  setHoSummary('ho-sum-g-items', summarizeHoItems(gv('g-ho-items')));
+  setHoSummary('ho-sum-b-items', summarizeHoItems(gv('b-ho-items')));
+  setHoSummary('ho-sum-g-live', summarizeHoLive(gv('g-live1'), gv('g-live2')));
+  setHoSummary('ho-sum-b-live', summarizeHoLive(gv('b-live1'), gv('b-live2')));
+}
+// 접수 시작(첫 접수 완료) 이후 3개 카드를 자동으로 접어 화면을 넓게 사용 — 1회만 동작, 이후 수동 토글은 그대로 유지
+var _hoAutoCollapsed = false;
+function collapseHoAccordionsOnce(){
+  if(_hoAutoCollapsed) return;
+  _hoAutoCollapsed = true;
+  ['ho-acc-g-owner','ho-acc-g-items','ho-acc-g-live','ho-acc-b-owner','ho-acc-b-items','ho-acc-b-live'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.classList.remove('open');
+  });
+}
 
 async function loadOpsLogs(){
   if(!currentSchedule) return;
@@ -1418,6 +1506,7 @@ async function submitEntry(){
     renderStats();renderFullList();
     resetForm();
     showToast('✅ 접수 완료되었습니다');
+    collapseHoAccordionsOnce();
   } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
 }
 
