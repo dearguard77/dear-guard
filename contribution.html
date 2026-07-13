@@ -369,8 +369,14 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="ho-section" style="flex-shrink:0">
           <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
           <div id="ops-log-list-g" style="max-height:80px;overflow-y:auto;margin-bottom:5px"><div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div></div>
+          <div style="font-size:10px;color:#9CA3AF;line-height:1.5;margin-bottom:5px">
+            💡 운영 메모 작성 규칙<br>
+            • 하객 성함 뒤에는 '님'을 붙여 작성해주세요.<br>
+            • 명사형 종결로 통일해주세요.<br>
+            • 예) 홍길동님 계좌이체 식권 2장 수령 (모청 확인 완료)
+          </div>
           <div style="display:flex;gap:4px">
-            <input id="ops-log-input-g" class="ho-input" placeholder="신랑측 특이사항..." style="font-size:11px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addOpsLog('g')">
+            <input id="ops-log-input-g" class="ho-input" placeholder="예) 홍길동님 계좌이체 식권 2장 수령" style="font-size:11px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addOpsLog('g')">
             <button onclick="addOpsLog('g')" style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
           </div>
         </div>
@@ -424,8 +430,14 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="ho-section" style="flex-shrink:0">
           <div class="ho-section-title" style="margin-bottom:5px">📋 운영 메모</div>
           <div id="ops-log-list-b" style="max-height:80px;overflow-y:auto;margin-bottom:5px"><div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px 0">메모 없음</div></div>
+          <div style="font-size:10px;color:#9CA3AF;line-height:1.5;margin-bottom:5px">
+            💡 운영 메모 작성 규칙<br>
+            • 하객 성함 뒤에는 '님'을 붙여 작성해주세요.<br>
+            • 명사형 종결로 통일해주세요.<br>
+            • 예) 홍길동님 계좌이체 식권 2장 수령 (모청 확인 완료)
+          </div>
           <div style="display:flex;gap:4px">
-            <input id="ops-log-input-b" class="ho-input" placeholder="신부측 특이사항..." style="font-size:11px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addOpsLog('b')">
+            <input id="ops-log-input-b" class="ho-input" placeholder="예) 홍길동님 계좌이체 식권 2장 수령" style="font-size:11px;padding:4px 8px;flex:1" onkeydown="if(event.key==='Enter')addOpsLog('b')">
             <button onclick="addOpsLog('b')" style="background:#374151;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;flex-shrink:0;border:none;cursor:pointer">추가</button>
           </div>
         </div>
@@ -476,7 +488,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름</div>
         <div style="display:flex;align-items:center;gap:6px">
-          <input class="form-input" id="guest-name" placeholder="이름 (선택)" style="flex:1;font-size:13px;padding:7px 8px">
+          <input class="form-input" id="guest-name" placeholder="예) 강성주, 전수연" style="flex:1;font-size:13px;padding:7px 8px">
           <button class="submit-btn" onclick="submitEntry()" style="flex-shrink:0;width:auto;padding:8px 18px;font-size:14px;letter-spacing:.3px;border-radius:8px;box-shadow:none">✅ 접수 완료</button>
         </div>
       </div>
@@ -638,7 +650,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </select>
       </div>
     </div>
-    <div class="edit-row"><div class="edit-lbl">하객 이름</div><input id="edit-name" class="edit-inp" placeholder="이름 (선택)"></div>
+    <div class="edit-row"><div class="edit-lbl">하객 이름</div><input id="edit-name" class="edit-inp" placeholder="예) 강성주, 전수연"></div>
     <div class="edit-grid2">
       <div class="edit-row">
         <div class="edit-lbl">관계</div>
