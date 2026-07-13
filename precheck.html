@@ -793,7 +793,7 @@ async function init(){
 
     try {
       preShares = await sb.get('ticket_additions',
-        `?schedule_id=eq.${schedule.id}&type=eq.pre_share&order=created_at.asc`);
+        `?schedule_id=eq.${schedule.id}&type=eq.pre_share&source=neq.onsite&order=created_at.asc`);
     } catch(e){}
 
     renderHeader();
