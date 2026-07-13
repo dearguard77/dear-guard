@@ -70,7 +70,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .ho-section-title{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;text-transform:uppercase;margin-bottom:7px}
 .memo-rule-wrap{position:relative;display:inline-block}
 .memo-rule-btn{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
-.memo-rule-panel{display:none;position:absolute;right:0;top:calc(100% + 4px);z-index:50;width:230px;background:#fff;border:1px solid #FCD34D;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);padding:10px 12px;font-size:10px;color:#92400E;line-height:1.6;text-align:left}
+.memo-rule-panel{display:none;position:absolute;right:0;top:calc(100% + 4px);z-index:50;width:230px;background:#fff;border:1px solid #FCD34D;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);padding:10px 12px;font-size:10px;font-weight:400;color:#92400E;line-height:1.6;text-align:left}
 .memo-rule-wrap:hover .memo-rule-panel{display:block}
 .memo-rule-panel.show{display:block}
 .ho-acc-head{cursor:pointer;display:flex;align-items:center;gap:5px;user-select:none}
@@ -402,7 +402,7 @@ input,select,textarea{font-family:inherit;outline:none}
             <div class="memo-rule-wrap">
               <button type="button" class="memo-rule-btn" onclick="toggleMemoRule('memo-rule-panel-g',event)">🚨 작성 규칙</button>
               <div class="memo-rule-panel" id="memo-rule-panel-g">
-                🚨 운영 메모 작성 규칙<br>
+                <b>🚨 운영 메모 작성 규칙</b><br>
                 • 접수 시작 전 전달받은 식권 수량 먼저 기록<br>
                 &nbsp;&nbsp;예) 전수연님으로부터 식권 200장 전달받아 축의 접수 시작<br>
                 • 하객 성함 뒤에는 '님'을 붙여 작성<br>
@@ -423,7 +423,7 @@ input,select,textarea{font-family:inherit;outline:none}
             <div class="memo-rule-wrap">
               <button type="button" class="memo-rule-btn" onclick="toggleMemoRule('onsite-rule-panel-g',event)">🚨 사용 기준</button>
               <div class="memo-rule-panel" id="onsite-rule-panel-g">
-                🚨 현장 식권 수령 안내<br>
+                <b>🚨 현장 식권 수령 안내</b><br>
                 아래와 같이 현장에서 추가 지급하는 식권만 등록해주세요.<br><br>
                 • 계좌이체 확인 후 지급<br>
                 • 가방순이, 부모님 직접 등<br>
@@ -499,7 +499,7 @@ input,select,textarea{font-family:inherit;outline:none}
             <div class="memo-rule-wrap">
               <button type="button" class="memo-rule-btn" onclick="toggleMemoRule('memo-rule-panel-b',event)">🚨 작성 규칙</button>
               <div class="memo-rule-panel" id="memo-rule-panel-b">
-                🚨 운영 메모 작성 규칙<br>
+                <b>🚨 운영 메모 작성 규칙</b><br>
                 • 접수 시작 전 전달받은 식권 수량 먼저 기록<br>
                 &nbsp;&nbsp;예) 전수연님으로부터 식권 200장 전달받아 축의 접수 시작<br>
                 • 하객 성함 뒤에는 '님'을 붙여 작성<br>
@@ -520,7 +520,7 @@ input,select,textarea{font-family:inherit;outline:none}
             <div class="memo-rule-wrap">
               <button type="button" class="memo-rule-btn" onclick="toggleMemoRule('onsite-rule-panel-b',event)">🚨 사용 기준</button>
               <div class="memo-rule-panel" id="onsite-rule-panel-b">
-                🚨 현장 식권 수령 안내<br>
+                <b>🚨 현장 식권 수령 안내</b><br>
                 아래와 같이 현장에서 추가 지급하는 식권만 등록해주세요.<br><br>
                 • 계좌이체 확인 후 지급<br>
                 • 가방순이, 부모님 직접 등<br>
