@@ -419,7 +419,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div class="ho-section" style="flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 식권 수령자</div>
+            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 현장 식권 수령</div>
             <span style="font-size:10px;color:#9CA3AF;font-weight:400">식권 수령한 분 기록/운영메모 필수작성‼️<br>(계좌이체, 사회자, 부모님 지인, 가방순이 등)</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
@@ -505,7 +505,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div class="ho-section" style="flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 식권 수령자</div>
+            <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 현장 식권 수령</div>
             <span style="font-size:10px;color:#9CA3AF;font-weight:400">식권 수령한 분 기록/운영메모 필수작성‼️<br>(계좌이체, 사회자, 부모님 지인, 가방순이 등)</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
@@ -539,10 +539,15 @@ input,select,textarea{font-family:inherit;outline:none}
           </div>
         </div>
         <div class="card" style="padding:5px 8px">
-          <div class="card-title" style="margin-bottom:5px">결제 방식</div>
-          <div class="tog-group" style="gap:5px">
-            <button class="tog-btn tog-dark" id="pay-cash" onclick="setPayment('cash')" style="white-space:nowrap;font-size:12px">💵 현금</button>
-            <button class="tog-btn" id="pay-transfer" onclick="setPayment('transfer')" style="white-space:nowrap;font-size:12px">📱 계좌이체</button>
+          <div class="ho-acc" id="preship-acc">
+            <div class="ho-acc-head" onclick="toggleHoSection('preship-acc')" style="justify-content:space-between">
+              <span class="card-title" style="margin-bottom:0">🎫 사전 식권 수령</span>
+              <span class="ho-acc-arrow">▶</span>
+            </div>
+            <div class="ho-acc-summary" id="preship-summary" onclick="toggleHoSection('preship-acc')" style="padding-left:0;font-size:10px">등록 없음</div>
+            <div class="ho-acc-body" style="margin-top:4px">
+              <div id="preship-checklist" style="max-height:110px;overflow-y:auto;display:flex;flex-direction:column"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1023,6 +1028,7 @@ async function loadPreShares(){
   try {
     preShares = await sb.get('ticket_additions','?schedule_id=eq.'+currentSchedule.id+'&type=eq.pre_share&order=created_at.asc');
     renderPreShareList();
+    renderPreShipChecklist();
     renderStats();
   } catch(e){ console.error('사전 공유 식권 로드 실패:', e); }
 }
@@ -1042,7 +1048,7 @@ async function editPreShare(id){
     if(!res.ok) throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
     var idx = preShares.findIndex(function(x){ return x.id===id; });
     if(idx!==-1){ preShares[idx].person_name=newName; preShares[idx].amount=newAmount; }
-    renderPreShareList(); renderStats();
+    renderPreShareList(); renderPreShipChecklist(); renderStats();
     showToast('✅ 수정되었습니다');
   } catch(e){ console.error('[DG] editPreShare 오류:', e); showToast('⚠️ 수정 실패: '+e.message); }
 }
@@ -1058,7 +1064,7 @@ async function addPreShare(side){
   if(!name){ showToast('⚠️ 이름을 입력해주세요'); nameEl.focus(); return; }
   if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); amountEl.focus(); return; }
   if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
-  var row = {schedule_id:currentSchedule.id,side:sideVal,amount:amount,person_name:name,type:'pre_share',created_by:currentUser.name};
+  var row = {schedule_id:currentSchedule.id,side:sideVal,amount:amount,person_name:name,type:'pre_share',created_by:currentUser.name,received:true};
   try {
     var res = await fetch(sb.url('ticket_additions'), {method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(row)});
     var resText = await res.text();
@@ -1067,7 +1073,7 @@ async function addPreShare(side){
     var entry = Array.isArray(created) ? created[0] : created;
     preShares.push(entry);
     nameEl.value=''; amountEl.value='';
-    renderPreShareList(); renderStats();
+    renderPreShareList(); renderPreShipChecklist(); renderStats();
     showToast('🎫 사전 공유 식권 '+amount+'장 등록됨');
   } catch(e){ console.error('[DG] addPreShare 오류:', e); showToast('⚠️ 저장 실패: '+e.message); }
 }
@@ -1076,9 +1082,69 @@ async function deletePreShare(id){
   try {
     await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'DELETE', headers:sb.h});
     preShares = preShares.filter(function(x){ return x.id !== id; });
-    renderPreShareList(); renderStats();
+    renderPreShareList(); renderPreShipChecklist(); renderStats();
     showToast('🗑️ 삭제되었습니다');
   } catch(e){ showToast('⚠️ 삭제 실패'); }
+}
+
+// 🎫 사전 식권 수령 체크리스트 (Precheck에서 등록된 대상자를 현재 접수측 기준으로 표시)
+function renderPreShipChecklist(){
+  var sideKor = st.side === 'groom' ? '신랑측' : '신부측';
+  var list = preShares.filter(function(p){ return p.side === sideKor; });
+  var unreceived = list.filter(function(p){ return !p.received; });
+  var totalAmt = list.reduce(function(s,p){ return s + (p.amount||0); }, 0);
+
+  var sumEl = document.getElementById('preship-summary');
+  if(sumEl){
+    sumEl.textContent = list.length
+      ? ('미수령 ' + unreceived.length + '건 · 총 ' + totalAmt + '장')
+      : '등록 없음';
+  }
+
+  var listEl = document.getElementById('preship-checklist');
+  if(!listEl) return;
+  if(!list.length){
+    listEl.innerHTML = '<div style="font-size:10px;color:#9CA3AF;text-align:center;padding:6px 0">등록된 사전 식권 대상자 없음</div>';
+    return;
+  }
+  listEl.innerHTML = list.map(function(p){
+    var checked = !!p.received;
+    return '<label style="display:flex;align-items:center;gap:5px;padding:3px 2px;border-bottom:1px solid #F5F3F0;font-size:11px;cursor:pointer;'+(checked?'opacity:.55':'')+'">'+
+      '<input type="checkbox" '+(checked?'checked':'')+' onchange="togglePreShareReceived('+p.id+')" style="flex-shrink:0;width:14px;height:14px;cursor:pointer">'+
+      '<span style="flex:1;min-width:0;color:#374151;font-weight:600;'+(checked?'text-decoration:line-through':'')+'">'+esc(p.person_name||'')+'</span>'+
+      '<span style="font-weight:700;color:#C7A96B;flex-shrink:0">'+p.amount+'장</span>'+
+    '</label>';
+  }).join('');
+}
+
+// 체크박스 클릭 시에만 식권 차감 + 지급완료 처리 + 운영메모 자동기록
+async function togglePreShareReceived(id){
+  var p = preShares.find(function(x){ return x.id === id; });
+  if(!p || !currentSchedule) return;
+  var newVal = !p.received;
+  try {
+    var res = await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'PATCH',headers:sb.h,body:JSON.stringify({received:newVal})});
+    if(!res.ok) throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
+    p.received = newVal;
+    renderPreShipChecklist();
+    renderPreShareList();
+    renderStats();
+    if(newVal){
+      var sideCode = p.side === '신랑측' ? 'g' : 'b';
+      var now = new Date();
+      var timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      var memoRow = {schedule_id:currentSchedule.id, time_str:timeStr, content:(p.person_name||'')+'님 식권 '+(p.amount||0)+'장 수령', side:p.side, created_by:currentUser.name};
+      try {
+        var created = await sb.post('operation_logs', memoRow);
+        var entry = Array.isArray(created) ? created[0] : created;
+        if(sideCode==='g'){ opsLogsG.unshift(entry); renderOpsLogs('g', opsLogsG); }
+        else{ opsLogsB.unshift(entry); renderOpsLogs('b', opsLogsB); }
+      } catch(memoErr){ console.warn('사전 식권 수령 메모 자동기록 실패:', memoErr); }
+    }
+    showToast(newVal ? '🎫 식권 지급 완료 처리되었습니다' : '↩️ 미수령 상태로 되돌렸습니다');
+  } catch(e){
+    showToast('⚠️ 처리 실패: '+e.message);
+  }
 }
 function renderPreShareList(){
   var empty = '<div style="font-size:10px;color:#9CA3AF;padding:3px 0">식권 수령 내역 없음</div>';
@@ -1362,8 +1428,8 @@ function renderStats(){
   const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0),0);
   const gExtra=ticketExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
   const bExtra=ticketExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
-  const gPreShare=preShares.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
-  const bPreShare=preShares.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+  const gPreShare=preShares.filter(t=>t.side==='신랑측' && t.received).reduce((s,t)=>s+(t.amount||0),0);
+  const bPreShare=preShares.filter(t=>t.side==='신부측' && t.received).reduce((s,t)=>s+(t.amount||0),0);
   const gTotal=totalTickets.groom>0?totalTickets.groom+gExtra:null;
   const bTotal=totalTickets.bride>0?totalTickets.bride+bExtra:null;
   const gRemain=gTotal!==null?gTotal-gUsed-gPreShare:null;
@@ -1416,6 +1482,7 @@ function setSide(side){
   st.side=side;
   document.getElementById('side-groom').className='tog-btn'+(side==='groom'?' tog-blue':'');
   document.getElementById('side-bride').className='tog-btn'+(side==='bride'?' tog-pink':'');
+  renderPreShipChecklist();
 }
 function setPayment(pay){
   st.payment=pay;
