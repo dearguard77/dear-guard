@@ -1064,7 +1064,7 @@ async function addPreShare(side){
   if(!name){ showToast('⚠️ 이름을 입력해주세요'); nameEl.focus(); return; }
   if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); amountEl.focus(); return; }
   if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
-  var row = {schedule_id:currentSchedule.id,side:sideVal,amount:amount,person_name:name,type:'pre_share',created_by:currentUser.name,received:true};
+  var row = {schedule_id:currentSchedule.id,side:sideVal,amount:amount,person_name:name,type:'pre_share',created_by:currentUser.name,received:true,source:'onsite'};
   try {
     var res = await fetch(sb.url('ticket_additions'), {method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(row)});
     var resText = await res.text();
@@ -1090,7 +1090,7 @@ async function deletePreShare(id){
 // 🎫 사전 식권 수령 체크리스트 (Precheck에서 등록된 대상자를 현재 접수측 기준으로 표시)
 function renderPreShipChecklist(){
   var sideKor = st.side === 'groom' ? '신랑측' : '신부측';
-  var list = preShares.filter(function(p){ return p.side === sideKor; });
+  var list = preShares.filter(function(p){ return p.side === sideKor && p.source !== 'onsite'; });
   var unreceived = list.filter(function(p){ return !p.received; });
   var totalAmt = list.reduce(function(s,p){ return s + (p.amount||0); }, 0);
 
@@ -1161,8 +1161,8 @@ function renderPreShareList(){
       '</div>';
     }).join('') : empty;
   }
-  var gList = preShares.filter(function(p){ return p.side==='신랑측'; });
-  var bList = preShares.filter(function(p){ return p.side==='신부측'; });
+  var gList = preShares.filter(function(p){ return p.side==='신랑측' && p.source==='onsite'; });
+  var bList = preShares.filter(function(p){ return p.side==='신부측' && p.source==='onsite'; });
   var elG = document.getElementById('pre-share-list');
   var elB = document.getElementById('pre-share-list-b');
   if(elG) elG.innerHTML = makeHtml(gList);
