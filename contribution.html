@@ -420,7 +420,19 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="ho-section" style="flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 현장 식권 수령</div>
-            <span style="font-size:10px;color:#9CA3AF;font-weight:400">식권 수령한 분 기록/운영메모 필수작성‼️<br>(계좌이체, 사회자, 부모님 지인, 가방순이 등)</span>
+            <div class="memo-rule-wrap">
+              <button type="button" class="memo-rule-btn" onclick="toggleMemoRule('onsite-rule-panel-g',event)">🚨 사용 기준</button>
+              <div class="memo-rule-panel" id="onsite-rule-panel-g">
+                🚨 현장 식권 수령 사용 기준<br><br>
+                • Precheck에 없던 현장 추가 지급<br>
+                • 계좌이체 확인 후 지급<br>
+                • 부모님 지인<br>
+                • 가방순이<br>
+                • 기타 현장에서 새로 발생한 지급<br><br>
+                Precheck에 미리 등록된 대상자는<br>
+                "사전 식권 수령"에서 체크해주세요.
+              </div>
+            </div>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
             <select id="pre-share-side" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
@@ -506,7 +518,19 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="ho-section" style="flex-shrink:0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="ho-section-title" style="color:#C7A96B;margin-bottom:0">🎫 현장 식권 수령</div>
-            <span style="font-size:10px;color:#9CA3AF;font-weight:400">식권 수령한 분 기록/운영메모 필수작성‼️<br>(계좌이체, 사회자, 부모님 지인, 가방순이 등)</span>
+            <div class="memo-rule-wrap">
+              <button type="button" class="memo-rule-btn" onclick="toggleMemoRule('onsite-rule-panel-b',event)">🚨 사용 기준</button>
+              <div class="memo-rule-panel" id="onsite-rule-panel-b">
+                🚨 현장 식권 수령 사용 기준<br><br>
+                • Precheck에 없던 현장 추가 지급<br>
+                • 계좌이체 확인 후 지급<br>
+                • 부모님 지인<br>
+                • 가방순이<br>
+                • 기타 현장에서 새로 발생한 지급<br><br>
+                Precheck에 미리 등록된 대상자는<br>
+                "사전 식권 수령"에서 체크해주세요.
+              </div>
+            </div>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
             <select id="pre-share-side-b" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
@@ -1075,7 +1099,23 @@ async function addPreShare(side){
     nameEl.value=''; amountEl.value='';
     renderPreShareList(); renderPreShipChecklist(); renderStats();
     showToast('🎫 사전 공유 식권 '+amount+'장 등록됨');
+    logOnsiteTicketMemo(sideVal, name, amount);
   } catch(e){ console.error('[DG] addPreShare 오류:', e); showToast('⚠️ 저장 실패: '+e.message); }
+}
+// 현장 식권 수령 등록 시 운영메모 자동 1건 기록 ('님' 중복 방지: 이미 '님'으로 끝나면 추가 안 함)
+async function logOnsiteTicketMemo(sideKor, name, amount){
+  if(!currentSchedule) return;
+  var honorificName = name.endsWith('님') ? name : (name + '님');
+  var sideCode = sideKor === '신랑측' ? 'g' : 'b';
+  var now = new Date();
+  var timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  var row = {schedule_id:currentSchedule.id, time_str:timeStr, content:honorificName+' 식권 '+amount+'장 수령', side:sideKor, created_by:currentUser.name};
+  try {
+    var created = await sb.post('operation_logs', row);
+    var entry = Array.isArray(created) ? created[0] : created;
+    if(sideCode==='g'){ opsLogsG.unshift(entry); renderOpsLogs('g', opsLogsG); }
+    else{ opsLogsB.unshift(entry); renderOpsLogs('b', opsLogsB); }
+  } catch(e){ console.warn('현장 식권 수령 메모 자동기록 실패:', e); }
 }
 async function deletePreShare(id){
   if(!confirm('사전 공유 식권을 삭제하시겠습니까?')) return;
