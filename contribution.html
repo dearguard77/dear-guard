@@ -1098,7 +1098,7 @@ async function addPreShare(side){
     preShares.push(entry);
     nameEl.value=''; amountEl.value='';
     renderPreShareList(); renderPreShipChecklist(); renderStats();
-    showToast('🎫 사전 공유 식권 '+amount+'장 등록됨');
+    showToast('🎫 현장 식권 '+amount+'장 등록됨');
     logOnsiteTicketMemo(sideVal, name, amount);
   } catch(e){ console.error('[DG] addPreShare 오류:', e); showToast('⚠️ 저장 실패: '+e.message); }
 }
