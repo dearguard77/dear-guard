@@ -215,6 +215,11 @@ input,select,textarea{font-family:inherit;outline:none}
 #guest-name::placeholder{color:#C0B8AE;font-weight:400;font-size:13px}
 
 #edit-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px}
+#manual-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:4000;display:none;align-items:center;justify-content:center;padding:20px}
+.manual-box{position:relative;max-width:min(92vw,1000px);max-height:90vh;background:#fff;border-radius:12px;padding:10px;box-shadow:0 8px 32px rgba(0,0,0,.25);overflow:hidden;display:flex}
+.manual-box img{max-width:100%;width:auto;height:auto;display:block;margin:0 auto}
+.manual-scroll{overflow-y:auto;max-height:calc(90vh - 20px);width:100%}
+.manual-close-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(17,17,17,.7);color:#fff;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;line-height:1}
 .edit-box{background:#fff;border-radius:14px;padding:22px 20px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
 .edit-box h3{font-size:14px;font-weight:800;color:#111;margin-bottom:14px}
 .edit-row{margin-bottom:9px}
@@ -297,6 +302,7 @@ input,select,textarea{font-family:inherit;outline:none}
   <div id="top-bar">
   <div id="top-bar-inner">
     <div style="display:flex;align-items:center;gap:10px">
+      <button class="topbtn topbtn-ghost" onclick="openManualModal()" style="flex-shrink:0">📖 가이드</button>
       <img src="logo.png" alt="Dear Guard" style="height:28px;width:auto;object-fit:contain;display:block">
       <span style="color:#E0E0E0">|</span>
       <div style="display:flex;flex-direction:column;gap:1px">
@@ -763,6 +769,16 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="edit-btns">
       <button class="edit-cancel" onclick="closeEditModal()">취소</button>
       <button class="edit-save" onclick="saveEdit()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 접수 가이드(매뉴얼) 모달: manual.png 파일만 교체하면 최신 매뉴얼이 자동 반영됨 -->
+<div id="manual-modal" onclick="if(event.target===this)closeManualModal()">
+  <div class="manual-box">
+    <button class="manual-close-btn" onclick="closeManualModal()">✕</button>
+    <div class="manual-scroll">
+      <img src="manual.png" alt="접수 가이드">
     </div>
   </div>
 </div>
@@ -1681,6 +1697,20 @@ function openEditModal(id){
   document.getElementById('edit-modal').style.display='flex';
 }
 function closeEditModal(){ document.getElementById('edit-modal').style.display='none'; }
+
+// 📖 접수 가이드(매뉴얼 이미지) 모달 — 순수 UI, 이미지 파일(manual.png)만 교체하면 자동 반영됨
+function openManualModal(){
+  document.getElementById('manual-modal').style.display='flex';
+}
+function closeManualModal(){
+  document.getElementById('manual-modal').style.display='none';
+}
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    var m = document.getElementById('manual-modal');
+    if(m && m.style.display === 'flex') closeManualModal();
+  }
+});
 async function saveEdit(){
   const id=Number(document.getElementById('edit-id').value);
   const body={side:document.getElementById('edit-side').value,payment_type:document.getElementById('edit-payment').value,guest_name:document.getElementById('edit-name').value.trim()||null,relation:document.getElementById('edit-relation').value||null,amount:Number(document.getElementById('edit-amount').value)||null,adult_ticket:Number(document.getElementById('edit-adult').value)||0,child_ticket:Number(document.getElementById('edit-child').value)||0,memo:document.getElementById('edit-memo').value.trim()||null};
