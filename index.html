@@ -4007,15 +4007,34 @@ function renderUnavailCal(){
   const days = [...Array(firstDay).fill(null), ...Array.from({length:daysInMonth},(_,i)=>i+1)];
   const dayNames = ['일','월','화','수','목','금','토'];
 
-  // 전체 매니저 불가일정 공개 조회
-  const filterName = document.getElementById('unavail-filter')?.value || '';
-  let baseList = unavailables;
-  if(filterName) baseList = baseList.filter(u=>u.managerName===filterName);
+  const isAdmin    = ADMIN_NAMES.includes(currentUser.name);
+  const filterName = document.getElementById('unavail-filter')?.value || ''; // 관리자 드롭다운
+
+  // ── 뷰 모드 결정 ──
+  // 관리자 + 전체 선택 → 전체 현황 모드
+  // 관리자 + 특정 매니저 선택 → 해당 매니저 개인 뷰
+  // 일반 매니저 → 본인 + 파트너 개인 뷰
+  const viewAsManager = isAdmin
+    ? (filterName || null)   // 관리자: 드롭다운 값 (null이면 전체 현황)
+    : currentUser.name;      // 일반 매니저: 항상 본인 기준
+
+  // ── 개인 뷰용 표시 대상 계산 ──
+  // (viewAsManager가 null이면 전체 현황 모드)
+  let personalList = null;
+  if(viewAsManager){
+    const partner = COUPLE_PAIRS[viewAsManager] || null;
+    const targets = [viewAsManager, partner].filter(Boolean);
+    personalList  = unavailables.filter(u => targets.includes(u.managerName));
+  }
+
+  // ── 전체 현황 모드용 베이스 리스트 (관리자 전체 선택 시만) ──
+  const adminList = viewAsManager ? null : unavailables;
 
   const byDay = day => {
     if(!day) return [];
     const ds = `${uvCalYear}-${String(uvCalMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    return baseList.filter(u => u.date === ds);
+    if(personalList !== null) return personalList.filter(u => u.date === ds);
+    return (adminList || []).filter(u => u.date === ds);
   };
 
   wrap.innerHTML = `
@@ -4042,31 +4061,70 @@ function renderUnavailCal(){
       ${days.map((day,idx)=>{
         if(!day) return '<div class="cal-cell"></div>';
         const ds = `${uvCalYear}-${String(uvCalMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        const isToday   = ds === TODAY;
-        const isHol     = idx%7===0, isSat = idx%7===6;
-        const dayCol    = isToday?'#C7A96B':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
-        const dayNum    = isToday ? `<span class="cal-today-circle">${day}</span>` : day;
-        const uu        = byDay(day);
-        // 백업 매니저 제외한 일반 매니저만 가용 인원 계산
-        const allMgrs   = USERS.map(u => u.name).filter(n => !BACKUP_MANAGERS.includes(n));
-        let availCnt = 0, partialCnt = 0, unavailCnt = 0;
-        allMgrs.forEach(n => {
-          const st = getManagerDayStatus(n, ds);
-          if(st.status === 'all_unavail' || st.status === 'full_busy') unavailCnt++;
-          else if(st.status === 'free') availCnt++;
-          else partialCnt++;
-        });
-        const availColor = availCnt >= 10 ? '#059669' : availCnt >= 6 ? '#D97706' : '#DC2626';
-        const availBg    = availCnt >= 10 ? '#D1FAE5' : availCnt >= 6 ? '#FEF3C7' : '#FEE2E2';
-        return `<div class="cal-cell${isToday?' today':''}" onclick="openUvDayModal('${ds}')" style="cursor:pointer">
-          <div class="cal-day" style="color:${dayCol}">${dayNum}</div>
-          <div style="background:${availBg};color:${availColor};border-radius:4px;padding:1px 4px;font-size:9px;font-weight:700;margin-top:2px;text-align:center">🟢 ${availCnt}명</div>
-          ${partialCnt > 0 ? `<div style="font-size:9px;color:#D97706;margin-top:1px">🕒 ${partialCnt}명 부분</div>` : ''}
-          ${unavailCnt > 0 ? `<div style="font-size:9px;color:#DC2626;margin-top:1px">🔴 ${unavailCnt}명 불가</div>` : ''}
-        </div>`;
+        const isToday = ds === TODAY;
+        const isHol   = idx%7===0, isSat = idx%7===6;
+        const dayCol  = isToday?'#C7A96B':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
+        const dayNum  = isToday ? `<span class="cal-today-circle">${day}</span>` : day;
+        const uu      = byDay(day);
+
+        if(!viewAsManager){
+          // ── 관리자 전체 현황 모드 (기존 동일) ──
+          const allMgrs = USERS.map(u => u.name).filter(n => !BACKUP_MANAGERS.includes(n));
+          let availCnt = 0, partialCnt = 0, unavailCnt = 0;
+          allMgrs.forEach(n => {
+            const st = getManagerDayStatus(n, ds);
+            if(st.status === 'all_unavail' || st.status === 'full_busy') unavailCnt++;
+            else if(st.status === 'free') availCnt++;
+            else partialCnt++;
+          });
+          const availColor = availCnt >= 10 ? '#059669' : availCnt >= 6 ? '#D97706' : '#DC2626';
+          const availBg    = availCnt >= 10 ? '#D1FAE5' : availCnt >= 6 ? '#FEF3C7' : '#FEE2E2';
+          return `<div class="cal-cell${isToday?' today':''}" onclick="openUvDayModal('${ds}')" style="cursor:pointer">
+            <div class="cal-day" style="color:${dayCol}">${dayNum}</div>
+            <div style="background:${availBg};color:${availColor};border-radius:4px;padding:1px 4px;font-size:9px;font-weight:700;margin-top:2px;text-align:center">🟢 ${availCnt}명</div>
+            ${partialCnt > 0 ? `<div style="font-size:9px;color:#D97706;margin-top:1px">🕒 ${partialCnt}명 부분</div>` : ''}
+            ${unavailCnt > 0 ? `<div style="font-size:9px;color:#DC2626;margin-top:1px">🔴 ${unavailCnt}명 불가</div>` : ''}
+          </div>`;
+        } else {
+          // ── 개인 뷰 모드 (일반 매니저 or 관리자 특정 매니저 선택) ──
+          const partner = COUPLE_PAIRS[viewAsManager] || null;
+
+          const myUv     = uu.filter(u => u.managerName === viewAsManager);
+          const partnerUv = partner ? uu.filter(u => u.managerName === partner) : [];
+
+          // 본인 상태 결정
+          const myAllDay  = myUv.some(u => u.unavailableType === 'all_day');
+          const myPartial = !myAllDay && myUv.length > 0;
+          // 파트너 상태 결정
+          const ptAllDay  = partnerUv.some(u => u.unavailableType === 'all_day');
+          const ptPartial = !ptAllDay && partnerUv.length > 0;
+
+          const myLabel = myAllDay ? '🔴 종일 불가'
+            : myPartial ? `🕒 ${myUv.map(u => u.unavailableType === '10:00~14:00' ? '점심' : u.unavailableType === '15:00~19:00' ? '저녁' : u.unavailableType).join(', ')}`
+            : '';
+          const ptLabel = partner && (ptAllDay || ptPartial)
+            ? `<div style="font-size:9px;color:#7C3AED;margin-top:2px">${esc(partner)}: ${ptAllDay ? '🔴 종일' : '🕒 일부'}</div>`
+            : '';
+
+          const hasAny = myUv.length > 0 || partnerUv.length > 0;
+          // 일반 매니저에게는 클릭 팝업 없음(다른 매니저 정보 노출 방지)
+          const cellClick = isAdmin ? `onclick="openUvDayModal('${ds}')" style="cursor:pointer"` : 'style="cursor:default"';
+
+          return `<div class="cal-cell${isToday?' today':''}" ${cellClick}>
+            <div class="cal-day" style="color:${dayCol}">${dayNum}</div>
+            ${myLabel ? `<div style="font-size:9px;color:${myAllDay?'#DC2626':'#D97706'};margin-top:2px;font-weight:700">${myLabel}</div>` : ''}
+            ${ptLabel}
+            ${!hasAny ? '' : ''}
+          </div>`;
+        }
       }).join('')}
     </div>
-    <div style="margin-top:8px;font-size:11px;color:#9CA3AF">날짜를 클릭하면 해당 날짜의 매니저 현황을 확인할 수 있습니다</div>`;
+    ${!viewAsManager
+      ? `<div style="margin-top:8px;font-size:11px;color:#9CA3AF">날짜를 클릭하면 해당 날짜의 매니저 현황을 확인할 수 있습니다</div>`
+      : (isAdmin
+          ? `<div style="margin-top:8px;font-size:11px;color:#9CA3AF">📌 ${esc(viewAsManager)} ${COUPLE_PAIRS[viewAsManager]?'· '+esc(COUPLE_PAIRS[viewAsManager]):''} 불가일정 보기</div>`
+          : `<div style="margin-top:8px;font-size:11px;color:#9CA3AF">📌 내 불가일정${COUPLE_PAIRS[currentUser.name]?' · '+esc(COUPLE_PAIRS[currentUser.name]):''}만 표시됩니다</div>`)
+    }`;
 }
 
 function jumpUnavailMonth(){
