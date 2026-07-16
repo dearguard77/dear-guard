@@ -59,7 +59,7 @@
   .sec-header{margin-bottom:14px}
   .sec-header h2{font-size:18px;font-weight:800;color:#111827;display:inline}
   .sec-header span{font-size:12px;color:#9CA3AF;margin-left:8px}
-  .shortcuts-grid{display:grid !important;grid-template-columns:1fr 1fr;gap:10px}
+  .shortcuts-grid{display:grid !important;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
   /* TODAY CARD */
   .today-card{background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:20px 22px;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.05);position:relative;overflow:hidden;margin-bottom:12px}
@@ -477,6 +477,11 @@
             <div style="font-size:14px;font-weight:800;color:#111827">배정관리</div>
             <div style="font-size:11px;color:#9CA3AF">예식별 인원 배정</div>
           </button>
+          <button onclick="openReferralModal()" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:22px">🤝</div>
+            <div style="font-size:14px;font-weight:800;color:#111827">짝꿍코드</div>
+            <div style="font-size:11px;color:#9CA3AF">코드 발급 · 사용 현황</div>
+          </button>
         </div>
       </div>
     </div>
@@ -845,6 +850,20 @@
       <span id="uvDay-avail-badge" style="font-size:12px;font-weight:700"></span>
       <button onclick="closeUvDayModal()" style="background:#F3F4F6;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#374151">닫기</button>
     </div>
+  </div>
+</div>
+
+<!-- 짝꿍코드 조회 모달 (관리자 전용) -->
+<div id="referralModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px">
+  <div style="background:#fff;border-radius:16px;padding:20px;max-width:520px;width:100%;margin:40px auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:800;color:#1F2937">🤝 짝꿍코드 조회</div>
+      <button onclick="closeReferralModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9CA3AF">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input id="referral-search-input" class="form-input" placeholder="이름 또는 짝꿍코드 검색" style="flex:1;font-size:13px" oninput="renderReferralList()">
+    </div>
+    <div id="referral-list" style="max-height:440px;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -2726,6 +2745,113 @@ async function openContractModal(id){
 
   document.body.appendChild(modal);
   document.body.style.overflow = 'hidden';
+}
+
+// ── 짝꿍코드 조회 모달 (관리자 전용) ─────────────────────────────────────────
+let _referralUsages = []; // referral_code_usages 캐시
+
+async function openReferralModal(){
+  if(!ADMIN_NAMES.includes(currentUser.name)){ showToast('⚠️ 관리자만 사용 가능합니다'); return; }
+  const modal = document.getElementById('referralModal');
+  if(!modal) return;
+  modal.style.display = 'flex';
+  document.getElementById('referral-search-input').value = '';
+  document.getElementById('referral-list').innerHTML = '<div style="text-align:center;padding:20px;color:#9CA3AF;font-size:13px">로딩 중…</div>';
+  try{
+    _referralUsages = await sb.get('referral_code_usages',
+      '?select=used_code,referrer_name,used_by_name,used_by_schedule_id,status,created_at&order=created_at.desc&limit=500');
+  }catch(e){ _referralUsages = []; console.warn('[DG] referral_code_usages 조회 실패:', e); }
+  renderReferralList();
+}
+
+function closeReferralModal(){
+  const modal = document.getElementById('referralModal');
+  if(modal) modal.style.display = 'none';
+}
+
+function renderReferralList(){
+  const q   = (document.getElementById('referral-search-input')?.value || '').trim().toLowerCase();
+  const el  = document.getElementById('referral-list');
+  if(!el) return;
+
+  // ── 1. schedules에서 couple_referral_code 가진 목록 ──
+  const schMap = new Map(); // code → { name, phone, scheduleId }
+  schedules.forEach(s => {
+    if(!s.coupleReferralCode) return;
+    const code = s.coupleReferralCode;
+    if(!schMap.has(code)){
+      schMap.set(code, {
+        name: [s.groomName, s.brideName].filter(Boolean).join(' / '),
+        code,
+      });
+    }
+  });
+
+  // ── 2. referral_code_usages에서 used_code 목록 합산 ──
+  const usageCodeSet = new Set(_referralUsages.map(u => u.used_code));
+
+  // ── 3. 전체 코드 목록 (schedules + usages 합산, 중복 제거) ──
+  const allCodes = new Set([...schMap.keys(), ...usageCodeSet]);
+
+  // ── 4. 각 코드별 카드 생성 ──
+  let items = [];
+  allCodes.forEach(code => {
+    const schInfo    = schMap.get(code);
+    const activeUsage = _referralUsages.find(u => u.used_code === code && u.status === 'active');
+    const anyUsage    = _referralUsages.find(u => u.used_code === code);
+    const allUsages   = _referralUsages.filter(u => u.used_code === code);
+
+    // 상태 판단 (referral_code_usages 우선)
+    let statusLabel, statusColor, statusBg;
+    if(activeUsage){
+      statusLabel = '사용완료'; statusColor = '#92400E'; statusBg = '#FEF3C7';
+    } else if(allUsages.some(u => u.status === 'cancelled')){
+      statusLabel = '취소됨 (사용가능)'; statusColor = '#6D28D9'; statusBg = '#EDE9FE';
+    } else {
+      statusLabel = '사용가능'; statusColor = '#065F46'; statusBg = '#D1FAE5';
+    }
+
+    // 이름 정보: schedules 우선, 없으면 usage의 referrer_name
+    const displayName = schInfo?.name || anyUsage?.referrer_name || '';
+    // 사용자: active usage의 used_by_name
+    const usedBy   = activeUsage?.used_by_name || '';
+    const usedDate = activeUsage?.created_at ? activeUsage.created_at.slice(0,10) : '';
+
+    items.push({ code, displayName, statusLabel, statusColor, statusBg, usedBy, usedDate, isAvail: !activeUsage });
+  });
+
+  // ── 5. 검색 필터 ──
+  if(q){
+    items = items.filter(r =>
+      r.code.toLowerCase().includes(q) ||
+      r.displayName.toLowerCase().includes(q) ||
+      r.usedBy.toLowerCase().includes(q)
+    );
+  }
+
+  // ── 6. 정렬: 사용가능 먼저, 같은 상태 내 코드 가나다순 ──
+  items.sort((a, b) => {
+    if(a.isAvail !== b.isAvail) return a.isAvail ? -1 : 1;
+    return a.code.localeCompare(b.code, 'ko');
+  });
+
+  if(!items.length){
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:#9CA3AF;font-size:13px">' +
+      (q ? '검색 결과가 없습니다' : '짝꿍코드 데이터가 없습니다') + '</div>';
+    return;
+  }
+
+  el.innerHTML = items.map(r => `
+    <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:13px;font-weight:700;color:#1F2937">${esc(r.displayName || '(이름 없음)')}</span>
+        <span style="background:${r.statusBg};color:${r.statusColor};border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">${esc(r.statusLabel)}</span>
+      </div>
+      <div style="font-size:13px;color:#374151;margin-bottom:${r.usedBy?'4px':'0'}">
+        대표 짝꿍코드: <b style="font-size:15px;color:#C7A96B;letter-spacing:.5px">${esc(r.code)}</b>
+      </div>
+      ${r.usedBy ? `<div style="font-size:11px;color:#92400E">→ 사용자: ${esc(r.usedBy)}${r.usedDate?' ('+r.usedDate+')':''}</div>` : ''}
+    </div>`).join('');
 }
 
 function copyContractGuide(contractUrl){
