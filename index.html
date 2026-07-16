@@ -1114,6 +1114,8 @@
           <!-- 자유 메모 -->
           <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:6px">내부 운영 메모</div>
           <textarea class="form-input" id="fm-contract-text" rows="4" placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부, 기타 계약 관련 내용" style="resize:vertical;line-height:1.8;background:#fff;border-color:#E9D5FF;font-size:13px"></textarea>
+          <!-- 짝꿍할인 취소 버튼 placeholder (관리자 + 적용된 경우만 동적 렌더링) -->
+          <div id="fm-couple-cancel-wrap"></div>
         </div>
       </div>
      <!-- ── 섹션 3.5: 정산 정보 (관리자 전용) ── -->
@@ -1526,6 +1528,12 @@ function rowToSchedule(row){
     handoverCertSignature: row.handover_cert_signature || '',
     handoverCertItems:     row.handover_cert_items     || '',
     handoverCertClosing:   row.handover_cert_closing   || '',
+    // 짝꿍코드 관련
+    coupleReferralCode:    row.couple_referral_code    || '',
+    coupleDiscountCode:    row.couple_discount_code    || '',
+    coupleDiscountStatus:  row.couple_discount_status  || 'empty',
+    coupleDiscountAmount:  row.couple_discount_amount  || 0,
+    contractOwner:         row.contract_owner          || '',
   };
 }
 
@@ -2992,7 +3000,63 @@ function closeContractModal(){
   document.body.style.overflow = '';
 }
 
-function closeDetail(){ document.getElementById('detail-modal').style.display='none'; document.body.style.overflow=''; }
+// ── 짝꿍할인 취소 (관리자 전용) ─────────────────────────────────────────────
+async function cancelCoupleDiscount(id){
+  const s = schedules.find(x => x.id === id);
+  if(!s){ showToast('⚠️ 예식 정보를 찾을 수 없습니다'); return; }
+  if(!ADMIN_NAMES.includes(currentUser.name)){ showToast('⚠️ 관리자만 취소할 수 있습니다'); return; }
+  const alreadyApplied =
+    s.coupleDiscountStatus === 'approved' ||
+    (s.coupleDiscountCode && s.coupleDiscountCode.trim() !== '') ||
+    Number(s.coupleDiscountAmount) > 0 ||
+    (s.adminMemo && s.adminMemo.couple_discount === true);
+  if(!alreadyApplied){ showToast('적용된 짝꿍할인이 없습니다'); return; }
+  const usedCode = s.coupleDiscountCode || '(코드 없음)';
+  if(!confirm(`정말 짝꿍할인을 취소하시겠습니까?\n취소 코드: ${usedCode}`)) return;
+  try{
+    const today = new Date().toISOString().slice(0,10);
+    const memoEntry = `짝꿍 할인 취소\n취소 코드: ${usedCode}\n취소일: ${today}\n처리자: ${currentUser.name}`;
+    const existingAm = s.adminMemo || {};
+    const newAdminMemo = {
+      ...existingAm,
+      couple_discount: false,
+      text: existingAm.text ? existingAm.text + '\n\n' + memoEntry : memoEntry,
+    };
+    await sb.patch('schedules', id, {
+      couple_discount_code:   null,
+      couple_discount_status: 'cancelled',
+      couple_discount_amount: 0,
+      admin_memo:             newAdminMemo,
+      contract_pdf_url:       null,
+    });
+    s.coupleDiscountCode   = '';
+    s.coupleDiscountStatus = 'cancelled';
+    s.coupleDiscountAmount = 0;
+    s.adminMemo            = newAdminMemo;
+    s.contractPdfUrl       = '';
+    // referral_code_usages cancelled 처리
+    try{
+      const usageRows = await sb.get('referral_code_usages',
+        `?used_by_schedule_id=eq.${id}&status=eq.active&select=id`);
+      if(usageRows && usageRows.length > 0){
+        await sb.patch('referral_code_usages', usageRows[0].id, { status: 'cancelled' });
+      }
+    }catch(e){ console.warn('[DG] 사용이력 취소 실패:', e); }
+    // 폼이 열려있으면 즉시 갱신
+    if(formId === id){
+      formContractMemo = { ...newAdminMemo };
+      formContractMemo['couple_discount'] = false;
+      renderContractChecks();
+      syncContractMemoToSettlement();
+      const cw = document.getElementById('fm-couple-cancel-wrap');
+      if(cw) cw.innerHTML = '';
+    }
+    showToast('✅ 짝꿍할인이 취소되었습니다.');
+    closeDetail(); renderAll();
+  }catch(e){ showToast('❌ 취소 실패: '+e.message); }
+}
+
+
 
 async function toggleCL(schId, key, checked){
   const s=schedules.find(x=>x.id===schId); if(!s) return;
@@ -3175,6 +3239,35 @@ function openForm(id){
   if(document.getElementById('fm-contract-text'))
     document.getElementById('fm-contract-text').value  = formContractMemo.text || '';
   renderContractChecks();
+
+  // ── 짝꿍코드 자동 연동 ──
+  const alreadyAppliedCouple =
+    s?.coupleDiscountStatus === 'approved' ||
+    (s?.coupleDiscountCode && s.coupleDiscountCode.trim() !== '') ||
+    Number(s?.coupleDiscountAmount) > 0 ||
+    formContractMemo['couple_discount'] === true;
+  if(alreadyAppliedCouple && s?.coupleDiscountStatus !== 'cancelled'){
+    formContractMemo['couple_discount'] = true;
+    if(s?.coupleDiscountCode && !(formContractMemo.text||'').includes(s.coupleDiscountCode)){
+      const memoEntry = `짝꿍 할인 적용\n사용 코드: ${s.coupleDiscountCode}`;
+      formContractMemo.text = formContractMemo.text
+        ? formContractMemo.text + '\n\n' + memoEntry : memoEntry;
+    }
+  }
+  // ── 계약참고 탭 짝꿍할인 취소 버튼 (관리자 + 적용됐을 때만) ──
+  const cancelWrap = document.getElementById('fm-couple-cancel-wrap');
+  if(cancelWrap){
+    if(ADMIN_NAMES.includes(currentUser.name) && alreadyAppliedCouple && s?.coupleDiscountStatus !== 'cancelled'){
+      cancelWrap.innerHTML = `<div style="margin-top:12px;padding:10px 12px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px">
+        <div style="font-size:11px;color:#92400E;font-weight:700;margin-bottom:4px">✅ 짝꿍할인 적용 중</div>
+        <div style="font-size:11px;color:#374151;margin-bottom:8px">사용 코드: <b>${esc(s.coupleDiscountCode||'(코드 없음)')}</b> · -10,000원</div>
+        <button onclick="cancelCoupleDiscount(${s.id})" style="width:100%;background:#DC2626;color:#fff;border:none;border-radius:6px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">❌ 짝꿍할인 취소 (관리자)</button>
+      </div>`;
+    } else {
+      cancelWrap.innerHTML = '';
+    }
+  }
+
   FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
   if(ADMIN_NAMES.includes(currentUser.name)){
     document.getElementById('f-total-price').value  = s?.totalPrice  || '';
