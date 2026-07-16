@@ -3882,8 +3882,8 @@ function renderUnavailCal(){
         const dayCol    = isToday?'#C7A96B':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum    = isToday ? `<span class="cal-today-circle">${day}</span>` : day;
         const uu        = byDay(day);
-        // 배정 포함 가능 인원 계산
-        const allMgrs   = USERS.map(u => u.name);
+        // 백업 매니저 제외한 일반 매니저만 가용 인원 계산
+        const allMgrs   = USERS.map(u => u.name).filter(n => !BACKUP_MANAGERS.includes(n));
         let availCnt = 0, partialCnt = 0, unavailCnt = 0;
         allMgrs.forEach(n => {
           const st = getManagerDayStatus(n, ds);
@@ -4112,7 +4112,8 @@ function updateUvTimeRange(){
   }
 }
 
-// ── 날짜 클릭 → 매니저 현황 팝업 ────────────────────────────────────────────
+// ── 백업 매니저 (기본 가용 인원 계산 제외, 팝업에서 별도 표시) ──────────────
+const BACKUP_MANAGERS = ['강미송', '노지훈'];
 // 점심 예식 기준: 예식 시간 < 14:00
 // 저녁 예식 기준: 예식 시간 >= 14:00
 // 점유 시간 기준: 기존 배정 시스템과 동일하게 예식 -80분 ~ 예식 +80분
@@ -4186,8 +4187,9 @@ function openUvDayModal(ds){
   const dayLabel = `${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
   document.getElementById('uvDay-title').textContent = dayLabel;
 
-  // 매니저별 상태 계산
-  const allManagers  = USERS.map(u => u.name);
+  // 매니저별 상태 계산 — 백업 매니저 제외한 일반 매니저만 기준
+  const allManagers  = USERS.map(u => u.name).filter(n => !BACKUP_MANAGERS.includes(n));
+  const backupMgrs   = USERS.map(u => u.name).filter(n => BACKUP_MANAGERS.includes(n));
   const dayUnavails  = unavailables.filter(u => u.date === ds);
   const statuses     = allManagers.map(n => ({ name: n, ...getManagerDayStatus(n, ds) }));
 
@@ -4204,15 +4206,16 @@ function openUvDayModal(ds){
 
   const canEdit = n => ADMIN_NAMES.includes(currentUser.name) || n === currentUser.name;
 
-  // 편집 버튼 생성 — uvEditId 혼동 방지를 위해 별도 helper 사용
+  // 편집 버튼 생성 — JSON.stringify 쌍따옴표가 onclick 속성 충돌 방지: 단따옴표 사용
   const editBtn = (n, existingId) => {
     if(!canEdit(n)) return '';
     if(existingId){
       return `<button onclick="closeUvDayModal();uvOpenEdit(${existingId})"
-        style="font-size:10px;background:#fff;border:1px solid #C7A96B;border-radius:5px;padding:2px 8px;cursor:pointer;color:#C7A96B;font-weight:700">수정</button>`;
+        style="font-size:10px;background:#fff;border:1px solid #C7A96B;border-radius:5px;padding:2px 8px;cursor:pointer;color:#C7A96B;font-weight:700;white-space:nowrap">수정</button>`;
     }
-    return `<button onclick="closeUvDayModal();uvOpenNew(${JSON.stringify(ds)},${JSON.stringify(n)})"
-      style="font-size:10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:5px;padding:2px 8px;cursor:pointer;color:#374151">등록</button>`;
+    // ds, n 모두 단따옴표로 감싸기 (한국어 이름/날짜에 쌍따옴표 없음)
+    return `<button onclick="closeUvDayModal();uvOpenNew('${ds}','${n}')"
+      style="font-size:10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:5px;padding:2px 8px;cursor:pointer;color:#374151;white-space:nowrap">등록</button>`;
   };
 
   const managerRow = (st, extraLabel) => {
@@ -4243,6 +4246,24 @@ function openUvDayModal(ds){
     section('🕒','일부 시간 불가','#D97706', partialUv,
       st => `${st.uvReason || '시간대 불가'}`),
     section('🔴','종일 불가','#DC2626', allUnavail, null),
+    // 백업 매니저 별도 섹션
+    backupMgrs.length ? `<div style="margin-top:12px;padding:10px 12px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px">
+      <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:6px">🟣 백업 매니저 (필요 시 관리자 수동 배정 가능)</div>
+      ${backupMgrs.map(n => {
+        const st = getManagerDayStatus(n, ds);
+        const uvRec = dayUnavails.find(u => u.managerName === n);
+        const statusTxt = st.status === 'all_unavail' ? '🔴 종일 불가' :
+          st.status === 'full_busy' ? '🔵 배정 완료' :
+          st.status === 'lunch_busy' ? '🌙 저녁 가능' :
+          st.status === 'dinner_busy' ? '🌞 점심 가능' : '🟢 가능';
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#EDE9FE;border-radius:6px;margin-bottom:4px;font-size:12px">
+          <span style="font-weight:600;color:#4C1D95">${esc(n)}</span>
+          <span style="font-size:10px;color:#6D28D9">${statusTxt}</span>
+          ${canEdit(n) ? `<button onclick="closeUvDayModal();uvOpenNew('${ds}','${n}')"
+            style="font-size:10px;background:#fff;border:1px solid #8B5CF6;border-radius:5px;padding:2px 8px;cursor:pointer;color:#7C3AED">등록</button>` : ''}
+        </div>`;
+      }).join('')}
+    </div>` : '',
   ].join('') || '<div style="text-align:center;padding:20px;color:#9CA3AF;font-size:13px">불가일정 없음 — 전원 가능</div>';
 
   document.getElementById('uvDay-modal').style.display = 'flex';
