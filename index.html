@@ -3882,20 +3882,21 @@ function renderUnavailCal(){
         const dayCol    = isToday?'#C7A96B':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum    = isToday ? `<span class="cal-today-circle">${day}</span>` : day;
         const uu        = byDay(day);
-        const allDayUU  = uu.filter(u => u.unavailableType === 'all_day');
-        const partialUU = uu.filter(u => u.unavailableType !== 'all_day');
-        const totalMgr  = USERS.length;
-        const unavailCnt = allDayUU.length;
-        const partialCnt = partialUU.length;
-        const availCnt   = totalMgr - unavailCnt;
+        // 배정 포함 가능 인원 계산
+        const allMgrs   = USERS.map(u => u.name);
+        let availCnt = 0, partialCnt = 0, unavailCnt = 0;
+        allMgrs.forEach(n => {
+          const st = getManagerDayStatus(n, ds);
+          if(st.status === 'all_unavail' || st.status === 'full_busy') unavailCnt++;
+          else if(st.status === 'free') availCnt++;
+          else partialCnt++;
+        });
         const availColor = availCnt >= 10 ? '#059669' : availCnt >= 6 ? '#D97706' : '#DC2626';
         const availBg    = availCnt >= 10 ? '#D1FAE5' : availCnt >= 6 ? '#FEF3C7' : '#FEE2E2';
-        const availText  = `🟢 ${availCnt}명`;
-        const partialText = partialCnt > 0 ? `<div style="font-size:9px;color:#D97706;margin-top:1px">🕒 ${partialCnt}명 부분</div>` : '';
         return `<div class="cal-cell${isToday?' today':''}" onclick="openUvDayModal('${ds}')" style="cursor:pointer">
           <div class="cal-day" style="color:${dayCol}">${dayNum}</div>
-          <div style="background:${availBg};color:${availColor};border-radius:4px;padding:1px 4px;font-size:9px;font-weight:700;margin-top:2px;text-align:center">${availText}</div>
-          ${partialText}
+          <div style="background:${availBg};color:${availColor};border-radius:4px;padding:1px 4px;font-size:9px;font-weight:700;margin-top:2px;text-align:center">🟢 ${availCnt}명</div>
+          ${partialCnt > 0 ? `<div style="font-size:9px;color:#D97706;margin-top:1px">🕒 ${partialCnt}명 부분</div>` : ''}
           ${unavailCnt > 0 ? `<div style="font-size:9px;color:#DC2626;margin-top:1px">🔴 ${unavailCnt}명 불가</div>` : ''}
         </div>`;
       }).join('')}
@@ -3938,9 +3939,9 @@ const COUPLE_PAIRS = {
   '김지현':'목수빈', '목수빈':'김지현',
 };
 
-function openUnavailForm(id, presetDate){
-  uvEditId = id;
-  const uv = id ? unavailables.find(x => x.id === id) : null;
+function openUnavailForm(id, presetDate, presetManager){
+  uvEditId = id || null;  // 'null' 문자열 방지 — 반드시 null 또는 실제 ID
+  const uv = uvEditId ? unavailables.find(x => x.id === uvEditId) : null;
 
   // 수정 시 권한 체크: 일반 매니저는 본인 것만
   if(uv && !ADMIN_NAMES.includes(currentUser.name) && uv.managerName !== currentUser.name){
@@ -3953,9 +3954,10 @@ function openUnavailForm(id, presetDate){
 
   // 매니저 select — 관리자는 전체, 일반 매니저는 본인만
   const manSel = document.getElementById('uv-manager');
+  const preSelectName = uv?.managerName || presetManager || '';
   if(ADMIN_NAMES.includes(currentUser.name)){
     manSel.innerHTML = '<option value="">— 선택 —</option>'
-      + USERS.map(u => `<option value="${esc(u.name)}"${uv?.managerName===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
+      + USERS.map(u => `<option value="${esc(u.name)}"${preSelectName===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
     manSel.disabled = false;
   } else {
     manSel.innerHTML = `<option value="${esc(currentUser.name)}" selected>${esc(currentUser.name)}</option>`;
@@ -4111,53 +4113,148 @@ function updateUvTimeRange(){
 }
 
 // ── 날짜 클릭 → 매니저 현황 팝업 ────────────────────────────────────────────
+// 점심 예식 기준: 예식 시간 < 14:00
+// 저녁 예식 기준: 예식 시간 >= 14:00
+// 점유 시간 기준: 기존 배정 시스템과 동일하게 예식 -80분 ~ 예식 +80분
+// 점심 구간: 10:00~14:00 (600~840분)
+// 저녁 구간: 14:00~19:00 (840~1140분)
+const LUNCH_ZONE_START = 10 * 60;      // 600
+const LUNCH_ZONE_END   = 14 * 60;      // 840
+const DINNER_ZONE_START = 14 * 60;     // 840
+const DINNER_ZONE_END   = 19 * 60;     // 1140
+const OCCUPY_BEFORE    = 80;           // 예식 전 점유(분)
+const OCCUPY_AFTER     = 80;           // 예식 후 점유(분)
+
+function timeStrToMin(t){ // "HH:MM" → 분
+  if(!t) return null;
+  const [h,m] = t.split(':').map(Number);
+  return h * 60 + (m||0);
+}
+
+function getManagerDayStatus(managerName, ds){
+  // ① 불가일정 확인
+  const uvToday = unavailables.filter(u => u.managerName === managerName && u.date === ds);
+  const isAllDay  = uvToday.some(u => u.unavailableType === 'all_day');
+  const lunchUv   = uvToday.some(u => u.unavailableType === '10:00~14:00' || u.unavailableType === 'morning');
+  const dinnerUv  = uvToday.some(u => u.unavailableType === '15:00~19:00' || u.unavailableType === 'afternoon');
+  const customUv  = uvToday.filter(u => !['all_day','morning','afternoon','10:00~14:00','15:00~19:00'].includes(u.unavailableType));
+
+  if(isAllDay) return { status:'all_unavail', uvReason:'종일 불가' };
+
+  // ② 배정된 예식 확인
+  const assigned = schedules.filter(s => {
+    if(s.date !== ds) return false;
+    const mgrs = [s.frontManager, s.backManager].join(',').split(',').map(m=>m.trim()).filter(Boolean);
+    return mgrs.includes(managerName);
+  });
+
+  // 배정 예식별 점유 시간대 계산
+  let busyLunch  = lunchUv;
+  let busyDinner = dinnerUv;
+  const assignedLabels = [];
+
+  assigned.forEach(s => {
+    const cMin  = timeStrToMin(s.time);
+    if(cMin === null) return;
+    const oStart = cMin - OCCUPY_BEFORE;
+    const oEnd   = cMin + OCCUPY_AFTER;
+    // 점심 구간 겹침
+    if(oStart < LUNCH_ZONE_END && oEnd > LUNCH_ZONE_START)  busyLunch  = true;
+    // 저녁 구간 겹침
+    if(oStart < DINNER_ZONE_END && oEnd > DINNER_ZONE_START) busyDinner = true;
+    assignedLabels.push(`${s.time} ${coupleName(s)}`);
+  });
+
+  // 직접입력 불가 여부
+  const hasCustom = customUv.length > 0;
+
+  if(busyLunch && busyDinner)
+    return { status:'full_busy', assignedLabels, lunchBusy:true, dinnerBusy:true, hasCustom };
+  if(busyLunch)
+    return { status:'lunch_busy', assignedLabels, lunchBusy:true, dinnerBusy:false, hasCustom };
+  if(busyDinner)
+    return { status:'dinner_busy', assignedLabels, lunchBusy:false, dinnerBusy:true, hasCustom };
+  if(hasCustom)
+    return { status:'partial', uvReason: customUv.map(u=>u.unavailableType).join(', '), assignedLabels };
+
+  return { status:'free', assignedLabels };
+}
+
 function openUvDayModal(ds){
   const d = new Date(ds);
   const dayNames = ['일','월','화','수','목','금','토'];
   const dayLabel = `${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
   document.getElementById('uvDay-title').textContent = dayLabel;
 
-  // 해당 날짜 불가 목록
-  const dayUnavails = unavailables.filter(u => u.date === ds);
+  // 매니저별 상태 계산
+  const allManagers  = USERS.map(u => u.name);
+  const dayUnavails  = unavailables.filter(u => u.date === ds);
+  const statuses     = allManagers.map(n => ({ name: n, ...getManagerDayStatus(n, ds) }));
 
-  // 매니저별 분류
-  const allManagers = USERS.map(u => u.name);
-  const allDaySet   = new Set(dayUnavails.filter(u => u.unavailableType === 'all_day').map(u => u.managerName));
-  const partialMap  = {}; // 시간대 불가
-  dayUnavails.filter(u => u.unavailableType !== 'all_day').forEach(u => {
-    partialMap[u.managerName] = u.unavailableType;
-  });
+  const freeAll    = statuses.filter(s => s.status === 'free');
+  const lunchAvail = statuses.filter(s => s.status === 'dinner_busy'); // 점심만 가능
+  const dinnerAvail= statuses.filter(s => s.status === 'lunch_busy');  // 저녁만 가능
+  const fullBusy   = statuses.filter(s => s.status === 'full_busy');
+  const partialUv  = statuses.filter(s => s.status === 'partial');
+  const allUnavail = statuses.filter(s => s.status === 'all_unavail');
 
-  const avail   = allManagers.filter(n => !allDaySet.has(n) && !partialMap[n]);
-  const partial = allManagers.filter(n => partialMap[n]);
-  const unavail = allManagers.filter(n => allDaySet.has(n));
-
-  const availCount = avail.length + partial.length;
+  const totalAvail = freeAll.length + lunchAvail.length + dinnerAvail.length;
   document.getElementById('uvDay-avail-badge').innerHTML =
-    `<span style="background:#D1FAE5;color:#065F46;border-radius:8px;padding:4px 10px">🟢 가능 ${avail.length}명 / 부분가능 ${partial.length}명</span>`;
+    `<span style="background:#D1FAE5;color:#065F46;border-radius:8px;padding:4px 10px">🟢 가능 ${totalAvail}명 / 전체 ${allManagers.length}명</span>`;
 
-  const section = (title, color, icon, list, subFn) => {
+  const canEdit = n => ADMIN_NAMES.includes(currentUser.name) || n === currentUser.name;
+
+  // 편집 버튼 생성 — uvEditId 혼동 방지를 위해 별도 helper 사용
+  const editBtn = (n, existingId) => {
+    if(!canEdit(n)) return '';
+    if(existingId){
+      return `<button onclick="closeUvDayModal();uvOpenEdit(${existingId})"
+        style="font-size:10px;background:#fff;border:1px solid #C7A96B;border-radius:5px;padding:2px 8px;cursor:pointer;color:#C7A96B;font-weight:700">수정</button>`;
+    }
+    return `<button onclick="closeUvDayModal();uvOpenNew(${JSON.stringify(ds)},${JSON.stringify(n)})"
+      style="font-size:10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:5px;padding:2px 8px;cursor:pointer;color:#374151">등록</button>`;
+  };
+
+  const managerRow = (st, extraLabel) => {
+    const uvRec = dayUnavails.find(u => u.managerName === st.name);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#F9FAFB;border-radius:7px;margin-bottom:4px;font-size:13px;gap:6px">
+      <span style="font-weight:600;color:#111827;flex:1">${esc(st.name)}</span>
+      ${extraLabel ? `<span style="font-size:10px;color:#6B7280;flex:2">${extraLabel}</span>` : ''}
+      ${editBtn(st.name, uvRec?.id ?? null)}
+    </div>`;
+  };
+
+  const section = (icon, title, color, list, labelFn) => {
     if(!list.length) return '';
     return `<div style="margin-bottom:12px">
       <div style="font-size:11px;font-weight:700;color:${color};margin-bottom:6px">${icon} ${title}</div>
-      ${list.map(n => `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#F9FAFB;border-radius:7px;margin-bottom:4px;font-size:13px">
-        <span style="font-weight:600;color:#111827">${esc(n)}</span>
-        ${subFn ? `<span style="font-size:11px;color:#6B7280">${esc(subFn(n))}</span>` : ''}
-        ${(ADMIN_NAMES.includes(currentUser.name) || n === currentUser.name)
-          ? `<button onclick="closeUvDayModal();openUnavailForm(${(dayUnavails.find(u=>u.managerName===n)?.id)||'null'},${JSON.stringify(ds)})"
-              style="font-size:10px;background:#fff;border:1px solid #E5E7EB;border-radius:5px;padding:2px 8px;cursor:pointer;color:#374151">수정</button>`
-          : ''}
-      </div>`).join('')}
+      ${list.map(st => managerRow(st, labelFn ? labelFn(st) : '')).join('')}
     </div>`;
   };
 
   document.getElementById('uvDay-body').innerHTML = [
-    avail.length   ? section('종일 가능',    '#065F46','🟢', avail,   null) : '',
-    partial.length ? section('일부 시간 불가','#D97706','🕒', partial, n=>partialMap[n]) : '',
-    unavail.length ? section('종일 불가',    '#DC2626','🔴', unavail, null) : '',
+    section('🟢','종일 가능','#065F46', freeAll, null),
+    section('🌞','저녁 예식 가능 (점심 배정/불가)','#D97706', dinnerAvail,
+      st => `점심 배정: ${st.assignedLabels?.join(', ')||'불가 등록됨'}`),
+    section('🌙','점심 예식 가능 (저녁 배정/불가)','#6366F1', lunchAvail,
+      st => `저녁 배정: ${st.assignedLabels?.join(', ')||'불가 등록됨'}`),
+    section('🔵','배정 완료 (종일)','#2563EB', fullBusy,
+      st => `배정: ${st.assignedLabels?.join(', ')||''}`),
+    section('🕒','일부 시간 불가','#D97706', partialUv,
+      st => `${st.uvReason || '시간대 불가'}`),
+    section('🔴','종일 불가','#DC2626', allUnavail, null),
   ].join('') || '<div style="text-align:center;padding:20px;color:#9CA3AF;font-size:13px">불가일정 없음 — 전원 가능</div>';
 
   document.getElementById('uvDay-modal').style.display = 'flex';
+}
+
+// 수정 버튼 helpers — onclick 문자열 내에서 null 혼동 방지
+function uvOpenEdit(id){
+  if(!id) return;
+  openUnavailForm(id, null);
+}
+function uvOpenNew(ds, managerName){
+  openUnavailForm(null, ds, managerName);
 }
 
 function closeUvDayModal(){
