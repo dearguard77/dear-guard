@@ -59,7 +59,7 @@
   .sec-header{margin-bottom:14px}
   .sec-header h2{font-size:18px;font-weight:800;color:#111827;display:inline}
   .sec-header span{font-size:12px;color:#9CA3AF;margin-left:8px}
-  .shortcuts-grid{display:grid !important;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .shortcuts-grid{display:grid !important;grid-template-columns:1fr 1fr;gap:10px}
 
   /* TODAY CARD */
   .today-card{background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:20px 22px;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.05);position:relative;overflow:hidden;margin-bottom:12px}
@@ -477,11 +477,6 @@
             <div style="font-size:14px;font-weight:800;color:#111827">배정관리</div>
             <div style="font-size:11px;color:#9CA3AF">예식별 인원 배정</div>
           </button>
-          <button onclick="openReferralModal()" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:22px">🤝</div>
-            <div style="font-size:14px;font-weight:800;color:#111827">짝꿍코드</div>
-            <div style="font-size:11px;color:#9CA3AF">코드 발급 · 사용 현황</div>
-          </button>
         </div>
       </div>
     </div>
@@ -520,12 +515,6 @@
   <div id="tab-calendar" class="tab-panel">
     <div style="background:#fff;border-radius:16px;padding:24px;border:1px solid #E5E7EB">
       <div class="sec-header"><h2>월간 캘린더</h2><span id="cal-tab-subtitle">예식 일정 전체 보기</span></div>
-      <!-- 관리자 전용 매니저 필터 드롭다운 -->
-      <div id="cal-manager-filter-wrap" style="display:none;margin-bottom:12px">
-        <select id="cal-manager-filter" class="form-input" style="font-size:13px;max-width:200px" onchange="renderCalendar()">
-          <option value="">전체 매니저 보기</option>
-        </select>
-      </div>
       <div id="cal-my-only-wrap" style="display:none;margin-bottom:12px">
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#374151;cursor:pointer">
           <input type="checkbox" id="cal-my-only" onchange="toggleCalendarMyOnly()" style="width:15px;height:15px;accent-color:#C7A96B">
@@ -830,13 +819,6 @@
       <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:8px">정말 이 예식을 삭제하시겠습니까?</div>
       <div style="font-size:13px;color:#6B7280;line-height:1.6">삭제 후 복구할 수 없습니다.</div>
       <div id="delete-target-name" style="margin-top:12px;background:#FEF2F2;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:#DC2626"></div>
-      <div style="margin-top:12px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400E;text-align:left;line-height:1.6">
-        이 예식을 삭제해도 연결된 짝꿍할인 이력은 자동 취소되지 않습니다.<br>
-        짝꿍코드를 다시 사용 가능하게 하거나<br>
-        짝꿍할인을 제거하려면,<br>
-        삭제 전 상세모달 &gt; 계약참고에서<br>
-        [짝꿍할인 취소]를 먼저 진행해주세요.
-      </div>
     </div>
     <div class="modal-footer" style="justify-content:center;gap:12px">
       <button class="btn btn-ghost" onclick="closeDeleteModal()">취소</button>
@@ -848,17 +830,21 @@
 </div>
  
  <!-- TOAST -->
-<!-- 짝꿍코드 조회 모달 (관리자 전용) -->
-<div id="referralModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px">
-  <div style="background:#fff;border-radius:16px;padding:20px;max-width:520px;width:100%;margin:40px auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div style="font-size:16px;font-weight:800;color:#1F2937">🤝 짝꿍코드 조회</div>
-      <button onclick="closeReferralModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9CA3AF">✕</button>
+<!-- 불가일정 탭: 날짜별 매니저 현황 팝업 -->
+<div id="uvDay-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px">
+  <div style="background:#fff;border-radius:16px;max-width:460px;width:100%;margin:40px auto">
+    <div style="background:linear-gradient(135deg,#F9F5EF,#FDF8F3);padding:16px 20px;border-radius:16px 16px 0 0;border-bottom:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#C7A96B;letter-spacing:2px">DEAR GUARD · 매니저 현황</div>
+        <div id="uvDay-title" style="font-size:16px;font-weight:800;color:#111827;margin-top:2px"></div>
+      </div>
+      <button onclick="closeUvDayModal()" style="background:#E5E7EB;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;color:#6B7280">✕</button>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input id="referral-search-input" class="form-input" placeholder="이름 또는 짝꿍코드 검색" style="flex:1;font-size:13px" oninput="renderReferralList()">
+    <div id="uvDay-body" style="padding:16px 20px;max-height:60vh;overflow-y:auto"></div>
+    <div style="padding:12px 20px;border-top:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center">
+      <span id="uvDay-avail-badge" style="font-size:12px;font-weight:700"></span>
+      <button onclick="closeUvDayModal()" style="background:#F3F4F6;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#374151">닫기</button>
     </div>
-    <div id="referral-list" style="max-height:440px;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -894,35 +880,19 @@
         <div class="form-grid">
           <div class="form-field">
             <label class="form-label">신랑 이름</label>
-            <input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)" oninput="renderCoupleCode()">
+            <input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)">
           </div>
           <div class="form-field">
             <label class="form-label">신랑 연락처</label>
-            <input class="form-input" id="f-groom-phone" type="tel" placeholder="010-1234-5678" oninput="renderCoupleCode()">
+            <input class="form-input" id="f-groom-phone" type="tel" placeholder="010-1234-5678">
           </div>
           <div class="form-field">
             <label class="form-label">신부 이름</label>
-            <input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)" oninput="renderCoupleCode()">
+            <input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)">
           </div>
           <div class="form-field">
             <label class="form-label">신부 연락처</label>
-            <input class="form-input" id="f-bride-phone" type="tel" placeholder="010-5678-1234" oninput="renderCoupleCode()">
-          </div>
-          <!-- 계약자 / 짝꿍코드 — 관리자 전용 -->
-          <div class="form-field span" id="f-contract-owner-wrap" style="display:none">
-            <label class="form-label">계약자 <span style="color:#EF4444">*</span></label>
-            <div style="display:flex;gap:20px;align-items:center;margin-bottom:6px">
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer">
-                <input type="radio" name="contract-owner" id="f-owner-groom" value="groom" onchange="renderCoupleCode()" style="accent-color:#C7A96B"> 신랑
-              </label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer">
-                <input type="radio" name="contract-owner" id="f-owner-bride" value="bride" onchange="renderCoupleCode()" style="accent-color:#C7A96B"> 신부
-              </label>
-            </div>
-            <div id="f-couple-code-display" style="display:none;background:#F9F7F4;border:1px solid #E8E3DC;border-radius:8px;padding:10px 14px;font-size:13px">
-              <span style="color:#6B7280;font-weight:600">대표 짝꿍코드: </span>
-              <span id="f-couple-code-value" style="font-weight:800;color:#C7A96B;font-size:15px;letter-spacing:.5px"></span>
-            </div>
+            <input class="form-input" id="f-bride-phone" type="tel" placeholder="010-5678-1234">
           </div>
           <div class="form-field">
             <label class="form-label">예식일 <span style="color:#EF4444">*</span></label>
@@ -1104,8 +1074,6 @@
           <!-- 자유 메모 -->
           <div style="font-size:11px;font-weight:700;color:#7C3AED;margin-bottom:6px">내부 운영 메모</div>
           <textarea class="form-input" id="fm-contract-text" rows="4" placeholder="내부 정산 메모, 주의 고객, 서비스 제공 여부, 기타 계약 관련 내용" style="resize:vertical;line-height:1.8;background:#fff;border-color:#E9D5FF;font-size:13px"></textarea>
-          <!-- 짝꿍할인 취소 버튼 (관리자 + 적용된 경우만 표시) -->
-          <div id="fm-couple-cancel-wrap"></div>
         </div>
       </div>
      <!-- ── 섹션 3.5: 정산 정보 (관리자 전용) ── -->
@@ -1272,11 +1240,27 @@
       <!-- 불가 시간대 -->
       <div class="form-field" style="margin-bottom:14px">
         <label class="form-label">불가 시간대 <span style="color:#EF4444">*</span></label>
-        <div style="display:flex;gap:8px">
-          <button type="button" class="uv-type-btn" data-val="all_day" onclick="selectUvType(&#39;all_day&#39;)">종일 불가</button>
-          <button type="button" class="uv-type-btn" data-val="morning" onclick="selectUvType(&#39;morning&#39;)">오전 불가</button>
-          <button type="button" class="uv-type-btn" data-val="afternoon" onclick="selectUvType(&#39;afternoon&#39;)">오후 불가</button>
+        <!-- 빠른 선택 버튼 -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          <button type="button" class="uv-type-btn" data-val="all_day"
+            onclick="selectUvQuick('all_day')">🔴 종일</button>
+          <button type="button" class="uv-type-btn" data-val="10:00~14:00"
+            onclick="selectUvQuick('10:00~14:00')">🕙 10:00~14:00</button>
+          <button type="button" class="uv-type-btn" data-val="14:00~18:00"
+            onclick="selectUvQuick('14:00~18:00')">🕑 14:00~18:00</button>
+          <button type="button" class="uv-type-btn" data-val="09:00~13:00"
+            onclick="selectUvQuick('09:00~13:00')">🕘 09:00~13:00</button>
         </div>
+        <!-- 직접 입력 (시간대) -->
+        <div id="uv-time-wrap" style="display:flex;align-items:center;gap:8px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 12px">
+          <input type="time" id="uv-time-start" class="form-input" style="width:110px;font-size:13px"
+            oninput="updateUvTimeRange()">
+          <span style="color:#9CA3AF;font-weight:700">~</span>
+          <input type="time" id="uv-time-end" class="form-input" style="width:110px;font-size:13px"
+            oninput="updateUvTimeRange()">
+          <span style="font-size:11px;color:#9CA3AF">직접 입력</span>
+        </div>
+        <div id="uv-type-display" style="margin-top:6px;font-size:12px;color:#6B7280"></div>
       </div>
 
       <!-- 사유 메모 -->
@@ -1359,8 +1343,6 @@ const USERS = [
   { id:12, name:"노지훈", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"jh" },
   { id:13, name:"김아희", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"ah" },
   { id:14, name:"진효성", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"hs" },
-  { id:15, name:"김우석", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"ws" },
-  { id:16, name:"전혜진", role:"실장", avatar:"실", canEdit:true,  isAdmin:false, pw:"hj" },
 ];
 
 const PRODUCTS = ["2인 1팀","4인 2팀"];
@@ -1442,7 +1424,6 @@ let statusFilter  = '';     // 단계별 필터 ('계약완료' | '인터뷰대�
 function rowToSchedule(row){
   return {
     id:           row.id,
-    createdAt:    row.created_at  || null,
     groomName:    row.groom_name   || '',
     brideName:    row.bride_name   || '',
     date:         row.date,
@@ -1504,11 +1485,6 @@ function rowToSchedule(row){
     handoverCertSignature: row.handover_cert_signature || '',
     handoverCertItems:     row.handover_cert_items     || '',
     handoverCertClosing:   row.handover_cert_closing   || '',
-    coupleDiscountCode:    row.couple_discount_code    || '',
-    coupleDiscountStatus:  row.couple_discount_status  || '',
-    coupleDiscountAmount:  row.couple_discount_amount  || 0,
-    contractOwner:         row.contract_owner          || '',
-    coupleReferralCode:    row.couple_referral_code    || '',
   };
 }
 
@@ -1543,8 +1519,6 @@ function scheduleToRow(v, notes, cl){
     field_memo:      v.fieldMemo      || {},
     admin_memo:      v.adminMemo      || {},
     handover_person: v.handoverPerson || null,
-    contract_owner:  v.contractOwner  || null,
-    couple_referral_code: v.coupleReferralCode || null,
   };
 }
 
@@ -1989,148 +1963,23 @@ function renderPrecheckReminder(){
   }).join('');
 }
 
-// 대표계약자 선택 / 짝꿍코드 자동 생성 (관리자 전용)
-// ── 짝꿍코드 fallback 계산 (기존 예식 표시 보완) ──────────────────────────
-// 저장된 couple_referral_code가 없는 기존 예식도 화면에 코드가 표시되도록 계산만 해서 보여줌 (DB 저장 안 함)
-// - contract_owner가 있으면 그 사람 이름+연락처 뒷4자리로 계산
-// - contract_owner가 없고 단측 예식이면 있는 쪽 기준으로 자동 계산
-// - contract_owner가 없고 양측 예식이면 자동 지정하지 않고 needsOwner:true 로 표시만 함
-function getEffectiveReferralCode(s){
-  if(s.coupleReferralCode) return { code: s.coupleReferralCode, computed: false, needsOwner: false };
-
-  const hasGroom = !!(s.groomName && s.groomPhone);
-  const hasBride = !!(s.brideName && s.bridePhone);
-  const isBothSide = hasGroom && hasBride;
-
-  let owner = s.contractOwner || '';
-  if(!owner){
-    if(hasGroom && !hasBride) owner = 'groom';
-    else if(hasBride && !hasGroom) owner = 'bride';
-    // 양측인데 미지정이면 owner는 빈 값으로 유지 (자동 지정 금지)
-  }
-
-  if(owner === 'groom' && hasGroom){
-    const digits = String(s.groomPhone).replace(/\D/g,'').slice(-4);
-    return { code: s.groomName + digits, computed: true, needsOwner: false };
-  }
-  if(owner === 'bride' && hasBride){
-    const digits = String(s.bridePhone).replace(/\D/g,'').slice(-4);
-    return { code: s.brideName + digits, computed: true, needsOwner: false };
-  }
-  if(isBothSide && !owner){
-    return { code: '', computed: false, needsOwner: true }; // 양측 미지정 — 관리자 지정 필요
-  }
-  return { code: '', computed: false, needsOwner: false }; // 이름/연락처 정보 부족
-}
-
-// 관리자: 양측 예식의 대표계약자 지정 → couple_referral_code 생성 및 저장
-async function assignContractOwner(id, owner){
-  const s = schedules.find(x => x.id === id);
-  if(!s){ showToast('⚠️ 예식 정보를 찾을 수 없습니다'); return; }
-  if(!ADMIN_NAMES.includes(currentUser.name)){ showToast('⚠️ 관리자만 지정할 수 있습니다'); return; }
-  if(s.coupleReferralCode){ showToast('이미 대표 짝꿍코드가 있습니다'); return; }
-
-  const name  = owner === 'groom' ? s.groomName  : s.brideName;
-  const phone = owner === 'groom' ? s.groomPhone : s.bridePhone;
-  const digits = String(phone||'').replace(/\D/g,'').slice(-4);
-  if(!name || digits.length < 4){ showToast('⚠️ 이름/연락처 정보가 부족해 코드를 생성할 수 없습니다'); return; }
-
-  const code = name + digits;
-  if(!confirm(`${owner === 'groom' ? '신랑' : '신부'}을(를) 대표계약자로 지정하고\n짝꿍코드(${code})를 생성하시겠습니까?`)) return;
-
-  try{
-    await sb.patch('schedules', id, {
-      contract_owner:       owner,
-      couple_referral_code: code,
-    });
-    s.contractOwner      = owner;
-    s.coupleReferralCode = code;
-    showToast('✅ 대표계약자가 지정되고 짝꿍코드가 생성되었습니다.');
-    renderAll();
-  }catch(e){
-    showToast('❌ 지정 실패: '+e.message);
-  }
-}
-
-function renderCoupleCode(){
-  const isAdmin    = ADMIN_NAMES.includes(currentUser?.name);
-  const groomName  = (document.getElementById('f-groom')?.value  || '').trim();
-  const brideName  = (document.getElementById('f-bride')?.value  || '').trim();
-  const groomPhone = (document.getElementById('f-groom-phone')?.value || '').replace(/\D/g,'');
-  const bridePhone = (document.getElementById('f-bride-phone')?.value || '').replace(/\D/g,'');
-
-  // 양측 = 신랑·신부 모두 이름 있음
-  const isBothSide = !!(groomName && brideName);
-  const ownerWrap  = document.getElementById('f-contract-owner-wrap');
-
-  // 양측일 때만 관리자에게 대표계약자 라디오 표시
-  if(ownerWrap) ownerWrap.style.display = (isAdmin && isBothSide) ? 'block' : 'none';
-
-  // 대표계약자 결정
-  let owner = '';
-  if(isBothSide){
-    // 양측: 라디오 선택값 사용
-    owner = document.querySelector('input[name="contract-owner"]:checked')?.value || '';
-  } else {
-    // 단측: 자동 결정 (라디오 숨김)
-    if(groomName && !brideName)       owner = 'groom';
-    else if(brideName && !groomName)  owner = 'bride';
-  }
-
-  // 대표 짝꿍코드 생성
-  const name  = owner === 'groom' ? groomName  : owner === 'bride' ? brideName  : '';
-  const phone = owner === 'groom' ? groomPhone : owner === 'bride' ? bridePhone : '';
-  const digits = phone.slice(-4);
-  const codeEl    = document.getElementById('f-couple-code-value');
-  const displayEl = document.getElementById('f-couple-code-display');
-  if(codeEl && displayEl){
-    if(name && digits){
-      codeEl.textContent = name + digits;
-      displayEl.style.display = 'block';
-    } else {
-      codeEl.textContent = '';
-      displayEl.style.display = 'none';
-    }
-  }
-}
-
 function renderCalendar(){
   const wrap = document.getElementById('calendar-wrap');
   const firstDay = new Date(calYear,calMonth,1).getDay();
   const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
   const days = [...Array(firstDay).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
-  const isAdminCal = ADMIN_NAMES.includes(currentUser.name);
-
-  // ── 관리자 전용 매니저 필터 드롭다운 초기화 ──
-  const calMgrWrap = document.getElementById('cal-manager-filter-wrap');
-  const calMgrSel  = document.getElementById('cal-manager-filter');
-  if(calMgrWrap) calMgrWrap.style.display = isAdminCal ? 'block' : 'none';
-  if(isAdminCal && calMgrSel && calMgrSel.options.length <= 1){
-    // USERS에서 매니저 목록 채우기 (최초 1회)
-    calMgrSel.innerHTML = '<option value="">전체 매니저 보기</option>'
-      + USERS.map(u => `<option value="${u.name}">${u.name}</option>`).join('');
-  }
-  const calMgrSelected = (isAdminCal && calMgrSel) ? calMgrSel.value : '';
-
 const vs = visible(); // 권한 필터 적용된 일정
 // ★ 관리자 전용 내 일정만 보기 필터
 let vsFiltered = vs;
-if(calendarMyOnly && isAdminCal){
+if(calendarMyOnly && ADMIN_NAMES.includes(currentUser.name)){
   vsFiltered = vs.filter(s =>
     (s.frontManager || '').includes(currentUser.name) ||
     (s.backManager  || '').includes(currentUser.name)
   );
 }
-// ★ 관리자 전용 매니저 필터 (매니저 선택 시 적용)
-if(isAdminCal && calMgrSelected){
-  vsFiltered = vsFiltered.filter(s =>
-    (s.frontManager || '').includes(calMgrSelected) ||
-    (s.backManager  || '').includes(calMgrSelected)
-  );
-}
 // 체크박스 표시/숨김
 const myOnlyWrap = document.getElementById('cal-my-only-wrap');
-if(myOnlyWrap) myOnlyWrap.style.display = isAdminCal ? 'block' : 'none';
+if(myOnlyWrap) myOnlyWrap.style.display = ADMIN_NAMES.includes(currentUser.name) ? 'block' : 'none';
 const byDay = day => {
     if(!day) return [];
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
@@ -2145,22 +1994,17 @@ const byDay = day => {
     const hasBride = !!(s.brideName || '').trim();
     return sum + (hasGroom && hasBride ? 2 : 1);
   }, 0);
+  const isAdminCal = ADMIN_NAMES.includes(currentUser.name);
   const calSubEl = document.getElementById('cal-tab-subtitle');
-  // subtitle: 매니저 필터 > 내 일정만 > 전체 순으로 표시
-  if(calSubEl){
-    if(isAdminCal && calMgrSelected)
-      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · ${calMgrSelected} 일정 ${calMonthCnt}건`;
-    else if(calendarMyOnly && isAdminCal)
-      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · 내 일정 ${calMonthCnt}건`;
-    else
-      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
-  }
+  if(calSubEl) calSubEl.textContent = calendarMyOnly && isAdminCal
+    ? `${calYear}년 ${calMonth+1}월 · 내 일정 ${calMonthCnt}건`
+    : `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
   wrap.innerHTML = `
     <div class="cal-nav">
       <button class="btn btn-ghost sm" onclick="calMove(-1)">‹ 이전</button>
       <div style="text-align:center">
         <div class="cal-nav-title">${calYear}년 ${calMonth+1}월</div>
-        <div style="font-size:11px;color:#C7A96B;font-weight:700;margin-top:2px">${calMgrSelected ? `${calMgrSelected} ${calMonthCnt}건` : `예식 총 ${calMonthCnt}건`}</div>
+        <div style="font-size:11px;color:#C7A96B;font-weight:700;margin-top:2px">예식 총 ${calMonthCnt}건</div>
         ${isAdminCal ? `<div style="font-size:10px;color:#9CA3AF;margin-top:2px">🎒 레디백 예상 ${readybagCnt}개</div>` : ''}
         <div class="cal-jump-wrap">
           <select id="cal-year-select" class="cal-jump-select" onchange="jumpCalendarMonth()">
@@ -2186,7 +2030,7 @@ const byDay = day => {
         const isHoliday=idx%7===0;const isSat=idx%7===6;
         const dayCol=isToday?'#C7A96B':isHoliday?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum=isToday?`<span class="cal-today-circle">${day}</span>`:day;
-        const pills = ss.slice(0,5).map(s => {
+        const pills = ss.slice(0,4).map(s => {
           const name = (s.brideName||s.groomName||'예식');
           return `<div class="cal-event-pill"
             style="background:${(STATUS_CFG[s.status]||STATUS_CFG['계약완료']).color};cursor:pointer"
@@ -2194,9 +2038,9 @@ const byDay = day => {
             ${sideIcon(s)} ${esc(s.time)} ${esc(name)}
           </div>`;
         }).join('');
-        const more = ss.length > 5
+        const more = ss.length > 4
           ? `<div style="font-size:9px;color:#9CA3AF;text-align:center;cursor:pointer"
-              onclick="event.stopPropagation();openDetail(${ss[5].id})">+${ss.length-5}개 더</div>`
+              onclick="event.stopPropagation();openDetail(${ss[4].id})">+${ss.length-4}개 더</div>`
           : '';
         const clickAttr = ss.length ? `onclick="openDetail(${ss[0].id})" style="cursor:pointer"` : '';
         return `<div class="cal-cell${isToday?' today':''}${ss.length?' has-events':''}" ${clickAttr}>
@@ -2517,26 +2361,14 @@ function openDetail(id){
 
     ${ADMIN_NAMES.includes(currentUser.name) ? (() => {
       const am = s.adminMemo || {};
-      // 짝꿍할인 적용 여부 판단 기준을 수정 폼(openForm)과 동일하게 맞춤
-      // → admin_memo.couple_discount 값이 누락되어 있어도 상세모달 최초 오픈 시 바로 반영되도록 함
-      const hasCoupleDiscount =
-        am.couple_discount === true ||
-        s.coupleDiscountStatus === 'approved' ||
-        Number(s.coupleDiscountAmount) > 0 ||
-        !!s.coupleDiscountCode;
-      const effectiveAm = hasCoupleDiscount ? { ...am, couple_discount: true } : am;
-      const checkedItems = CONTRACT_CHECKS.filter(c => effectiveAm[c.key])
+      const checkedItems = CONTRACT_CHECKS.filter(c => am[c.key])
         .map(c => `<span style="background:#F3E8FF;color:#7C3AED;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;display:inline-block;margin:2px">${c.label}</span>`)
         .join('');
-      // 사용된 짝꿍코드 안내 — 메모 텍스트에 이미 코드가 포함돼 있지 않을 때만 별도로 표시 (중복 방지)
-      const codeNote = (hasCoupleDiscount && s.coupleDiscountCode && !(am.text||'').includes(s.coupleDiscountCode))
-        ? `사용 코드: ${s.coupleDiscountCode}` : '';
-      if(!checkedItems && !am.text && !codeNote) return '';
+      if(!checkedItems && !am.text) return '';
       return `<div class="detail-sec">
         <div class="detail-sec-title" style="color:#7C3AED">📝 계약 참고 메모 <span style="font-size:10px;background:#E9D5FF;color:#7C3AED;border-radius:6px;padding:1px 8px">관리자 전용</span></div>
         <div style="background:#FDF4FF;border:1.5px solid #E9D5FF;border-radius:10px;padding:14px 16px">
           ${checkedItems ? `<div style="margin-bottom:${am.text?'10px':'0'};display:flex;flex-wrap:wrap;gap:4px">${checkedItems}</div>` : ''}
-          ${codeNote ? `<div style="font-size:12px;color:#7C3AED;font-weight:700;margin-bottom:${am.text?'8px':'0'}">${esc(codeNote)}</div>` : ''}
           ${am.text ? `<div style="font-size:13px;color:#374151;white-space:pre-wrap;line-height:1.8">${esc(am.text)}</div>` : ''}
         </div>
       </div>`;
@@ -2695,39 +2527,6 @@ async function openPrecheckModal(id){
             style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">
             💰 잔금 안내
           </button>
-          ${(() => {
-            if(!ADMIN_NAMES.includes(currentUser.name)) return '';
-            const eff = getEffectiveReferralCode(s);
-            if(eff.needsOwner){
-              return `
-              <div style="margin-top:12px;padding:10px 14px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;font-size:12px">
-                <div style="font-weight:700;color:#92400E;margin-bottom:6px">⚠️ 대표계약자 지정 필요</div>
-                <div style="color:#6B7280;margin-bottom:8px">양측 예식이라 짝꿍코드 발급을 위해 대표계약자를 지정해주세요.</div>
-                <div style="display:flex;gap:8px">
-                  <button onclick="assignContractOwner(${id},'groom')" style="flex:1;background:#374151;color:#fff;border:none;border-radius:6px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">신랑 계약</button>
-                  <button onclick="assignContractOwner(${id},'bride')" style="flex:1;background:#374151;color:#fff;border:none;border-radius:6px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">신부 계약</button>
-                </div>
-              </div>`;
-            }
-            if(s.contractOwner || eff.code){
-              return `
-              <div style="margin-top:12px;padding:10px 14px;background:#F9F7F4;border:1px solid #E8E3DC;border-radius:8px;font-size:12px">
-                <div style="font-weight:700;color:#374151;margin-bottom:6px">🤝 계약자 / 짝꿍코드</div>
-                ${s.contractOwner ? `<div style="color:#6B7280;margin-bottom:2px">계약자: <span style="font-weight:700;color:#374151">${s.contractOwner === 'groom' ? '신랑' : '신부'}</span></div>` : ''}
-                ${eff.code ? `<div style="color:#6B7280">대표 짝꿍코드: <span style="font-weight:800;color:#C7A96B;font-size:14px">${esc(eff.code)}</span></div>` : ''}
-              </div>`;
-            }
-            return '';
-          })()}
-          ${ADMIN_NAMES.includes(currentUser.name) && (s.coupleDiscountStatus === 'approved' || Number(s.coupleDiscountAmount) > 0 || s.adminMemo?.couple_discount === true) && s.coupleDiscountStatus !== 'cancelled' ? `
-          <div style="margin-top:10px;padding:10px 14px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;font-size:12px">
-            <div style="font-size:11px;color:#92400E;font-weight:700;margin-bottom:4px">✅ 짝꿍할인 적용 중</div>
-            <div style="font-size:11px;color:#374151;margin-bottom:8px">${s.coupleDiscountCode ? `사용 코드: <b>${esc(s.coupleDiscountCode)}</b> · -10,000원` : '추천 리워드 · -10,000원'}</div>
-            <button onclick="cancelCoupleDiscount(${id})"
-              style="width:100%;background:#DC2626;color:#fff;border:none;border-radius:6px;padding:7px;font-size:12px;font-weight:700;cursor:pointer">
-              ❌ 짝꿍할인 취소 (관리자)
-            </button>
-          </div>` : ''}
         </div>
         <div style="border-top:1px solid #E5E7EB;padding-top:12px">
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">🔒 사전체크 잠금 관리</div>
@@ -2913,7 +2712,7 @@ async function openContractModal(id){
               style="flex:1;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               📝 계약 링크 복사
             </button>
-            <button onclick="copyContractGuide('${contractUrl}', ${id})"
+            <button onclick="copyContractGuide('${contractUrl}')"
               style="flex:1;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               💬 계약 안내문
             </button>
@@ -2930,317 +2729,25 @@ async function openContractModal(id){
   document.body.style.overflow = 'hidden';
 }
 
-async function cancelCoupleDiscount(id){
-  const s = schedules.find(x => x.id === id);
-  if(!s){ showToast('⚠️ 예식 정보를 찾을 수 없습니다'); return; }
-  if(!ADMIN_NAMES.includes(currentUser.name)){ showToast('⚠️ 관리자만 취소할 수 있습니다'); return; }
-
-  // A(코드 입력자) + B(리워드 수신자) 모두 취소 가능
-  const hasDiscount =
-    s.coupleDiscountStatus === 'approved' ||
-    Number(s.coupleDiscountAmount) > 0 ||
-    s.adminMemo?.couple_discount === true;
-  if(!hasDiscount){ showToast('적용된 짝꿍할인이 없습니다'); return; }
-
-  const usedCode = s.coupleDiscountCode || ''; // B는 null일 수 있음
-  if(!confirm(`정말 짝꿍할인을 취소하시겠습니까?\n취소 시 잔금에서 짝꿍 할인 10,000원이 제거되고,\n사용된 짝꿍코드(${usedCode})는 다시 사용 가능한 상태로 변경됩니다.`)) return;
-
-  try{
-    // admin_memo에서 couple_discount 체크 제거 + 취소 이력 메모 추가
-    const today = new Date().toISOString().slice(0,10);
-    const memoEntry = `짝꿍 할인 취소\n취소 코드: ${usedCode}\n취소일: ${today}\n처리자: ${currentUser.name}`;
-    const existingAm = s.adminMemo || {};
-    const existingText = existingAm.text || '';
-    const newText = existingText ? existingText + '\n\n' + memoEntry : memoEntry;
-    const newAdminMemo = {
-      ...existingAm,
-      couple_discount: false,
-      text: newText,
-    };
-
-    await sb.patch('schedules', id, {
-      couple_discount_code:   null,
-      couple_discount_status: 'cancelled',
-      couple_discount_amount: 0,
-      // balance_price 변경 없음 — contract.html도 건드리지 않으므로 복원 불필요
-      admin_memo:             newAdminMemo,
-      contract_pdf_url:       null,
-    });
-
-    // 로컬 상태 업데이트
-    s.coupleDiscountCode   = '';
-    s.coupleDiscountStatus = 'cancelled';
-    s.coupleDiscountAmount = 0;
-    s.adminMemo            = newAdminMemo;
-    s.contractPdfUrl       = '';
-
-    // referral_code_usages에서 해당 이력 cancelled 처리 (코드 재사용 가능하게)
-    try{
-      const usageRows = await sb.get('referral_code_usages',
-        `?used_by_schedule_id=eq.${id}&used_code=eq.${encodeURIComponent(usedCode)}&status=eq.active&select=id`);
-      if(usageRows && usageRows.length > 0){
-        await sb.patch('referral_code_usages', usageRows[0].id, { status: 'cancelled' });
-      }
-    }catch(e){
-      console.warn('[DG] 사용이력 취소 실패 (할인 취소는 이미 완료됨):', e);
-    }
-
-    // B(코드 소유자)의 자동 리워드도 함께 취소
-    try{
-      const allSched = await sb.get('schedules',
-        '?select=id,groom_name,bride_name,groom_phone,bride_phone,couple_referral_code,couple_discount_status,couple_discount_amount,balance_price,admin_memo');
-      const bSched = allSched.find(r => {
-        if(r.couple_referral_code === usedCode) return true;
-        const gCode = r.groom_name && r.groom_phone
-          ? r.groom_name + String(r.groom_phone).replace(/\D/g,'').slice(-4) : '';
-        const bCode = r.bride_name && r.bride_phone
-          ? r.bride_name + String(r.bride_phone).replace(/\D/g,'').slice(-4) : '';
-        return gCode === usedCode || bCode === usedCode;
-      });
-      if(bSched){
-        const bAm = bSched.admin_memo || {};
-        if(String(bAm.couple_referral_reward_from_schedule) === String(id)){
-          const bName = s.groomName || s.brideName || '계약자';
-          const bMemoTxt = `짝꿍 대표코드 사용 리워드 취소\n사유: 사용 계약자(${bName}) 계약의 짝꿍할인 취소됨\n처리자: ${currentUser.name}`;
-          const newBAm = {
-            ...bAm,
-            couple_discount: false,
-            couple_referral_reward_from_schedule: null,
-            text: bAm.text ? bAm.text + '\n\n' + bMemoTxt : bMemoTxt,
-          };
-          await sb.patch('schedules', bSched.id, {
-            couple_discount_status: 'cancelled',
-            couple_discount_amount: 0,
-            // balance_price 변경 없음
-            admin_memo: newBAm,
-          });
-        }
-      }
-    }catch(e){
-      console.warn('[DG] B 자동 리워드 취소 실패:', e);
-    }
-
-    // 폼(계약참고/정산)이 현재 열려있으면 즉시 반영
-    if(formId === id){
-      formContractMemo = { ...newAdminMemo };
-      formContractMemo['couple_discount'] = false;
-      renderContractChecks();
-      syncContractMemoToSettlement();
-      const cw = document.getElementById('fm-couple-cancel-wrap');
-      if(cw) cw.innerHTML = '';
-    }
-
-    showToast('✅ 짝꿍할인이 취소되었습니다.');
-    closeDetail();
-    renderAll();
-  }catch(e){
-    showToast('❌ 취소 실패: '+e.message);
-  }
-}
-
-
-// ── 짝꿍코드 조회 모달 (관리자 전용) ─────────────────────────────────────
-let _referralUsages = []; // referral_code_usages 캐시
-
-async function openReferralModal(){
-  if(!ADMIN_NAMES.includes(currentUser.name)){ showToast('⚠️ 관리자만 사용 가능합니다'); return; }
-  document.getElementById('referralModal').style.display = 'flex';
-  document.getElementById('referral-search-input').value = '';
-  document.getElementById('referral-list').innerHTML = '<div style="text-align:center;padding:20px;color:#9CA3AF;font-size:13px">로딩 중…</div>';
-  try{
-    _referralUsages = await sb.get('referral_code_usages',
-      '?select=used_code,referrer_name,used_by_name,used_by_schedule_id,status,created_at&order=created_at.desc&limit=200');
-  }catch(e){ _referralUsages = []; }
-  console.log('referral_code_usages rows:', _referralUsages);
-  renderReferralList();
-}
-
-function closeReferralModal(){
-  document.getElementById('referralModal').style.display = 'none';
-}
-
-function renderReferralList(){
-  const q = (document.getElementById('referral-search-input')?.value || '').trim().toLowerCase();
-  const el = document.getElementById('referral-list');
-  if(!el) return;
-  console.log('짝꿍코드 조회 keyword:', q);
-  console.log('schedules rows:', schedules);
-
-  // 짝꿍코드 목록 생성: schedules.couple_referral_code(또는 fallback 계산 코드) + referral_code_usages.used_code 합집합
-  // → 사용 상태는 반드시 referral_code_usages 기준으로 판단 (schedules에 코드가 있다고 무조건 사용가능으로 표시하지 않음)
-  const codeMap = new Map(); // refCode -> { s: 코드 소유 예식(없으면 legacy), usages: [] }
-  const needsOwnerSchedules = []; // 양측 예식인데 대표계약자 미지정 — 코드 자체가 없음
-
-  schedules.forEach(s => {
-    const eff = getEffectiveReferralCode(s);
-    if(eff.needsOwner){ needsOwnerSchedules.push(s); return; }
-    const code = eff.code;
-    if(!code) return;
-    if(!codeMap.has(code)) codeMap.set(code, { s, usages: [] });
-    else if(!codeMap.get(code).s) codeMap.get(code).s = s;
-  });
-
-  _referralUsages.forEach(u => {
-    const code = u.used_code;
-    if(!code) return;
-    if(!codeMap.has(code)) codeMap.set(code, { s: null, usages: [] }); // legacy 코드(schedules에 없음)
-    codeMap.get(code).usages.push(u);
-  });
-
-  const rows = Array.from(codeMap.entries()).map(([refCode, info]) => {
-    const s = info.s;
-    const usages = info.usages;
-    // 상태 판단: active 이력이 있으면 무조건 사용완료, 없고 cancelled만 있으면 사용가능(취소됨), 이력 자체가 없으면 사용가능
-    const activeUsage    = usages.find(u => u.status === 'active');
-    const cancelledUsage = usages.find(u => u.status === 'cancelled');
-    const isUsed      = !!activeUsage;
-    const isCancelled = !isUsed && !!cancelledUsage;
-    const usedBy      = activeUsage ? (activeUsage.used_by_name || '사용자 정보 없음') : null;
-    const referrerName = (activeUsage || cancelledUsage || usages[0])?.referrer_name || '';
-    // 이름: 등록된 예식이 있으면 예식 이름, 없으면(legacy) referrer_name 사용
-    const name = s ? [s.groomName, s.brideName].filter(Boolean).join(' / ') : referrerName;
-    // 검색용 휴대폰 뒷자리
-    const phoneTail = s
-      ? [s.groomPhone, s.bridePhone].filter(Boolean).map(p => String(p).replace(/\D/g,'').slice(-4)).join(' ')
-      : '';
-    // 내가 사용한 코드 (이 계약이 받은 짝꿍할인) — 등록된 예식이 있을 때만 존재
-    const myCode   = s?.coupleDiscountCode || '';
-    const myStatus = s?.coupleDiscountStatus || '';
-    // 정렬용: 사용완료는 referral_code_usages.created_at, 사용가능은 코드 소유 예식의 등록일시(created_at) 기준
-    const usedAt           = activeUsage?.created_at || null;
-    const scheduleCreatedAt = s?.createdAt || null;
-    return { refCode, name, isUsed, isCancelled, needsOwner: false, usedBy, referrerName, phoneTail, myCode, myStatus, usedAt, scheduleCreatedAt };
-  });
-
-  // 정렬: [사용가능] 최근 계약 등록순(desc) → [사용완료] 최근 사용순(desc) 순서로 배치
-  const availableRows = rows.filter(r => !r.isUsed);
-  const usedRows       = rows.filter(r => r.isUsed);
-
-  availableRows.sort((a, b) => {
-    const at = a.scheduleCreatedAt ? new Date(a.scheduleCreatedAt).getTime() : 0;
-    const bt = b.scheduleCreatedAt ? new Date(b.scheduleCreatedAt).getTime() : 0;
-    return bt - at;
-  });
-  usedRows.sort((a, b) => {
-    const at = a.usedAt ? new Date(a.usedAt).getTime() : 0;
-    const bt = b.usedAt ? new Date(b.usedAt).getTime() : 0;
-    return bt - at;
-  });
-
-  const sortedRows = [...availableRows, ...usedRows];
-
-  // 양측 미지정 예식 — 코드 없음, 대표계약자 지정 필요로 별도 표시
-  const needsOwnerRows = needsOwnerSchedules.map(s => ({
-    refCode: '',
-    name: [s.groomName, s.brideName].filter(Boolean).join(' / '),
-    isUsed: false,
-    isCancelled: false,
-    needsOwner: true,
-    usedBy: null,
-    referrerName: '',
-    phoneTail: [s.groomPhone, s.bridePhone].filter(Boolean).map(p => String(p).replace(/\D/g,'').slice(-4)).join(' '),
-    myCode: s.coupleDiscountCode || '',
-    myStatus: s.coupleDiscountStatus || '',
-  }));
-
-  const allRows = [...sortedRows, ...needsOwnerRows];
-  console.log('merged result:', allRows);
-
-  // 검색 필터 (이름, 짝꿍코드, 사용자명, referrer_name, 휴대폰 뒷자리 포함)
-  const filtered = q
-    ? allRows.filter(r =>
-        r.name.toLowerCase().includes(q) ||
-        r.refCode.toLowerCase().includes(q) ||
-        (r.usedBy||'').toLowerCase().includes(q) ||
-        (r.referrerName||'').toLowerCase().includes(q) ||
-        (r.myCode||'').toLowerCase().includes(q) ||
-        (r.phoneTail||'').includes(q))
-    : allRows;
-
-  if(!filtered.length){
-    el.innerHTML = '<div style="text-align:center;padding:24px;color:#9CA3AF;font-size:13px">' +
-      (q ? '검색 결과 없음' : '짝꿍코드가 등록된 예식이 없습니다') + '</div>';
-    return;
-  }
-
-  el.innerHTML = filtered.map(r => {
-    if(r.needsOwner){
-      return `<div style="border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#FFFBEB">
-        <div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:6px">${esc(r.name)}</div>
-        <div style="font-size:12px;color:#92400E;font-weight:700">⚠️ 코드 없음 / 대표계약자 지정 필요</div>
-      </div>`;
-    }
-    const badgeUsed  = r.isUsed
-      ? '<span style="background:#FEF3C7;color:#92400E;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">사용완료</span>'
-      : '<span style="background:#D1FAE5;color:#065F46;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700">사용가능</span>';
-    const myDiscount = r.myStatus === 'approved'
-      ? `<div style="font-size:11px;color:#059669;margin-top:3px">✅ 내가 받은 짝꿍할인: ${esc(r.myCode)||'코드 없음'}</div>`
-      : '';
-    return `<div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:13px;font-weight:700;color:#1F2937">${esc(r.name)}</span>
-        ${badgeUsed}
-      </div>
-      <div style="font-size:12px;color:#374151;margin-bottom:4px">
-        대표 짝꿍코드: <b style="font-size:14px;color:#C7A96B;letter-spacing:.5px">${esc(r.refCode)}</b>
-      </div>
-      ${r.isUsed ? `<div style="font-size:11px;color:#92400E;margin-bottom:4px">→ 사용자: ${esc(r.usedBy||'')}</div>` : ''}
-      ${r.isCancelled ? `<div style="font-size:11px;color:#6B7280;margin-bottom:4px">→ 이전 사용 취소됨 (재사용 가능)</div>` : ''}
-      ${myDiscount}
-    </div>`;
-  }).join('');
-}
-
-
-function copyContractGuide(contractUrl, id){
-  const s = id ? schedules.find(x => x.id === id) : null;
-  const referralCode = s ? getEffectiveReferralCode(s).code : '';
-
-  // 대표계약자 호칭 판단: contractOwner 있으면 그대로, 없으면 단측 예식 기준으로 추정
-  let owner = s?.contractOwner || '';
-  if(!owner && s){
-    const hasGroom = !!(s.groomName && s.groomPhone);
-    const hasBride = !!(s.brideName && s.bridePhone);
-    if(hasGroom && !hasBride) owner = 'groom';
-    else if(hasBride && !hasGroom) owner = 'bride';
-  }
-  const honorific = owner === 'bride' ? '신부님' : (owner === 'groom' ? '신랑님' : '신랑신부님');
-
-  const guide = referralCode
-    ? `[디어가드 계약 완료] ${honorific}😊
-전자 계약서 링크 전달 드립니다 :)
+function copyContractGuide(contractUrl){
+  const guide = `[디어가드 계약 완료] 전자 계약서 링크 전달드립니다 :)
 
 계약 및 운영 안내 내용을 확인하신 후,
-전자서명 진행 부탁드리겠습니다.
+편하실 때 전자서명 진행 부탁드리겠습니다.
 
-👉전자 계약서
+👉 전자 계약서
 ${contractUrl}
 
-서명 완료 후에도
-계약일로부터 1주일 이내라면
-짝꿍코드 입력이 가능합니다.
+전자 계약 완료 후에는
+계약 확인서 PDF가 자동 저장되며,
+언제든 다시 다운로드 가능합니다 😊
 
-💌 짝꿍코드  (${referralCode})
-
-추천받으실 분께 위 코드를 전달해 주세요 :)
-
-궁금하신 점은 언제든
-디어가드 카카오톡 채널로 문의 부탁드립니다🤍`
-    : `[디어가드 계약 완료] ${honorific}😊
-전자 계약서 링크 전달 드립니다 :)
-
-계약 및 운영 안내 내용을 확인하신 후,
-전자서명 진행 부탁드리겠습니다.
-
-👉전자 계약서
-${contractUrl}
-
-서명 완료 후에도
-계약일로부터 1주일 이내라면
-짝꿍코드 입력이 가능합니다.
+짝꿍코드는 이름+휴대폰 뒷자리로 적용되며,
+(예: 홍길동1234)
+할인 적용은 1회만 가능합니다 🤍
 
 궁금하신 점은 언제든
-디어가드 카카오톡 채널로 문의 부탁드립니다🤍`;
+디어가드 카카오톡 채널로 편하게 문의 주세요!`;
   navigator.clipboard.writeText(guide).then(function(){
     showToast('✅ 계약 안내가 복사되었습니다');
   }).catch(function(){
@@ -3323,10 +2830,6 @@ async function executeDelete(){
   if(!deleteTargetId || !ADMIN_NAMES.includes(currentUser.name)) return;
   const id = deleteTargetId;
   try {
-    // ⚠️ 예식 삭제는 schedules 레코드만 삭제합니다.
-    // 짝꿍할인 취소(couple_discount, referral_code_usages 등)는
-    // 상세모달 > 계약참고 탭의 "짝꿍할인 취소" 버튼에서만 처리합니다.
-    // 예식 삭제 시 다른 계약의 짝꿍할인 내역은 절대 건드리지 않습니다.
     await sb.delete('schedules', id);
     schedules = schedules.filter(s => s.id !== id);
     closeDeleteModal();
@@ -3338,10 +2841,9 @@ async function executeDelete(){
   }
 }
 async function deleteSch(id){
-  if(!ADMIN_NAMES.includes(currentUser.name)) return;
+  if(!ADMIN_NAMES.includes(currentUser.name)) return; // 관리자만 실행 가능
   if(!confirm('정말 삭제하시겠습니까?')) return;
   try {
-    // ⚠️ schedules 레코드만 삭제 — 짝꿍할인/referral_code_usages는 건드리지 않음
     await sb.delete('schedules', id);
     schedules=schedules.filter(s=>s.id!==id);
     renderAll(); showToast('🗑️ 예식이 삭제되었습니다');
@@ -3449,27 +2951,6 @@ function openForm(id){
   formContractMemo = s?.adminMemo    ? {...s.adminMemo}    : {};
   // 기타 할인 금액 복원
   if(formContractMemo['etc_discount_amount'] === undefined) formContractMemo['etc_discount_amount'] = '';
-
-  // ── 짝꿍코드 자동 연동 ──
-  // A(코드 입력자): coupleDiscountStatus='approved' + coupleDiscountCode 있음
-  // B(리워드 수신자): coupleDiscountStatus='approved' + coupleDiscountCode=null (코드 직접 입력 안 함)
-  const hasApprovedDiscount =
-    s?.coupleDiscountStatus === 'approved' ||
-    (Number(s?.coupleDiscountAmount) > 0) ||
-    s?.adminMemo?.couple_discount === true;
-
-  if(hasApprovedDiscount){
-    formContractMemo['couple_discount'] = true;
-    // 코드 입력자(A)인 경우만 메모에 코드 기록
-    if(s?.coupleDiscountCode){
-      const memoEntry = `짝꿍 할인 적용\n사용 코드 : ${s.coupleDiscountCode}`;
-      const existingText = formContractMemo.text || '';
-      if(!existingText.includes(s.coupleDiscountCode)){
-        formContractMemo.text = existingText ? existingText + '\n\n' + memoEntry : memoEntry;
-      }
-    }
-  }
-
   if(document.getElementById('fm-field-text'))
     document.getElementById('fm-field-text').value       = formFieldMemo.text || '';
   if(document.getElementById('fm-field-urgent'))
@@ -3479,46 +2960,13 @@ function openForm(id){
   if(document.getElementById('fm-contract-text'))
     document.getElementById('fm-contract-text').value  = formContractMemo.text || '';
   renderContractChecks();
-
-  // 계약참고 탭 짝꿍할인 취소 버튼 (관리자 + 적용됐을 때만 — B 리워드 포함)
-  const cancelWrap = document.getElementById('fm-couple-cancel-wrap');
-  if(cancelWrap){
-    if(ADMIN_NAMES.includes(currentUser.name) && hasApprovedDiscount && s?.coupleDiscountStatus !== 'cancelled'){
-      const codeLabel = s?.coupleDiscountCode
-        ? `사용 코드: <b>${esc(s.coupleDiscountCode)}</b> ·` : '추천 리워드 ·';
-      cancelWrap.innerHTML = `<div style="margin-top:12px;padding:10px 12px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px">
-        <div style="font-size:11px;color:#92400E;font-weight:700;margin-bottom:4px">✅ 짝꿍할인 적용 중</div>
-        <div style="font-size:11px;color:#374151;margin-bottom:8px">${codeLabel} -10,000원</div>
-        <button onclick="cancelCoupleDiscount(${s.id})" style="width:100%;background:#DC2626;color:#fff;border:none;border-radius:6px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">❌ 짝꿍할인 취소 (관리자)</button>
-      </div>`;
-    } else {
-      cancelWrap.innerHTML = '';
-    }
-  }
-
   FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
   if(ADMIN_NAMES.includes(currentUser.name)){
-    // 계약자 필드는 renderCoupleCode에서 양측 여부에 따라 자동 표시/숨김 처리
-    const ownerVal = s?.contractOwner || '';
-    if(ownerVal){
-      const radio = document.getElementById(ownerVal === 'groom' ? 'f-owner-groom' : 'f-owner-bride');
-      if(radio){ radio.checked = true; }
-    } else {
-      document.querySelectorAll('input[name="contract-owner"]').forEach(r => r.checked = false);
-    }
-    renderCoupleCode(); // 양측 여부 판단 + 코드 생성
-
     document.getElementById('f-total-price').value  = s?.totalPrice  || '';
     document.getElementById('f-deposit-price').value = s?.depositPrice || '';
-    // 짝꿍코드 승인 시 DB에 저장된 할인 적용 잔금(balance_price) 반영
     document.getElementById('f-balance-price').value = s?.balancePrice || '';
     document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
-    // couple_discount 체크된 상태로 정산 재계산
-    if(s?.coupleDiscountStatus === 'approved'){
-      syncContractMemoToSettlement();
-    } else {
-      calcSettlement();
-    }
+    calcSettlement();
   }
   // ── 매니저 권한: 기본정보/담당자 readonly 처리 ──
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
@@ -3744,25 +3192,6 @@ function getFormValues(){
     groomPhone:   (document.getElementById('f-groom-phone')?.value || '').trim(),
     brideName:    (document.getElementById('f-bride')?.value       || '').trim(),
     bridePhone:   (document.getElementById('f-bride-phone')?.value || '').trim(),
-    contractOwner: (()=>{
-      const g = (document.getElementById('f-groom')?.value || '').trim();
-      const b = (document.getElementById('f-bride')?.value || '').trim();
-      if(g && b) return document.querySelector('input[name="contract-owner"]:checked')?.value || '';
-      if(g && !b) return 'groom';
-      if(b && !g) return 'bride';
-      return '';
-    })(),
-    // couple_referral_code: 계약자 기준 이름+연락처 뒷4자리 자동 생성
-    coupleReferralCode: (()=>{
-      const owner = document.querySelector('input[name="contract-owner"]:checked')?.value || '';
-      const name  = owner === 'groom'
-        ? (document.getElementById('f-groom')?.value  || '').trim()
-        : (document.getElementById('f-bride')?.value  || '').trim();
-      const phone = owner === 'groom'
-        ? (document.getElementById('f-groom-phone')?.value || '').replace(/\D/g,'')
-        : (document.getElementById('f-bride-phone')?.value || '').replace(/\D/g,'');
-      return (name && phone.length >= 4) ? name + phone.slice(-4) : '';
-    })(),
     date:          document.getElementById('f-date')?.value    || '',
     time,
     arrivalTime,
@@ -3975,6 +3404,8 @@ function buildManagerOptions(selectedName){
   const timeM  = document.getElementById('f-time-m')?.value || '';
   const timeStr = (timeH && timeM !== '') ? `${timeH}:${timeM}` : '';
   const UV_LABEL = { all_day:'종일불가', morning:'오전불가', afternoon:'오후불가' };
+  // 신규 시간대 형식(HH:MM~HH:MM)은 값 그대로 표시
+  const uvLabel = UV_LABEL[uv.unavailableType] || uv.unavailableType || '불가';
 
   return '<option value="">— 선택 —</option>' + USERS.map(u => {
     const tags = [];
@@ -4452,25 +3883,25 @@ function renderUnavailCal(){
         const dayCol    = isToday?'#C7A96B':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum    = isToday ? `<span class="cal-today-circle">${day}</span>` : day;
         const uu        = byDay(day);
-        const UV_CLASS = { all_day:'all-day', morning:'morning', afternoon:'afternoon' };
-        const UV_BADGE = { all_day:'종일', morning:'오전', afternoon:'오후' };
-        const pills = uu.map(u =>
-          `<span class="unavail-pill ${UV_CLASS[u.unavailableType]||'all-day'}"
-            onclick="event.stopPropagation();${
-              (ADMIN_NAMES.includes(currentUser.name) || u.managerName === currentUser.name)
-                ? `openUnavailForm(${u.id})`
-                : `showToast('본인 불가일정만 수정할 수 있습니다')`
-            }" style="cursor:pointer">
-            [${UV_BADGE[u.unavailableType]||'종일'}] ${esc(u.managerName)}
-          </span>`
-        ).join('');
-        return `<div class="cal-cell${isToday?' today':''}" onclick="openUnavailForm(null,'${ds}')" style="cursor:pointer">
+        const allDayUU  = uu.filter(u => u.unavailableType === 'all_day');
+        const partialUU = uu.filter(u => u.unavailableType !== 'all_day');
+        const totalMgr  = USERS.length;
+        const unavailCnt = allDayUU.length;
+        const partialCnt = partialUU.length;
+        const availCnt   = totalMgr - unavailCnt;
+        const availColor = availCnt >= 10 ? '#059669' : availCnt >= 6 ? '#D97706' : '#DC2626';
+        const availBg    = availCnt >= 10 ? '#D1FAE5' : availCnt >= 6 ? '#FEF3C7' : '#FEE2E2';
+        const availText  = `🟢 ${availCnt}명`;
+        const partialText = partialCnt > 0 ? `<div style="font-size:9px;color:#D97706;margin-top:1px">🕒 ${partialCnt}명 부분</div>` : '';
+        return `<div class="cal-cell${isToday?' today':''}" onclick="openUvDayModal('${ds}')" style="cursor:pointer">
           <div class="cal-day" style="color:${dayCol}">${dayNum}</div>
-          ${pills}
+          <div style="background:${availBg};color:${availColor};border-radius:4px;padding:1px 4px;font-size:9px;font-weight:700;margin-top:2px;text-align:center">${availText}</div>
+          ${partialText}
+          ${unavailCnt > 0 ? `<div style="font-size:9px;color:#DC2626;margin-top:1px">🔴 ${unavailCnt}명 불가</div>` : ''}
         </div>`;
       }).join('')}
     </div>
-    <div style="margin-top:8px;font-size:11px;color:#9CA3AF">날짜를 클릭하면 불가일정을 등록할 수 있습니다</div>`;
+    <div style="margin-top:8px;font-size:11px;color:#9CA3AF">날짜를 클릭하면 해당 날짜의 매니저 현황을 확인할 수 있습니다</div>`;
 }
 
 function jumpUnavailMonth(){
@@ -4490,45 +3921,9 @@ function uvCalMove(dir){
 
 // ─── 리스트 ──────────────────────────────────────────────────────────────────
 function renderUnavailList(){
-  const el = document.getElementById('unavail-list'); if(!el) return;
-  const list = visibleUnavail();
-  if(!list.length){
-    el.innerHTML = '<div class="empty-state">등록된 불가일정이 없습니다</div>'; return;
-  }
-  const UV_STYLE = {
-    all_day:   'background:#FEE2E2;color:#DC2626',
-    morning:   'background:#FEF3C7;color:#D97706',
-    afternoon: 'background:#DBEAFE;color:#2563EB',
-  };
-  const UV_ICON = { all_day:'🔴', morning:'🟠', afternoon:'🔵' };
-  const UV_BADGE = { all_day:'종일', morning:'오전', afternoon:'오후' };
-  el.innerHTML = list.map(u => `
-    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;
-      display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer"
-      onclick="openUnavailForm(${u.id})">
-      <div style="width:44px;height:44px;border-radius:10px;${UV_STYLE[u.unavailableType]||UV_STYLE.all_day};
-        display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
-        ${UV_ICON[u.unavailableType]||'🔴'}
-      </div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:700;color:#111827">${esc(u.managerName)}</div>
-        <div style="font-size:12px;color:#6B7280;margin-top:2px">
-          ${getDateWithDay(u.date)} ·
-          <span style="${UV_STYLE[u.unavailableType]||UV_STYLE.all_day};border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700">
-            [${UV_BADGE[u.unavailableType]||'종일'}] 불가
-          </span>
-        </div>
-        ${u.memo ? `<div style="font-size:11px;color:#9CA3AF;margin-top:3px">${esc(u.memo)}</div>` : ''}
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
-        <div style="font-size:11px;color:#9CA3AF">${getDday(u.date)}</div>
-        ${(ADMIN_NAMES.includes(currentUser.name) || u.managerName === currentUser.name)
-          ? `<button onclick="event.stopPropagation();openUnavailForm(${u.id})"
-               style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#374151;cursor:pointer">✏️ 수정</button>`
-          : `<span style="font-size:10px;color:#D1D5DB">조회만 가능</span>`
-        }
-      </div>
-    </div>`).join('');
+  // 하단 리스트 제거 — 날짜 클릭 팝업으로 대체
+  const el = document.getElementById('unavail-list');
+  if(el) el.innerHTML = '';
 }
 
 // ─── 폼 OPEN / CLOSE ─────────────────────────────────────────────────────────
@@ -4571,11 +3966,31 @@ function openUnavailForm(id, presetDate){
   document.getElementById('uv-date').value = uv?.date || presetDate || '';
   document.getElementById('uv-memo').value = uv?.memo || '';
 
-  // 시간대 버튼 초기화
+  // 시간대 버튼/입력 초기화
   uvType = uv?.unavailableType || '';
-  document.querySelectorAll('.uv-type-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.val === uvType);
-  });
+  document.querySelectorAll('.uv-type-btn').forEach(b => b.classList.remove('active'));
+  const dispEl  = document.getElementById('uv-type-display');
+  const startEl = document.getElementById('uv-time-start');
+  const endEl   = document.getElementById('uv-time-end');
+  if(uvType){
+    document.querySelectorAll('.uv-type-btn').forEach(b => {
+      if(b.dataset.val === uvType) b.classList.add('active');
+    });
+    if(uvType === 'all_day'){
+      if(startEl) startEl.value = '';
+      if(endEl)   endEl.value   = '';
+      if(dispEl)  dispEl.textContent = '🔴 종일 불가 선택됨';
+    } else {
+      const [ts, te] = uvType.split('~');
+      if(startEl) startEl.value = ts || '';
+      if(endEl)   endEl.value   = te || '';
+      if(dispEl)  dispEl.textContent = `🕐 ${uvType} 불가 선택됨`;
+    }
+  } else {
+    if(startEl) startEl.value = '';
+    if(endEl)   endEl.value   = '';
+    if(dispEl)  dispEl.textContent = '';
+  }
 
   // 부부동반 등록/수정: 신규 등록 + 수정 모드 모두 지원
   const coupleWrap    = document.getElementById('uv-couple-wrap');
@@ -4632,12 +4047,90 @@ function closeUnavailForm(){
   document.body.style.overflow = '';
 }
 
-function selectUvType(val){
+// ── 불가 시간대 선택 (신규) ─────────────────────────────────────────────────
+function selectUvQuick(val){
   uvType = val;
+  // 버튼 active 상태
   document.querySelectorAll('.uv-type-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.val === val);
   });
+  if(val === 'all_day'){
+    document.getElementById('uv-time-start').value = '';
+    document.getElementById('uv-time-end').value   = '';
+    document.getElementById('uv-type-display').textContent = '🔴 종일 불가 선택됨';
+  } else {
+    const [s, e] = val.split('~');
+    document.getElementById('uv-time-start').value = s || '';
+    document.getElementById('uv-time-end').value   = e || '';
+    document.getElementById('uv-type-display').textContent = `🕐 ${val} 불가 선택됨`;
+  }
 }
+
+function updateUvTimeRange(){
+  const s = document.getElementById('uv-time-start').value;
+  const e = document.getElementById('uv-time-end').value;
+  if(s && e){
+    uvType = `${s}~${e}`;
+    document.querySelectorAll('.uv-type-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('uv-type-display').textContent = `🕐 ${uvType} 불가 선택됨`;
+  }
+}
+
+// ── 날짜 클릭 → 매니저 현황 팝업 ────────────────────────────────────────────
+function openUvDayModal(ds){
+  const d = new Date(ds);
+  const dayNames = ['일','월','화','수','목','금','토'];
+  const dayLabel = `${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
+  document.getElementById('uvDay-title').textContent = dayLabel;
+
+  // 해당 날짜 불가 목록
+  const dayUnavails = unavailables.filter(u => u.date === ds);
+
+  // 매니저별 분류
+  const allManagers = USERS.map(u => u.name);
+  const allDaySet   = new Set(dayUnavails.filter(u => u.unavailableType === 'all_day').map(u => u.managerName));
+  const partialMap  = {}; // 시간대 불가
+  dayUnavails.filter(u => u.unavailableType !== 'all_day').forEach(u => {
+    partialMap[u.managerName] = u.unavailableType;
+  });
+
+  const avail   = allManagers.filter(n => !allDaySet.has(n) && !partialMap[n]);
+  const partial = allManagers.filter(n => partialMap[n]);
+  const unavail = allManagers.filter(n => allDaySet.has(n));
+
+  const availCount = avail.length + partial.length;
+  document.getElementById('uvDay-avail-badge').innerHTML =
+    `<span style="background:#D1FAE5;color:#065F46;border-radius:8px;padding:4px 10px">🟢 가능 ${avail.length}명 / 부분가능 ${partial.length}명</span>`;
+
+  const section = (title, color, icon, list, subFn) => {
+    if(!list.length) return '';
+    return `<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:${color};margin-bottom:6px">${icon} ${title}</div>
+      ${list.map(n => `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#F9FAFB;border-radius:7px;margin-bottom:4px;font-size:13px">
+        <span style="font-weight:600;color:#111827">${esc(n)}</span>
+        ${subFn ? `<span style="font-size:11px;color:#6B7280">${esc(subFn(n))}</span>` : ''}
+        ${(ADMIN_NAMES.includes(currentUser.name) || n === currentUser.name)
+          ? `<button onclick="closeUvDayModal();openUnavailForm(${(dayUnavails.find(u=>u.managerName===n)?.id)||'null'},${JSON.stringify(ds)})"
+              style="font-size:10px;background:#fff;border:1px solid #E5E7EB;border-radius:5px;padding:2px 8px;cursor:pointer;color:#374151">수정</button>`
+          : ''}
+      </div>`).join('')}
+    </div>`;
+  };
+
+  document.getElementById('uvDay-body').innerHTML = [
+    avail.length   ? section('종일 가능',    '#065F46','🟢', avail,   null) : '',
+    partial.length ? section('일부 시간 불가','#D97706','🕒', partial, n=>partialMap[n]) : '',
+    unavail.length ? section('종일 불가',    '#DC2626','🔴', unavail, null) : '',
+  ].join('') || '<div style="text-align:center;padding:20px;color:#9CA3AF;font-size:13px">불가일정 없음 — 전원 가능</div>';
+
+  document.getElementById('uvDay-modal').style.display = 'flex';
+}
+
+function closeUvDayModal(){
+  document.getElementById('uvDay-modal').style.display = 'none';
+}
+
+
 
 // ─── 저장 ────────────────────────────────────────────────────────────────────
  // ─── 매니저 중복 배정 체크 ────────────────────────────────────────────────────
@@ -4726,14 +4219,15 @@ async function saveUnavail(){
       .join(',').split(',').map(m => m.trim()).filter(Boolean);
     return managers.includes(managerName);
   });
+  const UV_LABEL = { all_day:'종일' };
+  const typeLabel = uvType === 'all_day' ? '종일' : uvType;
   if(conflictSchedules.length > 0){
-    const UV_LABEL = { all_day:'종일', morning:'오전', afternoon:'오후' };
     const detail = conflictSchedules.map(s => {
       const role = (s.frontManager||'').split(',').map(m=>m.trim()).includes(managerName) ? 'Front' : 'Back';
       return `  · ${s.time} ${coupleName(s)} (${role} 담당자)`;
     }).join('\n');
     const ok = confirm(
-      `⚠ 해당 날짜에 이미 배정된 예식이 있습니다.\n\n${detail}\n\n그래도 ${UV_LABEL[uvType]} 불가일정을 저장하시겠습니까?`
+      `⚠ 해당 날짜에 이미 배정된 예식이 있습니다.\n\n${detail}\n\n그래도 ${typeLabel} 불가일정을 저장하시겠습니까?`
     );
     if(!ok) return;
   }
