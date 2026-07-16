@@ -1514,7 +1514,7 @@ function scheduleToRow(v, notes, cl){
     labor_cost:    v.laborCost    || null,
     net_profit:    v.netProfit    || null,
     labor_paid:    v.laborPaid    || false,
-    result:        v.result        || null,
+    // result는 saveResult에서 별도 저장 — saveForm에서 덮어쓰지 않음
     field_memo:      v.fieldMemo      || {},
     admin_memo:      v.adminMemo      || {},
     handover_person: v.handoverPerson || null,
@@ -3403,8 +3403,6 @@ function buildManagerOptions(selectedName){
   const timeM  = document.getElementById('f-time-m')?.value || '';
   const timeStr = (timeH && timeM !== '') ? `${timeH}:${timeM}` : '';
   const UV_LABEL = { all_day:'종일불가', morning:'오전불가', afternoon:'오후불가' };
-  // 신규 시간대 형식(HH:MM~HH:MM)은 값 그대로 표시
-  const uvLabel = UV_LABEL[uv.unavailableType] || uv.unavailableType || '불가';
 
   return '<option value="">— 선택 —</option>' + USERS.map(u => {
     const tags = [];
@@ -3412,7 +3410,7 @@ function buildManagerOptions(selectedName){
     // 불가일정 체크
     if(date){
       const uv = unavailables.find(x => x.managerName === u.name && x.date === date);
-      if(uv) tags.push(UV_LABEL[uv.unavailableType] || '불가');
+      if(uv) tags.push(UV_LABEL[uv.unavailableType] || uv.unavailableType || '불가');
     }
 
     // 중복배정 체크 (예식시간 있을 때만)
@@ -3760,10 +3758,14 @@ async function saveResult(){
   s.checklist.report=true;
 
   try {
-    await sb.patch('schedules', resultId, { result, checklist: s.checklist });
+    console.log('[DG] saveResult 저장 시작 - scheduleId:', resultId, 'result:', result);
+    const saved = await sb.patch('schedules', resultId, { result, checklist: s.checklist });
+    console.log('[DG] saveResult DB 응답:', saved);
     s.result = result;
     // schedules 전체 재로드 후 렌더 (메모리 불일치 방지)
     await loadSchedules();
+    const reloaded = schedules.find(x => x.id === resultId);
+    console.log('[DG] saveResult 재조회 result:', reloaded?.result);
     closeResult(); renderAll(); showToast('📊 결과보고가 저장되었습니다');
   } catch(e){
     console.error('결과보고 저장 실패:', e);

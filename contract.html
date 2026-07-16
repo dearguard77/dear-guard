@@ -261,9 +261,9 @@ input,select,textarea{font-family:inherit;outline:none}
           추천받으신 분의 짝꿍코드를 입력해주세요.<br>
           <span style="color:#9CA3AF">• 계약일로부터 1주일 이내 입력 가능&nbsp;&nbsp;• 계약당 1회 적용</span>
         </div>
-        <div style="display:flex;gap:8px">
-          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px">
-          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">짝꿍코드 적용</button>
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1 1 auto;min-width:0;font-size:13px">
+          <button id="couple-code-btn" onclick="applyCoupleCode()" style="flex:0 0 auto;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">코드 적용</button>
         </div>
         <div id="couple-code-msg" style="margin-top:8px;font-size:12px;display:none"></div>
       </div>
@@ -890,7 +890,7 @@ async function applyCoupleCode(){
     }catch(usageInsertErr){
       console.error('[DG] referral_code_usages 등록 실패 — 할인 적용 중단:', usageInsertErr);
       showCoupleMsg('사용 이력 저장 중 오류가 발생하여 할인 적용이 중단되었습니다. 잠시 후 다시 시도해주세요.', true);
-      if(btn){ btn.disabled = false; btn.textContent = '짝꿍코드 적용'; }
+      if(btn){ btn.disabled = false; btn.textContent = '코드 적용'; }
       return;
     }
 
@@ -959,7 +959,7 @@ async function applyCoupleCode(){
         catch(rollbackErr){ console.error('[DG] usage row 롤백 실패:', rollbackErr); }
       }
       showCoupleMsg('코드 저장 중 오류가 발생했습니다: '+saveErr.message, true);
-      if(btn){ btn.disabled = false; btn.textContent = '짝꿍코드 적용'; }
+      if(btn){ btn.disabled = false; btn.textContent = '코드 적용'; }
       return;
     }
 
@@ -980,7 +980,7 @@ async function applyCoupleCode(){
   } finally {
     if(!coupleDiscountApplied && btn){
       btn.disabled = false;
-      btn.textContent = '짝꿍코드 적용';
+      btn.textContent = '코드 적용';
     }
   }
 }
