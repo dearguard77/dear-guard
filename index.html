@@ -521,10 +521,19 @@
     <div style="background:#fff;border-radius:16px;padding:24px;border:1px solid #E5E7EB">
       <div class="sec-header"><h2>월간 캘린더</h2><span id="cal-tab-subtitle">예식 일정 전체 보기</span></div>
       <div id="cal-my-only-wrap" style="display:none;margin-bottom:12px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#374151;cursor:pointer">
-          <input type="checkbox" id="cal-my-only" onchange="toggleCalendarMyOnly()" style="width:15px;height:15px;accent-color:#C7A96B">
-          내 일정만 보기
-        </label>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#374151;cursor:pointer">
+            <input type="checkbox" id="cal-my-only" onchange="toggleCalendarMyOnly()" style="width:15px;height:15px;accent-color:#C7A96B">
+            내 일정만 보기
+          </label>
+          <!-- 관리자 전용 매니저 필터 -->
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;color:#6B7280;font-weight:600">매니저</span>
+            <select id="cal-manager-filter" class="form-input" onchange="renderCal()" style="padding:4px 10px;font-size:12px;width:auto">
+              <option value="">전체 매니저</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div id="calendar-wrap"></div>
     </div>
@@ -1997,9 +2006,25 @@ if(calendarMyOnly && ADMIN_NAMES.includes(currentUser.name)){
     (s.backManager  || '').includes(currentUser.name)
   );
 }
+// ★ 관리자 전용 매니저 드롭다운 필터 (체크박스 필터와 독립 동작)
+const calMgrFilter = document.getElementById('cal-manager-filter')?.value || '';
+if(calMgrFilter && ADMIN_NAMES.includes(currentUser.name)){
+  vsFiltered = vsFiltered.filter(s =>
+    (s.frontManager || '').split(',').map(n=>n.trim()).includes(calMgrFilter) ||
+    (s.backManager  || '').split(',').map(n=>n.trim()).includes(calMgrFilter)
+  );
+}
 // 체크박스 표시/숨김
 const myOnlyWrap = document.getElementById('cal-my-only-wrap');
 if(myOnlyWrap) myOnlyWrap.style.display = ADMIN_NAMES.includes(currentUser.name) ? 'block' : 'none';
+
+// 관리자 전용 매니저 드롭다운 초기화
+const calMgrSel = document.getElementById('cal-manager-filter');
+if(calMgrSel && ADMIN_NAMES.includes(currentUser.name)){
+  const prevVal = calMgrSel.value;
+  calMgrSel.innerHTML = '<option value="">전체 매니저</option>'
+    + USERS.map(u => `<option value="${esc(u.name)}"${prevVal===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
+}
 const byDay = day => {
     if(!day) return [];
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
@@ -2015,10 +2040,16 @@ const byDay = day => {
     return sum + (hasGroom && hasBride ? 2 : 1);
   }, 0);
   const isAdminCal = ADMIN_NAMES.includes(currentUser.name);
+  const calMgrFilterVal = document.getElementById('cal-manager-filter')?.value || '';
   const calSubEl = document.getElementById('cal-tab-subtitle');
-  if(calSubEl) calSubEl.textContent = calendarMyOnly && isAdminCal
-    ? `${calYear}년 ${calMonth+1}월 · 내 일정 ${calMonthCnt}건`
-    : `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
+  if(calSubEl){
+    if(calMgrFilterVal && isAdminCal)
+      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · ${calMgrFilterVal} 일정 ${calMonthCnt}건`;
+    else if(calendarMyOnly && isAdminCal)
+      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · 내 일정 ${calMonthCnt}건`;
+    else
+      calSubEl.textContent = `${calYear}년 ${calMonth+1}월 · 예식 총 ${calMonthCnt}건`;
+  }
   wrap.innerHTML = `
     <div class="cal-nav">
       <button class="btn btn-ghost sm" onclick="calMove(-1)">‹ 이전</button>
@@ -3952,13 +3983,17 @@ function visibleUnavail(){
 
 // ─── 전체 렌더 ───────────────────────────────────────────────────────────────
 function renderUnavailAll(){
-  // 모든 계정에서 매니저 필터 표시
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
   const filterWrap = document.getElementById('unavail-filter-wrap');
-  filterWrap.style.display = 'block';
-  const sel = document.getElementById('unavail-filter');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">전체 매니저 보기</option>'
-    + USERS.map(u => `<option value="${esc(u.name)}"${cur===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
+  if(filterWrap) filterWrap.style.display = isAdmin ? 'block' : 'none';
+  if(isAdmin){
+    const sel = document.getElementById('unavail-filter');
+    const cur = sel ? sel.value : '';
+    if(sel){
+      sel.innerHTML = '<option value="">전체 매니저 보기</option>'
+        + USERS.map(u => `<option value="${esc(u.name)}"${cur===u.name?' selected':''}>${esc(u.name)}</option>`).join('');
+    }
+  }
   renderUnavailCal();
   renderUnavailList();
 }
