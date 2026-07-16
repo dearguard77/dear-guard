@@ -1240,25 +1240,24 @@
       <!-- 불가 시간대 -->
       <div class="form-field" style="margin-bottom:14px">
         <label class="form-label">불가 시간대 <span style="color:#EF4444">*</span></label>
-        <!-- 빠른 선택 버튼 -->
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        <!-- 프리셋 버튼 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
           <button type="button" class="uv-type-btn" data-val="all_day"
-            onclick="selectUvQuick('all_day')">🔴 종일</button>
-          <button type="button" class="uv-type-btn" data-val="10:00~14:00"
-            onclick="selectUvQuick('10:00~14:00')">🕙 10:00~14:00</button>
-          <button type="button" class="uv-type-btn" data-val="14:00~18:00"
-            onclick="selectUvQuick('14:00~18:00')">🕑 14:00~18:00</button>
-          <button type="button" class="uv-type-btn" data-val="09:00~13:00"
-            onclick="selectUvQuick('09:00~13:00')">🕘 09:00~13:00</button>
+            onclick="selectUvQuick('all_day')" style="font-size:12px;padding:10px 6px">🔴 종일 불가</button>
+          <button type="button" class="uv-type-btn" data-val="lunch"
+            onclick="selectUvQuick('lunch')" style="font-size:12px;padding:10px 6px">🌞 점심 예식 불가</button>
+          <button type="button" class="uv-type-btn" data-val="dinner"
+            onclick="selectUvQuick('dinner')" style="font-size:12px;padding:10px 6px">🌙 저녁 예식 불가</button>
+          <button type="button" class="uv-type-btn" data-val="custom"
+            onclick="selectUvQuick('custom')" style="font-size:12px;padding:10px 6px">⏰ 직접 입력</button>
         </div>
-        <!-- 직접 입력 (시간대) -->
-        <div id="uv-time-wrap" style="display:flex;align-items:center;gap:8px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 12px">
+        <!-- 직접 입력 영역 (직접입력 선택 시에만 표시) -->
+        <div id="uv-time-wrap" style="display:none;align-items:center;gap:8px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 12px">
           <input type="time" id="uv-time-start" class="form-input" style="width:110px;font-size:13px"
             oninput="updateUvTimeRange()">
           <span style="color:#9CA3AF;font-weight:700">~</span>
           <input type="time" id="uv-time-end" class="form-input" style="width:110px;font-size:13px"
             oninput="updateUvTimeRange()">
-          <span style="font-size:11px;color:#9CA3AF">직접 입력</span>
         </div>
         <div id="uv-type-display" style="margin-top:6px;font-size:12px;color:#6B7280"></div>
       </div>
@@ -3972,20 +3971,26 @@ function openUnavailForm(id, presetDate){
   const dispEl  = document.getElementById('uv-type-display');
   const startEl = document.getElementById('uv-time-start');
   const endEl   = document.getElementById('uv-time-end');
-  if(uvType){
-    document.querySelectorAll('.uv-type-btn').forEach(b => {
-      if(b.dataset.val === uvType) b.classList.add('active');
-    });
-    if(uvType === 'all_day'){
-      if(startEl) startEl.value = '';
-      if(endEl)   endEl.value   = '';
-      if(dispEl)  dispEl.textContent = '🔴 종일 불가 선택됨';
-    } else {
-      const [ts, te] = uvType.split('~');
-      if(startEl) startEl.value = ts || '';
-      if(endEl)   endEl.value   = te || '';
-      if(dispEl)  dispEl.textContent = `🕐 ${uvType} 불가 선택됨`;
-    }
+  const timeWrap = document.getElementById('uv-time-wrap');
+  if(timeWrap) timeWrap.style.display = 'none';
+
+  if(uvType === 'all_day'){
+    document.querySelector('.uv-type-btn[data-val="all_day"]')?.classList.add('active');
+    if(dispEl) dispEl.textContent = '🔴 종일 불가 선택됨';
+  } else if(uvType === '10:00~14:00'){
+    document.querySelector('.uv-type-btn[data-val="lunch"]')?.classList.add('active');
+    if(dispEl) dispEl.textContent = '🌞 점심 예식 불가 (10:00~14:00) 선택됨';
+  } else if(uvType === '15:00~19:00'){
+    document.querySelector('.uv-type-btn[data-val="dinner"]')?.classList.add('active');
+    if(dispEl) dispEl.textContent = '🌙 저녁 예식 불가 (15:00~19:00) 선택됨';
+  } else if(uvType){
+    // 기타 시간범위 (기존 레거시 데이터 포함) → 직접입력 버튼 active
+    document.querySelector('.uv-type-btn[data-val="custom"]')?.classList.add('active');
+    if(timeWrap) timeWrap.style.display = 'flex';
+    const [ts, te] = uvType.split('~');
+    if(startEl) startEl.value = ts || '';
+    if(endEl)   endEl.value   = te || '';
+    if(dispEl)  dispEl.textContent = `⏰ ${uvType} 불가 선택됨`;
   } else {
     if(startEl) startEl.value = '';
     if(endEl)   endEl.value   = '';
@@ -4048,31 +4053,60 @@ function closeUnavailForm(){
 }
 
 // ── 불가 시간대 선택 (신규) ─────────────────────────────────────────────────
-function selectUvQuick(val){
-  uvType = val;
-  // 버튼 active 상태
-  document.querySelectorAll('.uv-type-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.val === val);
-  });
-  if(val === 'all_day'){
-    document.getElementById('uv-time-start').value = '';
-    document.getElementById('uv-time-end').value   = '';
-    document.getElementById('uv-type-display').textContent = '🔴 종일 불가 선택됨';
-  } else {
-    const [s, e] = val.split('~');
-    document.getElementById('uv-time-start').value = s || '';
-    document.getElementById('uv-time-end').value   = e || '';
-    document.getElementById('uv-type-display').textContent = `🕐 ${val} 불가 선택됨`;
+// 프리셋 매핑: DB 저장값 → 표시명
+const UV_PRESET_MAP = {
+  all_day: { label:'🔴 종일 불가', dbVal:'all_day' },
+  lunch:   { label:'🌞 점심 예식 불가 (10:00~14:00)', dbVal:'10:00~14:00' },
+  dinner:  { label:'🌙 저녁 예식 불가 (15:00~19:00)', dbVal:'15:00~19:00' },
+};
+
+function selectUvQuick(preset){
+  const timeWrap = document.getElementById('uv-time-wrap');
+  const dispEl   = document.getElementById('uv-type-display');
+  const startEl  = document.getElementById('uv-time-start');
+  const endEl    = document.getElementById('uv-time-end');
+
+  document.querySelectorAll('.uv-type-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.val === preset));
+
+  if(preset === 'all_day'){
+    uvType = 'all_day';
+    if(timeWrap) timeWrap.style.display = 'none';
+    if(startEl)  startEl.value = '';
+    if(endEl)    endEl.value   = '';
+    if(dispEl)   dispEl.textContent = '🔴 종일 불가 선택됨';
+  } else if(preset === 'lunch'){
+    uvType = '10:00~14:00';
+    if(timeWrap) timeWrap.style.display = 'none';
+    if(startEl)  startEl.value = '';
+    if(endEl)    endEl.value   = '';
+    if(dispEl)   dispEl.textContent = '🌞 점심 예식 불가 (10:00~14:00) 선택됨';
+  } else if(preset === 'dinner'){
+    uvType = '15:00~19:00';
+    if(timeWrap) timeWrap.style.display = 'none';
+    if(startEl)  startEl.value = '';
+    if(endEl)    endEl.value   = '';
+    if(dispEl)   dispEl.textContent = '🌙 저녁 예식 불가 (15:00~19:00) 선택됨';
+  } else if(preset === 'custom'){
+    uvType = ''; // 직접 입력 중 미확정
+    if(timeWrap) timeWrap.style.display = 'flex';
+    if(startEl)  startEl.value = '';
+    if(endEl)    endEl.value   = '';
+    if(dispEl)   dispEl.textContent = '⏰ 시작~종료 시간을 입력해주세요';
+    startEl?.focus();
   }
 }
 
 function updateUvTimeRange(){
   const s = document.getElementById('uv-time-start').value;
   const e = document.getElementById('uv-time-end').value;
+  const dispEl = document.getElementById('uv-type-display');
   if(s && e){
     uvType = `${s}~${e}`;
-    document.querySelectorAll('.uv-type-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('uv-type-display').textContent = `🕐 ${uvType} 불가 선택됨`;
+    if(dispEl) dispEl.textContent = `⏰ ${uvType} 불가 선택됨`;
+  } else {
+    uvType = '';
+    if(dispEl) dispEl.textContent = '⏰ 시작~종료 시간을 입력해주세요';
   }
 }
 
@@ -4241,37 +4275,30 @@ async function saveUnavail(){
 
   try {
     if(uvEditId){
+      // 수정 모드 — 배우자 일정 존재 여부 확인
+      const uv = unavailables.find(x => x.id === uvEditId);
+      const partnerName  = COUPLE_PAIRS[managerName];
+      const partnerUvEdit = partnerName
+        ? unavailables.find(u => u.managerName === partnerName && u.date === date && u.id !== uvEditId)
+        : null;
+
+      let editPartner = false;
+      if(partnerUvEdit){
+        const choice = await showUvEditDialog(managerName, partnerName);
+        if(choice === 'cancel'){ return; }
+        editPartner = (choice === 'both');
+      }
+
       const updated = await sb.patch('unavailable_schedules', uvEditId, row);
       const idx = unavailables.findIndex(x => x.id === uvEditId);
       if(idx !== -1) unavailables[idx] = rowToUnavail(Array.isArray(updated)?updated[0]:updated);
 
-      // ── 부부동반 수정 ──
-      const coupleChkEdit = document.getElementById('uv-couple-chk');
-      if(coupleChkEdit?.checked){
-        const partnerName = COUPLE_PAIRS[managerName];
-        if(partnerName){
-          // 배우자의 "같은 날짜 + 같은 시간대" 기존 일정 탐색
-          const partnerExisting = unavailables.find(u =>
-            u.managerName === partnerName &&
-            u.date === date &&
-            u.id !== uvEditId
-          );
-          if(partnerExisting){
-            const partnerRow = { manager_name: partnerName, date, unavailable_type: uvType, memo: memo || null };
-            const partnerUpdated = await sb.patch('unavailable_schedules', partnerExisting.id, partnerRow);
-            const pIdx = unavailables.findIndex(x => x.id === partnerExisting.id);
-            if(pIdx !== -1) unavailables[pIdx] = rowToUnavail(Array.isArray(partnerUpdated)?partnerUpdated[0]:partnerUpdated);
-            showToast(`✅ ${managerName} + ${partnerName} 불가일정이 함께 수정되었습니다`);
-          } else {
-            // 배우자에게 해당 날짜 일정이 없으면 새로 생성
-            const partnerRow = { manager_name: partnerName, date, unavailable_type: uvType, memo: memo || null };
-            const partnerCreated = await sb.post('unavailable_schedules', partnerRow);
-            unavailables.push(rowToUnavail(Array.isArray(partnerCreated)?partnerCreated[0]:partnerCreated));
-            showToast(`✅ 불가일정이 수정되었습니다 (세트 매니저 ${partnerName}는 새 일정으로 등록되었습니다)`);
-          }
-        } else {
-          showToast('✅ 불가일정이 수정되었습니다');
-        }
+      if(editPartner && partnerUvEdit){
+        const partnerRow = { manager_name: partnerName, date, unavailable_type: uvType, memo: memo || null };
+        const partnerUpdated = await sb.patch('unavailable_schedules', partnerUvEdit.id, partnerRow);
+        const pIdx = unavailables.findIndex(x => x.id === partnerUvEdit.id);
+        if(pIdx !== -1) unavailables[pIdx] = rowToUnavail(Array.isArray(partnerUpdated)?partnerUpdated[0]:partnerUpdated);
+        showToast(`✅ ${managerName} + ${partnerName} 불가일정이 함께 수정되었습니다`);
       } else {
         showToast('✅ 불가일정이 수정되었습니다');
       }
@@ -4315,17 +4342,106 @@ async function saveUnavail(){
 
 // ─── 삭제 ────────────────────────────────────────────────────────────────────
 async function deleteUnavail(){
-  if(!uvEditId || !confirm('이 불가일정을 삭제하시겠습니까?')) return;
-  try {
+  if(!uvEditId) return;
+  const uv = unavailables.find(x => x.id === uvEditId);
+  if(!uv) return;
+
+  const partnerName = COUPLE_PAIRS[uv.managerName];
+  const partnerUv   = partnerName
+    ? unavailables.find(u => u.managerName === partnerName && u.date === uv.date && u.id !== uvEditId)
+    : null;
+
+  let deletePartner = false;
+
+  if(partnerUv){
+    // 부부동반 삭제 확인
+    const choice = await showUvDeleteDialog(uv.managerName, partnerName);
+    if(choice === 'cancel') return;
+    deletePartner = (choice === 'both');
+  } else {
+    if(!confirm('이 불가일정을 삭제하시겠습니까?')) return;
+  }
+
+  try{
     await sb.delete('unavailable_schedules', uvEditId);
     unavailables = unavailables.filter(x => x.id !== uvEditId);
+    if(deletePartner && partnerUv){
+      await sb.delete('unavailable_schedules', partnerUv.id);
+      unavailables = unavailables.filter(x => x.id !== partnerUv.id);
+    }
     closeUnavailForm();
     renderUnavailAll();
-    showToast('🗑️ 불가일정이 삭제되었습니다');
-  } catch(e){
+    showToast(deletePartner ? `🗑️ ${uv.managerName} + ${partnerName} 불가일정이 함께 삭제되었습니다` : '🗑️ 불가일정이 삭제되었습니다');
+  }catch(e){
     console.error('불가일정 삭제 실패:', e);
     alert('삭제에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류'));
   }
+}
+
+function showUvDeleteDialog(myName, partnerName){
+  return new Promise(resolve => {
+    const existing = document.getElementById('uv-confirm-dialog');
+    if(existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'uv-confirm-dialog';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';
+    el.innerHTML = `
+      <div style="background:#fff;border-radius:14px;padding:24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+        <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:8px">🗑️ 불가일정 삭제</div>
+        <div style="font-size:13px;color:#374151;margin-bottom:20px">
+          <b>${esc(partnerName)}</b>님의 같은 날 불가일정도 함께 삭제하시겠습니까?
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button onclick="document.getElementById('uv-confirm-dialog').remove();window._uvResolve('both')"
+            style="background:#DC2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            🗑️ 둘 다 삭제 (${esc(myName)} + ${esc(partnerName)})
+          </button>
+          <button onclick="document.getElementById('uv-confirm-dialog').remove();window._uvResolve('mine')"
+            style="background:#F3F4F6;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            내 일정만 삭제
+          </button>
+          <button onclick="document.getElementById('uv-confirm-dialog').remove();window._uvResolve('cancel')"
+            style="background:none;color:#9CA3AF;border:none;border-radius:8px;padding:8px;font-size:13px;cursor:pointer">
+            취소
+          </button>
+        </div>
+      </div>`;
+    window._uvResolve = resolve;
+    document.body.appendChild(el);
+  });
+}
+
+function showUvEditDialog(myName, partnerName){
+  return new Promise(resolve => {
+    const existing = document.getElementById('uv-confirm-dialog');
+    if(existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'uv-confirm-dialog';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';
+    el.innerHTML = `
+      <div style="background:#fff;border-radius:14px;padding:24px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+        <div style="font-size:15px;font-weight:800;color:#111827;margin-bottom:8px">✏️ 불가일정 수정</div>
+        <div style="font-size:13px;color:#374151;margin-bottom:20px">
+          <b>${esc(partnerName)}</b>님의 같은 날 불가일정도 함께 수정하시겠습니까?
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button onclick="document.getElementById('uv-confirm-dialog').remove();window._uvResolve('both')"
+            style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            둘 다 수정 (${esc(myName)} + ${esc(partnerName)})
+          </button>
+          <button onclick="document.getElementById('uv-confirm-dialog').remove();window._uvResolve('mine')"
+            style="background:#F3F4F6;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            내 일정만 수정
+          </button>
+          <button onclick="document.getElementById('uv-confirm-dialog').remove();window._uvResolve('cancel')"
+            style="background:none;color:#9CA3AF;border:none;border-radius:8px;padding:8px;font-size:13px;cursor:pointer">
+            취소
+          </button>
+        </div>
+      </div>`;
+    window._uvResolve = resolve;
+    document.body.appendChild(el);
+  });
 }
  // ════════════════════════════════════════════════════════════
 //  📊  정산 현황 기능 (관리자 전용)
