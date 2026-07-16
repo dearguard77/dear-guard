@@ -3088,6 +3088,8 @@ async function toggleCL(schId, key, checked){
 // ─── 삭제 확인 모달 ───────────────────────────────────────────────────────────
 let deleteTargetId = null;
 
+function closeDetail(){ document.getElementById('detail-modal').style.display='none'; document.body.style.overflow=''; }
+
 function confirmDeleteSch(id){
   if(!ADMIN_NAMES.includes(currentUser.name)) return; // 관리자만
   deleteTargetId = id;
