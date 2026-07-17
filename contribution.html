@@ -585,7 +585,8 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름</div>
         <div style="display:flex;align-items:center;gap:6px">
-          <input class="form-input" id="guest-name" placeholder="예) 강성주, 전수연" style="flex:1;font-size:13px;padding:7px 8px">
+          <input class="form-input" id="guest-name" placeholder="예) 강성주, 전수연" style="flex:13;min-width:0;font-size:13px;padding:7px 8px">
+          <input class="form-input" id="memo-input" placeholder="예) 선양소주" style="flex:7;min-width:0;font-size:12px;padding:7px 7px" onkeydown="if(event.key==='Enter')submitEntry()">
           <button class="submit-btn" onclick="submitEntry()" style="flex-shrink:0;width:auto;padding:8px 18px;font-size:14px;letter-spacing:.3px;border-radius:8px;box-shadow:none">✅ 접수 완료</button>
         </div>
       </div>
@@ -645,12 +646,6 @@ input,select,textarea{font-family:inherit;outline:none}
           <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;border-top:1px solid #F0EDE8;padding-top:3px"></div>
         </div>
       </div>
-
-      <div class="card" style="padding:5px 8px">
-        <input class="form-input" id="memo-input" placeholder="📝 메모 (선택)" style="font-size:12px;padding:4px 8px">
-      </div>
-
-      <button class="submit-btn" onclick="submitEntry()" style="font-size:15px;padding:11px;letter-spacing:.5px">✅ 접수 완료</button>
 
     </div><!-- /input-panel -->
 
