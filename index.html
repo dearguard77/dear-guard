@@ -1536,6 +1536,7 @@ function rowToSchedule(row){
     coupleDiscountAmount:  row.couple_discount_amount  || 0,
     contractOwner:         row.contract_owner          || '',
     createdAt:             row.created_at              || '',
+    contractDate:          row.contract_date           || '',
   };
 }
 
@@ -2331,8 +2332,9 @@ function openDetail(id){
   // 관리자 전용 계약 등록일 표시
   const dmRegDate = document.getElementById('dm-reg-date');
   if(dmRegDate){
-    if(ADMIN_NAMES.includes(currentUser.name) && s.createdAt){
-      const regDateStr = s.createdAt.slice(0,10).replace(/-/g,'.');
+    const displayDate = s.contractDate || s.createdAt;
+    if(ADMIN_NAMES.includes(currentUser.name) && displayDate){
+      const regDateStr = displayDate.slice(0,10).replace(/-/g,'.');
       dmRegDate.style.display = 'block';
       dmRegDate.textContent = `계약 등록 ${regDateStr}`;
     } else {
@@ -2872,9 +2874,9 @@ function renderReferralList(){
       .map(s => ({
         code:         s.coupleReferralCode,
         name:         [s.groomName, s.brideName].filter(Boolean).join(' / '),
-        contractDate: s.contractSignedAt ? s.contractSignedAt.slice(0,10) : (s.createdAt ? s.createdAt.slice(0,10) : ''),
+        contractDate: s.contractDate || s.contractSignedAt?.slice(0,10) || s.createdAt?.slice(0,10) || '',
         weddingDate:  s.date || '',
-        sortKey:      s.contractSignedAt || s.date || s.createdAt || '',
+        sortKey:      s.contractDate || s.contractSignedAt || s.createdAt || '',
       }))
       // 중복 코드는 가장 최근 계약자만 유지
       .reduce((acc, cur) => {
