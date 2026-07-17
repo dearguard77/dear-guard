@@ -652,31 +652,24 @@ input,select,textarea{font-family:inherit;outline:none}
 
     </div><!-- /input-panel -->
 
-    <!-- 공통 검색창 (고정 — 스크롤 없음) -->
-    <div style="padding:8px 10px 6px;border-bottom:1px solid #F0EBE1;flex-shrink:0;background:#fff">
-      <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap">
-        <div style="position:relative;flex:1;min-width:0">
-          <input id="log-search-unified"
-            placeholder="🔍 하객 이름"
-            oninput="renderFullList()"
-            style="width:100%;box-sizing:border-box;border:1.5px solid #E5E7EB;border-radius:8px;padding:6px 26px 6px 9px;font-size:12px;outline:none;background:#FAFAFA">
-          <button onclick="document.getElementById('log-search-unified').value='';setLogSearchFilter('all');renderFullList()"
-            style="position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:12px;color:#9CA3AF;cursor:pointer;padding:0;line-height:1">❌</button>
-        </div>
-        <button id="lsf-all"   onclick="setLogSearchFilter('all')"   style="flex-shrink:0;padding:6px 8px;font-size:11px;font-weight:700;border-radius:7px;border:1.5px solid #C7A96B;background:#C7A96B;color:#fff;cursor:pointer;white-space:nowrap">전체</button>
-        <button id="lsf-groom" onclick="setLogSearchFilter('groom')" style="flex-shrink:0;padding:6px 8px;font-size:11px;font-weight:700;border-radius:7px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;cursor:pointer;white-space:nowrap">🤵</button>
-        <button id="lsf-bride" onclick="setLogSearchFilter('bride')" style="flex-shrink:0;padding:6px 8px;font-size:11px;font-weight:700;border-radius:7px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;cursor:pointer;white-space:nowrap">👰</button>
+    <!-- 빠른 수정 검색 (단순화) -->
+    <div style="padding:6px 10px 5px;border-bottom:1px solid #F0EBE1;flex-shrink:0;background:#fff">
+      <div style="font-size:10px;font-weight:700;color:#9CA3AF;margin-bottom:4px">🔎 접수내역 빠른 수정</div>
+      <div style="position:relative">
+        <input id="log-search-unified"
+          placeholder="하객 이름 검색"
+          oninput="renderQuickSearch()"
+          autocomplete="off"
+          style="width:100%;box-sizing:border-box;border:1px solid #E5E7EB;border-radius:7px;padding:6px 28px 6px 9px;font-size:12px;outline:none;background:#FAFAFA">
+        <button onclick="document.getElementById('log-search-unified').value='';renderQuickSearch()"
+          style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:11px;color:#9CA3AF;cursor:pointer;padding:0;line-height:1">✕</button>
       </div>
+      <!-- 검색 결과 (최대 3건) -->
+      <div id="quick-search-result" style="margin-top:4px"></div>
     </div>
 
     <!-- 검색 결과 + 전체 목록 — 공통 스크롤 컨테이너 -->
     <div id="center-scroll-body" style="flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
-
-      <!-- 검색 결과 (검색어 있을 때만) -->
-      <div id="log-search-result-wrap" style="display:none;border-bottom:2px solid #F0EBE1">
-        <div id="log-search-count" style="font-size:11px;color:#6B7280;font-weight:700;padding:6px 12px 4px"></div>
-        <div id="log-search-result-list"></div>
-      </div>
 
       <!-- 전체 접수 목록 -->
       <div id="split-list-panel" style="grid-template-columns:1fr;display:grid;min-height:0">
@@ -1656,63 +1649,57 @@ async function submitEntry(){
   } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
 }
 
-function setLogSearchFilter(f){
-  window._logSearchFilter=f;
-  ['all','groom','bride'].forEach(k=>{
-    const btn=document.getElementById('lsf-'+k);
-    if(!btn) return;
-    const active=k===f;
-    btn.style.background=active?'#C7A96B':'#fff';
-    btn.style.color=active?'#fff':'#6B7280';
-    btn.style.borderColor=active?'#C7A96B':'#E5E7EB';
-  });
-  renderFullList();
+// ── 빠른 수정 검색 ───────────────────────────────────────────────────────────
+function renderQuickSearch(){
+  const q=((document.getElementById('log-search-unified')||{}).value||'').trim().toLowerCase();
+  const el=document.getElementById('quick-search-result');
+  if(!el) return;
+  if(!q){ el.innerHTML=''; return; }
+
+  const matched=logs.filter(l=>(l.guest_name||'').toLowerCase().includes(q)||(l.relation||'').toLowerCase().includes(q));
+  if(!matched.length){
+    el.innerHTML='<div style="font-size:11px;color:#9CA3AF;padding:4px 2px">검색 결과 없음</div>';
+    return;
+  }
+  const isAdmin=ADMIN_NAMES.includes(currentUser.name);
+  const show=matched.slice(0,3);
+  const extra=matched.length-3;
+  const rows=show.map(l=>{
+    const sideIcon=l.side==='신랑측'?'🤵':'👰';
+    const sideColor=l.side==='신랑측'?'#2563EB':'#DB2777';
+    const sideBg  =l.side==='신랑측'?'#EFF6FF':'#FDF2F8';
+    const num=l.seq?` #${l.seq}`:'';
+    const name=esc(l.guest_name||'—');
+    const amt=l.amount?fmt(l.amount):'금액없음';
+    const adultT=l.adult_ticket||0, childT=l.child_ticket||0;
+    const tkt=(adultT?`대인 ${adultT}장`:'')+((adultT&&childT)?' · ':'' )+(childT?`소인 ${childT}장`:'');
+    const canEdit=isAdmin||l.created_by===currentUser.name;
+    return `<div onclick="${canEdit?`openEditModal(${l.id});clearQuickSearch()`:'void 0'}"
+      style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;background:${sideBg};margin-bottom:3px;cursor:${canEdit?'pointer':'default'};border:1px solid ${sideColor}33">
+      <span style="font-size:10px;font-weight:800;color:${sideColor};white-space:nowrap;flex-shrink:0">${sideIcon}${l.side}${num}</span>
+      <span style="flex:1;font-size:12px;font-weight:700;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</span>
+      <span style="font-size:11px;color:#374151;white-space:nowrap;flex-shrink:0">${amt}</span>
+      ${tkt?`<span style="font-size:10px;color:#6B7280;white-space:nowrap;flex-shrink:0">${tkt}</span>`:''}
+      ${canEdit?'<span style="font-size:10px;color:#C7A96B;white-space:nowrap;flex-shrink:0">수정→</span>':''}
+    </div>`;
+  }).join('');
+  const moreNote=extra>0
+    ?`<div style="font-size:10px;color:#9CA3AF;padding:2px 2px 0">외 ${extra}건 더 있음 — 이름을 더 정확하게 입력해주세요.</div>`:'';
+  el.innerHTML=rows+moreNote;
+}
+
+function clearQuickSearch(){
+  const inp=document.getElementById('log-search-unified');
+  if(inp) inp.value='';
+  const el=document.getElementById('quick-search-result');
+  if(el)  el.innerHTML='';
 }
 
 function renderFullList(){
   const isAdmin=ADMIN_NAMES.includes(currentUser.name);
-  const q=((document.getElementById('log-search-unified')||{}).value||'').trim().toLowerCase();
-  const filter=window._logSearchFilter||'all';
-
-  const match=(l)=>q?((l.guest_name||'').toLowerCase().includes(q)||(l.relation||'').toLowerCase().includes(q)):true;
-
-  // ── 검색 결과 영역 ──────────────────────────────────────────────
-  const resultWrap=document.getElementById('log-search-result-wrap');
-  const resultList=document.getElementById('log-search-result-list');
-  const countEl   =document.getElementById('log-search-count');
-  if(q){
-    const gResult=filter==='bride'?[]:logs.filter(l=>l.side==='신랑측'&&match(l));
-    const bResult=filter==='groom'?[]:logs.filter(l=>l.side==='신부측'&&match(l));
-    const total=gResult.length+bResult.length;
-    if(countEl) countEl.textContent=total?`검색 결과 ${total}건`:'검색 결과가 없습니다';
-    if(resultList){
-      // 신랑측 섹션
-      const gWrap=gResult.length?`
-        <div style="padding:4px 10px 2px;font-size:10px;font-weight:800;color:#2563EB;background:#EFF6FF;border-bottom:1px solid #DBEAFE">
-          🤵 신랑측 ${gResult.length}건
-        </div>
-        <div id="sr-groom"></div>`:'';
-      // 신부측 섹션
-      const bWrap=bResult.length?`
-        <div style="padding:4px 10px 2px;font-size:10px;font-weight:800;color:#DB2777;background:#FDF2F8;border-bottom:1px solid #FCE7F3;${gResult.length?'border-top:1px solid #F0EBE1':''}">
-          👰 신부측 ${bResult.length}건
-        </div>
-        <div id="sr-bride"></div>`:'';
-      resultList.innerHTML = (gWrap+bWrap)||'<div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">검색 결과가 없습니다</div>';
-      if(gResult.length) renderLedgerCol('sr-groom', gResult, isAdmin);
-      if(bResult.length) renderLedgerCol('sr-bride', bResult, isAdmin);
-    }
-    if(resultWrap) resultWrap.style.display='block';
-  } else {
-    if(resultWrap) resultWrap.style.display='none';
-    if(countEl)    countEl.textContent='';
-  }
-
-  // ── 전체 목록 (필터 측 표시/숨김) ─────────────────────────────
-  const gLogs=filter==='bride'?[]:logs.filter(l=>l.side==='신랑측');
-  const bLogs=filter==='groom'?[]:logs.filter(l=>l.side==='신부측');
-  const hasG=filter!=='bride'&&logs.some(l=>l.side==='신랑측');
-  const hasB=filter!=='groom'&&logs.some(l=>l.side==='신부측');
+  const gLogs=logs.filter(l=>l.side==='신랑측');
+  const bLogs=logs.filter(l=>l.side==='신부측');
+  const hasG=gLogs.length>0, hasB=bLogs.length>0;
   const panel=document.getElementById('split-list-panel');
   const gCol=document.getElementById('groom-list-col');
   const bCol=document.getElementById('bride-list-col');
