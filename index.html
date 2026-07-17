@@ -542,7 +542,14 @@
   <!-- SCHEDULES TAB -->
   <div id="tab-schedules" class="tab-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div class="sec-header" style="margin-bottom:0"><h2>전체 일정</h2><span id="sch-count"></span></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="sec-header" style="margin-bottom:0"><h2>전체 일정</h2><span id="sch-count"></span></div>
+        <select id="sch-sort" onchange="renderScheduleList()"
+          style="font-size:11px;font-weight:600;color:#6B7280;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:4px 10px;cursor:pointer;appearance:auto">
+          <option value="date">🗂 예식일순</option>
+          <option value="contract">📋 계약 최신순</option>
+        </select>
+      </div>
       <button class="btn btn-primary sm" id="sch-reg-btn" onclick="openForm(null)" style="display:none">＋ 예식 등록</button>
     </div>
 
@@ -2196,6 +2203,19 @@ function renderScheduleList(){
   // 필터 배너 표시/숨김
   const banner = document.getElementById('urgent-banner');
   if(banner) banner.style.display = urgentFilter ? 'flex' : 'none';
+
+  // 정렬
+  const schSort = document.getElementById('sch-sort')?.value || 'date';
+  if(schSort === 'contract'){
+    // 계약 최신순: contractDate 있는 것 먼저, 없는 것 맨 뒤
+    vs = [...vs].sort((a, b) => {
+      if(!a.contractDate && !b.contractDate) return 0;
+      if(!a.contractDate) return 1;
+      if(!b.contractDate) return -1;
+      return b.contractDate.localeCompare(a.contractDate);
+    });
+  }
+  // 예식일순은 loadSchedules의 order=date.asc 기준 유지 (정렬 불필요)
 
   document.getElementById('sch-count').textContent =
     urgentFilter ? `긴급확인 ${vs.length}건` : `총 ${vs.length}건`;
