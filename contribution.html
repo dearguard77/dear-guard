@@ -175,7 +175,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .split-col-hdr{padding:6px 10px;border-bottom:1px solid #E8E5E1;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
 .split-col-hdr-title{font-size:13px;font-weight:800;color:#374151;display:flex;align-items:center;gap:5px}
 .split-col-hdr-sum{font-size:12px;color:#9CA3AF}
-.split-col-body{overflow-y:auto;flex:1}
+.split-col-body{overflow-y:visible;flex:1}
 
 .ledger-item{padding:7px 10px;border-bottom:1px solid #EEEAE4;cursor:default}
 .ledger-item:hover{background:rgba(199,169,107,.03)}
@@ -652,48 +652,51 @@ input,select,textarea{font-family:inherit;outline:none}
 
     </div><!-- /input-panel -->
 
-    <!-- 공통 검색 영역 (한 줄) -->
-    <div style="padding:8px 10px 6px;border-bottom:1px solid #F0EBE1;flex-shrink:0">
+    <!-- 공통 검색창 (고정 — 스크롤 없음) -->
+    <div style="padding:8px 10px 6px;border-bottom:1px solid #F0EBE1;flex-shrink:0;background:#fff">
       <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap">
         <div style="position:relative;flex:1;min-width:0">
           <input id="log-search-unified"
             placeholder="🔍 하객 이름"
             oninput="renderFullList()"
             style="width:100%;box-sizing:border-box;border:1.5px solid #E5E7EB;border-radius:8px;padding:6px 26px 6px 9px;font-size:12px;outline:none;background:#FAFAFA">
-          <button onclick="document.getElementById('log-search-unified').value='';renderFullList()"
+          <button onclick="document.getElementById('log-search-unified').value='';setLogSearchFilter('all');renderFullList()"
             style="position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:12px;color:#9CA3AF;cursor:pointer;padding:0;line-height:1">❌</button>
         </div>
         <button id="lsf-all"   onclick="setLogSearchFilter('all')"   style="flex-shrink:0;padding:6px 8px;font-size:11px;font-weight:700;border-radius:7px;border:1.5px solid #C7A96B;background:#C7A96B;color:#fff;cursor:pointer;white-space:nowrap">전체</button>
         <button id="lsf-groom" onclick="setLogSearchFilter('groom')" style="flex-shrink:0;padding:6px 8px;font-size:11px;font-weight:700;border-radius:7px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;cursor:pointer;white-space:nowrap">🤵</button>
         <button id="lsf-bride" onclick="setLogSearchFilter('bride')" style="flex-shrink:0;padding:6px 8px;font-size:11px;font-weight:700;border-radius:7px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;cursor:pointer;white-space:nowrap">👰</button>
       </div>
-      <!-- 검색 결과 (검색어 있을 때만 표시) -->
-      <div id="log-search-result-wrap" style="display:none;margin-top:6px">
-        <div id="log-search-count" style="font-size:11px;color:#6B7280;font-weight:700;margin-bottom:4px"></div>
-        <div id="log-search-result-list" style="max-height:200px;overflow-y:auto"></div>
-      </div>
     </div>
 
-    <div id="split-list-panel" style="grid-template-columns: 1fr;">
-      <div class="split-list-col groom-col" id="groom-list-col" style="display: flex;">
-        <div class="split-col-hdr">
-          <div class="split-col-hdr-title">
-            🤵 신랑측
-          </div>
-          <span class="split-col-hdr-sum" id="groom-list-sum">0건 · 0원</span>
-        </div>
-        <div class="split-col-body" id="groom-full-list"><div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">내역 없음</div></div>
+    <!-- 검색 결과 + 전체 목록 — 공통 스크롤 컨테이너 -->
+    <div id="center-scroll-body" style="flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
+
+      <!-- 검색 결과 (검색어 있을 때만) -->
+      <div id="log-search-result-wrap" style="display:none;border-bottom:2px solid #F0EBE1">
+        <div id="log-search-count" style="font-size:11px;color:#6B7280;font-weight:700;padding:6px 12px 4px"></div>
+        <div id="log-search-result-list"></div>
       </div>
-      <div class="split-list-col bride-col" id="bride-list-col" style="display: none;">
-        <div class="split-col-hdr">
-          <div class="split-col-hdr-title">
-            👰 신부측
+
+      <!-- 전체 접수 목록 -->
+      <div id="split-list-panel" style="grid-template-columns:1fr;display:grid;min-height:0">
+        <div class="split-list-col groom-col" id="groom-list-col" style="display:flex">
+          <div class="split-col-hdr">
+            <div class="split-col-hdr-title">🤵 신랑측</div>
+            <span class="split-col-hdr-sum" id="groom-list-sum">0건 · 0원</span>
           </div>
-          <span class="split-col-hdr-sum" id="bride-list-sum">0건 · 0원</span>
+          <div id="groom-full-list"><div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">내역 없음</div></div>
         </div>
-        <div class="split-col-body" id="bride-full-list"><div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">내역 없음</div></div>
+        <div class="split-list-col bride-col" id="bride-list-col" style="display:none">
+          <div class="split-col-hdr">
+            <div class="split-col-hdr-title">👰 신부측</div>
+            <span class="split-col-hdr-sum" id="bride-list-sum">0건 · 0원</span>
+          </div>
+          <div id="bride-full-list"><div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">내역 없음</div></div>
+        </div>
       </div>
-    </div>
+
+    </div><!-- /center-scroll-body -->
     </div><!-- /center-panel -->
 
     <!-- ③ 오른쪽: 실시간 장부 리스트 -->
@@ -1671,23 +1674,41 @@ function renderFullList(){
   const q=((document.getElementById('log-search-unified')||{}).value||'').trim().toLowerCase();
   const filter=window._logSearchFilter||'all';
 
-  const apply=(arr)=>q?arr.filter(l=>(l.guest_name||'').toLowerCase().includes(q)||(l.relation||'').toLowerCase().includes(q)):arr;
+  const match=(l)=>q?((l.guest_name||'').toLowerCase().includes(q)||(l.relation||'').toLowerCase().includes(q)):true;
 
-  // 검색결과 별도 영역 (검색어 있을 때만)
+  // ── 검색 결과 영역 ──────────────────────────────────────────────
   const resultWrap=document.getElementById('log-search-result-wrap');
   const resultList=document.getElementById('log-search-result-list');
-  const countEl=document.getElementById('log-search-count');
+  const countEl   =document.getElementById('log-search-count');
   if(q){
-    const allFiltered=apply(logs.filter(l=>filter==='groom'?l.side==='신랑측':filter==='bride'?l.side==='신부측':true));
-    if(countEl) countEl.textContent=`검색 결과 ${allFiltered.length}건`;
-    if(resultList) renderLedgerCol('log-search-result-list',allFiltered,isAdmin);
+    const gResult=filter==='bride'?[]:logs.filter(l=>l.side==='신랑측'&&match(l));
+    const bResult=filter==='groom'?[]:logs.filter(l=>l.side==='신부측'&&match(l));
+    const total=gResult.length+bResult.length;
+    if(countEl) countEl.textContent=total?`검색 결과 ${total}건`:'검색 결과가 없습니다';
+    if(resultList){
+      // 신랑측 섹션
+      const gWrap=gResult.length?`
+        <div style="padding:4px 10px 2px;font-size:10px;font-weight:800;color:#2563EB;background:#EFF6FF;border-bottom:1px solid #DBEAFE">
+          🤵 신랑측 ${gResult.length}건
+        </div>
+        <div id="sr-groom"></div>`:'';
+      // 신부측 섹션
+      const bWrap=bResult.length?`
+        <div style="padding:4px 10px 2px;font-size:10px;font-weight:800;color:#DB2777;background:#FDF2F8;border-bottom:1px solid #FCE7F3;${gResult.length?'border-top:1px solid #F0EBE1':''}">
+          👰 신부측 ${bResult.length}건
+        </div>
+        <div id="sr-bride"></div>`:'';
+      resultList.innerHTML = (gWrap+bWrap)||'<div style="text-align:center;padding:16px;font-size:11px;color:#9CA3AF">검색 결과가 없습니다</div>';
+      if(gResult.length) renderLedgerCol('sr-groom', gResult, isAdmin);
+      if(bResult.length) renderLedgerCol('sr-bride', bResult, isAdmin);
+    }
     if(resultWrap) resultWrap.style.display='block';
   } else {
     if(resultWrap) resultWrap.style.display='none';
-    if(countEl) countEl.textContent='';
+    if(countEl)    countEl.textContent='';
   }
 
-  // 기존 목록 (항상 전체 표시, 필터 측 숨김만 적용)
+  // ── 전체 목록 (필터 측 표시/숨김) ─────────────────────────────
   const gLogs=filter==='bride'?[]:logs.filter(l=>l.side==='신랑측');
   const bLogs=filter==='groom'?[]:logs.filter(l=>l.side==='신부측');
   const hasG=filter!=='bride'&&logs.some(l=>l.side==='신랑측');
