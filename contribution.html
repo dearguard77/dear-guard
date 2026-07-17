@@ -615,35 +615,40 @@ input,select,textarea{font-family:inherit;outline:none}
 
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">3️⃣ 식권</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">대인</span>
-            <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
-              <button onclick="changeTicket('adult',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
-              <span id="adult-ticket-val" style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">1</span>
-              <button onclick="changeTicket('adult',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
+        <div style="display:flex;align-items:stretch;gap:8px">
+          <!-- 왼쪽: 식권 조정 + 추가 발급 -->
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">대인</span>
+              <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
+                <button onclick="changeTicket('adult',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+                <span id="adult-ticket-val" style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">1</span>
+                <button onclick="changeTicket('adult',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
+              </div>
+              <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
+              <div style="width:1px;height:20px;background:#E0E0E0;flex-shrink:0"></div>
+              <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">소인</span>
+              <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
+                <button onclick="changeTicket('child',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+                <span id="child-ticket-val" style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">0</span>
+                <button onclick="changeTicket('child',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
+              </div>
+              <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
             </div>
-            <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
-            <div style="width:1px;height:20px;background:#E0E0E0;flex-shrink:0"></div>
-            <span style="font-size:13px;font-weight:600;color:#374151;white-space:nowrap;flex-shrink:0">소인</span>
-            <div style="display:flex;align-items:center;background:#F5F5F5;border:1.5px solid #E0E0E0;border-radius:7px;overflow:hidden;flex-shrink:0">
-              <button onclick="changeTicket('child',-1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
-              <span id="child-ticket-val" style="font-size:14px;font-weight:800;color:#111;min-width:28px;text-align:center">0</span>
-              <button onclick="changeTicket('child',1)" style="width:30px;height:28px;background:none;border:none;font-size:16px;font-weight:700;color:#333;cursor:pointer;display:flex;align-items:center;justify-content:center">＋</button>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:#6B7280;font-weight:700;flex-shrink:0;white-space:nowrap">추가 발급</span>
+              <select id="add-ticket-side" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;background:#fff;flex-shrink:0;width:90px">
+                <option value="신랑측">🤵 신랑</option>
+                <option value="신부측">👰 신부</option>
+              </select>
+              <input id="add-ticket-amount" type="number" placeholder="수량" min="1" autocomplete="off" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:64px;flex-shrink:0" onkeydown="if(event.key==='Enter')addTicketExtra()">
+              <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
+              <button onclick="addTicketExtra()" style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 16px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
             </div>
-            <span style="font-size:12px;color:#9CA3AF;flex-shrink:0">매</span>
+            <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;border-top:1px solid #F0EDE8;padding-top:3px"></div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:10px;color:#6B7280;font-weight:700;flex-shrink:0;white-space:nowrap">추가 발급</span>
-            <select id="add-ticket-side" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:11px;padding:0 6px;background:#fff;flex-shrink:0;width:90px">
-              <option value="신랑측">🤵 신랑</option>
-              <option value="신부측">👰 신부</option>
-            </select>
-            <input id="add-ticket-amount" type="number" placeholder="수량" min="1" autocomplete="off" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:64px;flex-shrink:0" onkeydown="if(event.key==='Enter')addTicketExtra()">
-            <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
-            <button onclick="addTicketExtra()" style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 16px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
-          </div>
-          <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;border-top:1px solid #F0EDE8;padding-top:3px"></div>
+          <!-- 오른쪽: 두 번째 접수완료 버튼 -->
+          <button id="submit-btn-2" class="submit-btn" onclick="submitEntry()" style="flex-shrink:0;width:auto;padding:8px 14px;font-size:13px;border-radius:8px;box-shadow:none;align-self:stretch;writing-mode:horizontal-tb">✅ 접수<br>완료</button>
         </div>
       </div>
 
@@ -1618,6 +1623,7 @@ function resetForm(){
 // ── 접수 저장 ── [수정4: currentSchedule 없을때 goSelectSchedule 호출]
 async function submitEntry(){
   if(!currentSchedule){showToast('⚠️ 예식을 먼저 선택하세요');goSelectSchedule();return;}
+  if(window._submitting) return; // 중복 방지
 
   // 입력 누락 확인 팝업 (필수 차단 아님 - 확인 누르면 그대로 접수)
   const _checkName = document.getElementById('guest-name').value.trim();
@@ -1629,6 +1635,13 @@ async function submitEntry(){
     const _ok = confirm('입력 누락 항목이 있습니다.\n\n' + _warns.map(w=>'- '+w).join('\n') + '\n\n이대로 접수하시겠습니까?');
     if(!_ok) return;
   }
+
+  // 두 버튼 모두 비활성화
+  const _setBtns=(txt,dis)=>{
+    document.querySelectorAll('.submit-btn').forEach(b=>{b.disabled=dis;if(txt) b.innerHTML=txt;});
+  };
+  window._submitting=true;
+  _setBtns('저장 중…',true);
 
   const amount=Number((document.getElementById('amount-input').value||'').replace(/,/g,''))||st.amount;
   const _side = st.side==='groom'?'신랑측':'신부측';
@@ -1654,6 +1667,16 @@ async function submitEntry(){
     showToast('✅ 접수 완료되었습니다');
     collapseHoAccordionsOnce();
   } catch(e){ showToast('⚠️ 저장 실패: '+e.message); }
+  finally{
+    window._submitting=false;
+    // 상단 버튼 복구
+    const btn1=document.querySelector('.submit-btn:not(#submit-btn-2)');
+    if(btn1) btn1.innerHTML='✅ 접수 완료';
+    // 하단 버튼 복구
+    const btn2=document.getElementById('submit-btn-2');
+    if(btn2) btn2.innerHTML='✅ 접수<br>완료';
+    document.querySelectorAll('.submit-btn').forEach(b=>b.disabled=false);
+  }
 }
 
 // ── 빠른 수정 검색 ───────────────────────────────────────────────────────────
