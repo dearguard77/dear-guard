@@ -649,7 +649,7 @@ input,select,textarea{font-family:inherit;outline:none}
           </div>
           <!-- 오른쪽: 두 번째 접수완료 버튼 (대인/소인+추가발급 높이만큼) -->
           <button id="submit-btn-2" class="submit-btn" onclick="submitEntry()"
-            style="flex-shrink:0;width:56px;padding:6px 4px;font-size:12px;border-radius:8px;box-shadow:none;align-self:stretch;line-height:1.3">✅ 접수<br>완료</button>
+            style="flex-shrink:0;min-width:90px;max-width:140px;padding:0 14px;font-size:13px;border-radius:8px;box-shadow:none;align-self:stretch;white-space:nowrap;display:flex;align-items:center;justify-content:center">✅ 접수 완료</button>
         </div>
         <!-- ticket-extra-list는 버튼 영역 밖 아래로 분리 -->
         <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;border-top:1px solid #F0EDE8;padding-top:3px"></div>
@@ -1690,7 +1690,7 @@ async function submitEntry(){
     if(btn1) btn1.innerHTML='✅ 접수 완료';
     // 하단 버튼 복구
     const btn2=document.getElementById('submit-btn-2');
-    if(btn2) btn2.innerHTML='✅ 접수<br>완료';
+    if(btn2) btn2.innerHTML='✅ 접수 완료';
     document.querySelectorAll('.submit-btn').forEach(b=>b.disabled=false);
   }
 }
