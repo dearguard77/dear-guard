@@ -4043,15 +4043,15 @@ async function saveForm(){
       const created = await sb.post('schedules', row);
       const newRow  = Array.isArray(created)?created[0]:created;
       const newS    = rowToSchedule(newRow);
-      const newId   = newS.id; // INSERT 반환 id 확보
+      const newId   = newS.id;
       schedules.push(newS);
       showToast('🎉 새 예식이 등록되었습니다');
       sendNewScheduleNotifs(newS).catch(()=>{});
       closeForm();
       renderAll();
-      // 관리자에게만 상세모달 자동 오픈
+      // 관리자에게만 — renderAll 완료 후 상세모달 오픈
       if(ADMIN_NAMES.includes(currentUser.name) && newId){
-        openDetail(newId);
+        setTimeout(() => openDetail(newId), 50);
       }
     }
   } catch(e){
