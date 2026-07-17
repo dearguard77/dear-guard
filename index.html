@@ -529,7 +529,7 @@
           <!-- 관리자 전용 매니저 필터 -->
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:12px;color:#6B7280;font-weight:600">매니저</span>
-            <select id="cal-manager-filter" class="form-input" onchange="renderCal()" style="padding:4px 10px;font-size:12px;width:auto">
+            <select id="cal-manager-filter" class="form-input" onchange="renderCalendar()" style="padding:4px 10px;font-size:12px;width:auto">
               <option value="">전체 매니저</option>
             </select>
           </div>
@@ -1645,6 +1645,19 @@ function showToast(msg){
 // 권한별 일정 필터 — 모든 렌더 함수가 이 함수를 통해 일정을 가져옵니다
 const ADMIN_NAMES = ['강성주', '전수연'];
 
+// 매니저가 해당 예식에 참여하는지 확인 (모든 담당자 필드 검사)
+function schIncludesMgr(s, name){
+  if(!name) return true;
+  const fields = [s.frontManager, s.backManager];
+  // 4인 2팀 추가 담당자 (notes 또는 별도 필드)
+  if(s.notes && Array.isArray(s.notes)){
+    s.notes.forEach(n => { if(n.manager) fields.push(n.manager); });
+  }
+  return fields.some(f =>
+    (f || '').split(',').map(m => m.trim()).filter(Boolean).includes(name)
+  );
+}
+
 function visible(){
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
   const filtered = isAdmin
@@ -2030,19 +2043,15 @@ function renderCalendar(){
 const vs = visible(); // 권한 필터 적용된 일정
 // ★ 관리자 전용 내 일정만 보기 필터
 let vsFiltered = vs;
-if(calendarMyOnly && ADMIN_NAMES.includes(currentUser.name)){
-  vsFiltered = vs.filter(s =>
-    (s.frontManager || '').includes(currentUser.name) ||
-    (s.backManager  || '').includes(currentUser.name)
-  );
-}
-// ★ 관리자 전용 매니저 드롭다운 필터 (체크박스 필터와 독립 동작)
 const calMgrFilter = document.getElementById('cal-manager-filter')?.value || '';
-if(calMgrFilter && ADMIN_NAMES.includes(currentUser.name)){
-  vsFiltered = vsFiltered.filter(s =>
-    (s.frontManager || '').split(',').map(n=>n.trim()).includes(calMgrFilter) ||
-    (s.backManager  || '').split(',').map(n=>n.trim()).includes(calMgrFilter)
-  );
+const isAdminUser  = ADMIN_NAMES.includes(currentUser.name);
+
+// 우선순위: 내 일정만 보기 ON → 드롭다운 무시하고 본인만
+if(calendarMyOnly && isAdminUser){
+  vsFiltered = vs.filter(s => schIncludesMgr(s, currentUser.name));
+} else if(calMgrFilter && isAdminUser){
+  // 특정 매니저 선택
+  vsFiltered = vs.filter(s => schIncludesMgr(s, calMgrFilter));
 }
 // 체크박스 표시/숨김
 const myOnlyWrap = document.getElementById('cal-my-only-wrap');
