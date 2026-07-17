@@ -1134,7 +1134,7 @@
         <div class="form-grid">
           <div class="form-field span">
             <label class="form-label">총금액 (원)</label>
-            <input class="form-input" id="f-total-price" type="number" placeholder="500000" oninput="calcSettlement()">
+            <input class="form-input" id="f-total-price" type="number" placeholder="400000" oninput="calcSettlement()">
           </div>
           <div class="form-field">
             <label class="form-label">계약금 (원)</label>
@@ -1142,7 +1142,7 @@
           </div>
           <div class="form-field">
             <label class="form-label">잔금 (원)</label>
-            <input class="form-input" id="f-balance-price" type="number" placeholder="350000">
+            <input class="form-input" id="f-balance-price" type="number" placeholder="250000">
           </div>
           <div class="form-field">
             <label class="form-label">지역 구분</label>
@@ -3323,9 +3323,19 @@ function openForm(id){
 
   FORM_TABS = ADMIN_NAMES.includes(currentUser.name) ? FORM_TABS_ADMIN : FORM_TABS_BASE;
   if(ADMIN_NAMES.includes(currentUser.name)){
-    document.getElementById('f-total-price').value  = s?.totalPrice  || '';
-    document.getElementById('f-deposit-price').value = s?.depositPrice || '';
-    document.getElementById('f-balance-price').value = s?.balancePrice || '';
+    if(s){
+      // 기존 예식 수정 — 저장된 금액 그대로
+      document.getElementById('f-total-price').value   = s.totalPrice   || '';
+      document.getElementById('f-deposit-price').value = s.depositPrice || '';
+      document.getElementById('f-balance-price').value = s.balancePrice || '';
+    } else {
+      // 신규 등록 — 팀 구성 기반 기본값 세팅
+      const prod = document.getElementById('f-product')?.value || '2인 1팀';
+      const is4team = prod === '4인 2팀';
+      document.getElementById('f-total-price').value   = is4team ? 700000 : 400000;
+      document.getElementById('f-deposit-price').value = is4team ? 200000 : 150000;
+      document.getElementById('f-balance-price').value = is4team ? 500000 : 250000;
+    }
     document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
     calcSettlement();
   }
