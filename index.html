@@ -898,6 +898,7 @@
       <div class="modal-brand">Dear Guard · 예식 상세</div>
       <div class="modal-title" id="dm-title"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px" id="dm-badges"></div>
+      <div id="dm-reg-date" style="display:none;font-size:9px;color:#C4C4C4;margin-top:4px;letter-spacing:.3px"></div>
     </div>
     <div class="modal-body" id="dm-body"></div>
     <div class="modal-footer" id="dm-footer"></div>
@@ -2325,6 +2326,18 @@ function openDetail(id){
     ? '<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📋 체크완료</span>'
     : '<span style="background:#F3F4F6;color:#9CA3AF;border:1px solid #E5E7EB;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📋 체크미완</span>';
   document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>${(s.contractSigned||s.contractStatus==='completed'||!!s.contractSignedAt)?'<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📝 계약완료</span>':'<span style="background:#FEF9C3;color:#92400E;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">⏳ 계약대기</span>'}${_precheckBadge}`;
+
+  // 관리자 전용 계약 등록일 표시
+  const dmRegDate = document.getElementById('dm-reg-date');
+  if(dmRegDate){
+    if(ADMIN_NAMES.includes(currentUser.name) && s.createdAt){
+      const regDateStr = s.createdAt.slice(0,10).replace(/-/g,'.');
+      dmRegDate.style.display = 'block';
+      dmRegDate.textContent = `계약 등록 ${regDateStr}`;
+    } else {
+      dmRegDate.style.display = 'none';
+    }
+  }
 
   const canEdit=currentUser.canEdit||s.frontManager===currentUser.name||s.backManager===currentUser.name;
 
