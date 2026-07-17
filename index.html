@@ -25,7 +25,7 @@
   #user-btn{display:flex;align-items:center;gap:8px;background:#FDF8F3;border:1px solid #E8DFD0;border-radius:20px;padding:5px 12px 5px 5px}
   #user-btn:hover{background:#F5EFE6}
   .avatar{width:28px;height:28px;border-radius:50%;background:#C7A96B;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .user-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:8px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;display:none}
+  .user-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:8px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;display:none;max-height:70vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,16px)}
   .user-drop.open{display:block}
   .user-drop-item{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;border-radius:8px;padding:8px;text-align:left}
   .user-drop-item:hover,.user-drop-item.selected{background:#FDF8F3}
@@ -2287,9 +2287,15 @@ function switchTab(id, topBtn, botBtn){
 function toggleDrop(){
   dropOpen=!dropOpen;
   document.getElementById('user-drop').classList.toggle('open',dropOpen);
+  // 드롭다운 열릴 때 배경 스크롤 방지, 닫힐 때 복구
+  document.body.style.overflow = dropOpen ? 'hidden' : '';
 }
 document.addEventListener('click',e=>{
-  if(!e.target.closest('#user-btn')&&!e.target.closest('#user-drop')){ dropOpen=false; document.getElementById('user-drop').classList.remove('open'); }
+  if(!e.target.closest('#user-btn')&&!e.target.closest('#user-drop')){
+    dropOpen=false;
+    document.getElementById('user-drop').classList.remove('open');
+    document.body.style.overflow = '';
+  }
 });
 
 function switchUser(id){
