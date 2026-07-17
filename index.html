@@ -1188,7 +1188,7 @@
       <button class="btn btn-ghost" onclick="closeForm()">취소</button>
       <div style="display:flex;gap:8px">
         <button class="btn btn-secondary sm" id="fm-next-btn" onclick="formNextTab()">다음 단계 →</button>
-        <button class="btn btn-primary" onclick="saveForm()">💾 저장</button>
+        <button id="fm-save-btn" class="btn btn-primary" onclick="saveForm()">💾 저장</button>
       </div>
     </div>
   </div>
@@ -4026,6 +4026,8 @@ async function saveForm(){
     };
   }
 
+  const saveBtn = document.getElementById('fm-save-btn');
+  if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = '저장 중…'; }
   try {
     if(formId){
       const oldS    = schedules.find(x => x.id === formId);
@@ -4035,18 +4037,28 @@ async function saveForm(){
       if(idx !== -1) schedules[idx] = newS;
       showToast('✅ 예식 정보가 수정되었습니다');
       if(oldS) sendUpdateScheduleNotifs(oldS, newS).catch(()=>{});
+      closeForm(); renderAll();
     } else {
+      // 신규 등록 — INSERT 결과에서 id 확보 후 상세모달 자동 오픈
       const created = await sb.post('schedules', row);
       const newRow  = Array.isArray(created)?created[0]:created;
       const newS    = rowToSchedule(newRow);
+      const newId   = newS.id; // INSERT 반환 id 확보
       schedules.push(newS);
       showToast('🎉 새 예식이 등록되었습니다');
       sendNewScheduleNotifs(newS).catch(()=>{});
+      closeForm();
+      renderAll();
+      // 관리자에게만 상세모달 자동 오픈
+      if(ADMIN_NAMES.includes(currentUser.name) && newId){
+        openDetail(newId);
+      }
     }
-    closeForm(); renderAll();
   } catch(e){
     console.error('저장 실패:', e);
     alert('저장에 실패했습니다.\n\n원인: ' + (e.message||'네트워크 오류') + '\n\nSupabase URL과 API 키를 확인해주세요.');
+  } finally {
+    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = '저장'; }
   }
 }
 
