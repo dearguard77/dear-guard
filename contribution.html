@@ -615,7 +615,8 @@ input,select,textarea{font-family:inherit;outline:none}
 
       <div class="card" style="padding:5px 8px">
         <div class="card-title" style="margin-bottom:5px">3️⃣ 식권</div>
-        <div style="display:flex;align-items:stretch;gap:8px">
+        <!-- 대인/소인 + 추가발급 + 접수완료 버튼을 같은 영역으로 묶음 -->
+        <div style="display:flex;align-items:stretch;gap:8px;margin-bottom:3px">
           <!-- 왼쪽: 식권 조정 + 추가 발급 -->
           <div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -645,11 +646,13 @@ input,select,textarea{font-family:inherit;outline:none}
               <span style="font-size:10px;color:#9CA3AF;flex-shrink:0">장</span>
               <button onclick="addTicketExtra()" style="height:26px;background:#374151;color:#fff;border:none;border-radius:6px;padding:0 16px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">추가</button>
             </div>
-            <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;border-top:1px solid #F0EDE8;padding-top:3px"></div>
           </div>
-          <!-- 오른쪽: 두 번째 접수완료 버튼 -->
-          <button id="submit-btn-2" class="submit-btn" onclick="submitEntry()" style="flex-shrink:0;width:auto;padding:8px 14px;font-size:13px;border-radius:8px;box-shadow:none;align-self:stretch;writing-mode:horizontal-tb">✅ 접수<br>완료</button>
+          <!-- 오른쪽: 두 번째 접수완료 버튼 (대인/소인+추가발급 높이만큼) -->
+          <button id="submit-btn-2" class="submit-btn" onclick="submitEntry()"
+            style="flex-shrink:0;width:56px;padding:6px 4px;font-size:12px;border-radius:8px;box-shadow:none;align-self:stretch;line-height:1.3">✅ 접수<br>완료</button>
         </div>
+        <!-- ticket-extra-list는 버튼 영역 밖 아래로 분리 -->
+        <div id="ticket-extra-list" style="max-height:48px;overflow-y:auto;border-top:1px solid #F0EDE8;padding-top:3px"></div>
       </div>
 
     </div><!-- /input-panel -->
