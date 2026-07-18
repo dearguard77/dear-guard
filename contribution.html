@@ -1047,9 +1047,9 @@ async function selectSchedule(id){
     let infoStr='';
     if(dateStr){ const d=new Date(dateStr+'T00:00:00'); infoStr=dateStr+' ('+DAYS[d.getDay()]+')'; if(timeStr) infoStr+=' '+timeStr; if(hall) infoStr+=' · '+hall; }
     document.getElementById('top-schedule-info').textContent=infoStr;
-    const saved=JSON.parse(localStorage.getItem(`dg_tickets_${id}`)||'{}');
-    totalTickets.groom=saved.groom||currentSchedule.ticket_total_groom||0;
-    totalTickets.bride=saved.bride||currentSchedule.ticket_total_bride||0;
+    // 초기 식권: DB값만 신뢰 (localStorage는 기기별로 달라져 불일치 원인)
+    totalTickets.groom = currentSchedule.ticket_total_groom || 0;
+    totalTickets.bride = currentSchedule.ticket_total_bride || 0;
     sv('groom-total-ticket',totalTickets.groom||'');
     sv('bride-total-ticket',totalTickets.bride||'');
     document.getElementById('schedule-select-screen').style.display='none';
@@ -1269,15 +1269,21 @@ function renderPreShareList(){
   if(elB) elB.innerHTML = makeHtml(bList);
 }
 
-function saveTotalTickets(){
+async function saveTotalTickets(){
   totalTickets.groom = Number(document.getElementById('groom-total-ticket').value)||0;
   totalTickets.bride = Number(document.getElementById('bride-total-ticket').value)||0;
   if(currentSchedule){
-    localStorage.setItem(`dg_tickets_${currentSchedule.id}`, JSON.stringify(totalTickets));
-    sb.patch('schedules', currentSchedule.id, {
-      ticket_total_groom: totalTickets.groom || null,
-      ticket_total_bride: totalTickets.bride || null,
-    }).catch(e => console.warn('식권 저장 실패:', e));
+    try{
+      await sb.patch('schedules', currentSchedule.id, {
+        ticket_total_groom: totalTickets.groom || null,
+        ticket_total_bride: totalTickets.bride || null,
+      });
+      currentSchedule.ticket_total_groom = totalTickets.groom || null;
+      currentSchedule.ticket_total_bride = totalTickets.bride || null;
+    } catch(e){
+      showToast('⚠️ 식권 수량 저장 실패: '+e.message);
+      console.warn('식권 저장 실패:', e);
+    }
   }
   renderStats();
 }
@@ -1501,11 +1507,18 @@ function subscribeRealtime(){
       if(!isMutation) return;
       const topic=msg.topic||'';
       if(topic.includes('schedules')){
-        // schedules 변경 → 인계정보 재fetch 후 양측 화면 갱신
+        // schedules 변경 → DB 재fetch 후 식권 수량 포함 전체 갱신
         const freshRows=await sb.get('schedules',`?id=eq.${currentSchedule.id}&select=*`);
         if(freshRows&&freshRows.length){
           Object.assign(currentSchedule,freshRows[0]);
+          // 다른 기기의 식권 수정값 즉시 반영
+          totalTickets.groom = currentSchedule.ticket_total_groom || 0;
+          totalTickets.bride = currentSchedule.ticket_total_bride || 0;
+          const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
+          sv('groom-total-ticket', totalTickets.groom||'');
+          sv('bride-total-ticket', totalTickets.bride||'');
           loadHandover();
+          renderStats();
         }
       } else {
         // contribution_logs 변경 → 접수 내역 갱신
