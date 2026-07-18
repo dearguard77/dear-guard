@@ -486,8 +486,8 @@ function renderStats(){
   const gChildTkt=vLogs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.child_ticket||0),0);
   const bAdultTkt=vLogs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const bChildTkt=vLogs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
-  const gPreShare=vShares.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
-  const bPreShare=vShares.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+  const gPreShare=vShares.filter(t=>t.side==='신랑측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
+  const bPreShare=vShares.filter(t=>t.side==='신부측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
   const gUsedTotal=gAdultTkt+gChildTkt+gPreShare;
   const bUsedTotal=bAdultTkt+bChildTkt+bPreShare;
   const totalAdult=vLogs.reduce((s,l)=>s+(l.adult_ticket||0),0);
