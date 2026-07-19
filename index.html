@@ -2267,7 +2267,7 @@ function renderScheduleList(){
   // 예식일순은 loadSchedules의 order=date.asc 기준 유지 (정렬 불필요)
 
   // ── 활성 필터 배지 업데이트 ──
-  const badge = document.getElementById('active-filter-badge');
+  const filterBadgeEl = document.getElementById('active-filter-badge');
   const badgeTxt = document.getElementById('active-filter-text');
   const query = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
   const activeFilters = [];
@@ -2275,8 +2275,8 @@ function renderScheduleList(){
   if(contractFilter) activeFilters.push('계약미완');
   if(urgentFilter)   activeFilters.push('긴급확인');
   if(query)          activeFilters.push(`검색: "${query}"`);
-  if(badge){
-    badge.style.display = activeFilters.length ? 'flex' : 'none';
+  if(filterBadgeEl){
+    filterBadgeEl.style.display = activeFilters.length ? 'flex' : 'none';
     if(badgeTxt) badgeTxt.textContent = `필터 활성 (${activeFilters.join(', ')})`;
   }
 
@@ -2841,6 +2841,22 @@ async function openContractModal(id){
     } catch(e){ showToast('⚠️ 토큰 생성 실패: '+e.message); return; }
   }
 
+  // couple_referral_code 없으면 이름+전화 뒷자리로 자동 생성·저장
+  if(!s.coupleReferralCode){
+    // 계약 대표 측 기준 이름·전화 결정
+    const isBride = s.contractOwner === '신부측';
+    const ownerName  = isBride ? (s.brideName  || s.groomName  || '') : (s.groomName  || s.brideName  || '');
+    const ownerPhone = isBride ? (s.bridePhone || s.groomPhone || '') : (s.groomPhone || s.bridePhone || '');
+    const last4 = (ownerPhone || '').replace(/[^0-9]/g,'').slice(-4);
+    if(ownerName && last4){
+      const newCode = ownerName + last4;
+      try {
+        await sb.patch('schedules', id, { couple_referral_code: newCode });
+        s.coupleReferralCode = newCode;
+      } catch(e){ console.warn('짝꿍코드 자동 생성 실패:', e); }
+    }
+  }
+
   const base = location.origin;
   const contractUrl = `${base}/api/contract?t=${s.contractToken}&d=${s.date || Date.now()}`;
 
@@ -3073,7 +3089,11 @@ function copyContractGuide(contractUrl, scheduleId){
   }
 
   // ── 대표 짝꿍코드 ──
-  const code = s?.coupleReferralCode || '코드없음';
+  const code = s?.coupleReferralCode || '';
+
+  const codeSection = code
+    ? `\n서명 완료 후에도\n계약일로부터 1주일 이내라면\n짝꿍코드 입력이 가능합니다.\n\n💌 짝꿍코드 (${code})\n\n추천받으실 분께 위 코드를 전달해 주세요 :)\n`
+    : '';
 
   const guide = `[디어가드 계약 완료]
 ${honorific ? honorific + '😊\n' : ''}전자 계약서 링크 전달 드립니다 :)
@@ -3083,16 +3103,7 @@ ${honorific ? honorific + '😊\n' : ''}전자 계약서 링크 전달 드립니
 
 👉전자 계약서
 ${contractUrl}
-
-
-서명 완료 후에도
-계약일로부터 1주일 이내라면
-짝꿍코드 입력이 가능합니다.
-
-💌 짝꿍코드 (${code})
-
-추천받으실 분께 위 코드를 전달해 주세요 :)
-
+${codeSection}
 궁금하신 점은 언제든
 디어가드 카카오톡 채널로 문의 부탁드립니다🤍`;
 
