@@ -4332,8 +4332,22 @@ function renderUnavailCal(){
             : '';
 
           const hasAny = myUv.length > 0 || partnerUv.length > 0;
-          // 일반 매니저에게는 클릭 팝업 없음(다른 매니저 정보 노출 방지)
-          const cellClick = isAdmin ? `onclick="openUvDayModal('${ds}')" style="cursor:pointer"` : 'style="cursor:default"';
+
+          // 클릭 동작 결정
+          // - 관리자: 날짜 팝업(전체 현황)
+          // - 일반 매니저, 본인 불가 있음: 본인 첫 번째 불가일정 수정 모달 직접 오픈
+          // - 일반 매니저, 본인 불가 없음: 신규 등록 (openUnavailForm(null, ds))
+          let cellClick;
+          if(isAdmin){
+            cellClick = `onclick="openUvDayModal('${ds}')" style="cursor:pointer"`;
+          } else if(myUv.length > 0){
+            // 본인 불가일정 → 클릭 시 수정 모달
+            const myUvId = myUv[0].id;
+            cellClick = `onclick="uvOpenEdit(${myUvId})" style="cursor:pointer"`;
+          } else {
+            // 본인 불가 없는 날 → 신규 등록
+            cellClick = `onclick="uvOpenNew('${ds}','${viewAsManager}')" style="cursor:pointer"`;
+          }
 
           return `<div class="cal-cell${isToday?' today':''}" ${cellClick}>
             <div class="cal-day" style="color:${dayCol}">${dayNum}</div>
@@ -4857,14 +4871,22 @@ async function saveUnavail(){
       }
 
       const updated = await sb.patch('unavailable_schedules', uvEditId, row);
+      const updatedRow = Array.isArray(updated) ? updated[0] : updated;
       const idx = unavailables.findIndex(x => x.id === uvEditId);
-      if(idx !== -1) unavailables[idx] = rowToUnavail(Array.isArray(updated)?updated[0]:updated);
+      if(updatedRow && idx !== -1){
+        unavailables[idx] = rowToUnavail(updatedRow);
+      } else if(!updatedRow){
+        // RLS 등으로 0행 반환 시: 메모리 직접 갱신
+        if(idx !== -1) Object.assign(unavailables[idx], { unavailableType: uvType, memo: memo||'' });
+      }
 
       if(editPartner && partnerUvEdit){
         const partnerRow = { manager_name: partnerName, date, unavailable_type: uvType, memo: memo || null };
         const partnerUpdated = await sb.patch('unavailable_schedules', partnerUvEdit.id, partnerRow);
+        const partnerUpdatedRow = Array.isArray(partnerUpdated) ? partnerUpdated[0] : partnerUpdated;
         const pIdx = unavailables.findIndex(x => x.id === partnerUvEdit.id);
-        if(pIdx !== -1) unavailables[pIdx] = rowToUnavail(Array.isArray(partnerUpdated)?partnerUpdated[0]:partnerUpdated);
+        if(partnerUpdatedRow && pIdx !== -1) unavailables[pIdx] = rowToUnavail(partnerUpdatedRow);
+        else if(!partnerUpdatedRow && pIdx !== -1) Object.assign(unavailables[pIdx], { unavailableType: uvType, memo: memo||'' });
         showToast(`✅ ${managerName} + ${partnerName} 불가일정이 함께 수정되었습니다`);
       } else {
         showToast('✅ 불가일정이 수정되었습니다');
