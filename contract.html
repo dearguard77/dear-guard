@@ -261,9 +261,9 @@ input,select,textarea{font-family:inherit;outline:none}
           추천받으신 분의 짝꿍코드를 입력해주세요.<br>
           <span style="color:#9CA3AF">• 계약일로부터 1주일 이내 입력 가능&nbsp;&nbsp;• 계약당 1회 적용</span>
         </div>
-        <div style="display:flex;gap:8px;align-items:stretch">
-          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1 1 auto;min-width:0;font-size:13px">
-          <button id="couple-code-btn" onclick="applyCoupleCode()" style="flex:0 0 auto;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">코드 적용</button>
+        <div style="display:flex;gap:8px">
+          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px">
+          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">짝꿍코드 적용</button>
         </div>
         <div id="couple-code-msg" style="margin-top:8px;font-size:12px;display:none"></div>
       </div>
@@ -547,7 +547,6 @@ const sb = {
   h: {'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
   url: (t,q='') => `${SUPABASE_URL}/rest/v1/${t}${q}`,
   async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
-  async post(t,b){ const r=await fetch(sb.url(t),{method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
   async patch(t,id,b){ const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
   async upload(bucket,path,blob){ const r=await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`,{method:'POST',headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':blob.type},body:blob}); return r; },
 };
@@ -718,11 +717,12 @@ function renderPayment(){
   const fmt = n => n != null ? Number(n).toLocaleString()+'원' : '—';
   const am = s.admin_memo || {};
 
-  // ── 정가 기준 (계약금으로 팀 구성 판단) ──
+  // ── 총금액: DB의 total_price 우선 (출장비·추가금 포함) ──
+  // total_price가 없으면 계약금 기준 정가로 폴백
   const depositPrice = Number(s.deposit_price) || 150000;
-  // 계약금 20만원 이상이면 4인 2팀, 아니면 2인 1팀
   const isDoubleTeam = depositPrice >= 200000;
-  const listPrice    = isDoubleTeam ? 700000 : 400000; // 정가: 2인1팀 40만 / 4인2팀 70만
+  const fallbackPrice = isDoubleTeam ? 700000 : 400000;
+  const listPrice    = Number(s.total_price) || fallbackPrice; // 출장비 등 추가금 포함 총금액
 
   // ── 기준 잔금 = 정가 - 계약금 (할인 전) ──
   const baseBalance  = listPrice - depositPrice;
@@ -874,26 +874,6 @@ async function applyCoupleCode(){
     const currentName = schedule.groom_name || schedule.bride_name || '';
     const ownerName   = ownerRow.groom_name || ownerRow.bride_name || '';
 
-    // ── referral_code_usages에 사용 이력 먼저 등록 (필수 — 실패 시 할인 적용 자체를 중단) ──
-    // 중복 방지의 기준이 되는 테이블이므로, 이 insert가 실패하면 절대 할인을 적용하지 않음
-    let usageInsertRow;
-    try{
-      const inserted = await sb.post('referral_code_usages', {
-        used_code:            code,
-        referrer_name:        ownerName,
-        used_by_name:         currentName,
-        used_by_schedule_id:  schedule.id,
-        source:               'contract',
-        status:               'active',
-      });
-      usageInsertRow = Array.isArray(inserted) ? inserted[0] : inserted;
-    }catch(usageInsertErr){
-      console.error('[DG] referral_code_usages 등록 실패 — 할인 적용 중단:', usageInsertErr);
-      showCoupleMsg('사용 이력 저장 중 오류가 발생하여 할인 적용이 중단되었습니다. 잠시 후 다시 시도해주세요.', true);
-      if(btn){ btn.disabled = false; btn.textContent = '코드 적용'; }
-      return;
-    }
-
     // ── B(코드 소유자) 자동 리워드 처리 ──
     const bAm = ownerRow.admin_memo || {};
     const bAlreadyHasDiscount =
@@ -953,14 +933,26 @@ async function applyCoupleCode(){
       schedule.couple_discount_amount = 10000;
       schedule.admin_memo             = newAAm;
     }catch(saveErr){
-      // A 할인 적용 실패 — 이미 등록한 usage row를 cancelled로 되돌려 코드 재사용 가능하게 함
-      if(usageInsertRow?.id){
-        try{ await sb.patch('referral_code_usages', usageInsertRow.id, { status: 'cancelled' }); }
-        catch(rollbackErr){ console.error('[DG] usage row 롤백 실패:', rollbackErr); }
-      }
       showCoupleMsg('코드 저장 중 오류가 발생했습니다: '+saveErr.message, true);
-      if(btn){ btn.disabled = false; btn.textContent = '코드 적용'; }
+      if(btn){ btn.disabled = false; btn.textContent = '짝꿍코드 적용'; }
       return;
+    }
+
+    // ── referral_code_usages에 사용 이력 등록 ──
+    // (신규 계약자가 입력한 코드만 기록, 신규 계약자의 대표코드는 기록 안 함)
+    try{
+      const ownerName   = ownerRow.groom_name || ownerRow.bride_name || '';
+      const currentName = schedule.groom_name || schedule.bride_name || '';
+      await sb.post('referral_code_usages', {
+        used_code:            code,
+        referrer_name:        ownerName,
+        used_by_name:         currentName,
+        used_by_schedule_id:  schedule.id,
+        source:               'contract',
+        status:               'active',
+      });
+    }catch(e){
+      console.warn('[DG] 사용이력 등록 실패 (할인은 이미 적용됨):', e);
     }
 
     coupleDiscountApplied = true;
@@ -980,7 +972,7 @@ async function applyCoupleCode(){
   } finally {
     if(!coupleDiscountApplied && btn){
       btn.disabled = false;
-      btn.textContent = '코드 적용';
+      btn.textContent = '짝꿍코드 적용';
     }
   }
 }
@@ -1287,7 +1279,7 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
 
     <!-- 결제 정보 -->
     <div class="pdf-section-title">결제 정보</div>
-    <div class="pdf-info-row"><span class="pdf-info-lbl">총 계약 금액</span><span class="pdf-info-val gold">${fmt(s.total_price)}</span></div>
+    <div class="pdf-info-row"><span class="pdf-info-lbl">총 계약 금액</span><span class="pdf-info-val gold">${fmt(s.total_price || (Number(s.deposit_price)>=200000?700000:400000))}</span></div>
     <div class="pdf-info-row"><span class="pdf-info-lbl">계약금</span><span class="pdf-info-val">${fmt(s.deposit_price)}</span></div>
     <div class="pdf-info-row"><span class="pdf-info-lbl">잔금</span><span class="pdf-info-val">${fmt(s.balance_price)}</span></div>
     <div class="pdf-notice">※ 본 계약서는 배상 범위 및 책임 기준을 명확히 하기 위해 정가 기준으로 작성됩니다.<br>※ 계약 후기 할인, 짝꿍 할인 등 프로모션 혜택은 조건 충족 시 잔금 결제 금액에서 차감 적용됩니다.</div>
