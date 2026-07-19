@@ -549,6 +549,11 @@
           <option value="date">🗂 예식일순</option>
           <option value="contract">📋 계약 최신순</option>
         </select>
+        <!-- 활성 필터 표시 + 전체 초기화 -->
+        <div id="active-filter-badge" style="display:none;align-items:center;gap:6px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:3px 10px;font-size:11px;color:#92400E;font-weight:700">
+          <span id="active-filter-text">필터 활성</span>
+          <button onclick="clearAllFilters()" style="background:#C7A96B;color:#fff;border:none;border-radius:5px;padding:2px 7px;font-size:10px;cursor:pointer;font-weight:700">전체 초기화</button>
+        </div>
       </div>
       <button class="btn btn-primary sm" id="sch-reg-btn" onclick="openForm(null)" style="display:none">＋ 예식 등록</button>
     </div>
@@ -928,7 +933,7 @@
         <div class="form-grid">
           <div class="form-field">
             <label class="form-label">신랑 이름</label>
-            <input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)">
+            <input class="form-input" id="f-groom" placeholder="홍길동 (없으면 비워도 됩니다)" oninput="toggleOwnerWrap()">
           </div>
           <div class="form-field">
             <label class="form-label">신랑 연락처</label>
@@ -936,11 +941,23 @@
           </div>
           <div class="form-field">
             <label class="form-label">신부 이름</label>
-            <input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)">
+            <input class="form-input" id="f-bride" placeholder="김영희 (없으면 비워도 됩니다)" oninput="toggleOwnerWrap()">
           </div>
           <div class="form-field">
             <label class="form-label">신부 연락처</label>
             <input class="form-input" id="f-bride-phone" type="tel" placeholder="010-5678-1234">
+          </div>
+          <!-- 양측 예식: 계약 대표 측 선택 (관리자 전용) -->
+          <div class="form-field" id="f-contract-owner-wrap" style="display:none;grid-column:1/-1">
+            <label class="form-label">계약 대표 측 <span style="color:#EF4444">*</span> <span style="font-size:10px;color:#9CA3AF">양측 예식일 때 대표 계약자를 선택하세요</span></label>
+            <div style="display:flex;gap:10px;align-items:center">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600">
+                <input type="radio" name="f-contract-owner" id="f-owner-groom" value="신랑측" style="accent-color:#C7A96B"> 🤵 신랑측 대표
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600">
+                <input type="radio" name="f-contract-owner" id="f-owner-bride" value="신부측" style="accent-color:#C7A96B"> 👰 신부측 대표
+              </label>
+            </div>
           </div>
           <div class="form-field">
             <label class="form-label">예식일 <span style="color:#EF4444">*</span></label>
@@ -1575,6 +1592,7 @@ function scheduleToRow(v, notes, cl){
     net_profit:    v.netProfit    || null,
     labor_paid:    v.laborPaid    || false,
     // result는 saveResult에서 별도 저장 — saveForm에서 덮어쓰지 않음
+    contract_owner: v.contractOwner || null,
     field_memo:      v.fieldMemo      || {},
     admin_memo:      v.adminMemo      || {},
     handover_person: v.handoverPerson || null,
@@ -2189,6 +2207,28 @@ function clearUrgentFilter(){
   renderScheduleList();
 }
  
+function toggleOwnerWrap(){
+  const groom = (document.getElementById('f-groom')?.value||'').trim();
+  const bride  = (document.getElementById('f-bride')?.value||'').trim();
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  const wrap = document.getElementById('f-contract-owner-wrap');
+  if(wrap) wrap.style.display = (groom && bride && isAdmin) ? 'block' : 'none';
+}
+
+function clearAllFilters(){
+  statusFilter   = '';
+  urgentFilter   = false;
+  contractFilter = false;
+  // 검색어 초기화
+  const srch = document.getElementById('sch-search');
+  if(srch) srch.value = '';
+  // 상태 버튼 초기화
+  document.querySelectorAll('.status-filter-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.status === '');
+  });
+  renderScheduleList();
+}
+
 function renderScheduleList(){
   // visible()은 기존 직원별 권한 필터 유지
   let vs = visible();
@@ -2200,12 +2240,12 @@ function renderScheduleList(){
   if(contractFilter) vs = vs.filter(s => !s.contractSigned && s.contractStatus !== 'completed' && !s.contractSignedAt);
 
   // 검색어 필터
-  const query = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
-  if(query){
+  const queryStr = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
+  if(queryStr){
     vs = vs.filter(s =>
-      (s.groomName || '').toLowerCase().includes(query) ||
-      (s.brideName || '').toLowerCase().includes(query) ||
-      (s.hall      || '').toLowerCase().includes(query)
+      (s.groomName || '').toLowerCase().includes(queryStr) ||
+      (s.brideName || '').toLowerCase().includes(queryStr) ||
+      (s.hall      || '').toLowerCase().includes(queryStr)
     );
   }
 
@@ -2225,6 +2265,20 @@ function renderScheduleList(){
     });
   }
   // 예식일순은 loadSchedules의 order=date.asc 기준 유지 (정렬 불필요)
+
+  // ── 활성 필터 배지 업데이트 ──
+  const badge = document.getElementById('active-filter-badge');
+  const badgeTxt = document.getElementById('active-filter-text');
+  const query = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
+  const activeFilters = [];
+  if(statusFilter)   activeFilters.push(`단계: ${statusFilter}`);
+  if(contractFilter) activeFilters.push('계약미완');
+  if(urgentFilter)   activeFilters.push('긴급확인');
+  if(query)          activeFilters.push(`검색: "${query}"`);
+  if(badge){
+    badge.style.display = activeFilters.length ? 'flex' : 'none';
+    if(badgeTxt) badgeTxt.textContent = `필터 활성 (${activeFilters.join(', ')})`;
+  }
 
   document.getElementById('sch-count').textContent =
     urgentFilter ? `긴급확인 ${vs.length}건` : `총 ${vs.length}건`;
@@ -2834,7 +2888,7 @@ async function openContractModal(id){
               style="flex:1;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               📝 계약 링크 복사
             </button>
-            <button onclick="copyContractGuide('${contractUrl}')"
+            <button onclick="copyContractGuide('${contractUrl}', ${id})"
               style="flex:1;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
               💬 계약 안내문
             </button>
@@ -3003,25 +3057,49 @@ function renderReferralList(){
   }
 }
 
-function copyContractGuide(contractUrl){
-  const guide = `[디어가드 계약 완료] 전자 계약서 링크 전달드립니다 :)
+function copyContractGuide(contractUrl, scheduleId){
+  const s = schedules.find(x => x.id === scheduleId);
+
+  // ── 계약 대표 호칭 결정 ──
+  const bothSides = !!(s?.groomName && s?.brideName);
+  let honorific = '';
+  if(bothSides){
+    const owner = s?.contractOwner || '';
+    if(owner === '신랑측') honorific = '신랑님';
+    else if(owner === '신부측') honorific = '신부님';
+    else {
+      showToast('⚠️ 양측 예식은 계약 대표 측을 먼저 선택해 주세요 (예식 수정 → 기본정보)');
+      return;
+    }
+  } else {
+    honorific = s?.groomName ? '신랑님' : '신부님';
+  }
+
+  // ── 대표 짝꿍코드 ──
+  const code = s?.coupleReferralCode || '코드없음';
+
+  const guide = `[디어가드 계약 완료]
+${honorific}😊
+전자 계약서 링크 전달 드립니다 :)
 
 계약 및 운영 안내 내용을 확인하신 후,
-편하실 때 전자서명 진행 부탁드리겠습니다.
+전자서명 진행 부탁드리겠습니다.
 
-👉 전자 계약서
+👉전자 계약서
 ${contractUrl}
 
-전자 계약 완료 후에는
-계약 확인서 PDF가 자동 저장되며,
-언제든 다시 다운로드 가능합니다 😊
 
-짝꿍코드는 이름+휴대폰 뒷자리로 적용되며,
-(예: 홍길동1234)
-할인 적용은 1회만 가능합니다 🤍
+서명 완료 후에도
+계약일로부터 1주일 이내라면
+짝꿍코드 입력이 가능합니다.
+
+💌 짝꿍코드 (${code})
+
+추천받으실 분께 위 코드를 전달해 주세요 :)
 
 궁금하신 점은 언제든
-디어가드 카카오톡 채널로 편하게 문의 주세요!`;
+디어가드 카카오톡 채널로 문의 부탁드립니다🤍`;
+
   navigator.clipboard.writeText(guide).then(function(){
     showToast('✅ 계약 안내가 복사되었습니다');
   }).catch(function(){
@@ -3218,6 +3296,12 @@ function openForm(id){
   document.getElementById('f-groom-phone').value = s?.groomPhone  || '';
   document.getElementById('f-bride').value       = s?.brideName   || '';
   document.getElementById('f-bride-phone').value = s?.bridePhone  || '';
+  // 계약 대표 측 복원
+  toggleOwnerWrap();
+  if(s?.contractOwner){
+    const radio = document.querySelector(`input[name="f-contract-owner"][value="${s.contractOwner}"]`);
+    if(radio) radio.checked = true;
+  }
   document.getElementById('f-date').value    = s?.date        || '';
 
   // 예식시간 분리 세팅
@@ -3563,6 +3647,13 @@ function getFormValues(){
     groomPhone:   (document.getElementById('f-groom-phone')?.value || '').trim(),
     brideName:    (document.getElementById('f-bride')?.value       || '').trim(),
     bridePhone:   (document.getElementById('f-bride-phone')?.value || '').trim(),
+    contractOwner: (() => {
+      const groom = (document.getElementById('f-groom')?.value||'').trim();
+      const bride  = (document.getElementById('f-bride')?.value||'').trim();
+      if(!groom || !bride) return groom ? '신랑측' : bride ? '신부측' : '';
+      const sel = document.querySelector('input[name="f-contract-owner"]:checked');
+      return sel ? sel.value : '';
+    })(),
     date:          document.getElementById('f-date')?.value    || '',
     time,
     arrivalTime,
