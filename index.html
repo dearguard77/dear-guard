@@ -2991,8 +2991,9 @@ function renderReferralList(){
   };
   const usedCodeSet = new Set([
     ...Array.from(activeSet),
-    ...schedules.filter(s => _getCode(s) && s.coupleDiscountStatus === 'approved').map(s => _getCode(s)),
-    ...schedules.filter(s => s.coupleDiscountCode && s.coupleDiscountCode.trim()).map(s => s.coupleDiscountCode.trim()),
+    // 다른 schedules.couple_discount_code에 사용된 코드
+    ...schedules.filter(s => s.coupleDiscountCode && s.coupleDiscountCode.trim())
+                .map(s => s.coupleDiscountCode.trim()),
   ]);
 
   if(_referralTab === 'avail'){
