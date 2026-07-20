@@ -2282,14 +2282,16 @@ function renderScheduleList(){
   // 정렬
   const schSort = document.getElementById('sch-sort')?.value || 'date';
   if(schSort === 'contract'){
-    // 계약 최신순: contractDate 있는 것 먼저, 없는 것 맨 뒤
+    // 계약 최신순: contractDate 우선, 없으면 createdAt(등록일) 폴백 → 최신순
     vs = [...vs].sort((a, b) => {
-      if(!a.contractDate && !b.contractDate) return 0;
-      if(!a.contractDate) return 1;
-      if(!b.contractDate) return -1;
-      return b.contractDate.localeCompare(a.contractDate);
+      const aDate = a.contractDate || (a.createdAt ? a.createdAt.slice(0,10) : '');
+      const bDate = b.contractDate || (b.createdAt ? b.createdAt.slice(0,10) : '');
+      if(!aDate && !bDate) return 0;
+      if(!aDate) return 1;
+      if(!bDate) return -1;
+      return bDate.localeCompare(aDate);
     });
-    console.log('[DEBUG 7] 계약최신순 정렬 후 수:', vs.length, '강성주:', _kk(vs).map(s=>({id:s.id,contractDate:s.contractDate})));
+    console.log('[DEBUG 7] 계약최신순 정렬 후 수:', vs.length, '강성주:', _kk(vs).map(s=>({id:s.id,contractDate:s.contractDate,createdAt:s.createdAt?.slice(0,10)})));
   } else {
     console.log('[DEBUG 7] 예식일순 정렬. 강성주:', _kk(vs).map(s=>({id:s.id,date:s.date})));
   }
