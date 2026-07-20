@@ -2980,25 +2980,42 @@ function renderReferralList(){
   // 1. referral_code_usages에 active 항목 있음
   // 2. 해당 코드를 보유한 schedule이 이미 couple_discount_status='approved' (할인 수령 측)
   // 3. 다른 schedule이 이 코드를 사용해 coupleDiscountCode로 저장한 경우
+  const _getCode = s => {
+    if(s.coupleReferralCode) return s.coupleReferralCode;
+    const isBoth = !!(s.groomName && s.brideName);
+    if(isBoth) return '';
+    const name  = s.groomName || s.brideName || '';
+    const phone = s.groomPhone || s.bridePhone || '';
+    const last4 = (phone||'').replace(/\D/g,'').slice(-4);
+    return (name&&last4) ? name+last4 : '';
+  };
   const usedCodeSet = new Set([
     ...Array.from(activeSet),
-    // 이미 할인을 받은 schedule의 자기 코드 (코드 발급자 본인도 할인 받은 경우)
-    ...schedules
-      .filter(s => s.coupleReferralCode && s.coupleDiscountStatus === 'approved')
-      .map(s => s.coupleReferralCode),
-    // 다른 schedule이 이 코드를 사용코드로 등록한 경우
-    ...schedules
-      .filter(s => s.coupleDiscountCode && s.coupleDiscountCode.trim())
-      .map(s => s.coupleDiscountCode.trim()),
+    ...schedules.filter(s => _getCode(s) && s.coupleDiscountStatus === 'approved').map(s => _getCode(s)),
+    ...schedules.filter(s => s.coupleDiscountCode && s.coupleDiscountCode.trim()).map(s => s.coupleDiscountCode.trim()),
   ]);
 
   if(_referralTab === 'avail'){
     // ── 사용 가능 탭 ──────────────────────────────────────────────────────
-    // schedules에서 couple_referral_code 있고 active 이력 없는 것만
+    // couple_referral_code 없는 경우:
+    // - 단측(신랑만 or 신부만): 이름+전화 뒷4자리로 폴백
+    // - 양측(신랑+신부 모두): 건드리지 않음
+    const getCode = s => {
+      if(s.coupleReferralCode) return s.coupleReferralCode;
+      const isBoth = !!(s.groomName && s.brideName);
+      if(isBoth) return ''; // 양측은 couple_referral_code 없으면 빈값 유지
+      const name  = s.groomName || s.brideName || '';
+      const phone = s.groomPhone || s.bridePhone || '';
+      const last4 = (phone || '').replace(/\D/g,'').slice(-4);
+      return (name && last4) ? name + last4 : '';
+    };
+
+    // schedules에서 코드 계산 가능한 것 + active 이력 없는 것만
     let items = schedules
-      .filter(s => s.coupleReferralCode && !usedCodeSet.has(s.coupleReferralCode))
-      .map(s => ({
-        code:         s.coupleReferralCode,
+      .map(s => ({ s, code: getCode(s) }))
+      .filter(({ s, code }) => code && !usedCodeSet.has(code))
+      .map(({ s, code }) => ({
+        code,
         name:         [s.groomName, s.brideName].filter(Boolean).join(' / '),
         contractDate: s.contractDate || s.contractSignedAt?.slice(0,10) || s.createdAt?.slice(0,10) || '',
         weddingDate:  s.date || '',
@@ -3044,12 +3061,12 @@ function renderReferralList(){
         ${r.weddingDate  ? `<div style="font-size:11px;color:#6B7280">예식일: ${r.weddingDate}</div>`  : ''}
       </div>`).join('');
 
-    // ── 대표 미지정 섹션 (양측 예식인데 contract_owner 없는 경우) ──────────────
+    // ── 대표 미지정 섹션 (양측 예식인데 코드 계산 불가한 경우만) ──────────────
     if(!q){
       const unassigned = schedules.filter(s =>
-        s.groomName && s.brideName &&                // 양측 예식
-        (!s.coupleReferralCode || s.coupleReferralCode.trim() === '') && // 코드 없음
-        (!s.contractOwner || s.contractOwner.trim() === '')              // 대표 미지정
+        s.groomName && s.brideName &&
+        !getCode(s) &&                                        // 폴백으로도 코드 계산 불가
+        (!s.contractOwner || s.contractOwner.trim() === '')   // 대표 미지정
       );
       if(unassigned.length){
         el.innerHTML += `
@@ -3080,7 +3097,7 @@ function renderReferralList(){
         // 이미 referral_code_usages에 있으면 중복 추가 안 함
         if(usages.some(u => u.used_code === usedCode)) return null;
         // 코드 소유자 예식 찾기
-        const ownerSch = schedules.find(o => o.coupleReferralCode === usedCode);
+        const ownerSch = schedules.find(o => o.coupleReferralCode === usedCode || _getCode(o) === usedCode);
         const referrerName = ownerSch
           ? [ownerSch.groomName, ownerSch.brideName].filter(Boolean).join(' / ')
           : usedCode;
