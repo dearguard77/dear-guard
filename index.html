@@ -3104,6 +3104,32 @@ function renderReferralList(){
     // referral_code_usages의 active 행 전체 (legacy + contract)
     let usages = _referralUsages.filter(u => u.status === 'active');
 
+    // referral_code_usages에 없지만 schedules.coupleDiscountCode로 사용된 코드 추가
+    const fromSchedules = schedules
+      .filter(s => s.coupleDiscountCode && s.coupleDiscountCode.trim())
+      .map(s => {
+        const usedCode = s.coupleDiscountCode.trim();
+        // 이미 referral_code_usages에 있으면 중복 추가 안 함
+        if(usages.some(u => u.used_code === usedCode)) return null;
+        // 코드 소유자 예식 찾기
+        const ownerSch = schedules.find(o => o.coupleReferralCode === usedCode);
+        const referrerName = ownerSch
+          ? [ownerSch.groomName, ownerSch.brideName].filter(Boolean).join(' / ')
+          : usedCode;
+        const usedByName = [s.groomName, s.brideName].filter(Boolean).join(' / ');
+        return {
+          used_code:    usedCode,
+          referrer_name: referrerName,
+          used_by_name: usedByName,
+          status:       'active',
+          source:       'schedule',
+          created_at:   s.contractSignedAt || s.createdAt || '',
+          _fromSchedule: true,
+        };
+      }).filter(Boolean);
+
+    usages = [...usages, ...fromSchedules];
+
     // 같은 used_code가 여럿이면 가장 최근 행만 대표로 (이미 created_at.desc로 정렬되어 있음)
     const seen = new Set();
     usages = usages.filter(u => {
@@ -3132,6 +3158,8 @@ function renderReferralList(){
       const dateStr = u.created_at ? u.created_at.slice(0,10) : '';
       const srcBadge = u.source === 'legacy'
         ? '<span style="font-size:9px;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:1px 5px;margin-left:4px">legacy</span>'
+        : u._fromSchedule
+        ? '<span style="font-size:9px;background:#FEE2E2;color:#DC2626;border-radius:4px;padding:1px 5px;margin-left:4px">이력미기록</span>'
         : '';
       return `
       <div style="border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#FFFBEB">
