@@ -3692,16 +3692,20 @@ function syncContractMemoToSettlement(){
   const etcAmt = formContractMemo['etc_discount'] ? (Number(formContractMemo['etc_discount_amount']) || 0) * 10000 : 0;
   totalDiscount += etcAmt;
 
-  const totalPrice   = BASE_PRICE - totalDiscount;
-  const balancePrice = totalPrice - DEPOSIT;
-
-  // 정산정보 탭 입력칸에 반영
+  // total_price: 관리자가 직접 입력한 값 우선 (출장비·추가금 포함)
+  // 없으면 상품구성 기본값으로 폴백 (신규 등록 시에만)
   const totalEl   = document.getElementById('f-total-price');
   const depositEl = document.getElementById('f-deposit-price');
   const balanceEl = document.getElementById('f-balance-price');
-  if(totalEl)   totalEl.value   = totalPrice;
+
+  const inputTotal = Number(totalEl?.value) || 0;
+  const totalPrice   = inputTotal > 0 ? inputTotal : BASE_PRICE; // 입력값 우선, 없으면 정가
+  const balancePrice = totalPrice - DEPOSIT - totalDiscount;
+
+  // ⚠️ total_price(f-total-price)는 절대 건드리지 않음
+  // 할인은 balance_price에만 반영
   if(depositEl) depositEl.value = DEPOSIT;
-  if(balanceEl) balanceEl.value = balancePrice;
+  if(balanceEl) balanceEl.value = Math.max(0, balancePrice);
 
   // 순수익 미리보기 갱신
   calcSettlement();
