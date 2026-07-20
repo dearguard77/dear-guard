@@ -548,6 +548,7 @@ const sb = {
   url: (t,q='') => `${SUPABASE_URL}/rest/v1/${t}${q}`,
   async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
   async patch(t,id,b){ const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
+  async delete(t,id){ const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'DELETE',headers:sb.h}); if(!r.ok) throw new Error(await r.text()); },
   async upload(bucket,path,blob){ const r=await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`,{method:'POST',headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`,'Content-Type':blob.type},body:blob}); return r; },
 };
 
@@ -870,7 +871,7 @@ async function applyCoupleCode(){
       return;
     }
 
-    // ✅ 유효한 코드 — A 할인 적용 + B 리워드 자동 적용
+    // ✅ 유효한 코드 — 3단계 처리
     const currentName = schedule.groom_name || schedule.bride_name || '';
     // 코드 소유자 이름: contract_owner 기준 우선 결정
     const ownerContract = ownerRow.contract_owner || '';
@@ -878,7 +879,62 @@ async function applyCoupleCode(){
       ? (ownerRow.bride_name || ownerRow.groom_name || '')
       : (ownerRow.groom_name || ownerRow.bride_name || '');
 
-    // ── B(코드 소유자) 자동 리워드 처리 ──
+    // ── STEP 1: referral_code_usages INSERT (코드 선점 잠금) ──────────────
+    // 먼저 사용 이력을 기록해야 재사용 차단이 보장됨
+    let usageInsertId = null;
+    try{
+      const inserted = await sb.post('referral_code_usages', {
+        used_code:            code,
+        referrer_name:        ownerName,
+        used_by_name:         currentName,
+        used_by_schedule_id:  schedule.id,
+        source:               'contract',
+        status:               'active',
+      });
+      usageInsertId = Array.isArray(inserted) ? inserted[0]?.id : inserted?.id;
+      console.log('[DG] STEP1 referral_code_usages 저장 완료:', usageInsertId);
+    }catch(e){
+      console.error('[DG] STEP1 referral_code_usages 저장 실패:', e);
+      showCoupleMsg('사용 이력 기록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.\n원인: ' + e.message, true);
+      if(btn){ btn.disabled = false; btn.textContent = '코드 적용'; }
+      return; // 이력 저장 실패 시 전체 차단
+    }
+
+    // ── STEP 2: A(코드 입력자) 할인 적용 ────────────────────────────────
+    const aAm      = schedule.admin_memo || {};
+    const aMemoTxt = `짝꿍 할인 적용\n사용 코드: ${code}`;
+    const newAAm   = {
+      ...aAm,
+      couple_discount: true,
+      text: aAm.text ? aAm.text + '\n\n' + aMemoTxt : aMemoTxt,
+    };
+    try{
+      await sb.patch('schedules', schedule.id, {
+        couple_discount_code:   code,
+        couple_discount_status: 'approved',
+        couple_discount_amount: 10000,
+        admin_memo:             newAAm,
+      });
+      schedule.couple_discount_code   = code;
+      schedule.couple_discount_status = 'approved';
+      schedule.couple_discount_amount = 10000;
+      schedule.admin_memo             = newAAm;
+      console.log('[DG] STEP2 A 할인 저장 완료');
+    }catch(saveErr){
+      // A 할인 실패 → STEP1에서 저장한 usages 롤백 시도
+      console.error('[DG] STEP2 A 할인 실패, usages 롤백 시도:', saveErr);
+      if(usageInsertId){
+        try{
+          await sb.delete('referral_code_usages', usageInsertId);
+          console.log('[DG] STEP1 롤백 완료');
+        }catch(re){ console.warn('[DG] STEP1 롤백 실패:', re); }
+      }
+      showCoupleMsg('할인 저장 중 오류가 발생했습니다: ' + saveErr.message, true);
+      if(btn){ btn.disabled = false; btn.textContent = '코드 적용'; }
+      return;
+    }
+
+    // ── STEP 3: B(코드 소유자) 리워드 처리 ──────────────────────────────
     const bAm = ownerRow.admin_memo || {};
     const bAlreadyHasDiscount =
       ownerRow.couple_discount_status === 'approved' ||
@@ -887,75 +943,32 @@ async function applyCoupleCode(){
       bAm.couple_discount === true;
 
     if(!bAlreadyHasDiscount){
-      // B에게 아직 할인 없음 → 자동 리워드 적용
-      const bBalance  = Number(ownerRow.balance_price) || 0;
-      const bMemoTxt  = `내 대표 짝꿍코드 사용으로 할인 적용\n사용 계약자: ${currentName}\n사용 코드: ${code}`;
-      const newBAm    = {
+      const bMemoTxt = `내 대표 짝꿍코드 사용으로 할인 적용\n사용 계약자: ${currentName}\n사용 코드: ${code}`;
+      const newBAm   = {
         ...bAm,
         couple_discount: true,
-        couple_referral_reward_from_schedule: schedule.id, // 취소 추적용 마킹
+        couple_referral_reward_from_schedule: schedule.id,
         text: bAm.text ? bAm.text + '\n\n' + bMemoTxt : bMemoTxt,
       };
       try{
         await sb.patch('schedules', ownerRow.id, {
           couple_discount_status: 'approved',
           couple_discount_amount: 10000,
-          // balance_price는 변경하지 않음 — index.html 정산에서 couple_discount로 동적 계산
           admin_memo: newBAm,
         });
+        console.log('[DG] STEP3 B 리워드 저장 완료');
       }catch(e){
-        console.warn('[DG] B 자동 리워드 적용 실패 (A 할인은 계속 진행):', e);
+        // B 리워드 실패는 A 할인 완료 후이므로 롤백하지 않음
+        // 관리자에게 알림 (화면에 표시)
+        console.error('[DG] STEP3 B 리워드 실패 — 관리자 수동 확인 필요:', e);
+        showCoupleMsg(`🟢 짝꿍할인이 적용되었습니다. (-10,000원)\n⚠️ 코드 소유자(${ownerName}) 리워드 자동 적용 실패 — 관리자 확인 필요`, false);
       }
     } else {
-      // B 이미 할인 있음 → 메모만 추가
-      const bMemoTxt  = `내 대표코드(${code})가 ${currentName} 계약자에 의해 사용되었으나 기존 짝꿍할인 적용 이력이 있어 추가 할인은 적용하지 않음`;
-      const newBAm    = { ...bAm, text: bAm.text ? bAm.text + '\n\n' + bMemoTxt : bMemoTxt };
-      try{ await sb.patch('schedules', ownerRow.id, { admin_memo: newBAm }); }catch(e){}
-    }
-
-    // ── A(코드 입력자) 할인 적용 ──
-    const baseBalance  = Number(schedule.balance_price) || 0;
-    const finalBalance = baseBalance - 10000;
-    const aAm          = schedule.admin_memo || {};
-    const aMemoTxt     = `짝꿍 할인 적용\n사용 코드: ${code}`;
-    const newAAm       = {
-      ...aAm,
-      couple_discount: true,
-      text: aAm.text ? aAm.text + '\n\n' + aMemoTxt : aMemoTxt,
-    };
-
-    try{
-      await sb.patch('schedules', schedule.id, {
-        couple_discount_code:   code,
-        couple_discount_status: 'approved',
-        couple_discount_amount: 10000,
-        // balance_price는 변경하지 않음 — index.html 정산에서 couple_discount로 동적 계산
-        admin_memo:             newAAm,
-      });
-      schedule.couple_discount_code   = code;
-      schedule.couple_discount_status = 'approved';
-      schedule.couple_discount_amount = 10000;
-      schedule.admin_memo             = newAAm;
-    }catch(saveErr){
-      showCoupleMsg('코드 저장 중 오류가 발생했습니다: '+saveErr.message, true);
-      if(btn){ btn.disabled = false; btn.textContent = '코드 적용'; }
-      return;
-    }
-
-    // ── referral_code_usages에 사용 이력 등록 ──
-    // (신규 계약자가 입력한 코드만 기록, 신규 계약자의 대표코드는 기록 안 함)
-    try{
-      const currentName2 = schedule.groom_name || schedule.bride_name || '';
-      await sb.post('referral_code_usages', {
-        used_code:            code,
-        referrer_name:        ownerName,
-        used_by_name:         currentName2,
-        used_by_schedule_id:  schedule.id,
-        source:               'contract',
-        status:               'active',
-      });
-    }catch(e){
-      console.warn('[DG] 사용이력 등록 실패 (할인은 이미 적용됨):', e);
+      const bMemoTxt = `내 대표코드(${code})가 ${currentName} 계약자에 의해 사용되었으나 기존 짝꿍할인 이력이 있어 추가 할인 미적용`;
+      const newBAm   = { ...bAm, text: bAm.text ? bAm.text + '\n\n' + bMemoTxt : bMemoTxt };
+      try{ await sb.patch('schedules', ownerRow.id, { admin_memo: newBAm }); }catch(e){
+        console.warn('[DG] STEP3 B 메모 추가 실패:', e);
+      }
     }
 
     coupleDiscountApplied = true;
@@ -1142,8 +1155,15 @@ async function submitContract(){
     } catch(e){ console.warn('[DG] 서명 이미지 업로드 실패:', e); }
 
     // DB 저장
-    const baseBalance = Number(schedule.balance_price) || 0;
-    const finalBalance = baseBalance - coupleDiscountAmount;
+    // balance_price는 항상 total_price(추가금 포함) - deposit 기준으로 재계산
+    // schedule.balance_price를 기준으로 하면 재서명 시 이중 차감 발생
+    const depositPrice = Number(schedule.deposit_price) || 150000;
+    const isDoubleTeam = depositPrice >= 200000;
+    const fallbackPrice = isDoubleTeam ? 700000 : 400000;
+    const listPrice     = Number(schedule.total_price) || fallbackPrice;
+    const baseBalance   = listPrice - depositPrice;
+    const finalBalance  = coupleDiscountApplied ? baseBalance - coupleDiscountAmount : baseBalance;
+
     await sb.patch('schedules', schedule.id, {
       contract_signed:         true,
       contract_signed_at:      signedAt,
@@ -1155,7 +1175,7 @@ async function submitContract(){
       couple_discount_code:    coupleDiscountApplied ? coupleDiscountCode   : null,
       couple_discount_status:  coupleDiscountApplied ? 'approved'           : 'empty',
       couple_discount_amount:  coupleDiscountApplied ? coupleDiscountAmount : 0,
-      balance_price:           coupleDiscountApplied ? finalBalance : (schedule.balance_price || null),
+      balance_price:           finalBalance,  // 항상 listPrice 기준으로 계산 (이중 차감 방지)
     });
 
     Object.assign(schedule, {
