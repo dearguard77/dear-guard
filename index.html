@@ -3076,6 +3076,29 @@ function renderReferralList(){
         ${r.weddingDate  ? `<div style="font-size:11px;color:#6B7280">예식일: ${r.weddingDate}</div>`  : ''}
       </div>`).join('');
 
+    // ── 대표 미지정 섹션 (양측 예식인데 contract_owner 없는 경우) ──────────────
+    if(!q){
+      const unassigned = schedules.filter(s =>
+        s.groomName && s.brideName &&                // 양측 예식
+        (!s.coupleReferralCode || s.coupleReferralCode.trim() === '') && // 코드 없음
+        (!s.contractOwner || s.contractOwner.trim() === '')              // 대표 미지정
+      );
+      if(unassigned.length){
+        el.innerHTML += `
+          <div style="margin-top:16px;padding-top:12px;border-top:1px dashed #FCA5A5">
+            <div style="font-size:11px;font-weight:700;color:#DC2626;margin-bottom:8px">
+              ⚠️ 대표 측 미지정 ${unassigned.length}건 — 클릭하여 예식으로 이동 후 지정해주세요
+            </div>
+            ${unassigned.map(s => `
+              <div onclick="document.getElementById('referral-modal').remove();openDetail(${s.id})"
+                style="border:1px solid #FCA5A5;border-radius:8px;padding:8px 12px;margin-bottom:6px;background:#FFF5F5;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;font-weight:700;color:#1F2937">${esc(s.groomName)} ♥ ${esc(s.brideName)}</span>
+                <span style="font-size:10px;color:#6B7280">${s.date || ''} →</span>
+              </div>`).join('')}
+          </div>`;
+      }
+    }
+
   } else {
     // ── 사용 완료 탭 ──────────────────────────────────────────────────────
     // referral_code_usages의 active 행 전체 (legacy + contract)
