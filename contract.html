@@ -874,7 +874,7 @@ async function applyCoupleCode(){
     const currentName = schedule.groom_name || schedule.bride_name || '';
     // 코드 소유자 이름: contract_owner 기준 우선 결정
     const ownerContract = ownerRow.contract_owner || '';
-    const ownerName = ownerContract === '신부측'
+    const ownerName = (ownerContract === '신부측' || ownerContract === 'bride')
       ? (ownerRow.bride_name || ownerRow.groom_name || '')
       : (ownerRow.groom_name || ownerRow.bride_name || '');
 

@@ -1558,7 +1558,12 @@ function rowToSchedule(row){
     coupleDiscountCode:    row.couple_discount_code    || '',
     coupleDiscountStatus:  row.couple_discount_status  || 'empty',
     coupleDiscountAmount:  row.couple_discount_amount  || 0,
-    contractOwner:         row.contract_owner          || '',
+    contractOwner: (() => {
+      const raw = row.contract_owner || '';
+      if(raw === 'bride') return '신부측';
+      if(raw === 'groom') return '신랑측';
+      return raw;
+    })(),
     createdAt:             row.created_at              || '',
     contractDate:          row.contract_date           || '',
   };
@@ -2875,7 +2880,8 @@ async function openContractModal(id){
   // couple_referral_code 없으면 이름+전화 뒷자리로 자동 생성·저장
   if(!s.coupleReferralCode){
     // 계약 대표 측 기준 이름·전화 결정
-    const isBride = s.contractOwner === '신부측';
+    const owner = s.contractOwner || '';
+    const isBride = owner === '신부측' || owner === 'bride';
     const ownerName  = isBride ? (s.brideName  || s.groomName  || '') : (s.groomName  || s.brideName  || '');
     const ownerPhone = isBride ? (s.bridePhone || s.groomPhone || '') : (s.groomPhone || s.bridePhone || '');
     const last4 = (ownerPhone || '').replace(/[^0-9]/g,'').slice(-4);
@@ -3128,8 +3134,8 @@ function copyContractGuide(contractUrl, scheduleId){
   let honorific = '';
   if(bothSides){
     const owner = s?.contractOwner || '';
-    if(owner === '신랑측') honorific = '신랑님';
-    else if(owner === '신부측') honorific = '신부님';
+    if(owner === '신랑측' || owner === 'groom') honorific = '신랑님';
+    else if(owner === '신부측' || owner === 'bride') honorific = '신부님';
     // 미선택 시 호칭 없이 그냥 복사
   } else {
     honorific = s?.groomName ? '신랑님' : '신부님';
