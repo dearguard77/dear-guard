@@ -549,11 +549,6 @@
           <option value="date">🗂 예식일순</option>
           <option value="contract">📋 계약 최신순</option>
         </select>
-        <!-- 활성 필터 표시 + 전체 초기화 -->
-        <div id="active-filter-badge" style="display:none;align-items:center;gap:6px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:3px 10px;font-size:11px;color:#92400E;font-weight:700">
-          <span id="active-filter-text">필터 활성</span>
-          <button onclick="clearAllFilters()" style="background:#C7A96B;color:#fff;border:none;border-radius:5px;padding:2px 7px;font-size:10px;cursor:pointer;font-weight:700">전체 초기화</button>
-        </div>
       </div>
       <button class="btn btn-primary sm" id="sch-reg-btn" onclick="openForm(null)" style="display:none">＋ 예식 등록</button>
     </div>
@@ -1621,22 +1616,18 @@ async function loadSchedules(){
     const rows = await sb.get('schedules', '?order=date.asc,time.asc');
     schedules = rows.map(rowToSchedule);
 
-    // ── [DEBUG] 강성주 등록 예식 추적 ──────────────────────────────
     const kkRows = rows.filter(r =>
       (r.created_by || '').includes('강성주') ||
       (r.front_manager || '').includes('강성주') ||
       (r.groom_name || '').includes('강성주') ||
       (r.bride_name || '').includes('강성주')
     );
-    console.log('[DEBUG 1] Supabase rows 전체 수:', rows.length);
-    console.log('[DEBUG 1] 강성주 관련 rows:', kkRows.map(r=>({id:r.id, groom:r.groom_name, bride:r.bride_name, created_by:r.created_by, front:r.front_manager, date:r.date, contract_date:r.contract_date, created_at:r.created_at})));
 
     const kkSchedules = schedules.filter(s =>
       (s.groomName||'').includes('강성주') ||
       (s.brideName||'').includes('강성주') ||
       schedules.some((_, i) => rows[i]?.created_by?.includes('강성주') && schedules[i]?.id === s.id)
     );
-    console.log('[DEBUG 2] rowToSchedule 후 schedules 수:', schedules.length);
     // ──────────────────────────────────────────────────────────────
   } catch(e){
     console.error('데이터 로드 실패:', e);
@@ -2256,18 +2247,14 @@ function renderScheduleList(){
   // visible()은 기존 직원별 권한 필터 유지
   let vs = visible();
 
-  // ── [DEBUG] 단계별 추적 ──────────────────────────────────────────
   const _kk = arr => arr.filter(s=>s&&((s.groomName||'').includes('강성주')||(s.brideName||'').includes('강성주')));
-  console.log('[DEBUG 3] visible() 수:', vs.length, '강성주 예식:', _kk(vs).map(s=>s.id+':'+s.groomName+'/'+s.brideName));
   // ────────────────────────────────────────────────────────────────
 
   // 단계별 필터 적용
   if(statusFilter) vs = vs.filter(s => s.status === statusFilter);
-  console.log('[DEBUG 4] statusFilter('+statusFilter+') 후 수:', vs.length, '강성주:', _kk(vs).map(s=>s.id));
 
   // 계약미완 필터 적용
   if(contractFilter) vs = vs.filter(s => !s.contractSigned && s.contractStatus !== 'completed' && !s.contractSignedAt);
-  console.log('[DEBUG 5] contractFilter 후 수:', vs.length, '강성주:', _kk(vs).map(s=>s.id));
 
   // 검색어 필터
   const queryStr = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
@@ -2278,13 +2265,10 @@ function renderScheduleList(){
       (s.hall      || '').toLowerCase().includes(queryStr)
     );
   }
-  console.log('[DEBUG 6] queryStr("'+queryStr+'") 후 수:', vs.length, '강성주:', _kk(vs).map(s=>s.id));
 
   // 필터 배너 표시/숨김
   const banner = document.getElementById('urgent-banner');
   if(banner) banner.style.display = urgentFilter ? 'flex' : 'none';
-
-  // 정렬
   const schSort = document.getElementById('sch-sort')?.value || 'date';
   if(schSort === 'contract'){
     // 계약 최신순: contractDate 우선, 없으면 createdAt(등록일) 폴백 → 최신순
@@ -2296,30 +2280,14 @@ function renderScheduleList(){
       if(!bDate) return -1;
       return bDate.localeCompare(aDate);
     });
-    console.log('[DEBUG 7] 계약최신순 정렬 후 수:', vs.length, '강성주:', _kk(vs).map(s=>({id:s.id,contractDate:s.contractDate,createdAt:s.createdAt?.slice(0,10)})));
   } else {
-    console.log('[DEBUG 7] 예식일순 정렬. 강성주:', _kk(vs).map(s=>({id:s.id,date:s.date})));
   }
 
-  // ── 활성 필터 배지 업데이트 ──
-  const filterBadgeEl = document.getElementById('active-filter-badge');
-  const badgeTxt = document.getElementById('active-filter-text');
-  const query = (document.getElementById('sch-search')?.value || '').trim().toLowerCase();
-  const activeFilters = [];
-  if(statusFilter)   activeFilters.push(`단계: ${statusFilter}`);
-  if(contractFilter) activeFilters.push('계약미완');
-  if(urgentFilter)   activeFilters.push('긴급확인');
-  if(query)          activeFilters.push(`검색: "${query}"`);
-  if(filterBadgeEl){
-    filterBadgeEl.style.display = activeFilters.length ? 'flex' : 'none';
-    if(badgeTxt) badgeTxt.textContent = `필터 활성 (${activeFilters.join(', ')})`;
-  }
 
   document.getElementById('sch-count').textContent =
     urgentFilter ? `긴급확인 ${vs.length}건` : `총 ${vs.length}건`;
 
   const el = document.getElementById('schedule-list');
-  console.log('[DEBUG 8] 최종 렌더링 대상 수:', vs.length, '강성주:', _kk(vs).map(s=>s.id));
   if(!vs.length){
     el.innerHTML = urgentFilter
       ? '<div class="empty-state">🚨 긴급확인 일정이 없습니다</div>'
@@ -3158,8 +3126,6 @@ function renderReferralList(){
       const dateStr = u.created_at ? u.created_at.slice(0,10) : '';
       const srcBadge = u.source === 'legacy'
         ? '<span style="font-size:9px;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:1px 5px;margin-left:4px">legacy</span>'
-        : u._fromSchedule
-        ? '<span style="font-size:9px;background:#FEE2E2;color:#DC2626;border-radius:4px;padding:1px 5px;margin-left:4px">이력미기록</span>'
         : '';
       return `
       <div style="border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#FFFBEB">
