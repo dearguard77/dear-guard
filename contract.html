@@ -263,7 +263,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div style="display:flex;gap:8px">
           <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px">
-          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">짝꿍코드 적용</button>
+          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">코드 적용</button>
         </div>
         <div id="couple-code-msg" style="margin-top:8px;font-size:12px;display:none"></div>
       </div>
@@ -872,7 +872,11 @@ async function applyCoupleCode(){
 
     // ✅ 유효한 코드 — A 할인 적용 + B 리워드 자동 적용
     const currentName = schedule.groom_name || schedule.bride_name || '';
-    const ownerName   = ownerRow.groom_name || ownerRow.bride_name || '';
+    // 코드 소유자 이름: contract_owner 기준 우선 결정
+    const ownerContract = ownerRow.contract_owner || '';
+    const ownerName = ownerContract === '신부측'
+      ? (ownerRow.bride_name || ownerRow.groom_name || '')
+      : (ownerRow.groom_name || ownerRow.bride_name || '');
 
     // ── B(코드 소유자) 자동 리워드 처리 ──
     const bAm = ownerRow.admin_memo || {};
@@ -934,19 +938,18 @@ async function applyCoupleCode(){
       schedule.admin_memo             = newAAm;
     }catch(saveErr){
       showCoupleMsg('코드 저장 중 오류가 발생했습니다: '+saveErr.message, true);
-      if(btn){ btn.disabled = false; btn.textContent = '짝꿍코드 적용'; }
+      if(btn){ btn.disabled = false; btn.textContent = '코드 적용'; }
       return;
     }
 
     // ── referral_code_usages에 사용 이력 등록 ──
     // (신규 계약자가 입력한 코드만 기록, 신규 계약자의 대표코드는 기록 안 함)
     try{
-      const ownerName   = ownerRow.groom_name || ownerRow.bride_name || '';
-      const currentName = schedule.groom_name || schedule.bride_name || '';
+      const currentName2 = schedule.groom_name || schedule.bride_name || '';
       await sb.post('referral_code_usages', {
         used_code:            code,
         referrer_name:        ownerName,
-        used_by_name:         currentName,
+        used_by_name:         currentName2,
         used_by_schedule_id:  schedule.id,
         source:               'contract',
         status:               'active',
@@ -972,7 +975,7 @@ async function applyCoupleCode(){
   } finally {
     if(!coupleDiscountApplied && btn){
       btn.disabled = false;
-      btn.textContent = '짝꿍코드 적용';
+      btn.textContent = '코드 적용';
     }
   }
 }
