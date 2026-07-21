@@ -189,7 +189,7 @@ input,select,textarea{font-family:inherit;outline:none}
 <div id="error-screen">
   <div style="font-size:36px;margin-bottom:12px">⚠️</div>
   <div style="font-size:17px;font-weight:800;margin-bottom:6px">링크를 확인해주세요</div>
-  <div style="font-size:13px;color:var(--text3);line-height:1.6">유효하지 않은 계약 링크입니다.<br>담당 매니저에게 올바른 링크를 요청해주세요.</div>
+  <div style="font-size:13px;color:var(--text3);line-height:1.6" id="error-msg">유효하지 않은 계약 링크입니다.<br>담당 매니저에게 올바른 링크를 요청해주세요.</div>
 </div>
 
 <div id="app">
@@ -569,12 +569,22 @@ const fmt = n => n ? Number(n).toLocaleString()+'원' : '—';
 // ── init ──
 async function init(){
   const token = getToken();
-  if(!token){ showError(); return; }
-  try {
-    const rows = await sb.get('schedules',`?contract_token=eq.${encodeURIComponent(token)}&select=*`);
-    if(!rows.length){ showError(); return; }
-    schedule = rows[0];
+  if(!token){ showError('token'); return; }
 
+  // ── DB 조회 (token·DB 문제만 showError) ──
+  let rows;
+  try {
+    rows = await sb.get('schedules',`?contract_token=eq.${encodeURIComponent(token)}&select=*`);
+  } catch(dbErr){
+    console.error('[DG] DB 조회 실패:', dbErr);
+    showError('db');
+    return;
+  }
+  if(!rows || !rows.length){ showError('token'); return; }
+  schedule = rows[0];
+
+  // ── 렌더링 (JS 오류는 showError 없이 별도 처리) ──
+  try {
     renderHeader();
     renderInfo();
     initSignaturePad();
@@ -640,14 +650,23 @@ async function init(){
     document.getElementById('app').style.display='block';
     document.getElementById('submit-bar').style.display='block';
     updateProgress();
-  } catch(e){
-    console.error(e); showError();
+  } catch(renderErr){
+    // 렌더링·JS 오류는 "유효하지 않은 링크" 화면 없이 console에만 출력
+    console.error('[DG] 계약서 렌더링 오류:', renderErr);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('submit-bar').style.display='block';
+    alert('계약서를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.\n\n원인: ' + renderErr.message);
   }
 }
 
-function showError(){
+function showError(type){
   document.getElementById('loading').style.display='none';
   document.getElementById('error-screen').style.display='flex';
+  if(type === 'db'){
+    const msgEl = document.getElementById('error-msg');
+    if(msgEl) msgEl.textContent = '계약서를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+  }
 }
 
 // ── 헤더 렌더 ──
