@@ -5293,9 +5293,11 @@ function renderSettle(){
 
   // ── 요약 카드 ──
   const allMonthList = schedules.filter(s =>
-    s.date?.slice(0,7) === month && (s.totalPrice || s.laborCost)
+    s.date?.slice(0,7) === month && (s.depositPrice || s.balancePrice || s.laborCost)
   );
-  const totalRevenue = allMonthList.reduce((sum,s) => sum + (s.totalPrice || 0), 0);
+  // 총 매출 = 실제 수령액(계약금+잔금) 합계
+  const totalRevenue = allMonthList.reduce((sum,s) =>
+    sum + (s.depositPrice||0) + (s.balancePrice||0), 0);
   // 인건비: 매니저 선택 시 1인분, 전체 선택 시 전체 laborCost
   const totalLabor = managerName
     ? list.reduce((sum,s) => sum + getManagerPayForSchedule(s, managerName), 0)
@@ -5330,13 +5332,14 @@ function renderSettle(){
   }
 
   el.innerHTML = list.map(s => {
+    // 총금액 = 실제 수령액(계약금+잔금)
+    const displayTotal = (s.depositPrice||0) + (s.balancePrice||0);
     // 인건비 카드: 매니저 선택 시 1인분, 전체 시 laborCost
     const displayLabor = managerName
       ? getManagerPayForSchedule(s, managerName)
-      : s.laborCost;
-    const displayNet = managerName
-      ? (s.totalPrice || 0) - displayLabor
-      : s.netProfit;
+      : (s.laborCost || 0);
+    // 순수익 = 총금액 - 인건비
+    const displayNet = displayTotal - displayLabor;
     return `
     <div class="settle-row">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -5361,15 +5364,15 @@ function renderSettle(){
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
         <div style="background:#F9FAFB;border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">총금액</div>
-          <div style="font-size:13px;font-weight:800;color:#111827">${s.totalPrice ? s.totalPrice.toLocaleString()+'원' : '-'}</div>
+          <div style="font-size:13px;font-weight:800;color:#111827">${displayTotal > 0 ? displayTotal.toLocaleString()+'원' : '-'}</div>
         </div>
         <div style="background:#FEF2F2;border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">${managerName ? esc(managerName)+' 인건비' : '인건비'}</div>
           <div style="font-size:13px;font-weight:800;color:#EF4444">${displayLabor ? displayLabor.toLocaleString()+'원' : '-'}</div>
         </div>
-        <div style="background:${(displayNet||0)>=0?'#ECFDF5':'#FEF2F2'};border-radius:8px;padding:8px;text-align:center">
+        <div style="background:${displayNet>=0?'#ECFDF5':'#FEF2F2'};border-radius:8px;padding:8px;text-align:center">
           <div style="font-size:9px;color:#9CA3AF;margin-bottom:2px">순수익</div>
-          <div style="font-size:13px;font-weight:800;color:${(displayNet||0)>=0?'#10B981':'#EF4444'}">${displayNet!=null ? displayNet.toLocaleString()+'원' : '-'}</div>
+          <div style="font-size:13px;font-weight:800;color:${displayNet>=0?'#10B981':'#EF4444'}">${displayTotal > 0 ? displayNet.toLocaleString()+'원' : '-'}</div>
         </div>
       </div>
       <!-- 인건비 지급 체크박스 -->
