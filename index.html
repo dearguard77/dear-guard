@@ -3651,20 +3651,27 @@ function autoFillLaborCount(){
 }
 
 function calcNetProfit(){
-  const total = Number(document.getElementById('f-total-price')?.value) || 0;
+  // 순수익 = 실제 수령액(계약금 + 잔금) - 인건비
+  // total_price가 아닌 deposit+balance 기준 (신영서처럼 총금액≠실수령액 케이스 대응)
+  const deposit = Number(document.getElementById('f-deposit-price')?.value) || 0;
+  const balance = Number(document.getElementById('f-balance-price')?.value) || 0;
+  const received = deposit + balance;
   const labor = calcLaborCost();
-  return total > 0 ? total - labor : null;
+  return received > 0 ? received - labor : null;
 }
 
 function calcSettlement(){
-  const total = Number(document.getElementById('f-total-price')?.value) || 0;
-  const labor = calcLaborCost();
-  const net   = total - labor;
-  const prev  = document.getElementById('settlement-preview');
+  // 순수익 미리보기: 실제 수령액(계약금+잔금) - 인건비
+  const deposit  = Number(document.getElementById('f-deposit-price')?.value) || 0;
+  const balance  = Number(document.getElementById('f-balance-price')?.value) || 0;
+  const received = deposit + balance;
+  const labor    = calcLaborCost();
+  const net      = received - labor;
+  const prev     = document.getElementById('settlement-preview');
   if(!prev) return;
-  if(total > 0){
+  if(received > 0){
     prev.style.display = 'block';
-    document.getElementById('preview-total').textContent = total.toLocaleString() + '원';
+    document.getElementById('preview-total').textContent = received.toLocaleString() + '원';
     document.getElementById('preview-labor').textContent = labor.toLocaleString() + '원';
     document.getElementById('preview-net').textContent   = net.toLocaleString() + '원';
     document.getElementById('preview-net').style.color   = net >= 0 ? '#10B981' : '#EF4444';
