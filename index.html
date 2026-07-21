@@ -2422,14 +2422,24 @@ function openDetail(id){
     : '<span style="background:#F3F4F6;color:#9CA3AF;border:1px solid #E5E7EB;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📋 체크미완</span>';
   document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>${(s.contractSigned||s.contractStatus==='completed'||!!s.contractSignedAt)?'<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📝 계약완료</span>':'<span style="background:#FEF9C3;color:#92400E;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">⏳ 계약대기</span>'}${_precheckBadge}`;
 
-  // 관리자 전용 계약 등록일 표시
+  // 관리자 전용 계약일 표시
   const dmRegDate = document.getElementById('dm-reg-date');
   if(dmRegDate){
-    const displayDate = s.contractDate || s.createdAt;
-    if(ADMIN_NAMES.includes(currentUser.name) && displayDate){
-      const regDateStr = displayDate.slice(0,10).replace(/-/g,'.');
+    // contract_date 우선, 없으면 created_at을 KST(Asia/Seoul)로 변환
+    let regDateStr = '';
+    if(s.contractDate){
+      regDateStr = s.contractDate.slice(0,10).replace(/-/g,'.');
+    } else if(s.createdAt){
+      // UTC → KST 변환 (단순 slice 금지 — 한국 오후에 등록 시 UTC 날짜가 하루 전)
+      const kstDate = new Date(new Date(s.createdAt).toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+      const y = kstDate.getFullYear();
+      const m = String(kstDate.getMonth()+1).padStart(2,'0');
+      const d = String(kstDate.getDate()).padStart(2,'0');
+      regDateStr = `${y}.${m}.${d}`;
+    }
+    if(ADMIN_NAMES.includes(currentUser.name) && regDateStr){
       dmRegDate.style.display = 'block';
-      dmRegDate.textContent = `계약 등록 ${regDateStr}`;
+      dmRegDate.textContent = `계약일 ${regDateStr}`;
     } else {
       dmRegDate.style.display = 'none';
     }
