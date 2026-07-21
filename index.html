@@ -1175,12 +1175,13 @@
           <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:10px;letter-spacing:.5px">자동 계산 결과</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
             <div style="text-align:center">
-              <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">인건비</div>
-              <div id="preview-labor" style="font-size:15px;font-weight:800;color:#EF4444"></div>
+              <div style="font-size:10px;color:#9CA3AF;margin-bottom:2px">총금액</div>
+              <div style="font-size:9px;color:#C7A96B;margin-bottom:4px">계약금+잔금</div>
+              <div id="preview-total" style="font-size:15px;font-weight:800;color:#374151"></div>
             </div>
             <div style="text-align:center">
-              <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">총금액</div>
-              <div id="preview-total" style="font-size:15px;font-weight:800;color:#374151"></div>
+              <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">인건비</div>
+              <div id="preview-labor" style="font-size:15px;font-weight:800;color:#EF4444"></div>
             </div>
             <div style="text-align:center">
               <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">순수익</div>
@@ -2591,21 +2592,21 @@ function openDetail(id){
         </div>`;
       })()}
     </div>
-    ${ADMIN_NAMES.includes(currentUser.name) && (s.totalPrice || s.laborCost) ? `
+    ${ADMIN_NAMES.includes(currentUser.name) && (s.depositPrice || s.laborCost || s.balancePrice) ? `
     <div class="detail-sec">
       <div class="detail-sec-title">💰 정산 정보 (관리자 전용)</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
         <div style="background:#F9FAFB;border-radius:8px;padding:10px;text-align:center">
           <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">총금액</div>
-          <div style="font-size:15px;font-weight:800;color:#111827">${s.totalPrice ? s.totalPrice.toLocaleString()+'원' : '-'}</div>
+          <div style="font-size:15px;font-weight:800;color:#111827">${((s.depositPrice||0)+(s.balancePrice||0)) > 0 ? ((s.depositPrice||0)+(s.balancePrice||0)).toLocaleString()+'원' : '-'}</div>
         </div>
         <div style="background:#FEF2F2;border-radius:8px;padding:10px;text-align:center">
           <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">${esc(s.laborRegion||'-')} ${s.laborCount||0}명</div>
           <div style="font-size:15px;font-weight:800;color:#EF4444">${s.laborCost ? s.laborCost.toLocaleString()+'원' : '-'}</div>
         </div>
-        <div style="background:${(s.netProfit||0)>=0?'#ECFDF5':'#FEF2F2'};border-radius:8px;padding:10px;text-align:center">
+        <div style="background:${((s.depositPrice||0)+(s.balancePrice||0)-(s.laborCost||0))>=0?'#ECFDF5':'#FEF2F2'};border-radius:8px;padding:10px;text-align:center">
           <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">순수익</div>
-          <div style="font-size:15px;font-weight:800;color:${(s.netProfit||0)>=0?'#10B981':'#EF4444'}">${s.netProfit!=null ? s.netProfit.toLocaleString()+'원' : '-'}</div>
+          <div style="font-size:15px;font-weight:800;color:${((s.depositPrice||0)+(s.balancePrice||0)-(s.laborCost||0))>=0?'#10B981':'#EF4444'}">${((s.depositPrice||0)+(s.balancePrice||0)) > 0 ? ((s.depositPrice||0)+(s.balancePrice||0)-(s.laborCost||0)).toLocaleString()+'원' : '-'}</div>
         </div>
       </div>
     </div>` : ''}
