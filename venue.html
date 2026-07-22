@@ -334,9 +334,18 @@ const FIELD_SCHEMA = [
     options:['매우 편리','편리','보통','불편','매우 불편'] },
   { section:'B', id:'lobby_crowding', label:'축의대 로비 혼잡도', type:'chip', required:true,
     options:['여유로움','보통','혼잡'] },
-  { section:'B', id:'internet_status', label:'인터넷 상태', type:'chip', required:true,
+  { section:'B', id:'mobile_data_status', label:'모바일 데이터 상태', type:'chip', required:true,
     options:['매우 잘 터짐','보통','잘 안 터짐','사용 불가'] },
-  { section:'B', id:'internet_detail', label:'인터넷 상세내용', type:'text', required:false, placeholder:'선택사항' },
+  { section:'B', id:'mobile_data_detail', label:'데이터 상세내용', type:'text', required:false,
+    placeholder:'예) 축의대 안쪽에서는 잘 안 터짐 / 특정 통신사만 불안정함' },
+  { section:'B', id:'wifi_status', label:'Wi-Fi 사용 여부', type:'chip', required:true,
+    options:['사용 가능','사용 불가','확인하지 못함'] },
+  { section:'B', id:'wifi_name', label:'Wi-Fi 이름', type:'text', required:false,
+    placeholder:'Wi-Fi 이름', showIf: v => v.wifi_status === '사용 가능' },
+  { section:'B', id:'wifi_password', label:'Wi-Fi 비밀번호', type:'text', required:false,
+    placeholder:'Wi-Fi 비밀번호 (전체 직원 조회 가능)', showIf: v => v.wifi_status === '사용 가능' },
+  { section:'B', id:'wifi_note', label:'접속 및 사용 시 참고사항', type:'text', required:false,
+    placeholder:'선택사항', showIf: v => v.wifi_status === '사용 가능' },
 
   { section:'C', id:'reception_table_count', label:'축의대 수량', type:'chip', required:true,
     options:['2대','4대','기타'], other:'기타', otherPlaceholder:'수량/형태를 입력해주세요',
@@ -345,9 +354,6 @@ const FIELD_SCHEMA = [
     options:['단차 있음','단차 없음'] },
   { section:'C', id:'reception_level_note', label:'단차 상세 코멘트', type:'text', required:false,
     placeholder:'예) 신랑측과 신부측 높이가 다름', showIf: v => v.reception_level_difference === '단차 있음' },
-  { section:'C', id:'reception_layout_type', label:'축의대 형태', type:'chip', required:false,
-    options:['일자형','단차형','기타'], other:'기타', otherPlaceholder:'형태를 입력해주세요',
-    hint:'배치·구조를 의미합니다. (단차는 위 항목에서 별도 선택)' },
   { section:'C', id:'reception_size', label:'축의대 크기', type:'chip', required:true,
     options:['좁음','적당함','넓음'] },
   { section:'C', id:'reception_drawer', label:'축의대 서랍', type:'chip', required:false,
@@ -358,8 +364,6 @@ const FIELD_SCHEMA = [
     options:['있음','없음','있으나 멀티탭 필요'] },
   { section:'C', id:'couple_table_layout', label:'신랑·신부 축의대 배치', type:'chip', required:true,
     options:['서로 매우 가까움','적당한 거리','맞은편','멀리 떨어져 있음'] },
-  { section:'C', id:'parent_distance', label:'혼주와 축의대 거리', type:'chip', required:true,
-    options:['매우 가까움','보통','멀리 떨어져 있음'] },
 
   { section:'D', id:'ticket_stamp', label:'식권 도장', type:'chip', required:true,
     options:['신경 쓰지 않음','도장 미날인 시 사용 불가','기타'], other:'기타', otherPlaceholder:'상세 내용' },
@@ -370,53 +374,46 @@ const FIELD_SCHEMA = [
   { section:'D', id:'ticket_issue_detail', label:'식권 거지 상세 상황', type:'text', required:false,
     placeholder:'상세 상황을 입력해주세요', showIf: v => v.ticket_issue === '있었음' },
   { section:'D', id:'extra_ticket_location', label:'식권 추가 수령 위치', type:'text', required:false,
-    placeholder:'예) 연회장 입구 / 예약실 / 안내데스크 / 혼주에게 직접 요청' },
-  { section:'D', id:'envelope_types', label:'봉투 종류', type:'chip-multi', required:false,
-    options:['일반 봉투','이중 봉투','방수 봉투','스테이플러 사용 불가 봉투','기타'], other:'기타', otherPlaceholder:'기타 봉투 종류' },
-  { section:'D', id:'flower_ribbon_method', label:'화환 리본 처리', type:'chip', required:false,
-    options:['직원이 잘라줌','직접 잘라야 함','화환 반입 불가','기타'], other:'기타', otherPlaceholder:'상세 내용' },
+    placeholder:'예) 연회장 입구 / 예약실 / 안내데스크' },
 
-  { section:'E', id:'wifi_status', label:'Wi-Fi 사용 여부', type:'chip', required:true,
-    options:['사용 가능','사용 불가','확인하지 못함'] },
-  { section:'E', id:'wifi_name', label:'Wi-Fi 이름', type:'text', required:false,
-    placeholder:'Wi-Fi 이름', showIf: v => v.wifi_status === '사용 가능' },
-  { section:'E', id:'wifi_password', label:'Wi-Fi 비밀번호', type:'text', required:false,
-    placeholder:'Wi-Fi 비밀번호 (전체 직원 조회 가능)', showIf: v => v.wifi_status === '사용 가능' },
-  { section:'E', id:'wifi_note', label:'접속/사용 시 주의사항', type:'text', required:false,
-    placeholder:'선택사항', showIf: v => v.wifi_status === '사용 가능' },
+  { section:'E', id:'parking_crowding', label:'주차 혼잡도', type:'chip', required:false,
+    options:['여유로움','보통','혼잡','매우 혼잡','확인하지 못함'] },
+  { section:'E', id:'banquet_location', label:'연회장 위치', type:'text', required:false },
+  { section:'E', id:'counting_room_location', label:'정산실 또는 계수실 위치', type:'text', required:false },
+  { section:'E', id:'reservation_office_location', label:'예약실 위치', type:'text', required:false },
+  { section:'E', id:'restroom_location', label:'화장실 위치', type:'text', required:false },
+  { section:'E', id:'atm_location', label:'ATM 위치', type:'text', required:false },
+  { section:'E', id:'movement_note', label:'엘리베이터/이동 동선 특이사항', type:'text', required:false },
+  { section:'E', id:'handover_location', label:'인계하기 편한 장소', type:'text', required:false },
+  { section:'E', id:'handover_note', label:'인계 시 주의사항', type:'text', required:false },
 
-  { section:'F', id:'banquet_location', label:'연회장 위치', type:'text', required:false },
-  { section:'F', id:'counting_room_location', label:'정산실 또는 계수실 위치', type:'text', required:false },
-  { section:'F', id:'reservation_office_location', label:'예약실 위치', type:'text', required:false },
-  { section:'F', id:'restroom_location', label:'화장실 위치', type:'text', required:false },
-  { section:'F', id:'atm_location', label:'ATM 위치', type:'text', required:false },
-  { section:'F', id:'parking_note', label:'주차 위치 및 특이사항', type:'text', required:false },
-  { section:'F', id:'movement_note', label:'엘리베이터/이동 동선 특이사항', type:'text', required:false },
-  { section:'F', id:'handover_location', label:'인계하기 편한 장소', type:'text', required:false },
-  { section:'F', id:'handover_note', label:'인계 시 주의사항', type:'text', required:false },
-
-  { section:'G', id:'manager_tip', label:'다음 담당자가 알면 좋은 점', type:'textarea', required:false,
+  { section:'F', id:'manager_tip', label:'다음 담당자가 알면 좋은 점', type:'textarea', required:false,
     placeholder:'예) 신부측 축의대 뒤쪽 콘센트 사용 가능 / 예식 직전 엘리베이터 매우 혼잡함 등' },
-  { section:'G', id:'recent_change', label:'최근 변경사항', type:'textarea', required:false,
+  { section:'F', id:'recent_change', label:'최근 변경사항', type:'textarea', required:false,
     placeholder:'예) Wi-Fi 비밀번호 변경 / ATM 위치 변경 등 이전 방문과 달라진 점' },
 ];
 
+// ※ 아래 항목은 이번 수정으로 폼에서 완전히 제거되었습니다 (DB 컬럼은 삭제하지 않고 신규 리뷰에서만 미사용):
+//    reception_layout_type(축의대 형태), parent_distance(혼주와 축의대 거리),
+//    envelope_types(봉투 종류), flower_ribbon_method(화환 리본 처리), parking_note(주차 위치 및 특이사항),
+//    internet_status/internet_detail → mobile_data_status/mobile_data_detail 로 대체
+
 const SECTION_TITLES = {
-  B:'기본 운영 평가', C:'축의대 기본정보', D:'식권 및 봉투 정보', E:'Wi-Fi 정보', F:'예식장 위치 및 편의정보', G:'자유입력'
+  B:'기본 운영 및 통신환경', C:'축의대 기본정보', D:'식권 정보', E:'예식장 위치 및 편의정보', F:'자유입력'
 };
 
 // 상세 조회 화면 상단 요약에 노출할 항목 (섹션별 그룹)
 const SUMMARY_GROUPS = [
-  { title:'운영 정보', ids:['operation_difficulty','lobby_crowding','internet_status'] },
-  { title:'Wi-Fi', ids:['wifi_status','wifi_name','wifi_password'] },
-  { title:'축의대 정보', ids:['reception_table_count','reception_level_difference','reception_layout_type','reception_size','reception_drawer','reception_chair','outlet_status'] },
-  { title:'배치', ids:['couple_table_layout','parent_distance'] },
-  { title:'식권 · 봉투', ids:['ticket_stamp','child_ticket','envelope_types','flower_ribbon_method'] },
-  { title:'인계 · 참고사항', ids:['handover_location','handover_note','manager_tip'] },
+  { title:'운영 정보', ids:['operation_difficulty','lobby_crowding','mobile_data_status','mobile_data_detail'] },
+  { title:'Wi-Fi', ids:['wifi_status','wifi_name','wifi_password','wifi_note'] },
+  { title:'축의대 정보', ids:['reception_table_count','reception_level_difference','reception_level_note','reception_size','reception_drawer','reception_chair','outlet_status','couple_table_layout'] },
+  { title:'식권 정보', ids:['ticket_stamp','child_ticket','ticket_issue','extra_ticket_location'] },
+  { title:'위치 및 편의정보', ids:['parking_crowding','banquet_location','counting_room_location','reservation_office_location','restroom_location','atm_location','movement_note','handover_location','handover_note'] },
 ];
 
 function fieldById(id){ return FIELD_SCHEMA.find(f=>f.id===id); }
 function fieldLabel(id){ const f=fieldById(id); return f ? f.label : id; }
+
 
 // ─── STATE ───
 let venuesData = [];   // [{id,venue_name,address,halls:[{id,hall_name,reviews:[...]}] }]
@@ -493,9 +490,9 @@ async function startApp(){
 // ═══════════ DATA LOAD ═══════════
 async function loadAllData(){
   const [venues, halls, reviews] = await Promise.all([
-    sb.get('venues', '?select=*&order=venue_name.asc'),
-    sb.get('venue_halls', '?select=*'),
-    sb.get('venue_reviews', '?select=*&order=wedding_date.desc,created_at.desc'),
+    sb.get('wedding_venues', '?select=*&order=venue_name.asc'),
+    sb.get('wedding_venue_halls', '?select=*'),
+    sb.get('wedding_venue_reviews', '?select=*&order=wedding_date.desc,created_at.desc'),
   ]);
   allReviews = reviews;
   venuesData = venues.map(v=>({
@@ -671,7 +668,7 @@ function toggleSecBlock(id){
 }
 function renderReviewCard(r){
   const canEdit = currentUser.isAdmin || r.reviewer_name===currentUser.name;
-  const chipIds = ['operation_difficulty','internet_status','wifi_status','reception_table_count','outlet_status','ticket_stamp'];
+  const chipIds = ['operation_difficulty','mobile_data_status','wifi_status','reception_table_count','outlet_status','ticket_stamp'];
   return `
   <div class="review-card">
     <div class="review-card-top">
@@ -695,8 +692,8 @@ function renderReviewCard(r){
 // ═══════════ HELPERS ═══════════
 function hasValue(v){ if(v===null||v===undefined) return false; if(Array.isArray(v)) return v.length>0; return String(v).trim().length>0; }
 function formatFieldValue(id, val){
-  if(id==='envelope_types' && Array.isArray(val)) return val.map(escapeHtml).join(', ');
-  if(id==='wifi_password' && val) return escapeHtml(val);
+  if(Array.isArray(val)) return val.map(escapeHtml).join(', ');
+  if(val===null || val===undefined) return '-';
   return escapeHtml(String(val));
 }
 function fmtDate(d){
@@ -718,7 +715,7 @@ function showToast(msg){
 
 // ═══════════ WRITE FORM ═══════════
 function blankFormState(){
-  const s = { wedding_date: todayStr() };
+  const s = { wedding_date: todayStr(), schedule_id: null };
   FIELD_SCHEMA.forEach(f=>{
     if(f.type==='chip-multi') s[f.id]=[];
     else s[f.id]='';
@@ -749,6 +746,8 @@ function renderWriteForm(prefill){
       selectedHallObj = {name:prefill.hallName};
     }
     if(prefill.date) formState.wedding_date = prefill.date;
+    if(prefill.reviewerName) formState.reviewer_name = prefill.reviewerName;
+    if(prefill.scheduleId) formState.schedule_id = prefill.scheduleId;
     if(prefill.reviewData) Object.assign(formState, prefill.reviewData);
   }
 
@@ -766,6 +765,12 @@ function buildFormHtml(){
   <div class="form-sec">
     <div class="form-sec-head"><div class="form-sec-title"><span class="form-sec-badge">A</span> 기본정보</div></div>
     <div class="form-sec-body open"><div class="form-sec-inner">
+      <div class="field" id="f-wrap-schedule_picker">
+        <div class="field-label">내 담당 예식 불러오기</div>
+        <button type="button" class="btn btn-secondary" style="width:100%;justify-content:center" onclick="toggleSchedulePicker()">📅 담당 예식 목록 불러오기</button>
+        <div id="schedule-picker-list" style="display:none;margin-top:8px"></div>
+        <div class="field-hint">지난 7일 이내 및 예정된 담당 예식 목록에서 선택하면 작성자·예식일·예식장명이 자동 입력됩니다. 직접 입력도 그대로 가능합니다.</div>
+      </div>
       <div class="field" id="f-wrap-reviewer_name">
         <div class="field-label">작성자 <span class="req">*</span></div>
         <select class="field-input" id="f-reviewer_name">
@@ -797,16 +802,11 @@ function buildFormHtml(){
           <div class="ac-list" id="ac-hall"></div>
         </div>
       </div>
-      <div class="field" id="f-wrap-address">
-        <div class="field-label">주소</div>
-        <input type="text" class="field-input" id="f-address" placeholder="선택 입력"
-          value="${selectedVenueObj && selectedVenueObj.address ? escapeHtml(selectedVenueObj.address) : ''}">
-      </div>
     </div></div>
   </div>`;
 
-  // ── B~G 섹션 자동 생성 ──
-  ['B','C','D','E','F','G'].forEach(sec=>{
+  // ── B~F 섹션 자동 생성 ──
+  ['B','C','D','E','F'].forEach(sec=>{
     const fields = FIELD_SCHEMA.filter(f=>f.section===sec);
     html += `
     <div class="form-sec">
@@ -982,7 +982,6 @@ function pickVenue(id){
   const v = venuesData.find(x=>x.id===id);
   selectedVenueObj = {id:v.id, venue_name:v.venue_name, address:v.address};
   document.getElementById('f-venue_name').value = v.venue_name;
-  document.getElementById('f-address').value = v.address || '';
   document.getElementById('ac-venue').classList.remove('open');
   document.getElementById('f-hall_name').value='';
   selectedHallObj = null;
@@ -1025,6 +1024,96 @@ function pickNewHall(){
   formDirty = true;
 }
 
+// ═══════════ 내 담당 예식 불러오기 (index.html의 schedules 테이블 재사용) ═══════════
+// 확인된 실제 컬럼: id, date, hall(예식장 업체명 — 홀명은 별도 컬럼 없음), front_manager, back_manager, groom_name, bride_name
+let mySchedulesCache = null;
+
+async function loadMySchedules(){
+  if(mySchedulesCache) return mySchedulesCache;
+  const name = encodeURIComponent(currentUser.name);
+  const rows = await sb.get('schedules',
+    `?or=(front_manager.ilike.*${name}*,back_manager.ilike.*${name}*)&select=id,date,hall,groom_name,bride_name,front_manager,back_manager&order=date.asc`);
+  mySchedulesCache = rows;
+  return rows;
+}
+
+function scheduleCoupleLabel(s){
+  if(s.bride_name) return `${s.bride_name} 신부님`;
+  if(s.groom_name) return `${s.groom_name} 신랑님`;
+  return '이름 미상';
+}
+function scheduleDateLabel(d){
+  if(!d) return '-';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return `${dt.getMonth()+1}월 ${dt.getDate()}일`;
+}
+
+async function toggleSchedulePicker(){
+  const box = document.getElementById('schedule-picker-list');
+  if(box.style.display !== 'none'){ box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = `<div class="field-hint">불러오는 중...</div>`;
+  try{
+    const rows = await loadMySchedules();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(today.getDate()-7);
+    const filtered = rows.filter(s=>{
+      if(!s.date) return false;
+      const d = new Date(s.date);
+      return d >= sevenDaysAgo; // 지난 7일 + 이후 예정 전체
+    });
+    filtered.sort((a,b)=> Math.abs(new Date(a.date)-today) - Math.abs(new Date(b.date)-today));
+
+    if(filtered.length===0){
+      box.innerHTML = `<div class="field-hint">최근 7일 이내 또는 예정된 담당 예식이 없습니다.</div>`;
+      return;
+    }
+    box.innerHTML = filtered.map(s=>{
+      const reviewed = allReviews.some(r=> r.schedule_id===s.id);
+      return `
+      <div class="ac-item" style="border-radius:10px;border:1px solid #E5E7EB;margin-bottom:6px" onclick="pickSchedule(${s.id})">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:700">${scheduleDateLabel(s.date)} ${escapeHtml(scheduleCoupleLabel(s))}</div>
+            <div class="ac-sub">${escapeHtml(s.hall||'예식장 미입력')}</div>
+          </div>
+          ${reviewed?'<span class="mini-chip" style="background:#ECFDF5;color:#10B981;border-color:#A7F3D0">리뷰 작성 완료</span>':''}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    console.error(e);
+    box.innerHTML = `<div class="field-hint">담당 예식을 불러오지 못했습니다.</div>`;
+  }
+}
+
+async function pickSchedule(scheduleId){
+  const rows = await loadMySchedules();
+  const s = rows.find(x=>x.id===scheduleId);
+  if(!s) return;
+
+  formState.reviewer_name = currentUser.name;
+  formState.wedding_date = s.date;
+  formState.schedule_id = s.id;
+
+  document.getElementById('f-reviewer_name').value = currentUser.name;
+  document.getElementById('f-wedding_date').value = s.date;
+
+  if(s.hall){
+    const v = venuesData.find(x=>x.venue_name===s.hall);
+    selectedVenueObj = v ? {id:v.id, venue_name:v.venue_name, address:v.address} : {name:s.hall};
+    document.getElementById('f-venue_name').value = s.hall;
+  }
+  // 홀명은 schedules 테이블에 별도 컬럼이 없어 자동 입력할 수 없습니다 — 직접 선택/입력해주세요.
+  selectedHallObj = null;
+  document.getElementById('f-hall_name').value = '';
+
+  document.getElementById('schedule-picker-list').style.display = 'none';
+  formDirty = true;
+  showToast('담당 예식 정보를 불러왔습니다. 홀명은 직접 선택해주세요.');
+}
+
 // ═══════════ VALIDATION & SUBMIT ═══════════
 const BASE_REQUIRED = [
   {id:'reviewer_name', label:'작성자'},
@@ -1038,14 +1127,13 @@ function collectFormValues(){
   formState.wedding_date = document.getElementById('f-wedding_date').value;
   const venueName = document.getElementById('f-venue_name').value.trim();
   const hallName = document.getElementById('f-hall_name').value.trim();
-  const address = document.getElementById('f-address').value.trim();
   FIELD_SCHEMA.forEach(f=>{
     if(f.type==='text' || f.type==='textarea'){
       const el = document.getElementById(`f-${f.id}`);
       if(el) formState[f.id] = el.value;
     }
   });
-  return { venueName, hallName, address };
+  return { venueName, hallName };
 }
 
 function validateForm(){
@@ -1082,7 +1170,7 @@ async function submitReview(){
   btn.disabled = true;
   btn.textContent = '저장 중...';
   try{
-    const {venueName, hallName, address} = collectFormValues();
+    const {venueName, hallName} = collectFormValues();
 
     // 1) venue 확보 (기존 선택 or 신규 생성 or 이름 매칭)
     let venueId = selectedVenueObj && selectedVenueObj.id;
@@ -1091,11 +1179,9 @@ async function submitReview(){
       if(existing){
         venueId = existing.id;
       }else{
-        const created = await sb.post('venues', { venue_name: venueName, address: address || null });
+        const created = await sb.post('wedding_venues', { venue_name: venueName });
         venueId = created[0].id;
       }
-    }else if(address && address !== (selectedVenueObj.address||'')){
-      await sb.patch('venues', venueId, { address });
     }
 
     // 2) hall 확보
@@ -1106,23 +1192,24 @@ async function submitReview(){
       if(existingHall){
         hallId = existingHall.id;
       }else{
-        const createdHall = await sb.post('venue_halls', { venue_id: venueId, hall_name: hallName });
+        const createdHall = await sb.post('wedding_venue_halls', { venue_id: venueId, hall_name: hallName });
         hallId = createdHall[0].id;
       }
     }
 
     // 3) review payload
     const payload = { venue_id: venueId, hall_id: hallId, wedding_date: formState.wedding_date,
-      reviewer_name: formState.reviewer_name, reviewer_code: currentUser.id };
+      reviewer_name: formState.reviewer_name, reviewer_code: currentUser.id,
+      schedule_id: formState.schedule_id || null };
     FIELD_SCHEMA.forEach(f=>{
       payload[f.id] = formState[f.id]==='' ? null : formState[f.id];
     });
 
     if(editingReviewId){
-      await sb.patch('venue_reviews', editingReviewId, payload);
+      await sb.patch('wedding_venue_reviews', editingReviewId, payload);
       showToast('리뷰가 수정되었습니다.');
     }else{
-      await sb.post('venue_reviews', payload);
+      await sb.post('wedding_venue_reviews', payload);
       showToast('리뷰가 등록되었습니다.');
     }
 
@@ -1170,7 +1257,7 @@ function closeDeleteModal(){
 async function confirmDeleteReview(){
   if(!deleteTargetId) return;
   try{
-    await sb.delete('venue_reviews', deleteTargetId);
+    await sb.delete('wedding_venue_reviews', deleteTargetId);
     showToast('리뷰가 삭제되었습니다.');
     closeDeleteModal();
     await loadAllData();
@@ -1192,12 +1279,14 @@ function confirmLeave(){
 }
 
 // ═══════════ URL PARAMS (index.html 연동용) ═══════════
-function handleUrlParams(){
+async function handleUrlParams(){
   const p = new URLSearchParams(location.search);
   const mode = p.get('mode');
   const venue = p.get('venue');
   const hall = p.get('hall');
   const date = p.get('date');
+  const scheduleIdParam = p.get('schedule_id');
+
   if(mode==='view' && venue){
     const v = venuesData.find(x=>x.venue_name===venue);
     if(v){
@@ -1205,6 +1294,28 @@ function handleUrlParams(){
       if(h){ openDetail(v.id, h.id); return; }
     }
     showToast('해당 예식장/홀 정보를 찾을 수 없습니다.');
+  }else if(mode==='write' && scheduleIdParam){
+    switchMainTab('write');
+    try{
+      const rows = await sb.get('schedules', `?id=eq.${Number(scheduleIdParam)}&select=id,date,hall,groom_name,bride_name`);
+      const s = rows[0];
+      if(s){
+        renderWriteForm({
+          venueName: s.hall || '',
+          date: s.date || undefined,
+          reviewerName: currentUser.name,
+          scheduleId: s.id
+        });
+        showToast('담당 예식 정보를 불러왔습니다. 홀명은 직접 선택해주세요.');
+      }else{
+        showToast('해당 일정을 찾을 수 없습니다.');
+        renderWriteForm();
+      }
+    }catch(e){
+      console.error(e);
+      showToast('일정 조회 중 오류가 발생했습니다.');
+      renderWriteForm();
+    }
   }else if(mode==='write'){
     switchMainTab('write');
     renderWriteForm({ venueName: venue||'', hallName: hall||'', date: date||undefined });
