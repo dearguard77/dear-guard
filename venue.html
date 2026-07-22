@@ -138,6 +138,14 @@
   .ac-item.ac-new{color:#C7A96B;font-weight:700}
 
   .submit-bar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(248,247,245,0),#F8F7F5 30%);padding:16px 0 0;margin-top:4px}
+  .autosave-status{font-size:11px;text-align:right;padding:0 2px 8px;min-height:16px;color:#9CA3AF;transition:color .15s}
+  .autosave-status.saving{color:#C7A96B}
+  .autosave-status.saved{color:#10B981}
+  .autosave-status.error{color:#EF4444}
+  .draft-prompt{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:24px 20px;text-align:center;margin-bottom:10px}
+  .draft-prompt-title{font-weight:800;font-size:15px;color:#111827;margin-bottom:4px}
+  .draft-prompt-sub{font-size:12.5px;color:#6B7280;margin-bottom:16px}
+  .draft-prompt-actions{display:flex;gap:8px;justify-content:center}
   .btn-submit{width:100%;background:#C7A96B;color:#fff;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:800;box-shadow:0 4px 16px rgba(199,169,107,.35)}
   .btn-submit:hover{background:#B8976A}
   .btn-submit:disabled{background:#D1D5DB;box-shadow:none;cursor:not-allowed}
@@ -424,6 +432,12 @@ let visibleReviewCount = 5;
 let editingReviewId = null;
 let deleteTargetId = null;
 let formDirty = false;
+let hasUnsavedChanges = false; // 마지막 자동저장 이후 변경사항이 있는지 (이탈 경고 판단용)
+let autosaveTimer = null;
+let autosaveStatus = 'idle'; // idle | saving | saved | error
+let currentDraftKey = null;
+let pendingDraftData = null;
+let pendingPrefillForFresh = null;
 let pendingLeaveAction = null;
 let formState = {}; // 현재 작성 폼 값
 let selectedVenueObj = null; // {id,venue_name,address} or {name:'신규'}
@@ -507,7 +521,7 @@ async function loadAllData(){
 
 // ═══════════ MAIN TAB SWITCH ═══════════
 function switchMainTab(tab, force){
-  if(!force && tab!=='write' && formDirty && document.getElementById('panel-write').classList.contains('active')){
+  if(!force && tab!=='write' && hasUnsavedChanges && document.getElementById('panel-write').classList.contains('active')){
     pendingLeaveAction = ()=> switchMainTab(tab, true);
     document.getElementById('leave-modal').classList.remove('hidden');
     return;
@@ -727,11 +741,63 @@ function todayStr(){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+function draftKeyFor(editId){
+  if(editId) return `dg_venue_review_edit_draft_${currentUser.id}_${editId}`;
+  return `dg_venue_review_draft_${currentUser.id}`;
+}
+function safeLSGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
+function safeLSSet(key, val){ try{ localStorage.setItem(key, val); return true; }catch(e){ console.error(e); return false; } }
+function safeLSRemove(key){ try{ localStorage.removeItem(key); }catch(e){} }
+
 function renderWriteForm(prefill){
+  const editId = (prefill && prefill.editId) || null;
+  currentDraftKey = draftKeyFor(editId);
+  const draftRaw = safeLSGet(currentDraftKey);
+
+  if(draftRaw){
+    let draft = null;
+    try{ draft = JSON.parse(draftRaw); }catch(e){ draft = null; }
+    if(draft && draft.formState){
+      pendingDraftData = draft;
+      pendingPrefillForFresh = prefill;
+      editingReviewId = editId; // 수정 폼 헤더/버튼 문구 등에 필요
+      showDraftRestorePrompt();
+      return;
+    }
+  }
+  buildFreshForm(prefill);
+}
+
+function showDraftRestorePrompt(){
+  const wrap = document.getElementById('write-form');
+  wrap.innerHTML = `
+    <div class="draft-prompt">
+      <div class="draft-prompt-title">작성 중이던 리뷰가 있습니다.</div>
+      <div class="draft-prompt-sub">이어서 작성하시겠습니까?</div>
+      <div class="draft-prompt-actions">
+        <button class="btn btn-secondary" onclick="discardDraftAndStartFresh()">새로 작성</button>
+        <button class="btn btn-primary" onclick="restoreDraftAndBuild()">이어서 작성</button>
+      </div>
+    </div>`;
+}
+function restoreDraftAndBuild(){
+  formState = pendingDraftData.formState || blankFormState();
+  selectedVenueObj = pendingDraftData.selectedVenueObj || null;
+  selectedHallObj = pendingDraftData.selectedHallObj || null;
+  renderFormDom();
+  showToast('이어서 작성합니다.');
+}
+function discardDraftAndStartFresh(){
+  safeLSRemove(currentDraftKey);
+  buildFreshForm(pendingPrefillForFresh);
+}
+
+function buildFreshForm(prefill){
   formState = blankFormState();
   selectedVenueObj = null;
   selectedHallObj = null;
   editingReviewId = (prefill && prefill.editId) || null;
+  currentDraftKey = draftKeyFor(editingReviewId);
 
   if(prefill){
     if(prefill.venueName){
@@ -751,14 +817,53 @@ function renderWriteForm(prefill){
     if(prefill.reviewData) Object.assign(formState, prefill.reviewData);
   }
 
+  renderFormDom();
+}
+
+function renderFormDom(){
   const wrap = document.getElementById('write-form');
   wrap.innerHTML = buildFormHtml();
   bindFormEvents();
   formDirty = false;
+  hasUnsavedChanges = false;
+  clearTimeout(autosaveTimer);
+  setAutosaveStatus('idle');
+}
+
+// ─── 자동저장 ───
+function markDirty(){
+  formDirty = true;
+  hasUnsavedChanges = true;
+  setAutosaveStatus('saving');
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(autosaveNow, 700);
+}
+function autosaveNow(){
+  if(!currentDraftKey) return;
+  const payload = JSON.stringify({ formState, selectedVenueObj, selectedHallObj, savedAt: Date.now() });
+  const ok = safeLSSet(currentDraftKey, payload);
+  if(ok){
+    hasUnsavedChanges = false;
+    setAutosaveStatus('saved');
+  }else{
+    setAutosaveStatus('error'); // 저장 실패 시 이탈 경고 유지 (hasUnsavedChanges 그대로 true)
+  }
+}
+function setAutosaveStatus(status){
+  autosaveStatus = status;
+  const el = document.getElementById('autosave-status');
+  if(!el) return;
+  const map = { idle:'', saving:'💾 자동저장 중...', saved:'✅ 자동저장 완료', error:'⚠️ 자동저장 실패' };
+  el.textContent = map[status] || '';
+  el.className = 'autosave-status ' + status;
+}
+function clearDraftFor(editId){
+  safeLSRemove(draftKeyFor(editId));
 }
 
 function buildFormHtml(){
   let html = '';
+  html += `<div id="autosave-status" class="autosave-status idle"></div>`;
 
   // ── A. 기본정보 ──
   html += `
@@ -875,7 +980,7 @@ function toggleFormSec(sec){
 
 function selectChip(fieldId, val){
   formState[fieldId] = val;
-  formDirty = true;
+  markDirty();
   refreshDependentFields();
   rerenderField(fieldId);
 }
@@ -884,7 +989,7 @@ function toggleChipMulti(fieldId, val){
   const idx = arr.indexOf(val);
   if(idx>=0) arr.splice(idx,1); else arr.push(val);
   formState[fieldId] = arr;
-  formDirty = true;
+  markDirty();
   rerenderField(fieldId);
 }
 function rerenderField(fieldId){
@@ -921,26 +1026,26 @@ document.addEventListener('input', function(e){
     }else{
       formState[fieldId] = e.target.value.trim() || f.other;
     }
-    formDirty = true;
+    markDirty();
   }else if(id.startsWith('f-')){
     const fieldId = id.slice('f-'.length);
     const f = fieldById(fieldId);
     if(f && (f.type==='text' || f.type==='textarea')){
       formState[fieldId] = e.target.value;
-      formDirty = true;
+      markDirty();
     }
   }
 });
 
 function bindFormEvents(){
-  document.getElementById('f-wedding_date').addEventListener('input', e=>{ formState.wedding_date = e.target.value; formDirty=true; });
-  document.getElementById('f-reviewer_name').addEventListener('change', e=>{ formState.reviewer_name = e.target.value; formDirty=true; });
+  document.getElementById('f-wedding_date').addEventListener('input', e=>{ formState.wedding_date = e.target.value; markDirty(); });
+  document.getElementById('f-reviewer_name').addEventListener('change', e=>{ formState.reviewer_name = e.target.value; markDirty(); });
   if(formState.reviewer_name===undefined) formState.reviewer_name = document.getElementById('f-reviewer_name').value;
 
   // 예식장 자동완성
   const venueInput = document.getElementById('f-venue_name');
   venueInput.addEventListener('input', ()=>{
-    formDirty = true;
+    markDirty();
     selectedVenueObj = null;
     selectedHallObj = null;
     document.getElementById('f-hall_name').value = '';
@@ -949,7 +1054,7 @@ function bindFormEvents(){
   venueInput.addEventListener('focus', ()=> renderVenueAc(venueInput.value));
 
   const hallInput = document.getElementById('f-hall_name');
-  hallInput.addEventListener('input', ()=>{ formDirty = true; selectedHallObj=null; renderHallAc(hallInput.value); });
+  hallInput.addEventListener('input', ()=>{ markDirty(); selectedHallObj=null; renderHallAc(hallInput.value); });
   hallInput.addEventListener('focus', ()=> renderHallAc(hallInput.value));
 
   document.addEventListener('click', (e)=>{
@@ -963,7 +1068,7 @@ function bindFormEvents(){
 }
 
 function beforeUnloadHandler(e){
-  if(formDirty){ e.preventDefault(); e.returnValue=''; }
+  if(hasUnsavedChanges){ e.preventDefault(); e.returnValue=''; }
 }
 
 function renderVenueAc(q){
@@ -985,13 +1090,13 @@ function pickVenue(id){
   document.getElementById('ac-venue').classList.remove('open');
   document.getElementById('f-hall_name').value='';
   selectedHallObj = null;
-  formDirty = true;
+  markDirty();
 }
 function pickNewVenue(){
   const name = document.getElementById('f-venue_name').value.trim();
   selectedVenueObj = { name };
   document.getElementById('ac-venue').classList.remove('open');
-  formDirty = true;
+  markDirty();
 }
 function renderHallAc(q){
   q = (q||'').trim().toLowerCase();
@@ -1015,13 +1120,13 @@ function pickHall(id){
   selectedHallObj = {id:h.id, hall_name:h.hall_name};
   document.getElementById('f-hall_name').value = h.hall_name;
   document.getElementById('ac-hall').classList.remove('open');
-  formDirty = true;
+  markDirty();
 }
 function pickNewHall(){
   const name = document.getElementById('f-hall_name').value.trim();
   selectedHallObj = { name };
   document.getElementById('ac-hall').classList.remove('open');
-  formDirty = true;
+  markDirty();
 }
 
 // ═══════════ 내 담당 예식 불러오기 (index.html의 schedules 테이블 재사용) ═══════════
@@ -1123,15 +1228,21 @@ async function toggleSchedulePicker(){
       return;
     }
     box.innerHTML = filtered.map(s=>{
-      const reviewed = allReviews.some(r=> r.schedule_id===s.id);
+      const review = allReviews.find(r=> r.schedule_id===s.id);
+      const reviewed = !!review;
+      const rowClick = reviewed ? `goToReviewByScheduleId(${s.id})` : `pickSchedule(${s.id})`;
       return `
-      <div class="ac-item" style="border-radius:10px;border:1px solid #E5E7EB;margin-bottom:6px" onclick="pickSchedule(${s.id})">
-        <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="ac-item" style="border-radius:10px;border:1px solid #E5E7EB;margin-bottom:6px" onclick="${rowClick}">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
           <div>
             <div style="font-weight:700">${scheduleDateLabel(s.date)} ${escapeHtml(scheduleCoupleLabel(s))}</div>
             <div class="ac-sub">${escapeHtml(s.hall||'예식장 미입력')}</div>
           </div>
-          ${reviewed?'<span class="mini-chip" style="background:#ECFDF5;color:#10B981;border-color:#A7F3D0">리뷰 작성 완료</span>':''}
+          ${reviewed?`
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+              <span class="mini-chip" style="background:#ECFDF5;color:#10B981;border-color:#A7F3D0">리뷰 작성 완료</span>
+              <button type="button" class="icon-btn" onclick="event.stopPropagation();pickSchedule(${s.id})">새 리뷰 추가</button>
+            </div>`:''}
         </div>
       </div>`;
     }).join('');
@@ -1141,6 +1252,18 @@ async function toggleSchedulePicker(){
   }
 }
 
+
+function goToReviewByScheduleId(scheduleId){
+  const review = allReviews.find(r=> r.schedule_id===scheduleId);
+  if(!review){ showToast('해당 일정의 리뷰를 찾을 수 없습니다.'); return; }
+  const action = () => { switchMainTab('view', true); openDetail(review.venue_id, review.hall_id); };
+  if(hasUnsavedChanges && document.getElementById('panel-write').classList.contains('active')){
+    pendingLeaveAction = action;
+    document.getElementById('leave-modal').classList.remove('hidden');
+    return;
+  }
+  action();
+}
 
 async function pickSchedule(scheduleId){
   const rows = await loadMySchedules();
@@ -1182,7 +1305,7 @@ async function pickSchedule(scheduleId){
   }
 
   document.getElementById('schedule-picker-list').style.display = 'none';
-  formDirty = true;
+  markDirty();
   showToast(hallNameFromSchedule ? '담당 예식 정보를 불러왔습니다.' : '담당 예식 정보를 불러왔습니다. 홀명은 직접 입력해주세요.');
 }
 
@@ -1277,15 +1400,19 @@ async function submitReview(){
       payload[f.id] = formState[f.id]==='' ? null : formState[f.id];
     });
 
-    if(editingReviewId){
-      await sb.patch('wedding_venue_reviews', editingReviewId, payload);
+    const wasEditing = editingReviewId;
+    if(wasEditing){
+      await sb.patch('wedding_venue_reviews', wasEditing, payload);
       showToast('리뷰가 수정되었습니다.');
     }else{
       await sb.post('wedding_venue_reviews', payload);
       showToast('리뷰가 등록되었습니다.');
     }
 
+    clearDraftFor(wasEditing); // 등록/수정 완료 시 해당 임시저장 데이터 삭제
     formDirty = false;
+    hasUnsavedChanges = false;
+    clearTimeout(autosaveTimer);
     window.removeEventListener('beforeunload', beforeUnloadHandler);
     await loadAllData();
     editingReviewId = null;
@@ -1345,6 +1472,8 @@ function closeLeaveModal(){ document.getElementById('leave-modal').classList.add
 function confirmLeave(){
   document.getElementById('leave-modal').classList.add('hidden');
   formDirty = false;
+  hasUnsavedChanges = false;
+  clearTimeout(autosaveTimer);
   window.removeEventListener('beforeunload', beforeUnloadHandler);
   if(pendingLeaveAction) pendingLeaveAction();
   pendingLeaveAction = null;
