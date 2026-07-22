@@ -769,7 +769,7 @@ function buildFormHtml(){
         <div class="field-label">내 담당 예식 불러오기</div>
         <button type="button" class="btn btn-secondary" style="width:100%;justify-content:center" onclick="toggleSchedulePicker()">📅 담당 예식 목록 불러오기</button>
         <div id="schedule-picker-list" style="display:none;margin-top:8px"></div>
-        <div class="field-hint">지난 7일 이내 및 예정된 담당 예식 목록에서 선택하면 작성자·예식일·예식장명이 자동 입력됩니다. 직접 입력도 그대로 가능합니다.</div>
+        <div class="field-hint">최근 1개월 내 종료된 담당 예식 목록에서 선택하면 작성자·예식일·예식장명이 자동 입력됩니다. 직접 입력도 그대로 가능합니다.</div>
       </div>
       <div class="field" id="f-wrap-reviewer_name">
         <div class="field-label">작성자 <span class="req">*</span></div>
@@ -1025,14 +1025,14 @@ function pickNewHall(){
 }
 
 // ═══════════ 내 담당 예식 불러오기 (index.html의 schedules 테이블 재사용) ═══════════
-// 확인된 실제 컬럼: id, date, hall(예식장 업체명 — 홀명은 별도 컬럼 없음), front_manager, back_manager, groom_name, bride_name
+// 확인된 실제 컬럼: id, date, time, hall(예식장 업체명 — 홀명은 별도 컬럼 없음), front_manager, back_manager, groom_name, bride_name
 let mySchedulesCache = null;
 
 async function loadMySchedules(){
   if(mySchedulesCache) return mySchedulesCache;
   const name = encodeURIComponent(currentUser.name);
   const rows = await sb.get('schedules',
-    `?or=(front_manager.ilike.*${name}*,back_manager.ilike.*${name}*)&select=id,date,hall,groom_name,bride_name,front_manager,back_manager&order=date.asc`);
+    `?or=(front_manager.ilike.*${name}*,back_manager.ilike.*${name}*)&select=id,date,time,hall,groom_name,bride_name,front_manager,back_manager&order=date.asc`);
   mySchedulesCache = rows;
   return rows;
 }
@@ -1049,6 +1049,65 @@ function scheduleDateLabel(d){
   return `${dt.getMonth()+1}월 ${dt.getDate()}일`;
 }
 
+// ── 한국 시간(KST) 기준 오늘 날짜(YYYY-MM-DD) / 현재 시각(분) ──
+// 기기 시간대와 무관하게 항상 Asia/Seoul 기준으로 계산합니다.
+function getKSTTodayParts(){
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit' });
+  const parts = fmt.formatToParts(new Date());
+  const y = Number(parts.find(p=>p.type==='year').value);
+  const m = Number(parts.find(p=>p.type==='month').value);
+  const d = Number(parts.find(p=>p.type==='day').value);
+  return { y, m, d };
+}
+function getKSTNowMinutes(){
+  const fmt = new Intl.DateTimeFormat('en-GB', { timeZone:'Asia/Seoul', hour:'2-digit', minute:'2-digit', hour12:false });
+  const parts = fmt.formatToParts(new Date());
+  const h = Number(parts.find(p=>p.type==='hour').value);
+  const mi = Number(parts.find(p=>p.type==='minute').value);
+  return h*60 + mi;
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+function dateStrFromYMD(y,m,d){ return `${y}-${pad2(m)}-${pad2(d)}`; }
+function oneMonthAgoDateStr(){
+  const { y, m, d } = getKSTTodayParts();
+  const base = new Date(Date.UTC(y, m-1, d)); // KST 날짜값을 UTC 자정 기준 값으로 취급 (시간대 오염 방지)
+  base.setUTCMonth(base.getUTCMonth() - 1);
+  return dateStrFromYMD(base.getUTCFullYear(), base.getUTCMonth()+1, base.getUTCDate());
+}
+function timeStrToMinutes(t){
+  if(!t) return null;
+  const parts = String(t).split(':');
+  if(parts.length < 2) return null;
+  const h = Number(parts[0]), m = Number(parts[1]);
+  if(isNaN(h) || isNaN(m)) return null;
+  return h*60 + m;
+}
+
+// 종료된 예식만 필터링: 예식일 < 오늘, 그리고 오늘로부터 1개월 이내
+// 단, 오늘 날짜 예식은 "종료 시각(예식 시작 + 50분)이 지난 경우"에만 예외적으로 포함
+function filterEndedSchedules(rows){
+  const { y, m, d } = getKSTTodayParts();
+  const todayStr = dateStrFromYMD(y, m, d);
+  const monthAgoStr = oneMonthAgoDateStr();
+  const nowMin = getKSTNowMinutes();
+
+  return rows.filter(s=>{
+    if(!s.date) return false;
+    if(s.date > todayStr) return false; // 미래 예식 제외
+
+    if(s.date === todayStr){
+      // 오늘 예식: 종료 시각(시작+50분)이 지났을 때만 예외적으로 포함, 시각 정보 없으면 제외
+      const startMin = timeStrToMinutes(s.time);
+      if(startMin === null) return false;
+      const endMin = startMin + 50;
+      return endMin <= nowMin;
+    }
+
+    // 과거 예식: 최근 1개월 이내인지 확인
+    return s.date >= monthAgoStr;
+  });
+}
+
 async function toggleSchedulePicker(){
   const box = document.getElementById('schedule-picker-list');
   if(box.style.display !== 'none'){ box.style.display = 'none'; return; }
@@ -1056,17 +1115,11 @@ async function toggleSchedulePicker(){
   box.innerHTML = `<div class="field-hint">불러오는 중...</div>`;
   try{
     const rows = await loadMySchedules();
-    const today = new Date(); today.setHours(0,0,0,0);
-    const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(today.getDate()-7);
-    const filtered = rows.filter(s=>{
-      if(!s.date) return false;
-      const d = new Date(s.date);
-      return d >= sevenDaysAgo; // 지난 7일 + 이후 예정 전체
-    });
-    filtered.sort((a,b)=> Math.abs(new Date(a.date)-today) - Math.abs(new Date(b.date)-today));
+    const filtered = filterEndedSchedules(rows);
+    filtered.sort((a,b)=> (b.date+':'+ (b.time||'')).localeCompare(a.date+':'+(a.time||''))); // 최근 종료순(내림차순)
 
     if(filtered.length===0){
-      box.innerHTML = `<div class="field-hint">최근 7일 이내 또는 예정된 담당 예식이 없습니다.</div>`;
+      box.innerHTML = `<div class="field-hint">최근 1개월 내 완료된 담당 예식이 없습니다.</div>`;
       return;
     }
     box.innerHTML = filtered.map(s=>{
@@ -1087,6 +1140,7 @@ async function toggleSchedulePicker(){
     box.innerHTML = `<div class="field-hint">담당 예식을 불러오지 못했습니다.</div>`;
   }
 }
+
 
 async function pickSchedule(scheduleId){
   const rows = await loadMySchedules();
