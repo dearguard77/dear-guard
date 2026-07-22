@@ -769,7 +769,7 @@ function buildFormHtml(){
         <div class="field-label">내 담당 예식 불러오기</div>
         <button type="button" class="btn btn-secondary" style="width:100%;justify-content:center" onclick="toggleSchedulePicker()">📅 담당 예식 목록 불러오기</button>
         <div id="schedule-picker-list" style="display:none;margin-top:8px"></div>
-        <div class="field-hint">최근 1개월 내 종료된 담당 예식 목록에서 선택하면 작성자·예식일·예식장명이 자동 입력됩니다. 직접 입력도 그대로 가능합니다.</div>
+        <div class="field-hint">최근 1개월 내 종료된 담당 예식 목록에서 선택하면 작성자·예식일·예식장명·홀명이 자동 입력됩니다. 직접 입력도 그대로 가능합니다.</div>
       </div>
       <div class="field" id="f-wrap-reviewer_name">
         <div class="field-label">작성자 <span class="req">*</span></div>
@@ -1032,7 +1032,7 @@ async function loadMySchedules(){
   if(mySchedulesCache) return mySchedulesCache;
   const name = encodeURIComponent(currentUser.name);
   const rows = await sb.get('schedules',
-    `?or=(front_manager.ilike.*${name}*,back_manager.ilike.*${name}*)&select=id,date,time,hall,groom_name,bride_name,front_manager,back_manager&order=date.asc`);
+    `?or=(front_manager.ilike.*${name}*,back_manager.ilike.*${name}*)&select=id,date,time,hall,address,groom_name,bride_name,front_manager,back_manager&order=date.asc`);
   mySchedulesCache = rows;
   return rows;
 }
@@ -1147,6 +1147,8 @@ async function pickSchedule(scheduleId){
   const s = rows.find(x=>x.id===scheduleId);
   if(!s) return;
 
+  const hallNameFromSchedule = (s.address || '').trim(); // schedules.address = 실제 홀명 저장 컬럼 (index.html 상세모달 "홀 이름"과 동일)
+
   formState.reviewer_name = currentUser.name;
   formState.wedding_date = s.date;
   formState.schedule_id = s.id;
@@ -1154,18 +1156,34 @@ async function pickSchedule(scheduleId){
   document.getElementById('f-reviewer_name').value = currentUser.name;
   document.getElementById('f-wedding_date').value = s.date;
 
+  // 1) 예식장 매칭/설정
+  selectedVenueObj = null;
   if(s.hall){
     const v = venuesData.find(x=>x.venue_name===s.hall);
     selectedVenueObj = v ? {id:v.id, venue_name:v.venue_name, address:v.address} : {name:s.hall};
     document.getElementById('f-venue_name').value = s.hall;
+  }else{
+    document.getElementById('f-venue_name').value = '';
   }
-  // 홀명은 schedules 테이블에 별도 컬럼이 없어 자동 입력할 수 없습니다 — 직접 선택/입력해주세요.
+
+  // 2) 홀 매칭/설정 (예식장이 먼저 확정된 뒤 마지막에 처리 — 초기화되지 않도록 순서 유지)
   selectedHallObj = null;
-  document.getElementById('f-hall_name').value = '';
+  if(hallNameFromSchedule){
+    if(selectedVenueObj && selectedVenueObj.id){
+      const v = venuesData.find(x=>x.id===selectedVenueObj.id);
+      const existingHall = v && v.halls.find(h=>h.hall_name.trim()===hallNameFromSchedule);
+      selectedHallObj = existingHall ? {id:existingHall.id, hall_name:existingHall.hall_name} : {name:hallNameFromSchedule};
+    }else{
+      selectedHallObj = {name:hallNameFromSchedule};
+    }
+    document.getElementById('f-hall_name').value = hallNameFromSchedule;
+  }else{
+    document.getElementById('f-hall_name').value = '';
+  }
 
   document.getElementById('schedule-picker-list').style.display = 'none';
   formDirty = true;
-  showToast('담당 예식 정보를 불러왔습니다. 홀명은 직접 선택해주세요.');
+  showToast(hallNameFromSchedule ? '담당 예식 정보를 불러왔습니다.' : '담당 예식 정보를 불러왔습니다. 홀명은 직접 입력해주세요.');
 }
 
 // ═══════════ VALIDATION & SUBMIT ═══════════
@@ -1351,16 +1369,17 @@ async function handleUrlParams(){
   }else if(mode==='write' && scheduleIdParam){
     switchMainTab('write');
     try{
-      const rows = await sb.get('schedules', `?id=eq.${Number(scheduleIdParam)}&select=id,date,hall,groom_name,bride_name`);
+      const rows = await sb.get('schedules', `?id=eq.${Number(scheduleIdParam)}&select=id,date,hall,address,groom_name,bride_name`);
       const s = rows[0];
       if(s){
         renderWriteForm({
           venueName: s.hall || '',
+          hallName: (s.address||'').trim() || undefined,
           date: s.date || undefined,
           reviewerName: currentUser.name,
           scheduleId: s.id
         });
-        showToast('담당 예식 정보를 불러왔습니다. 홀명은 직접 선택해주세요.');
+        showToast('담당 예식 정보를 불러왔습니다.');
       }else{
         showToast('해당 일정을 찾을 수 없습니다.');
         renderWriteForm();
