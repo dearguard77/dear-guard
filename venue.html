@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="apple-touch-icon" href="https://dear-guard.vercel.app/icon.png">
+<link rel="icon" type="image/png" href="https://dear-guard.vercel.app/icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>예식장 리뷰 - 디어가드</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:#F8F7F5;color:#111827;font-size:14px}
+  button{cursor:pointer;font-family:inherit}
+  input,select,textarea{font-family:inherit}
+  a{color:inherit;text-decoration:none}
+
+  /* NAV */
+  #nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid #E8DFD0;padding:0 16px;display:flex;align-items:center;height:56px;gap:10px}
+  #nav .brand{font-family:Georgia,serif;font-size:16px;font-weight:700;color:#C7A96B;letter-spacing:.5px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+  #nav .brand img{height:26px;width:auto}
+  #nav .sub-title{font-size:12px;color:#9CA3AF;font-weight:600;border-left:1px solid #E5E7EB;padding-left:10px}
+  #nav .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+  #user-chip{display:flex;align-items:center;gap:6px;background:#FDF8F3;border:1px solid #E8DFD0;border-radius:20px;padding:5px 12px 5px 5px;font-size:12px;font-weight:700;color:#374151}
+  .avatar{width:24px;height:24px;border-radius:50%;background:#C7A96B;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  #logout-btn{background:none;border:1px solid #E5E7EB;border-radius:8px;padding:6px 10px;font-size:11px;color:#6B7280;font-weight:600}
+  #logout-btn:hover{background:#F3F4F6}
+
+  /* TABS */
+  #tabbar{max-width:900px;margin:16px auto 0;padding:0 16px;display:flex;gap:8px}
+  .main-tab-btn{flex:1;background:#fff;border:1.5px solid #E5E7EB;border-radius:12px;padding:12px;font-size:14px;font-weight:700;color:#6B7280;text-align:center;transition:all .15s}
+  .main-tab-btn.active{background:#C7A96B;border-color:#C7A96B;color:#fff}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  #main{max-width:900px;margin:0 auto;padding:16px 16px 100px}
+
+  /* SEARCH */
+  .search-bar{display:flex;gap:8px;margin-bottom:12px}
+  .search-input{flex:1;border:1.5px solid #E5E7EB;border-radius:10px;padding:11px 14px;font-size:14px;color:#111827;outline:none;background:#fff}
+  .search-input:focus{border-color:#C7A96B}
+  .sort-select{border:1.5px solid #E5E7EB;border-radius:10px;padding:0 10px;font-size:12px;color:#374151;background:#fff}
+
+  /* CARD */
+  .venue-group{background:#fff;border:1px solid #E5E7EB;border-radius:14px;margin-bottom:10px;overflow:hidden}
+  .venue-group-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+  .venue-group-head:hover{background:#FAFAF8}
+  .venue-name{font-size:15px;font-weight:800;color:#111827}
+  .venue-addr{font-size:11px;color:#9CA3AF;margin-top:2px}
+  .venue-arrow{font-size:11px;color:#9CA3AF;transition:transform .2s}
+  .venue-arrow.open{transform:rotate(90deg)}
+  .hall-list{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .hall-list.open{max-height:2000px}
+  .hall-row{padding:12px 16px 12px 24px;border-top:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+  .hall-row:hover{background:#FDF8F3}
+  .hall-name{font-size:13px;font-weight:700;color:#374151}
+  .hall-meta{font-size:11px;color:#9CA3AF;margin-top:2px}
+  .hall-chev{color:#C7A96B;font-size:13px}
+
+  .empty-state{background:#F9FAFB;border:1px dashed #E5E7EB;border-radius:12px;padding:32px 20px;text-align:center;color:#9CA3AF;font-size:13px}
+
+  /* DETAIL */
+  .back-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:none;color:#6B7280;font-size:13px;font-weight:600;margin-bottom:12px}
+  .back-btn:hover{color:#C7A96B}
+  .detail-header{background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:20px;margin-bottom:12px}
+  .detail-venue{font-size:19px;font-weight:800;color:#111827}
+  .detail-hall{font-size:14px;color:#6B7280;margin-top:2px}
+  .detail-addr{font-size:12px;color:#9CA3AF;margin-top:6px}
+  .detail-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid #F3F4F6}
+  .detail-stat{font-size:12px;color:#6B7280}
+  .detail-stat b{color:#111827;font-size:14px}
+  .recent-change-banner{background:#FFF9F0;border:1px solid #F0E0C0;border-radius:10px;padding:10px 14px;font-size:12px;color:#8A6D3B;margin-top:12px;display:flex;gap:8px;align-items:flex-start}
+
+  .sec-block{background:#fff;border:1px solid #E5E7EB;border-radius:14px;margin-bottom:10px;overflow:hidden}
+  .sec-block-head{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+  .sec-block-head:hover{background:#FAFAF8}
+  .sec-block-title{font-size:13px;font-weight:800;color:#111827}
+  .sec-block-arrow{font-size:11px;color:#9CA3AF;transition:transform .2s}
+  .sec-block-arrow.open{transform:rotate(90deg)}
+  .sec-block-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .sec-block-body.open{max-height:3000px}
+  .sec-block-inner{padding:4px 16px 16px}
+
+  .info-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+  .info-item{font-size:12px}
+  .info-item .lbl{color:#9CA3AF;margin-bottom:2px}
+  .info-item .val{font-weight:700;color:#374151}
+  @media(max-width:520px){.info-grid2{grid-template-columns:1fr}}
+
+  /* REVIEW HISTORY CARD */
+  .review-card{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px;margin-bottom:10px}
+  .review-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .review-date{font-size:14px;font-weight:800;color:#111827}
+  .review-meta{font-size:11px;color:#9CA3AF;margin-top:2px}
+  .review-actions{display:flex;gap:6px}
+  .icon-btn{background:none;border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:11px;color:#6B7280}
+  .icon-btn:hover{background:#F3F4F6}
+  .icon-btn.danger{color:#EF4444;border-color:#FCA5A5}
+  .icon-btn.danger:hover{background:#FEF2F2}
+  .review-chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+  .mini-chip{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:14px;padding:3px 9px;font-size:10.5px;color:#6B7280;font-weight:600}
+  .review-note{font-size:12.5px;color:#374151;line-height:1.6;white-space:pre-line;background:#FDF8F3;border-radius:8px;padding:10px 12px;margin-top:6px}
+  .review-note-label{font-size:10px;font-weight:800;color:#C7A96B;margin-bottom:3px}
+
+  /* FORM */
+  .form-sec{background:#fff;border:1px solid #E5E7EB;border-radius:14px;margin-bottom:10px;overflow:hidden}
+  .form-sec-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:#FDFCFA}
+  .form-sec-head:hover{background:#FAF6EF}
+  .form-sec-title{font-size:13px;font-weight:800;color:#111827;display:flex;align-items:center;gap:6px}
+  .form-sec-badge{font-size:10px;background:#C7A96B;color:#fff;border-radius:10px;padding:1px 7px;font-weight:700}
+  .form-sec-arrow{font-size:11px;color:#9CA3AF;transition:transform .2s}
+  .form-sec-arrow.open{transform:rotate(90deg)}
+  .form-sec-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .form-sec-body.open{max-height:5000px}
+  .form-sec-inner{padding:6px 16px 18px}
+
+  .field{margin-bottom:16px}
+  .field:last-child{margin-bottom:0}
+  .field-label{font-size:12.5px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+  .field-label .req{color:#EF4444;font-size:12px}
+  .field-input{width:100%;border:1.5px solid #E5E7EB;border-radius:10px;padding:10px 12px;font-size:13px;color:#111827;outline:none;background:#fff}
+  .field-input:focus{border-color:#C7A96B}
+  textarea.field-input{resize:vertical;min-height:64px;line-height:1.5}
+  .field-hint{font-size:11px;color:#9CA3AF;margin-top:5px}
+  .field.missing .field-label{color:#EF4444}
+  .field.missing .chip-group{outline:1.5px solid #FCA5A5;border-radius:12px}
+
+  .chip-group{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{border:1.5px solid #E5E7EB;border-radius:20px;padding:8px 14px;font-size:12.5px;font-weight:600;background:#fff;color:#6B7280;transition:all .15s}
+  .chip:hover{border-color:#C7A96B}
+  .chip.active{background:#C7A96B;color:#fff;border-color:#C7A96B}
+  .chip-sub-input{margin-top:8px}
+
+  .autocomplete-wrap{position:relative}
+  .ac-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.10);max-height:220px;overflow-y:auto;z-index:50;display:none}
+  .ac-list.open{display:block}
+  .ac-item{padding:10px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid #F9FAFB}
+  .ac-item:last-child{border-bottom:none}
+  .ac-item:hover{background:#FDF8F3}
+  .ac-item .ac-sub{font-size:10.5px;color:#9CA3AF;margin-top:1px}
+  .ac-item.ac-new{color:#C7A96B;font-weight:700}
+
+  .submit-bar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(248,247,245,0),#F8F7F5 30%);padding:16px 0 0;margin-top:4px}
+  .btn-submit{width:100%;background:#C7A96B;color:#fff;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:800;box-shadow:0 4px 16px rgba(199,169,107,.35)}
+  .btn-submit:hover{background:#B8976A}
+  .btn-submit:disabled{background:#D1D5DB;box-shadow:none;cursor:not-allowed}
+
+  .btn{border:none;border-radius:8px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+  .btn-primary{background:#C7A96B;color:#fff;padding:10px 20px;font-size:13px}
+  .btn-primary:hover{background:#B8976A}
+  .btn-secondary{background:#F3F4F6;color:#374151;padding:10px 20px;font-size:13px}
+  .btn-ghost{background:none;color:#6B7280;border:1px solid #E5E7EB;padding:10px 20px;font-size:13px;border-radius:8px}
+
+  /* MODAL (delete confirm) */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.hidden{display:none}
+  .modal-box{background:#fff;border-radius:18px;width:100%;max-width:360px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+  .modal-title{font-size:15px;font-weight:800;color:#111827;margin-bottom:8px}
+  .modal-msg{font-size:13px;color:#6B7280;line-height:1.6;margin-bottom:18px}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;z-index:2000;box-shadow:0 4px 20px rgba(0,0,0,.3);white-space:nowrap;display:none}
+
+  /* LOADING */
+  #loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:12px}
+  .spinner{width:36px;height:36px;border:3px solid #E8DFD0;border-top-color:#C7A96B;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* LOGIN */
+  #login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#F8F5F0,#FDF8F3);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-box{background:#fff;border-radius:24px;padding:40px 32px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+  .login-sub{font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:32px}
+  .login-field{margin-bottom:14px}
+  .login-label{font-size:11px;font-weight:700;color:#6B7280;margin-bottom:6px;display:block}
+  .login-input{width:100%;border:1.5px solid #E5E7EB;border-radius:10px;padding:11px 14px;font-size:14px;color:#111827;outline:none;font-family:inherit}
+  .login-input:focus{border-color:#C7A96B}
+  .login-btn{width:100%;background:#C7A96B;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+  .login-btn:hover{background:#B8976A}
+  .login-err{font-size:12px;color:#EF4444;text-align:center;margin-top:10px;min-height:18px;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#C7A96B;text-align:center;margin-bottom:4px">디어가드</div>
+    <div class="login-sub">예식장 리뷰 데이터베이스</div>
+    <div class="login-field">
+      <label class="login-label">이름 입력</label>
+      <input class="login-input" id="login-name" type="text" placeholder="이름을 입력하세요" autocomplete="off" list="login-name-list" onkeydown="if(event.key==='Enter') document.getElementById('login-pw').focus()">
+      <datalist id="login-name-list"></datalist>
+    </div>
+    <div class="login-field">
+      <label class="login-label">비밀번호</label>
+      <input class="login-input" id="login-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:#9CA3AF">데이터를 불러오는 중...</div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="brand">디어가드 <span style="color:#111827;font-family:inherit;font-weight:400">|</span></div>
+  <div class="sub-title">🏛️ 예식장 리뷰</div>
+  <div class="nav-right">
+    <div id="user-chip"><div class="avatar" id="nav-avatar">매</div><span id="nav-username">-</span></div>
+    <button id="logout-btn" onclick="doLogout()">로그아웃</button>
+  </div>
+</nav>
+
+<div id="tabbar">
+  <button class="main-tab-btn active" id="maintab-view" onclick="switchMainTab('view')">🔍 예식장 조회</button>
+  <button class="main-tab-btn" id="maintab-write" onclick="switchMainTab('write')">✏️ 리뷰 등록</button>
+</div>
+
+<div id="main">
+
+  <!-- ============ VIEW TAB ============ -->
+  <div class="tab-panel active" id="panel-view">
+
+    <div id="view-list-wrap">
+      <div class="search-bar">
+        <input class="search-input" id="venue-search" placeholder="예식장명, 홀명, 지역으로 검색" oninput="renderVenueList()">
+        <select class="sort-select" id="venue-sort" onchange="renderVenueList()">
+          <option value="latest">최신순</option>
+          <option value="reviews">리뷰 많은순</option>
+          <option value="recent-visit">최근 방문순</option>
+        </select>
+      </div>
+      <div id="venue-list"></div>
+    </div>
+
+    <div id="view-detail-wrap" style="display:none"></div>
+
+  </div>
+
+  <!-- ============ WRITE TAB ============ -->
+  <div class="tab-panel" id="panel-write">
+    <div id="write-form"></div>
+  </div>
+
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay hidden" id="delete-modal">
+  <div class="modal-box">
+    <div class="modal-title">리뷰를 삭제하시겠습니까?</div>
+    <div class="modal-msg">삭제된 리뷰는 복구할 수 없습니다. 정말 삭제하시겠습니까?</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">취소</button>
+      <button class="btn" style="background:#EF4444;color:#fff;padding:10px 20px;font-size:13px" onclick="confirmDeleteReview()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEAVE-WARNING CONFIRM MODAL -->
+<div class="modal-overlay hidden" id="leave-modal">
+  <div class="modal-box">
+    <div class="modal-title">작성 중인 내용이 있습니다</div>
+    <div class="modal-msg">저장하지 않고 나가면 입력한 내용이 사라집니다. 계속하시겠습니까?</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeLeaveModal()">계속 작성</button>
+      <button class="btn" style="background:#EF4444;color:#fff;padding:10px 20px;font-size:13px" onclick="confirmLeave()">나가기</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  디어가드 예식장 리뷰 데이터베이스 (venue.html)
+// ════════════════════════════════════════════════════════════
+
+// ─── SUPABASE 설정 (index.html과 동일 프로젝트 재사용) ───
+const SUPABASE_URL      = 'https://fmvomfjmkbklhaaapkbk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
+
+const sb = {
+  headers: { 'Content-Type':'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+  url: (table, query='') => `${SUPABASE_URL}/rest/v1/${table}${query}`,
+  async get(table, query=''){
+    const r = await fetch(sb.url(table, query), { headers: sb.headers });
+    if(!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async post(table, body){
+    const r = await fetch(sb.url(table), { method:'POST', headers:{...sb.headers,'Prefer':'return=representation'}, body: JSON.stringify(body) });
+    if(!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async patch(table, id, body){
+    const r = await fetch(sb.url(table, `?id=eq.${id}`), { method:'PATCH', headers:{...sb.headers,'Prefer':'return=representation'}, body: JSON.stringify(body) });
+    if(!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async delete(table, id){
+    const r = await fetch(sb.url(table, `?id=eq.${id}`), { method:'DELETE', headers: sb.headers });
+    if(!r.ok) throw new Error(await r.text());
+  }
+};
+
+// ─── USERS (index.html과 동일 — 로그인 체계 재사용) ───
+const USERS = [
+  { id:1, name:"강성주", role:"대표", avatar:"대", canEdit:true,  isAdmin:true,  pw:"gg" },
+  { id:2, name:"전수연", role:"실장", avatar:"실", canEdit:true,  isAdmin:true,  pw:"gg" },
+  { id:3, name:"조윤성", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ys" },
+  { id:4, name:"정선화", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"sh" },
+  { id:5, name:"김지현", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"jh" },
+  { id:6, name:"목수빈", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"sb" },
+  { id:7, name:"양윤수", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ys" },
+  { id:8, name:"김홍주", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"hj" },
+  { id:9,  name:"이승윤", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"sy" },
+  { id:10, name:"임우령", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"wr" },
+  { id:11, name:"강미송", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ms" },
+  { id:12, name:"노지훈", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"jh" },
+  { id:13, name:"김아희", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ah" },
+  { id:14, name:"진효성", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"hs" },
+  { id:15, name:"김우석", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ws" },
+  { id:16, name:"전혜진", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"hj" },
+];
+
+let currentUser = null;
+
+// ─── FIELD SCHEMA (선택형 항목 정의 — 이 배열만 수정하면 폼 자동 반영) ───
+const FIELD_SCHEMA = [
+  { section:'B', id:'operation_difficulty', label:'전체 운영 난이도', type:'chip', required:true,
+    options:['매우 편리','편리','보통','불편','매우 불편'] },
+  { section:'B', id:'lobby_crowding', label:'축의대 로비 혼잡도', type:'chip', required:true,
+    options:['여유로움','보통','혼잡'] },
+  { section:'B', id:'internet_status', label:'인터넷 상태', type:'chip', required:true,
+    options:['매우 잘 터짐','보통','잘 안 터짐','사용 불가'] },
+  { section:'B', id:'internet_detail', label:'인터넷 상세내용', type:'text', required:false, placeholder:'선택사항' },
+
+  { section:'C', id:'reception_table_count', label:'축의대 수량', type:'chip', required:true,
+    options:['2대','4대','기타'], other:'기타', otherPlaceholder:'수량/형태를 입력해주세요',
+    hint:'예식장에서 기본 제공하는 축의대 기준입니다.' },
+  { section:'C', id:'reception_level_difference', label:'축의대 단차', type:'chip', required:true,
+    options:['단차 있음','단차 없음'] },
+  { section:'C', id:'reception_level_note', label:'단차 상세 코멘트', type:'text', required:false,
+    placeholder:'예) 신랑측과 신부측 높이가 다름', showIf: v => v.reception_level_difference === '단차 있음' },
+  { section:'C', id:'reception_layout_type', label:'축의대 형태', type:'chip', required:false,
+    options:['일자형','단차형','기타'], other:'기타', otherPlaceholder:'형태를 입력해주세요',
+    hint:'배치·구조를 의미합니다. (단차는 위 항목에서 별도 선택)' },
+  { section:'C', id:'reception_size', label:'축의대 크기', type:'chip', required:true,
+    options:['좁음','적당함','넓음'] },
+  { section:'C', id:'reception_drawer', label:'축의대 서랍', type:'chip', required:false,
+    options:['있음','없음','있으나 사용하기 불편함'] },
+  { section:'C', id:'reception_chair', label:'축의대 의자', type:'chip', required:false,
+    options:['있음','없음','있으나 서서 진행하는 것이 편함'] },
+  { section:'C', id:'outlet_status', label:'콘센트', type:'chip', required:true,
+    options:['있음','없음','있으나 멀티탭 필요'] },
+  { section:'C', id:'couple_table_layout', label:'신랑·신부 축의대 배치', type:'chip', required:true,
+    options:['서로 매우 가까움','적당한 거리','맞은편','멀리 떨어져 있음'] },
+  { section:'C', id:'parent_distance', label:'혼주와 축의대 거리', type:'chip', required:true,
+    options:['매우 가까움','보통','멀리 떨어져 있음'] },
+
+  { section:'D', id:'ticket_stamp', label:'식권 도장', type:'chip', required:true,
+    options:['신경 쓰지 않음','도장 미날인 시 사용 불가','기타'], other:'기타', otherPlaceholder:'상세 내용' },
+  { section:'D', id:'child_ticket', label:'소인 식권', type:'chip', required:true,
+    options:['있음','없음'] },
+  { section:'D', id:'ticket_issue', label:'식권 거지 발생 여부', type:'chip', required:false,
+    options:['있었음','없었음'] },
+  { section:'D', id:'ticket_issue_detail', label:'식권 거지 상세 상황', type:'text', required:false,
+    placeholder:'상세 상황을 입력해주세요', showIf: v => v.ticket_issue === '있었음' },
+  { section:'D', id:'extra_ticket_location', label:'식권 추가 수령 위치', type:'text', required:false,
+    placeholder:'예) 연회장 입구 / 예약실 / 안내데스크 / 혼주에게 직접 요청' },
+  { section:'D', id:'envelope_types', label:'봉투 종류', type:'chip-multi', required:false,
+    options:['일반 봉투','이중 봉투','방수 봉투','스테이플러 사용 불가 봉투','기타'], other:'기타', otherPlaceholder:'기타 봉투 종류' },
+  { section:'D', id:'flower_ribbon_method', label:'화환 리본 처리', type:'chip', required:false,
+    options:['직원이 잘라줌','직접 잘라야 함','화환 반입 불가','기타'], other:'기타', otherPlaceholder:'상세 내용' },
+
+  { section:'E', id:'wifi_status', label:'Wi-Fi 사용 여부', type:'chip', required:true,
+    options:['사용 가능','사용 불가','확인하지 못함'] },
+  { section:'E', id:'wifi_name', label:'Wi-Fi 이름', type:'text', required:false,
+    placeholder:'Wi-Fi 이름', showIf: v => v.wifi_status === '사용 가능' },
+  { section:'E', id:'wifi_password', label:'Wi-Fi 비밀번호', type:'text', required:false,
+    placeholder:'Wi-Fi 비밀번호 (전체 직원 조회 가능)', showIf: v => v.wifi_status === '사용 가능' },
+  { section:'E', id:'wifi_note', label:'접속/사용 시 주의사항', type:'text', required:false,
+    placeholder:'선택사항', showIf: v => v.wifi_status === '사용 가능' },
+
+  { section:'F', id:'banquet_location', label:'연회장 위치', type:'text', required:false },
+  { section:'F', id:'counting_room_location', label:'정산실 또는 계수실 위치', type:'text', required:false },
+  { section:'F', id:'reservation_office_location', label:'예약실 위치', type:'text', required:false },
+  { section:'F', id:'restroom_location', label:'화장실 위치', type:'text', required:false },
+  { section:'F', id:'atm_location', label:'ATM 위치', type:'text', required:false },
+  { section:'F', id:'parking_note', label:'주차 위치 및 특이사항', type:'text', required:false },
+  { section:'F', id:'movement_note', label:'엘리베이터/이동 동선 특이사항', type:'text', required:false },
+  { section:'F', id:'handover_location', label:'인계하기 편한 장소', type:'text', required:false },
+  { section:'F', id:'handover_note', label:'인계 시 주의사항', type:'text', required:false },
+
+  { section:'G', id:'manager_tip', label:'다음 담당자가 알면 좋은 점', type:'textarea', required:false,
+    placeholder:'예) 신부측 축의대 뒤쪽 콘센트 사용 가능 / 예식 직전 엘리베이터 매우 혼잡함 등' },
+  { section:'G', id:'recent_change', label:'최근 변경사항', type:'textarea', required:false,
+    placeholder:'예) Wi-Fi 비밀번호 변경 / ATM 위치 변경 등 이전 방문과 달라진 점' },
+];
+
+const SECTION_TITLES = {
+  B:'기본 운영 평가', C:'축의대 기본정보', D:'식권 및 봉투 정보', E:'Wi-Fi 정보', F:'예식장 위치 및 편의정보', G:'자유입력'
+};
+
+// 상세 조회 화면 상단 요약에 노출할 항목 (섹션별 그룹)
+const SUMMARY_GROUPS = [
+  { title:'운영 정보', ids:['operation_difficulty','lobby_crowding','internet_status'] },
+  { title:'Wi-Fi', ids:['wifi_status','wifi_name','wifi_password'] },
+  { title:'축의대 정보', ids:['reception_table_count','reception_level_difference','reception_layout_type','reception_size','reception_drawer','reception_chair','outlet_status'] },
+  { title:'배치', ids:['couple_table_layout','parent_distance'] },
+  { title:'식권 · 봉투', ids:['ticket_stamp','child_ticket','envelope_types','flower_ribbon_method'] },
+  { title:'인계 · 참고사항', ids:['handover_location','handover_note','manager_tip'] },
+];
+
+function fieldById(id){ return FIELD_SCHEMA.find(f=>f.id===id); }
+function fieldLabel(id){ const f=fieldById(id); return f ? f.label : id; }
+
+// ─── STATE ───
+let venuesData = [];   // [{id,venue_name,address,halls:[{id,hall_name,reviews:[...]}] }]
+let allReviews = [];
+let openVenueIds = new Set();
+let currentDetail = { venueId:null, hallId:null };
+let visibleReviewCount = 5;
+let editingReviewId = null;
+let deleteTargetId = null;
+let formDirty = false;
+let pendingLeaveAction = null;
+let formState = {}; // 현재 작성 폼 값
+let selectedVenueObj = null; // {id,venue_name,address} or {name:'신규'}
+let selectedHallObj = null;  // {id,hall_name} or {name:'신규'}
+
+// ═══════════ LOGIN ═══════════
+function initLoginScreen(){
+  document.getElementById('login-name-list').innerHTML = USERS.map(u=>`<option value="${u.name} (${u.role})"></option>`).join('');
+}
+function doLogin(){
+  const nameVal = (document.getElementById('login-name').value||'').trim();
+  const pwVal = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-err');
+  errEl.textContent='';
+  if(!nameVal){ errEl.textContent='이름을 입력해주세요.'; return; }
+  if(!pwVal){ errEl.textContent='비밀번호를 입력해주세요.'; return; }
+  const inputName = nameVal.replace(/\s*\(.*\)\s*$/,'').trim();
+  const user = USERS.find(u=>u.name===inputName);
+  if(!user || user.pw!==pwVal){
+    errEl.textContent='이름 또는 비밀번호가 올바르지 않습니다.';
+    document.getElementById('login-pw').value='';
+    return;
+  }
+  localStorage.setItem('dg_user_id', user.id);
+  currentUser = user;
+  document.getElementById('login-screen').style.display='none';
+  startApp();
+}
+function doLogout(){
+  if(!confirm('로그아웃 하시겠습니까?')) return;
+  localStorage.removeItem('dg_user_id');
+  location.reload();
+}
+
+async function init(){
+  initLoginScreen();
+  const savedId = localStorage.getItem('dg_user_id');
+  if(savedId){
+    const user = USERS.find(u=>u.id===Number(savedId));
+    if(user){
+      currentUser = user;
+      document.getElementById('login-screen').style.display='none';
+      await startApp();
+      return;
+    }
+  }
+  document.getElementById('loading-overlay').style.display='none';
+}
+
+async function startApp(){
+  document.getElementById('loading-overlay').style.display='flex';
+  document.getElementById('nav-avatar').textContent = currentUser.avatar;
+  document.getElementById('nav-username').textContent = currentUser.name;
+  try{
+    await loadAllData();
+  }catch(e){
+    console.error(e);
+    showToast('데이터 로드 중 오류가 발생했습니다.');
+  }
+  document.getElementById('loading-overlay').style.display='none';
+  handleUrlParams();
+}
+
+// ═══════════ DATA LOAD ═══════════
+async function loadAllData(){
+  const [venues, halls, reviews] = await Promise.all([
+    sb.get('venues', '?select=*&order=venue_name.asc'),
+    sb.get('venue_halls', '?select=*'),
+    sb.get('venue_reviews', '?select=*&order=wedding_date.desc,created_at.desc'),
+  ]);
+  allReviews = reviews;
+  venuesData = venues.map(v=>({
+    ...v,
+    halls: halls.filter(h=>h.venue_id===v.id).map(h=>({
+      ...h,
+      reviews: reviews.filter(r=>r.hall_id===h.id)
+    }))
+  }));
+  renderVenueList();
+}
+
+// ═══════════ MAIN TAB SWITCH ═══════════
+function switchMainTab(tab, force){
+  if(!force && tab!=='write' && formDirty && document.getElementById('panel-write').classList.contains('active')){
+    pendingLeaveAction = ()=> switchMainTab(tab, true);
+    document.getElementById('leave-modal').classList.remove('hidden');
+    return;
+  }
+  if(tab==='write'){
+    document.getElementById('maintab-write').classList.add('active');
+    document.getElementById('maintab-view').classList.remove('active');
+    document.getElementById('panel-write').classList.add('active');
+    document.getElementById('panel-view').classList.remove('active');
+    if(!document.getElementById('write-form').innerHTML) renderWriteForm();
+  }else{
+    document.getElementById('maintab-view').classList.add('active');
+    document.getElementById('maintab-write').classList.remove('active');
+    document.getElementById('panel-view').classList.add('active');
+    document.getElementById('panel-write').classList.remove('active');
+  }
+}
+
+// ═══════════ VENUE LIST (조회) ═══════════
+function renderVenueList(){
+  const q = (document.getElementById('venue-search').value||'').trim().toLowerCase();
+  const sort = document.getElementById('venue-sort').value;
+  const wrap = document.getElementById('venue-list');
+
+  let rows = venuesData.map(v=>{
+    const matchedHalls = v.halls.filter(h=>{
+      if(!q) return true;
+      return v.venue_name.toLowerCase().includes(q) || h.hall_name.toLowerCase().includes(q) || (v.address||'').toLowerCase().includes(q);
+    });
+    return { ...v, matchedHalls };
+  }).filter(v=>v.matchedHalls.length>0);
+
+  if(sort==='reviews'){
+    rows.sort((a,b)=> sumReviews(b) - sumReviews(a));
+  }else if(sort==='recent-visit'){
+    rows.sort((a,b)=> lastVisit(b) - lastVisit(a));
+  }else{
+    rows.sort((a,b)=> lastVisit(b) - lastVisit(a));
+  }
+
+  if(rows.length===0){
+    wrap.innerHTML = `<div class="empty-state">검색 결과가 없습니다.<br>새 예식장은 [리뷰 등록] 탭에서 등록할 수 있습니다.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = rows.map(v=>{
+    const isOpen = openVenueIds.has(v.id) || q.length>0;
+    const halls = [...v.matchedHalls].sort((a,b)=> lastVisitHall(b) - lastVisitHall(a));
+    return `
+    <div class="venue-group">
+      <div class="venue-group-head" onclick="toggleVenueGroup(${v.id})">
+        <div>
+          <div class="venue-name">${escapeHtml(v.venue_name)}</div>
+          ${v.address?`<div class="venue-addr">${escapeHtml(v.address)}</div>`:''}
+        </div>
+        <div class="venue-arrow ${isOpen?'open':''}" id="varrow-${v.id}">▶</div>
+      </div>
+      <div class="hall-list ${isOpen?'open':''}" id="hlist-${v.id}">
+        ${halls.map(h=>`
+          <div class="hall-row" onclick="openDetail(${v.id},${h.id})">
+            <div>
+              <div class="hall-name">${escapeHtml(h.hall_name)}</div>
+              <div class="hall-meta">리뷰 ${h.reviews.length}건${h.reviews.length? ' / 최근 방문 '+fmtDate(lastVisitHall(h)):''}</div>
+            </div>
+            <div class="hall-chev">›</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function sumReviews(v){ return v.halls.reduce((s,h)=>s+h.reviews.length,0); }
+function lastVisit(v){ let m=0; v.halls.forEach(h=>{ h.reviews.forEach(r=>{ const t=new Date(r.wedding_date).getTime(); if(t>m) m=t; }); }); return m; }
+function lastVisitHall(h){ let m=0; h.reviews.forEach(r=>{ const t=new Date(r.wedding_date).getTime(); if(t>m) m=t; }); return m; }
+function toggleVenueGroup(id){
+  if(openVenueIds.has(id)) openVenueIds.delete(id); else openVenueIds.add(id);
+  renderVenueList();
+}
+
+// ═══════════ DETAIL VIEW ═══════════
+function openDetail(venueId, hallId){
+  currentDetail = { venueId, hallId };
+  visibleReviewCount = 5;
+  document.getElementById('view-list-wrap').style.display='none';
+  const dw = document.getElementById('view-detail-wrap');
+  dw.style.display='block';
+  renderDetail();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function backToList(){
+  document.getElementById('view-list-wrap').style.display='block';
+  document.getElementById('view-detail-wrap').style.display='none';
+  history.replaceState(null,'','venue.html');
+}
+function renderDetail(){
+  const v = venuesData.find(x=>x.id===currentDetail.venueId);
+  const dw = document.getElementById('view-detail-wrap');
+  if(!v){ dw.innerHTML = `<div class="empty-state">예식장 정보를 찾을 수 없습니다.</div>`; return; }
+  const h = v.halls.find(x=>x.id===currentDetail.hallId);
+  if(!h){ dw.innerHTML = `<div class="empty-state">홀 정보를 찾을 수 없습니다.</div>`; return; }
+
+  const reviews = [...h.reviews].sort((a,b)=> new Date(b.wedding_date)-new Date(a.wedding_date) || new Date(b.created_at)-new Date(a.created_at));
+  const latest = reviews[0];
+  const recentVisit = reviews.length ? fmtDate(reviews[0].wedding_date) : '-';
+
+  let html = `<button class="back-btn" onclick="backToList()">‹ 목록으로</button>`;
+  html += `<div class="detail-header">
+    <div class="detail-venue">${escapeHtml(v.venue_name)}</div>
+    <div class="detail-hall">${escapeHtml(h.hall_name)}</div>
+    ${v.address?`<div class="detail-addr">📍 ${escapeHtml(v.address)}</div>`:''}
+    <div class="detail-stats">
+      <div class="detail-stat">누적 리뷰 <b>${reviews.length}건</b></div>
+      <div class="detail-stat">최근 방문 <b>${recentVisit}</b></div>
+      <div class="detail-stat">최근 작성자 <b>${latest?escapeHtml(latest.reviewer_name):'-'}</b></div>
+    </div>
+    ${latest && latest.recent_change ? `<div class="recent-change-banner">🔄 <div><b>최근 변경됨</b><br>${escapeHtml(latest.recent_change)}</div></div>` : ''}
+  </div>`;
+
+  if(latest){
+    SUMMARY_GROUPS.forEach((g,gi)=>{
+      const items = g.ids.filter(id=> hasValue(latest[id]));
+      if(items.length===0) return;
+      html += `
+      <div class="sec-block">
+        <div class="sec-block-head" onclick="toggleSecBlock('sum-${gi}')">
+          <div class="sec-block-title">${g.title}</div>
+          <div class="sec-block-arrow open" id="sum-${gi}-arrow">▶</div>
+        </div>
+        <div class="sec-block-body open" id="sum-${gi}-body">
+          <div class="sec-block-inner">
+            <div class="info-grid2">
+              ${items.map(id=>`<div class="info-item"><div class="lbl">${fieldLabel(id)}</div><div class="val">${formatFieldValue(id, latest[id])}</div></div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  html += `<div class="sec-header" style="margin:18px 0 10px"><h2 style="font-size:15px;font-weight:800">리뷰 이력 (${reviews.length}건)</h2></div>`;
+
+  if(reviews.length===0){
+    html += `<div class="empty-state">아직 등록된 리뷰가 없습니다.</div>`;
+  }else{
+    const shown = reviews.slice(0, visibleReviewCount);
+    html += shown.map(r=>renderReviewCard(r)).join('');
+    if(reviews.length > visibleReviewCount){
+      html += `<button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="visibleReviewCount+=10;renderDetail()">더보기 (${reviews.length-visibleReviewCount}건 더)</button>`;
+    }
+  }
+
+  dw.innerHTML = html;
+}
+function toggleSecBlock(id){
+  const body = document.getElementById(id+'-body');
+  const arrow = document.getElementById(id+'-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+function renderReviewCard(r){
+  const canEdit = currentUser.isAdmin || r.reviewer_name===currentUser.name;
+  const chipIds = ['operation_difficulty','internet_status','wifi_status','reception_table_count','outlet_status','ticket_stamp'];
+  return `
+  <div class="review-card">
+    <div class="review-card-top">
+      <div>
+        <div class="review-date">${fmtDate(r.wedding_date)}</div>
+        <div class="review-meta">작성자 ${escapeHtml(r.reviewer_name)} · 등록일 ${fmtDate(r.created_at)}</div>
+      </div>
+      ${canEdit?`<div class="review-actions">
+        <button class="icon-btn" onclick="startEditReview(${r.id})">수정</button>
+        <button class="icon-btn danger" onclick="openDeleteModal(${r.id})">삭제</button>
+      </div>`:''}
+    </div>
+    <div class="review-chips">
+      ${chipIds.filter(id=>hasValue(r[id])).map(id=>`<span class="mini-chip">${fieldLabel(id)}: ${formatFieldValue(id,r[id])}</span>`).join('')}
+    </div>
+    ${r.manager_tip?`<div class="review-note"><div class="review-note-label">💡 다음 담당자 참고사항</div>${escapeHtml(r.manager_tip)}</div>`:''}
+    ${r.recent_change?`<div class="review-note"><div class="review-note-label">🔄 최근 변경사항</div>${escapeHtml(r.recent_change)}</div>`:''}
+  </div>`;
+}
+
+// ═══════════ HELPERS ═══════════
+function hasValue(v){ if(v===null||v===undefined) return false; if(Array.isArray(v)) return v.length>0; return String(v).trim().length>0; }
+function formatFieldValue(id, val){
+  if(id==='envelope_types' && Array.isArray(val)) return val.map(escapeHtml).join(', ');
+  if(id==='wifi_password' && val) return escapeHtml(val);
+  return escapeHtml(String(val));
+}
+function fmtDate(d){
+  if(!d) return '-';
+  const dt = new Date(d);
+  if(isNaN(dt)) return String(d);
+  return `${dt.getFullYear()}.${String(dt.getMonth()+1).padStart(2,'0')}.${String(dt.getDate()).padStart(2,'0')}`;
+}
+function escapeHtml(s){
+  return String(s??'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display='block';
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>{ t.style.display='none'; }, 2400);
+}
+
+// ═══════════ WRITE FORM ═══════════
+function blankFormState(){
+  const s = { wedding_date: todayStr() };
+  FIELD_SCHEMA.forEach(f=>{
+    if(f.type==='chip-multi') s[f.id]=[];
+    else s[f.id]='';
+  });
+  return s;
+}
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function renderWriteForm(prefill){
+  formState = blankFormState();
+  selectedVenueObj = null;
+  selectedHallObj = null;
+  editingReviewId = (prefill && prefill.editId) || null;
+
+  if(prefill){
+    if(prefill.venueName){
+      const v = venuesData.find(x=>x.venue_name===prefill.venueName);
+      selectedVenueObj = v ? {id:v.id, venue_name:v.venue_name, address:v.address} : {name:prefill.venueName};
+    }
+    if(prefill.hallName && selectedVenueObj && selectedVenueObj.id){
+      const v = venuesData.find(x=>x.id===selectedVenueObj.id);
+      const h = v && v.halls.find(x=>x.hall_name===prefill.hallName);
+      selectedHallObj = h ? {id:h.id, hall_name:h.hall_name} : {name:prefill.hallName};
+    }else if(prefill.hallName){
+      selectedHallObj = {name:prefill.hallName};
+    }
+    if(prefill.date) formState.wedding_date = prefill.date;
+    if(prefill.reviewData) Object.assign(formState, prefill.reviewData);
+  }
+
+  const wrap = document.getElementById('write-form');
+  wrap.innerHTML = buildFormHtml();
+  bindFormEvents();
+  formDirty = false;
+}
+
+function buildFormHtml(){
+  let html = '';
+
+  // ── A. 기본정보 ──
+  html += `
+  <div class="form-sec">
+    <div class="form-sec-head"><div class="form-sec-title"><span class="form-sec-badge">A</span> 기본정보</div></div>
+    <div class="form-sec-body open"><div class="form-sec-inner">
+      <div class="field" id="f-wrap-reviewer_name">
+        <div class="field-label">작성자 <span class="req">*</span></div>
+        <select class="field-input" id="f-reviewer_name">
+          <option value="">선택해주세요</option>
+          ${USERS.map(u=>{
+            const selectedName = formState.reviewer_name || (currentUser && currentUser.name);
+            return `<option value="${escapeHtml(u.name)}" ${selectedName===u.name?'selected':''}>${escapeHtml(u.name)} (${u.role})</option>`;
+          }).join('')}
+        </select>
+      </div>
+      <div class="field" id="f-wrap-wedding_date">
+        <div class="field-label">예식일 <span class="req">*</span></div>
+        <input type="date" class="field-input" id="f-wedding_date" value="${formState.wedding_date}">
+      </div>
+      <div class="field" id="f-wrap-venue_name">
+        <div class="field-label">예식장명 <span class="req">*</span></div>
+        <div class="autocomplete-wrap">
+          <input type="text" class="field-input" id="f-venue_name" placeholder="예식장명 검색 또는 신규 입력" autocomplete="off"
+            value="${selectedVenueObj ? escapeHtml(selectedVenueObj.venue_name || selectedVenueObj.name) : ''}">
+          <div class="ac-list" id="ac-venue"></div>
+        </div>
+        <div class="field-hint">기존 예식장을 검색해 선택하거나, 목록에 없으면 새로 입력할 수 있습니다.</div>
+      </div>
+      <div class="field" id="f-wrap-hall_name">
+        <div class="field-label">홀명 <span class="req">*</span></div>
+        <div class="autocomplete-wrap">
+          <input type="text" class="field-input" id="f-hall_name" placeholder="먼저 예식장을 선택해주세요" autocomplete="off"
+            value="${selectedHallObj ? escapeHtml(selectedHallObj.hall_name || selectedHallObj.name) : ''}">
+          <div class="ac-list" id="ac-hall"></div>
+        </div>
+      </div>
+      <div class="field" id="f-wrap-address">
+        <div class="field-label">주소</div>
+        <input type="text" class="field-input" id="f-address" placeholder="선택 입력"
+          value="${selectedVenueObj && selectedVenueObj.address ? escapeHtml(selectedVenueObj.address) : ''}">
+      </div>
+    </div></div>
+  </div>`;
+
+  // ── B~G 섹션 자동 생성 ──
+  ['B','C','D','E','F','G'].forEach(sec=>{
+    const fields = FIELD_SCHEMA.filter(f=>f.section===sec);
+    html += `
+    <div class="form-sec">
+      <div class="form-sec-head" onclick="toggleFormSec('${sec}')">
+        <div class="form-sec-title"><span class="form-sec-badge">${sec}</span> ${SECTION_TITLES[sec]}</div>
+        <div class="form-sec-arrow open" id="fsec-${sec}-arrow">▶</div>
+      </div>
+      <div class="form-sec-body open" id="fsec-${sec}-body"><div class="form-sec-inner">
+        ${fields.map(f=>buildFieldHtml(f)).join('')}
+      </div></div>
+    </div>`;
+  });
+
+  html += `
+  <div class="submit-bar">
+    <button class="btn-submit" id="submit-btn" onclick="submitReview()">${editingReviewId?'리뷰 수정 저장':'리뷰 등록'}</button>
+  </div>`;
+  return html;
+}
+
+function buildFieldHtml(f){
+  const showIf = f.showIf ? f.showIf(formState) : true;
+  const style = showIf ? '' : 'display:none';
+  let inner = '';
+  if(f.type==='chip'){
+    const val = formState[f.id] || '';
+    const isOtherSelected = f.other && val && !f.options.includes(val) ;
+    const activeOption = f.other && isOtherSelected ? f.other : val;
+    inner = `<div class="chip-group" id="chips-${f.id}">
+      ${f.options.map(o=>`<button type="button" class="chip ${activeOption===o?'active':''}" data-field="${f.id}" data-val="${escapeHtml(o)}" onclick="selectChip('${f.id}','${escapeHtml(o).replace(/'/g,"\\'")}')">${escapeHtml(o)}</button>`).join('')}
+    </div>`;
+    if(f.other){
+      const otherShown = activeOption===f.other;
+      const otherVal = isOtherSelected ? val : '';
+      inner += `<div class="chip-sub-input" id="chipsub-${f.id}" style="${otherShown?'':'display:none'}">
+        <input type="text" class="field-input" id="chipother-${f.id}" placeholder="${f.otherPlaceholder||'상세 입력'}" value="${escapeHtml(otherVal)}">
+      </div>`;
+    }
+  }else if(f.type==='chip-multi'){
+    const arr = formState[f.id] || [];
+    inner = `<div class="chip-group" id="chips-${f.id}">
+      ${f.options.map(o=>`<button type="button" class="chip ${arr.includes(o)?'active':''}" data-field="${f.id}" data-val="${escapeHtml(o)}" onclick="toggleChipMulti('${f.id}','${escapeHtml(o).replace(/'/g,"\\'")}')">${escapeHtml(o)}</button>`).join('')}
+    </div>`;
+    if(f.other){
+      const otherShown = arr.some(v=> v===f.other || (!f.options.includes(v)));
+      inner += `<div class="chip-sub-input" id="chipsub-${f.id}" style="${otherShown?'':'display:none'}">
+        <input type="text" class="field-input" id="chipother-${f.id}" placeholder="${f.otherPlaceholder||'상세 입력'}">
+      </div>`;
+    }
+  }else if(f.type==='textarea'){
+    inner = `<textarea class="field-input" id="f-${f.id}" placeholder="${f.placeholder||''}">${escapeHtml(formState[f.id]||'')}</textarea>`;
+  }else{
+    inner = `<input type="text" class="field-input" id="f-${f.id}" placeholder="${f.placeholder||''}" value="${escapeHtml(formState[f.id]||'')}">`;
+  }
+  return `<div class="field" id="f-wrap-${f.id}" style="${style}">
+    <div class="field-label">${f.label} ${f.required?'<span class="req">*</span>':''}</div>
+    ${inner}
+    ${f.hint?`<div class="field-hint">${f.hint}</div>`:''}
+  </div>`;
+}
+
+function toggleFormSec(sec){
+  document.getElementById(`fsec-${sec}-body`).classList.toggle('open');
+  document.getElementById(`fsec-${sec}-arrow`).classList.toggle('open');
+}
+
+function selectChip(fieldId, val){
+  formState[fieldId] = val;
+  formDirty = true;
+  refreshDependentFields();
+  rerenderField(fieldId);
+}
+function toggleChipMulti(fieldId, val){
+  const arr = formState[fieldId] || [];
+  const idx = arr.indexOf(val);
+  if(idx>=0) arr.splice(idx,1); else arr.push(val);
+  formState[fieldId] = arr;
+  formDirty = true;
+  rerenderField(fieldId);
+}
+function rerenderField(fieldId){
+  const f = fieldById(fieldId);
+  const wrap = document.getElementById(`f-wrap-${fieldId}`);
+  if(!wrap) return;
+  const showIf = f.showIf ? f.showIf(formState) : true;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = buildFieldHtml(f);
+  wrap.innerHTML = tmp.firstElementChild.innerHTML;
+  wrap.style.display = showIf ? '' : 'none';
+}
+function refreshDependentFields(){
+  FIELD_SCHEMA.filter(f=>f.showIf).forEach(f=>{
+    const wrap = document.getElementById(`f-wrap-${f.id}`);
+    if(!wrap) return;
+    const show = f.showIf(formState);
+    wrap.style.display = show ? '' : 'none';
+  });
+}
+
+// 폼 내부의 텍스트/기타 입력은 위임(delegation) 방식으로 한 번만 바인딩 (재렌더링 시 중복 방지)
+document.addEventListener('input', function(e){
+  const id = e.target && e.target.id;
+  if(!id) return;
+  if(id.startsWith('chipother-')){
+    const fieldId = id.slice('chipother-'.length);
+    const f = fieldById(fieldId);
+    if(!f) return;
+    if(f.type==='chip-multi'){
+      const arr = (formState[fieldId]||[]).filter(v=>v!==f.other && f.options.includes(v));
+      if(e.target.value.trim()) arr.push(e.target.value.trim()); else arr.push(f.other);
+      formState[fieldId] = [...new Set(arr)];
+    }else{
+      formState[fieldId] = e.target.value.trim() || f.other;
+    }
+    formDirty = true;
+  }else if(id.startsWith('f-')){
+    const fieldId = id.slice('f-'.length);
+    const f = fieldById(fieldId);
+    if(f && (f.type==='text' || f.type==='textarea')){
+      formState[fieldId] = e.target.value;
+      formDirty = true;
+    }
+  }
+});
+
+function bindFormEvents(){
+  document.getElementById('f-wedding_date').addEventListener('input', e=>{ formState.wedding_date = e.target.value; formDirty=true; });
+  document.getElementById('f-reviewer_name').addEventListener('change', e=>{ formState.reviewer_name = e.target.value; formDirty=true; });
+  if(formState.reviewer_name===undefined) formState.reviewer_name = document.getElementById('f-reviewer_name').value;
+
+  // 예식장 자동완성
+  const venueInput = document.getElementById('f-venue_name');
+  venueInput.addEventListener('input', ()=>{
+    formDirty = true;
+    selectedVenueObj = null;
+    selectedHallObj = null;
+    document.getElementById('f-hall_name').value = '';
+    renderVenueAc(venueInput.value);
+  });
+  venueInput.addEventListener('focus', ()=> renderVenueAc(venueInput.value));
+
+  const hallInput = document.getElementById('f-hall_name');
+  hallInput.addEventListener('input', ()=>{ formDirty = true; selectedHallObj=null; renderHallAc(hallInput.value); });
+  hallInput.addEventListener('focus', ()=> renderHallAc(hallInput.value));
+
+  document.addEventListener('click', (e)=>{
+    if(!e.target.closest('.autocomplete-wrap')){
+      document.getElementById('ac-venue').classList.remove('open');
+      document.getElementById('ac-hall').classList.remove('open');
+    }
+  });
+
+  window.addEventListener('beforeunload', beforeUnloadHandler);
+}
+
+function beforeUnloadHandler(e){
+  if(formDirty){ e.preventDefault(); e.returnValue=''; }
+}
+
+function renderVenueAc(q){
+  q = (q||'').trim().toLowerCase();
+  const list = document.getElementById('ac-venue');
+  let matches = venuesData.filter(v=> !q || v.venue_name.toLowerCase().includes(q));
+  let html = matches.slice(0,8).map(v=>`
+    <div class="ac-item" onclick="pickVenue(${v.id})">${escapeHtml(v.venue_name)}${v.address?`<div class="ac-sub">${escapeHtml(v.address)}</div>`:''}</div>`).join('');
+  if(q && !matches.some(v=>v.venue_name===q.trim())){
+    html += `<div class="ac-item ac-new" onclick="pickNewVenue()">＋ '${escapeHtml(document.getElementById('f-venue_name').value)}' 신규 예식장으로 등록</div>`;
+  }
+  list.innerHTML = html;
+  list.classList.toggle('open', html.length>0);
+}
+function pickVenue(id){
+  const v = venuesData.find(x=>x.id===id);
+  selectedVenueObj = {id:v.id, venue_name:v.venue_name, address:v.address};
+  document.getElementById('f-venue_name').value = v.venue_name;
+  document.getElementById('f-address').value = v.address || '';
+  document.getElementById('ac-venue').classList.remove('open');
+  document.getElementById('f-hall_name').value='';
+  selectedHallObj = null;
+  formDirty = true;
+}
+function pickNewVenue(){
+  const name = document.getElementById('f-venue_name').value.trim();
+  selectedVenueObj = { name };
+  document.getElementById('ac-venue').classList.remove('open');
+  formDirty = true;
+}
+function renderHallAc(q){
+  q = (q||'').trim().toLowerCase();
+  const list = document.getElementById('ac-hall');
+  let halls = [];
+  if(selectedVenueObj && selectedVenueObj.id){
+    const v = venuesData.find(x=>x.id===selectedVenueObj.id);
+    halls = v ? v.halls : [];
+  }
+  let matches = halls.filter(h=> !q || h.hall_name.toLowerCase().includes(q));
+  let html = matches.slice(0,8).map(h=>`<div class="ac-item" onclick="pickHall(${h.id})">${escapeHtml(h.hall_name)}<div class="ac-sub">리뷰 ${h.reviews.length}건</div></div>`).join('');
+  if(q){
+    html += `<div class="ac-item ac-new" onclick="pickNewHall()">＋ '${escapeHtml(document.getElementById('f-hall_name').value)}' 신규 홀로 등록</div>`;
+  }
+  list.innerHTML = html;
+  list.classList.toggle('open', html.length>0);
+}
+function pickHall(id){
+  const v = venuesData.find(x=>x.id===selectedVenueObj.id);
+  const h = v.halls.find(x=>x.id===id);
+  selectedHallObj = {id:h.id, hall_name:h.hall_name};
+  document.getElementById('f-hall_name').value = h.hall_name;
+  document.getElementById('ac-hall').classList.remove('open');
+  formDirty = true;
+}
+function pickNewHall(){
+  const name = document.getElementById('f-hall_name').value.trim();
+  selectedHallObj = { name };
+  document.getElementById('ac-hall').classList.remove('open');
+  formDirty = true;
+}
+
+// ═══════════ VALIDATION & SUBMIT ═══════════
+const BASE_REQUIRED = [
+  {id:'reviewer_name', label:'작성자'},
+  {id:'wedding_date', label:'예식일'},
+  {id:'venue_name', label:'예식장명'},
+  {id:'hall_name', label:'홀명'},
+];
+
+function collectFormValues(){
+  formState.reviewer_name = document.getElementById('f-reviewer_name').value;
+  formState.wedding_date = document.getElementById('f-wedding_date').value;
+  const venueName = document.getElementById('f-venue_name').value.trim();
+  const hallName = document.getElementById('f-hall_name').value.trim();
+  const address = document.getElementById('f-address').value.trim();
+  FIELD_SCHEMA.forEach(f=>{
+    if(f.type==='text' || f.type==='textarea'){
+      const el = document.getElementById(`f-${f.id}`);
+      if(el) formState[f.id] = el.value;
+    }
+  });
+  return { venueName, hallName, address };
+}
+
+function validateForm(){
+  const missing = [];
+  const {venueName, hallName} = collectFormValues();
+  if(!formState.reviewer_name) missing.push('f-wrap-reviewer_name');
+  if(!formState.wedding_date) missing.push('f-wrap-wedding_date');
+  if(!venueName) missing.push('f-wrap-venue_name');
+  if(!hallName) missing.push('f-wrap-hall_name');
+  FIELD_SCHEMA.forEach(f=>{
+    if(!f.required) return;
+    const showIf = f.showIf ? f.showIf(formState) : true;
+    if(!showIf) return;
+    const val = formState[f.id];
+    const empty = f.type==='chip-multi' ? (!val || val.length===0) : !hasValue(val);
+    if(empty) missing.push(`f-wrap-${f.id}`);
+  });
+  document.querySelectorAll('.field.missing').forEach(el=>el.classList.remove('missing'));
+  missing.forEach(id=> document.getElementById(id)?.classList.add('missing'));
+  if(missing.length>0){
+    document.getElementById(missing[0]).scrollIntoView({behavior:'smooth', block:'center'});
+    showToast('필수 항목을 입력해주세요.');
+    return false;
+  }
+  return true;
+}
+
+let isSubmitting = false;
+async function submitReview(){
+  if(isSubmitting) return;
+  if(!validateForm()) return;
+  isSubmitting = true;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+  try{
+    const {venueName, hallName, address} = collectFormValues();
+
+    // 1) venue 확보 (기존 선택 or 신규 생성 or 이름 매칭)
+    let venueId = selectedVenueObj && selectedVenueObj.id;
+    if(!venueId){
+      const existing = venuesData.find(v=> v.venue_name.trim()===venueName);
+      if(existing){
+        venueId = existing.id;
+      }else{
+        const created = await sb.post('venues', { venue_name: venueName, address: address || null });
+        venueId = created[0].id;
+      }
+    }else if(address && address !== (selectedVenueObj.address||'')){
+      await sb.patch('venues', venueId, { address });
+    }
+
+    // 2) hall 확보
+    let hallId = selectedHallObj && selectedHallObj.id;
+    if(!hallId){
+      const vObj = venuesData.find(v=>v.id===venueId);
+      const existingHall = vObj && vObj.halls.find(h=>h.hall_name.trim()===hallName);
+      if(existingHall){
+        hallId = existingHall.id;
+      }else{
+        const createdHall = await sb.post('venue_halls', { venue_id: venueId, hall_name: hallName });
+        hallId = createdHall[0].id;
+      }
+    }
+
+    // 3) review payload
+    const payload = { venue_id: venueId, hall_id: hallId, wedding_date: formState.wedding_date,
+      reviewer_name: formState.reviewer_name, reviewer_code: currentUser.id };
+    FIELD_SCHEMA.forEach(f=>{
+      payload[f.id] = formState[f.id]==='' ? null : formState[f.id];
+    });
+
+    if(editingReviewId){
+      await sb.patch('venue_reviews', editingReviewId, payload);
+      showToast('리뷰가 수정되었습니다.');
+    }else{
+      await sb.post('venue_reviews', payload);
+      showToast('리뷰가 등록되었습니다.');
+    }
+
+    formDirty = false;
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+    await loadAllData();
+    editingReviewId = null;
+    currentDetail = { venueId, hallId };
+    document.getElementById('write-form').innerHTML='';
+    switchMainTab('view');
+    openDetail(venueId, hallId);
+  }catch(e){
+    console.error(e);
+    showToast('저장 중 오류가 발생했습니다.');
+  }finally{
+    isSubmitting = false;
+    if(btn){ btn.disabled=false; btn.textContent = editingReviewId?'리뷰 수정 저장':'리뷰 등록'; }
+  }
+}
+
+function startEditReview(reviewId){
+  const r = allReviews.find(x=>x.id===reviewId) || venuesData.flatMap(v=>v.halls).flatMap(h=>h.reviews).find(x=>x.id===reviewId);
+  if(!r) return;
+  const v = venuesData.find(x=>x.id===r.venue_id);
+  const h = v && v.halls.find(x=>x.id===r.hall_id);
+  switchMainTab('write');
+  renderWriteForm({
+    editId: reviewId,
+    venueName: v ? v.venue_name : '',
+    hallName: h ? h.hall_name : '',
+    date: r.wedding_date,
+    reviewData: { ...r }
+  });
+}
+
+// ═══════════ DELETE ═══════════
+function openDeleteModal(reviewId){
+  deleteTargetId = reviewId;
+  document.getElementById('delete-modal').classList.remove('hidden');
+}
+function closeDeleteModal(){
+  deleteTargetId = null;
+  document.getElementById('delete-modal').classList.add('hidden');
+}
+async function confirmDeleteReview(){
+  if(!deleteTargetId) return;
+  try{
+    await sb.delete('venue_reviews', deleteTargetId);
+    showToast('리뷰가 삭제되었습니다.');
+    closeDeleteModal();
+    await loadAllData();
+    renderDetail();
+  }catch(e){
+    console.error(e);
+    showToast('삭제 중 오류가 발생했습니다.');
+  }
+}
+
+// ═══════════ LEAVE WARNING ═══════════
+function closeLeaveModal(){ document.getElementById('leave-modal').classList.add('hidden'); pendingLeaveAction=null; }
+function confirmLeave(){
+  document.getElementById('leave-modal').classList.add('hidden');
+  formDirty = false;
+  window.removeEventListener('beforeunload', beforeUnloadHandler);
+  if(pendingLeaveAction) pendingLeaveAction();
+  pendingLeaveAction = null;
+}
+
+// ═══════════ URL PARAMS (index.html 연동용) ═══════════
+function handleUrlParams(){
+  const p = new URLSearchParams(location.search);
+  const mode = p.get('mode');
+  const venue = p.get('venue');
+  const hall = p.get('hall');
+  const date = p.get('date');
+  if(mode==='view' && venue){
+    const v = venuesData.find(x=>x.venue_name===venue);
+    if(v){
+      const h = hall ? v.halls.find(x=>x.hall_name===hall) : v.halls[0];
+      if(h){ openDetail(v.id, h.id); return; }
+    }
+    showToast('해당 예식장/홀 정보를 찾을 수 없습니다.');
+  }else if(mode==='write'){
+    switchMainTab('write');
+    renderWriteForm({ venueName: venue||'', hallName: hall||'', date: date||undefined });
+  }
+}
+
+// ═══════════ START ═══════════
+init();
+
+</script>
+</body></html>
