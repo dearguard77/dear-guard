@@ -2501,20 +2501,20 @@ function openDetail(id){
         <div class="info-box"><div class="info-box-lbl">신랑 연락처</div><div class="info-box-val">${s.groomPhone ? `<a href="tel:${esc(s.groomPhone)}" style="color:#C7A96B;text-decoration:none">${esc(s.groomPhone)}</a>` : '-'}</div></div>
         <div class="info-box"><div class="info-box-lbl">신부 연락처</div><div class="info-box-val">${s.bridePhone ? `<a href="tel:${esc(s.bridePhone)}" style="color:#C7A96B;text-decoration:none">${esc(s.bridePhone)}</a>` : '-'}</div></div>
       </div>
-      <div class="info-row3">
-        <div class="info-box">
-          <div class="info-box-lbl">웨딩홀 · 예식홀</div>
-          <div class="info-box-val venue-review-row">
-            <span>${esc(s.hall)||'-'}</span>
-            ${s.address ? `<span class="venue-review-sep">|</span><span>${esc(s.address)}</span>` : ''}
-            <span class="venue-review-sep">|</span>
-            <button type="button" class="venue-review-btn" onclick="event.stopPropagation();openVenueReview(${s.id})">🏛️ 예식장 리뷰</button>
-          </div>
+      <div class="info-box" style="margin-bottom:10px">
+        <div class="info-box-lbl">웨딩홀 · 예식홀</div>
+        <div class="info-box-val venue-review-row">
+          <span>${esc(s.hall)||'-'}</span>
+          ${s.address ? `<span class="venue-review-sep">|</span><span>${esc(s.address)}</span>` : ''}
+          <span class="venue-review-sep">|</span>
+          <button type="button" class="venue-review-btn" onclick="event.stopPropagation();openVenueReview(${s.id})">🏛️ 예식장 리뷰</button>
         </div>
+      </div>
+      <div class="${s.mobileInviteUrl ? 'info-row3' : 'info-row2'}">
         <div class="info-box"><div class="info-box-lbl">상품구성</div><div class="info-box-val">${esc(s.product)}</div></div>
         <div class="info-box"><div class="info-box-lbl">보증인원</div><div class="info-box-val">${s.guestCount||0}명</div></div>
+        ${s.mobileInviteUrl ? `<div class="info-box"><div class="info-box-lbl">모바일 청첩장</div><div class="info-box-val"><a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:700;text-decoration:underline">💌 모청 열기</a></div></div>` : ''}
       </div>
-      ${s.mobileInviteUrl ? `<div class="info-box" style="margin-top:10px"><div class="info-box-lbl">모바일 청첩장</div><div class="info-box-val"><a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:700;text-decoration:underline">💌 모청 열기</a></div></div>` : ''}
     </div>
     <div class="detail-sec">
       <div class="detail-sec-title">👥 담당자</div>
