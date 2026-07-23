@@ -169,6 +169,9 @@
   .info-box.span{grid-column:1/-1}
   .info-box-lbl{font-size:10px;color:#9CA3AF;margin-bottom:2px}
   .info-box-val{font-size:13px;font-weight:600;color:#111827}
+  .info-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+  .info-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .info-row3:last-child,.info-row2:last-child{margin-bottom:0}
   .venue-review-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .venue-review-sep{color:#D1D5DB;font-weight:400}
   .venue-review-btn{display:inline-flex;align-items:center;gap:4px;background:#FDF8F3;border:1px solid #E8DFD0;color:#C7A96B;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:inherit}
@@ -312,6 +315,12 @@
     .form-field.span{grid-column:unset}
     .info-box-grid{grid-template-columns:1fr}
     .info-box.span{grid-column:unset}
+    .info-row3{gap:6px;margin-bottom:6px}
+    .info-row2{gap:6px;margin-bottom:6px}
+    .info-box{padding:6px 8px}
+    .info-box-lbl{font-size:9px}
+    .info-box-val{font-size:11.5px}
+    .venue-review-btn{font-size:10px;padding:2px 7px}
     .result-grid{grid-template-columns:1fr 1fr}
     .result-grid-3{grid-template-columns:1fr}
     #nav .tab-wrap{display:none !important}
@@ -2483,14 +2492,17 @@ function openDetail(id){
   document.getElementById('dm-body').innerHTML=`
     <div class="detail-sec">
       <div class="detail-sec-title">📋 기본 정보</div>
-      <div class="info-box-grid">
+      <div class="info-row3">
         <div class="info-box"><div class="info-box-lbl">예식일</div><div class="info-box-val">${getDateWithDay(s.date)}</div></div>
         <div class="info-box"><div class="info-box-lbl">예식시간</div><div class="info-box-val">${esc(s.time)}</div></div>
         <div class="info-box"><div class="info-box-lbl">도착시간</div><div class="info-box-val">${esc(s.arrivalTime)||'-'}</div></div>
-        <div class="info-box"><div class="info-box-lbl">보증인원</div><div class="info-box-val">${s.guestCount||0}명</div></div>
+      </div>
+      <div class="info-row2">
         <div class="info-box"><div class="info-box-lbl">신랑 연락처</div><div class="info-box-val">${s.groomPhone ? `<a href="tel:${esc(s.groomPhone)}" style="color:#C7A96B;text-decoration:none">${esc(s.groomPhone)}</a>` : '-'}</div></div>
         <div class="info-box"><div class="info-box-lbl">신부 연락처</div><div class="info-box-val">${s.bridePhone ? `<a href="tel:${esc(s.bridePhone)}" style="color:#C7A96B;text-decoration:none">${esc(s.bridePhone)}</a>` : '-'}</div></div>
-        <div class="info-box span">
+      </div>
+      <div class="info-row3">
+        <div class="info-box">
           <div class="info-box-lbl">웨딩홀 · 예식홀</div>
           <div class="info-box-val venue-review-row">
             <span>${esc(s.hall)||'-'}</span>
@@ -2499,9 +2511,10 @@ function openDetail(id){
             <button type="button" class="venue-review-btn" onclick="event.stopPropagation();openVenueReview(${s.id})">🏛️ 예식장 리뷰</button>
           </div>
         </div>
-        <div class="info-box span"><div class="info-box-lbl">상품구성</div><div class="info-box-val">${esc(s.product)}</div></div>
-        ${s.mobileInviteUrl ? `<div class="info-box span"><div class="info-box-lbl">모바일 청첩장</div><div class="info-box-val"><a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:700;text-decoration:underline">💌 모청 열기</a></div></div>` : ''}
+        <div class="info-box"><div class="info-box-lbl">상품구성</div><div class="info-box-val">${esc(s.product)}</div></div>
+        <div class="info-box"><div class="info-box-lbl">보증인원</div><div class="info-box-val">${s.guestCount||0}명</div></div>
       </div>
+      ${s.mobileInviteUrl ? `<div class="info-box" style="margin-top:10px"><div class="info-box-lbl">모바일 청첩장</div><div class="info-box-val"><a href="${esc(s.mobileInviteUrl)}" target="_blank" style="color:#2563EB;font-weight:700;text-decoration:underline">💌 모청 열기</a></div></div>` : ''}
     </div>
     <div class="detail-sec">
       <div class="detail-sec-title">👥 담당자</div>
