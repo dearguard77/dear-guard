@@ -1177,6 +1177,14 @@
             </select>
           </div>
           <div class="form-field">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:22px">
+              <input type="checkbox" id="f-use-new-rate" onchange="renderManagerRatePanel(); calcSettlement();"
+                style="width:16px;height:16px;accent-color:#C7A96B">
+              <span class="form-label" style="margin:0">☑ 신규 임금 적용 (2026-09-01~)</span>
+            </label>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:4px">신규/교체 배정자 및 미확정 추가 인원의 기본 단가에만 적용됩니다</div>
+          </div>
+          <div class="form-field">
             <label class="form-label">정산 대상 인원 (자동)</label>
             <input class="form-input" id="f-labor-count" type="number" readonly disabled
               title="담당자 슬롯 + 추가 인원 합계로 자동 계산됩니다. 인원 조정은 아래 '담당자별 일급' 또는 '추가 인원'에서 해주세요">
@@ -1705,6 +1713,8 @@ const ADMIN_NAMES = ['강성주', '전수연'];
 const LABOR_RATE_CUTOFF = '2026-09-01T00:00:00+09:00';
 const LABOR_RATES_OLD = { '대전': 90000, '대전외': 120000 };
 const LABOR_RATES_NEW = { '대전': 70000, '대전외': 100000 };
+// 지역별 드롭다운 프리셋 (요청 순서 그대로: 신규단가 → 기존단가)
+const LABOR_RATE_PRESETS = { '대전': [70000, 90000], '대전외': [100000, 120000] };
 // 기준 시점(whenISO) 기준으로 해당 region의 정책 일급을 반환
 function getPolicyLaborRate(region, whenISO){
   const t = whenISO ? new Date(whenISO).getTime() : NaN;
@@ -2681,6 +2691,35 @@ function openDetail(id){
         </div>
       </div>
     </div>` : ''}
+    ${(() => {
+      if(ADMIN_NAMES.includes(currentUser.name)) return '';
+      const frontList = (s.frontManager||'').split(',').map(m=>m.trim()).filter(Boolean);
+      const backList  = (s.backManager ||'').split(',').map(m=>m.trim()).filter(Boolean);
+      const isFront = frontList.includes(currentUser.name);
+      const isBack  = backList.includes(currentUser.name);
+      if(!isFront && !isBack) return '';
+      const myRole = isFront && isBack ? 'Front/Back' : isFront ? 'Front' : 'Back';
+      const myRate = getManagerPayForSchedule(s, currentUser.name);
+      const myPaid = getManagerPaidStatus(s, currentUser.name);
+      return `
+    <div class="detail-sec">
+      <div class="detail-sec-title">💰 내 일급</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div style="background:#F9FAFB;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">담당</div>
+          <div style="font-size:15px;font-weight:800;color:#111827">${myRole}</div>
+        </div>
+        <div style="background:#FEF2F2;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">예정 일급</div>
+          <div style="font-size:15px;font-weight:800;color:#EF4444">${myRate ? myRate.toLocaleString()+'원' : '-'}</div>
+        </div>
+        <div style="background:${myPaid?'#ECFDF5':'#FFFBEB'};border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">지급 상태</div>
+          <div style="font-size:15px;font-weight:800;color:${myPaid?'#10B981':'#F59E0B'}">${myPaid?'지급완료':'미지급'}</div>
+        </div>
+      </div>
+    </div>`;
+    })()}
     <div class="detail-sec">
       <div class="detail-sec-title">📊 결과보고</div>
       ${s.result?`
@@ -3602,6 +3641,7 @@ function openForm(id){
       document.getElementById('f-balance-price').value = is4team ? 500000 : 250000;
     }
     document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
+    document.getElementById('f-use-new-rate').checked = getUseNewRateInitial(s);
     renderManagerRatePanel();
     calcSettlement();
   }
@@ -3713,15 +3753,29 @@ function getPaidManagerNamesFromForm(){
 // ════════════════════════════════════════════════════════════
 //  💰 매니저 일급 정책 변경 대응 (2026-09-01 KST 기준)
 //  - 담당자가 유지되면 기존 배정 시점의 단가를 그대로 동결
-//  - 담당자가 신규 배정/교체되면 그 시점(현재) 기준 정책 단가 적용
+//  - 담당자가 신규 배정/교체되면 "신규 임금 적용" 체크박스 상태 기준 단가 적용
 //  - 관리자가 직접 입력한 단가는 최우선 적용되며, 담당자가 바뀌기 전까지 유지
-//  - 기존에 저장돼 있던 총 인건비/인원수는 최초 진입 시 그대로 역산 동결되어
+//  - 기존에 저장돼 있던 총 인건비/인원수/지급여부는 최초 진입 시 그대로 역산·승계되어
 //    자동 재계산으로 인해 값이 바뀌지 않음
 // ════════════════════════════════════════════════════════════
+// 폼 열림 시점 기준 "신규 임금 적용" 체크박스 초기값 결정
+// - 이미 저장된 값(managerRateInfo.use_new_rate)이 있으면 그 값을 그대로 사용(재계산 안 함)
+// - 없으면(최초 진입) 등록일(createdAt, 신규는 현재시각) 기준으로 자동 판단
+function getUseNewRateInitial(s){
+  if(s && typeof s.managerRateInfo?.use_new_rate === 'boolean') return s.managerRateInfo.use_new_rate;
+  const regDate = s?.createdAt || new Date().toISOString();
+  return new Date(regDate).getTime() >= new Date(LABOR_RATE_CUTOFF).getTime();
+}
+
 function resolveManagerRateInfo(){
-  const region   = document.getElementById('f-labor-region')?.value || '대전';
-  const origS    = formId ? schedules.find(x => x.id === formId) : null;
-  const prevInfo = origS?.managerRateInfo || {};
+  const region     = document.getElementById('f-labor-region')?.value || '대전';
+  const useNewRate = document.getElementById('f-use-new-rate')?.checked || false;
+  const origS      = formId ? schedules.find(x => x.id === formId) : null;
+  const prevInfo   = origS?.managerRateInfo || {};
+  const legacyPaid = origS?.laborPaid || false; // 기존(슬롯별 이력 없음) 예식의 지급여부 승계용
+
+  // 신규/교체 배정자 및 미확정 추가인원에 적용할 기본 단가 테이블 (체크박스 기준)
+  const defaultRateTable = useNewRate ? LABOR_RATES_NEW : LABOR_RATES_OLD;
 
   // 폼이 열리기 전(수정 전) 저장돼 있던 담당자명 — 배정 변경 여부 판단 기준
   const originalFrontParts = (origS?.frontManager || '').split(',').map(m => m.trim());
@@ -3748,30 +3802,39 @@ function resolveManagerRateInfo(){
     if(!name || ADMIN_NAMES.includes(name)) return; // 빈 슬롯/관리자는 일급 대상 아님
 
     const rateEl   = document.getElementById('f-rate-' + slot);
+    const paidEl   = document.getElementById('f-paid-' + slot);
     const manualOn = rateEl?.dataset.manual === '1' && rateEl?.dataset.manualName === name;
     const prevSlot = prevInfo[slot];
 
     if(manualOn){
-      // 관리자가 직접 입력한 단가 — 최우선, 담당자가 바뀌기 전까지 유지
+      // 관리자가 직접 입력/선택한 단가 — 최우선, 담당자가 바뀌기 전까지 유지
       newInfo[slot] = {
         name, rate: Number(rateEl.value) || 0,
         assignedAt: prevSlot?.assignedAt || (name === originalNames[slot] ? 'legacy' : nowISO),
         manual: true,
+        paid: paidEl ? paidEl.checked : (prevSlot?.name === name && typeof prevSlot.paid === 'boolean' ? prevSlot.paid : false),
       };
     } else if(prevSlot && prevSlot.name === name){
       // 담당자 유지 → 이전 배정 단가 그대로 동결 (재계산 안 함)
-      newInfo[slot] = { ...prevSlot };
+      // paid는 화면 체크박스 값 우선, 없으면 기존 저장값(레거시 승계 포함) 사용
+      newInfo[slot] = {
+        ...prevSlot,
+        paid: paidEl ? paidEl.checked : (typeof prevSlot.paid === 'boolean' ? prevSlot.paid : legacyPaid),
+      };
     } else if(name === originalNames[slot]){
       // 이번 정책 이전부터 이미 배정돼 있던 담당자(이력 정보 없음) → 기존 단가로 소급 고정
+      // 지급여부는 기존 예식 전체 지급여부(labor_paid)를 승계
       newInfo[slot] = {
         name, rate: LABOR_RATES_OLD[region] || LABOR_RATES_OLD['대전'],
         assignedAt: 'legacy', manual: false,
+        paid: paidEl ? paidEl.checked : legacyPaid,
       };
     } else {
-      // 신규 배정(교체 포함) → 배정 시점(현재) 기준 정책 단가
+      // 신규 배정(교체 포함) → "신규 임금 적용" 체크박스 기준 단가, 신규 인원이므로 미지급 기본값
       newInfo[slot] = {
-        name, rate: getPolicyLaborRate(region, nowISO),
+        name, rate: defaultRateTable[region] || defaultRateTable['대전'],
         assignedAt: nowISO, manual: false,
+        paid: paidEl ? paidEl.checked : false,
       };
     }
   });
@@ -3782,6 +3845,7 @@ function resolveManagerRateInfo(){
   // ── 추가 인원(담당자 슬롯에 없는 인원) — 관리자 수동 입력 전용, 자동계산 없음 ──
   const extraCountEl  = document.getElementById('f-labor-extra-count');
   const extraRateEl   = document.getElementById('f-labor-extra-rate');
+  const extraPaidEl   = document.getElementById('f-paid-extra');
   const extraManualOn = extraCountEl?.dataset.manual === '1' || extraRateEl?.dataset.manual === '1';
   const prevExtra = prevInfo.extra;
   let newExtra;
@@ -3791,29 +3855,30 @@ function resolveManagerRateInfo(){
       count: Number(extraCountEl?.value) || 0,
       rate:  Number(extraRateEl?.value)  || 0,
       manual: true,
+      paid: extraPaidEl ? extraPaidEl.checked : (typeof prevExtra?.paid === 'boolean' ? prevExtra.paid : false),
     };
   } else if(prevExtra){
     // 이전에 관리자가 입력했던 추가 인원 정보 그대로 유지
-    newExtra = { ...prevExtra };
+    newExtra = { ...prevExtra, paid: extraPaidEl ? extraPaidEl.checked : (typeof prevExtra.paid === 'boolean' ? prevExtra.paid : legacyPaid) };
   } else if(origS){
     // 기존 예식(추가인원 이력 정보 없음) — 저장된 총 인건비/인원수와의 차이로
     // 과거 수동 추가 인원을 역산해 동결 (예: 3명/270,000원 → 2명 슬롯 + 1명 추가)
     const impliedCount = Math.max(0, (origS.laborCount || 0) - namedSlotsCount);
     if(impliedCount > 0){
       const impliedTotal = Math.max(0, (origS.laborCost || 0) - namedSlotsTotal);
-      newExtra = { count: impliedCount, rate: Math.round(impliedTotal / impliedCount), manual: true };
+      newExtra = { count: impliedCount, rate: Math.round(impliedTotal / impliedCount), manual: true, paid: legacyPaid };
     } else {
-      newExtra = { count: 0, rate: getPolicyLaborRate(region, origS.createdAt || nowISO), manual: false };
+      newExtra = { count: 0, rate: defaultRateTable[region] || defaultRateTable['대전'], manual: false, paid: false };
     }
   } else {
-    // 신규 예식 — 기본값은 등록 시점 기준 정책 단가로 제안, 관리자가 수정 가능
-    newExtra = { count: 0, rate: getPolicyLaborRate(region, nowISO), manual: false };
+    // 신규 예식 — 기본값은 체크박스 기준 정책 단가로 제안, 관리자가 수정 가능
+    newExtra = { count: 0, rate: defaultRateTable[region] || defaultRateTable['대전'], manual: false, paid: false };
   }
 
   const laborCost  = namedSlotsTotal + (newExtra.count * newExtra.rate);
   const laborCount = namedSlotsCount + newExtra.count;
 
-  return { managerRateInfo: { ...newInfo, extra: newExtra }, laborCost, laborCount };
+  return { managerRateInfo: { ...newInfo, extra: newExtra, use_new_rate: useNewRate }, laborCost, laborCount };
 }
 
 // 담당자별 일급 패널 렌더링 (관리자 전용, 정산정보 섹션)
@@ -3823,43 +3888,70 @@ function renderManagerRatePanel(){
   if(!ADMIN_NAMES.includes(currentUser.name)){ wrap.innerHTML = ''; return; }
 
   const { managerRateInfo, laborCount } = resolveManagerRateInfo();
+  const region = document.getElementById('f-labor-region')?.value || '대전';
+  const presets = LABOR_RATE_PRESETS[region] || LABOR_RATE_PRESETS['대전'];
   const SLOT_LABELS = { front1:'Front 1', front2:'Front 2', back1:'Back 1', back2:'Back 2' };
+
+  // 지역 프리셋 + 직접입력 select/input 한 쌍 생성 (담당자 슬롯/추가인원 공용)
+  function rateSelectorHtml(idBase, rate){
+    const isCustom = !presets.includes(rate);
+    const options = presets.map(p =>
+      `<option value="${p}"${(!isCustom && rate===p) ? ' selected' : ''}>${p.toLocaleString()}원</option>`
+    ).join('') + `<option value="custom"${isCustom ? ' selected' : ''}>직접입력</option>`;
+    return `
+      <select class="form-input" id="f-rateselect-${idBase}" style="width:100px;padding:6px 6px"
+        onchange="
+          const inp=document.getElementById('f-rate-${idBase}');
+          if(this.value==='custom'){ inp.style.display='inline-block'; inp.focus(); }
+          else {
+            inp.value=this.value; inp.style.display='none';
+            inp.dataset.manual='1'; inp.dataset.manualName=(document.getElementById('f-${idBase}')?.value||'').trim();
+            calcSettlement();
+          }
+        ">${options}</select>
+      <input type="number" class="form-input" id="f-rate-${idBase}" value="${rate}"
+        style="width:100px;text-align:right;padding:6px 8px;display:${isCustom ? 'inline-block' : 'none'}"
+        oninput="this.dataset.manual='1'; this.dataset.manualName=(document.getElementById('f-${idBase}')?.value||'').trim(); calcSettlement();">`;
+  }
 
   const rows = ['front1','front2','back1','back2']
     .filter(slot => managerRateInfo[slot])
     .map(slot => {
       const info = managerRateInfo[slot];
       return `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
         <div style="width:70px;font-size:11px;color:#9CA3AF">${SLOT_LABELS[slot]}</div>
-        <div style="flex:1;font-size:13px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(info.name)}</div>
-        <input type="number" class="form-input" id="f-rate-${slot}" value="${info.rate}"
-          style="width:110px;text-align:right;padding:6px 8px"
-          oninput="this.dataset.manual='1'; this.dataset.manualName=(document.getElementById('f-${slot}')?.value||'').trim(); calcSettlement();">
+        <div style="width:80px;font-size:13px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(info.name)}</div>
+        ${rateSelectorHtml(slot, info.rate)}
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#6B7280">
+          <input type="checkbox" id="f-paid-${slot}" ${info.paid ? 'checked' : ''} onchange="calcSettlement();"
+            style="width:14px;height:14px;accent-color:#10B981">지급완료
+        </label>
         <span style="font-size:10px;font-weight:700;color:${info.manual ? '#C7A96B' : '#9CA3AF'};width:28px;text-align:center">${info.manual ? '수동' : '자동'}</span>
       </div>`;
     }).join('');
 
-  const extra = managerRateInfo.extra || { count:0, rate:0, manual:false };
+  const extra = managerRateInfo.extra || { count:0, rate:0, manual:false, paid:false };
 
   wrap.innerHTML = `
     <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin:16px 0 8px;letter-spacing:.5px">담당자별 일급 (관리자 수정 가능)</div>
     ${rows || '<div style="font-size:12px;color:#9CA3AF;margin-bottom:8px">배정된 담당자가 없습니다</div>'}
-    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB">
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB;flex-wrap:wrap">
       <div style="width:70px;font-size:11px;color:#9CA3AF">추가 인원</div>
       <input type="number" class="form-input" id="f-labor-extra-count" value="${extra.count || 0}" min="0"
         style="width:56px;text-align:center;padding:6px 4px"
         oninput="this.dataset.manual='1'; calcSettlement();">
       <span style="font-size:11px;color:#9CA3AF">명 ×</span>
-      <input type="number" class="form-input" id="f-labor-extra-rate" value="${extra.rate || 0}"
-        style="width:110px;text-align:right;padding:6px 8px"
-        oninput="this.dataset.manual='1'; calcSettlement();">
-      <span style="font-size:11px;color:#9CA3AF">원</span>
+      ${rateSelectorHtml('extra', extra.rate)}
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#6B7280">
+        <input type="checkbox" id="f-paid-extra" ${extra.paid ? 'checked' : ''} onchange="calcSettlement();"
+          style="width:14px;height:14px;accent-color:#10B981">지급완료
+      </label>
       <span style="font-size:10px;font-weight:700;color:${extra.manual ? '#C7A96B' : '#9CA3AF'};width:28px;text-align:center">${extra.manual ? '수동' : '자동'}</span>
     </div>
     <div style="font-size:10px;color:#9CA3AF;margin-top:6px;line-height:1.5">
       담당자 슬롯에 없는 인원(1인 추가 등)은 자동 계산되지 않으며, 인원 수·1인당 금액을 직접 입력해야 합니다.
-      기본 제안값은 예식 등록 시점 기준 정책 단가이며, 직접 수정 시 이후 예식 수정과 무관하게 유지됩니다.
+      기본 제안값은 '신규 임금 적용' 체크박스 기준이며, 직접 수정 시 이후 예식 수정과 무관하게 유지됩니다.
     </div>`;
 
   const countEl = document.getElementById('f-labor-count');
@@ -5519,7 +5611,8 @@ function renderSettle(){
   }
 
   // 미지급 건만 보기: laborCost가 입력된 예식 중 미지급만
-  if(unpaidOnly) list = list.filter(s => s.laborCost && !s.laborPaid);
+  // 매니저가 필터링된 경우, 담당자별 지급여부(manager_rate_info)가 있으면 그 값을 우선 사용
+  if(unpaidOnly) list = list.filter(s => s.laborCost && !(managerName ? getManagerPaidStatus(s, managerName) : s.laborPaid));
 
   // ── 요약 카드 ──
   const allMonthList = schedules.filter(s =>
@@ -5535,7 +5628,7 @@ function renderSettle(){
   const totalNet   = totalRevenue - totalLabor;
   const unpaidCount = (managerName && ADMIN_NAMES.includes(managerName))
     ? 0
-    : list.filter(s => s.laborCost && !s.laborPaid).length;
+    : list.filter(s => s.laborCost && !(managerName ? getManagerPaidStatus(s, managerName) : s.laborPaid)).length;
 
   document.getElementById('settle-summary').innerHTML = `
     <div class="settle-summary-card">
@@ -5586,9 +5679,12 @@ function renderSettle(){
           })()}
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          ${s.laborPaid
-            ? '<span class="paid-badge">✅ 지급완료</span>'
-            : '<span class="unpaid-badge">⏳ 미지급</span>'}
+          ${(() => {
+            const paidForView = managerName ? getManagerPaidStatus(s, managerName) : s.laborPaid;
+            return paidForView
+              ? '<span class="paid-badge">✅ 지급완료</span>'
+              : '<span class="unpaid-badge">⏳ 미지급</span>';
+          })()}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
@@ -5608,13 +5704,22 @@ function renderSettle(){
       <!-- 인건비 지급 체크박스 -->
       ${(managerName && ADMIN_NAMES.includes(managerName))
         ? `<div style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#9CA3AF">관리자는 인건비 지급 대상이 아닙니다</div>`
-        : `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:${s.laborPaid?'#ECFDF5':'#FFFBEB'};border:1px solid ${s.laborPaid?'#A7F3D0':'#FDE68A'};border-radius:8px;padding:8px 12px">
+        : (managerName ? (() => {
+            const paid = getManagerPaidStatus(s, managerName);
+            return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:${paid?'#ECFDF5':'#FFFBEB'};border:1px solid ${paid?'#A7F3D0':'#FDE68A'};border-radius:8px;padding:8px 12px">
+        <input type="checkbox" ${paid?'checked':''} onchange="toggleManagerRatePaid(${s.id},'${esc(managerName).replace(/'/g,"\\'")}',this.checked)"
+          style="width:16px;height:16px;accent-color:#10B981">
+        <span style="font-size:13px;font-weight:600;color:${paid?'#065F46':'#92400E'}">
+          ${paid ? esc(managerName)+' 지급 완료' : esc(managerName)+' 미지급 — 클릭하여 지급 처리'}
+        </span>
+      </label>`;
+          })() : `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:${s.laborPaid?'#ECFDF5':'#FFFBEB'};border:1px solid ${s.laborPaid?'#A7F3D0':'#FDE68A'};border-radius:8px;padding:8px 12px">
         <input type="checkbox" ${s.laborPaid?'checked':''} onchange="toggleLaborPaid(${s.id},this.checked)"
           style="width:16px;height:16px;accent-color:#10B981">
         <span style="font-size:13px;font-weight:600;color:${s.laborPaid?'#065F46':'#92400E'}">
           ${s.laborPaid ? '인건비 지급 완료' : '인건비 미지급 — 클릭하여 지급 처리'}
         </span>
-      </label>`}
+      </label>`)}
     </div>`;
   }).join('');
 }
@@ -5639,6 +5744,47 @@ function getManagerPayForSchedule(s, managerName){
   // 이력 정보 없음 (정책 변경 이전부터 배정된 예식) → 기존 고정 단가 사용
   const rate = s.laborRegion === '대전외' ? 120000 : 90000;
   return rate;
+}
+
+// 담당자 이름 → 슬롯 키(front1/front2/back1/back2) 매핑 (지급여부 조회/저장용)
+function getManagerRateSlotKey(s, managerName){
+  const frontParts = (s.frontManager || '').split(',').map(m => m.trim()).filter(Boolean);
+  const backParts  = (s.backManager  || '').split(',').map(m => m.trim()).filter(Boolean);
+  const slotMap = { front1: frontParts[0], front2: frontParts[1], back1: backParts[0], back2: backParts[1] };
+  for(const slot of ['front1','front2','back1','back2']){
+    if(slotMap[slot] === managerName) return slot;
+  }
+  return null;
+}
+
+// 담당자별 지급여부 조회 — manager_rate_info에 담당자별 이력이 있으면 그 값을 우선 사용,
+// 없으면(정책 변경 이전 예식) 기존 예식 전체 지급여부(labor_paid)로 폴백
+function getManagerPaidStatus(s, managerName){
+  const slot = getManagerRateSlotKey(s, managerName);
+  const info = s.managerRateInfo || {};
+  if(slot && info[slot] && info[slot].name === managerName && typeof info[slot].paid === 'boolean'){
+    return info[slot].paid;
+  }
+  return s.laborPaid || false;
+}
+
+// 담당자별 지급여부 토글 저장 (기존 전체 지급여부 labor_paid는 그대로 유지, 별도 관리)
+async function toggleManagerRatePaid(scheduleId, managerName, checked){
+  const s = schedules.find(x => x.id === scheduleId);
+  if(!s) return;
+  const slot = getManagerRateSlotKey(s, managerName);
+  if(!slot) return;
+  const prevInfo = s.managerRateInfo || {};
+  const nextInfo = { ...prevInfo, [slot]: { ...(prevInfo[slot] || { name: managerName, rate: 0, manual: false }), paid: checked } };
+  s.managerRateInfo = nextInfo; // 낙관적 업데이트
+  renderSettle();
+  try {
+    await sb.patch('schedules', scheduleId, { manager_rate_info: nextInfo });
+  } catch(e){
+    s.managerRateInfo = prevInfo; // 롤백
+    renderSettle();
+    showToast('⚠ 지급여부 저장 실패');
+  }
 }
 
 function initSettleManagerFilter(){
