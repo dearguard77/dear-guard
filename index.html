@@ -1205,23 +1205,17 @@
             </div>
           </div>
 
-          <!-- 담당자 / 추가인원 (통합) -->
-          <div style="margin-top:10px">
-            <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:6px">담당자 / 추가인원</div>
+          <!-- 담당자 / 추가인원 (JS 렌더링 — Front·Back 한 줄, 추가인원+안내트리거 한 줄) -->
+          <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #E5E7EB">
             <div id="manager-rate-panel"></div>
           </div>
 
-          <!-- 안내 아코디언 (기본 접힘) -->
-          <div style="margin-top:8px">
-            <div onclick="toggleWageBasisNote()" style="cursor:pointer;font-size:11px;color:#9CA3AF;display:flex;align-items:center;gap:4px;user-select:none">
-              <span id="wage-note-arrow">▸</span> ⓘ 임금 기준 안내
-            </div>
-            <div id="wage-basis-note" style="display:none;font-size:10.5px;color:#6B7280;margin-top:6px;line-height:1.7;background:#fff;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px">
-              기존 임금: 대전 90,000원 / 타지역 120,000원<br>
-              신규 임금: 대전 70,000원 / 타지역 100,000원<br><br>
-              임금 기준은 신규 배정·교체 담당자와 미확정 추가 인원의 기본 단가에만 적용되며, 기존 담당자의 저장된 일급은 변경되지 않습니다.<br>
-              담당자 슬롯에 없는 인원(추가 인원)은 자동 계산되지 않으며, 직접 입력한 금액은 이후 예식 수정과 무관하게 유지됩니다.
-            </div>
+          <!-- 임금 기준 안내 본문 (기본 접힘 — 트리거는 manager-rate-panel 안에 있음) -->
+          <div id="wage-basis-note" style="display:none;font-size:10.5px;color:#6B7280;margin-top:6px;line-height:1.7;background:#fff;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px">
+            기존 임금: 대전 90,000원 / 타지역 120,000원<br>
+            신규 임금: 대전 70,000원 / 타지역 100,000원<br><br>
+            임금 기준은 신규 배정·교체 담당자와 미확정 추가 인원의 기본 단가에만 적용되며, 기존 담당자의 저장된 일급은 변경되지 않습니다.<br>
+            담당자 슬롯에 없는 인원(추가 인원)은 자동 계산되지 않으며, 직접 입력한 금액은 이후 예식 수정과 무관하게 유지됩니다.
           </div>
         </div>
 
@@ -4060,35 +4054,50 @@ function renderManagerRatePanel(){
       </select>`;
   }
 
-  const occupiedSlots = ['front1','front2','back1','back2'].filter(slot => managerRateInfo[slot]);
-
-  const rowStyle = 'display:flex;align-items:center;gap:6px;padding:3px 0;flex-wrap:wrap';
-
-  const rows = occupiedSlots.map(slot => {
-      const info = managerRateInfo[slot];
-      return `
-      <div style="${rowStyle}">
+  // 슬롯 1개(라벨+이름+단가+배지)를 하나의 그룹으로 생성 — Front/Back을 나란히 배치하기 위함
+  function slotGroupHtml(slot){
+    const info = managerRateInfo[slot];
+    if(!info) return '';
+    return `
+      <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:220px">
         <div style="width:48px;font-size:11px;color:#9CA3AF;flex-shrink:0">${SLOT_LABELS[slot]}</div>
         <div style="width:64px;font-size:12px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0">${esc(info.name)}</div>
         ${rateSelectorHtml(slot, info.rate)}
         <span style="font-size:9px;font-weight:700;color:${info.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${info.manual ? '수' : '자'}</span>
       </div>`;
+  }
+
+  const occupiedSlots = ['front1','front2','back1','back2'].filter(slot => managerRateInfo[slot]);
+
+  // Front1·Back1을 한 줄, Front2·Back2를 한 줄로 배치 (둘 다 비어있는 줄은 생략)
+  // 화면이 좁아지면(flex-wrap) 자동으로 두 줄로 내려감
+  const pairRows = [['front1','back1'], ['front2','back2']]
+    .map(([a, b]) => {
+      const ga = slotGroupHtml(a);
+      const gb = slotGroupHtml(b);
+      if(!ga && !gb) return '';
+      return `<div style="display:flex;gap:16px;flex-wrap:wrap;padding:3px 0">${ga}${gb}</div>`;
     }).join('');
 
   const extra = managerRateInfo.extra || { count:0, rate:0, manual:false, paid:false };
-  const extraRow = `
-    <div style="${rowStyle}${occupiedSlots.length ? ';border-top:1px dashed #E5E7EB;margin-top:1px;padding-top:6px' : ''}">
-      <div style="width:48px;font-size:11px;color:#9CA3AF;flex-shrink:0">추가</div>
-      <input type="number" id="f-labor-extra-count" value="${extra.count || 0}" min="0"
-        style="width:64px;text-align:center;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0"
-        oninput="this.dataset.manual='1'; calcSettlement();">
-      ${rateSelectorHtml('extra', extra.rate)}
-      <span style="font-size:9px;font-weight:700;color:${extra.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${extra.manual ? '수' : '자'}</span>
+  const extraAndNoteRow = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:3px 0;${occupiedSlots.length ? 'border-top:1px dashed #E5E7EB;margin-top:1px;padding-top:6px' : ''}">
+      <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:220px">
+        <div style="font-size:11px;color:#9CA3AF;flex-shrink:0;white-space:nowrap">추가 인원</div>
+        <input type="number" id="f-labor-extra-count" value="${extra.count || 0}" min="0"
+          style="width:56px;text-align:center;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0"
+          oninput="this.dataset.manual='1'; calcSettlement();">
+        ${rateSelectorHtml('extra', extra.rate)}
+        <span style="font-size:9px;font-weight:700;color:${extra.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${extra.manual ? '수' : '자'}</span>
+      </div>
+      <div onclick="toggleWageBasisNote()" style="cursor:pointer;font-size:11px;color:#9CA3AF;display:flex;align-items:center;gap:4px;user-select:none;flex-shrink:0">
+        <span id="wage-note-arrow">▸</span> ⓘ 임금 기준 안내
+      </div>
     </div>`;
 
   wrap.innerHTML =
-    (occupiedSlots.length ? rows : '<div style="font-size:12px;color:#9CA3AF;padding:3px 0">배정 담당자 없음</div>')
-    + extraRow;
+    (occupiedSlots.length ? pairRows : '<div style="font-size:12px;color:#9CA3AF;padding:3px 0">배정 담당자 없음</div>')
+    + extraAndNoteRow;
 }
 
 function calcLaborCost(){
