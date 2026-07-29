@@ -1409,29 +1409,36 @@ const sb = {
       method:'DELETE', headers: sb.headers
     });
     if(!r.ok) throw new Error(await r.text());
+  },
+  async rpc(fnName, params={}){
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+      method:'POST', headers: sb.headers, body: JSON.stringify(params)
+    });
+    if(!r.ok) throw new Error(await r.text());
+    return r.json();
   }
 };
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 const USERS = [
-  { id:1, name:"강성주", role:"대표", avatar:"대", canEdit:true,  isAdmin:true,  pw:"gg" },
-  { id:2, name:"전수연", role:"실장", avatar:"실", canEdit:true,  isAdmin:true,  pw:"gg" },
-  { id:3, name:"조윤성", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ys" },
-  { id:4, name:"정선화", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"sh" },
-  { id:5, name:"김지현", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"jh" },
-  { id:6, name:"목수빈", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"sb" },
-  { id:7, name:"양윤수", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ys" },
-  { id:8, name:"김홍주", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"hj" },
-  { id:9,  name:"이승윤", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"sy" },
-  { id:10, name:"임우령", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"wr" },
-  { id:11, name:"강미송", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ms" },
-  { id:12, name:"노지훈", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"jh" },
-  { id:13, name:"김아희", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ah" },
-  { id:14, name:"진효성", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"hs" },
-  { id:15, name:"김우석", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"ws" },
-  { id:16, name:"전혜진", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"hj" },
-  { id:17, name:"이형준", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"hj" },
-  { id:18, name:"편승연", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false, pw:"sy" },
+  { id:1, name:"강성주", role:"대표", avatar:"대", canEdit:true,  isAdmin:true },
+  { id:2, name:"전수연", role:"실장", avatar:"실", canEdit:true,  isAdmin:true },
+  { id:3, name:"조윤성", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:4, name:"정선화", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:5, name:"김지현", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:6, name:"목수빈", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:7, name:"양윤수", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:8, name:"김홍주", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:9,  name:"이승윤", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:10, name:"임우령", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:11, name:"강미송", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:12, name:"노지훈", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:13, name:"김아희", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:14, name:"진효성", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:15, name:"김우석", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:16, name:"전혜진", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:17, name:"이형준", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
+  { id:18, name:"편승연", role:"매니저", avatar:"매", canEdit:true,  isAdmin:false },
 ];
 
 const PRODUCTS = ["2인 1팀","4인 2팀"];
@@ -1752,7 +1759,7 @@ function initLoginScreen(){
   dl.innerHTML = USERS.map(u => `<option value="${u.name} (${u.role})"></option>`).join('');
 }
 
-function doLogin(){
+async function doLogin(){
   const nameVal = (document.getElementById('login-name').value || '').trim();
   const pwVal   = document.getElementById('login-pw').value;
   const errEl   = document.getElementById('login-err');
@@ -1763,14 +1770,36 @@ function doLogin(){
 
   // "이름 (역할)" 형식 또는 이름만 입력해도 찾을 수 있도록
   const inputName = nameVal.replace(/\s*\(.*\)\s*$/, '').trim();
-  const user = USERS.find(u => u.name === inputName);
-  if(!user || user.pw !== pwVal){
+
+  const loginBtn = document.getElementById('login-btn');
+  if(loginBtn){ loginBtn.disabled = true; }
+
+  let result;
+  try {
+    result = await sb.rpc('login_staff', { p_name: inputName, p_password: pwVal });
+  } catch(e){
+    console.error('로그인 검증 실패:', e);
+    errEl.textContent = '로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.';
+    if(loginBtn){ loginBtn.disabled = false; }
+    return;
+  }
+  if(loginBtn){ loginBtn.disabled = false; }
+
+  const row = Array.isArray(result) ? result[0] : result;
+  if(!row || !row.out_name){
     errEl.textContent = '이름 또는 비밀번호가 올바르지 않습니다.';
     document.getElementById('login-pw').value = '';
     return;
   }
 
-  // 로그인 성공 — localStorage에 저장
+  // 서버(RPC)에서 이름/비밀번호가 검증된 사용자 — 로컬 USERS에서 나머지 표시정보(id/avatar 등) 매칭
+  const user = USERS.find(u => u.name === row.out_name);
+  if(!user){
+    errEl.textContent = '사용자 정보를 찾을 수 없습니다.';
+    return;
+  }
+
+  // 로그인 성공 — localStorage에 저장 (기존 자동 재로그인 방식 그대로 유지)
   localStorage.setItem('dg_user_id', user.id);
   currentUser = user;
   document.getElementById('login-screen').style.display = 'none';
