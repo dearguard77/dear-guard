@@ -4062,7 +4062,7 @@ function renderManagerRatePanel(){
 
   const occupiedSlots = ['front1','front2','back1','back2'].filter(slot => managerRateInfo[slot]);
 
-  const rowStyle = 'display:flex;align-items:center;gap:6px;padding:4px 0;flex-wrap:wrap';
+  const rowStyle = 'display:flex;align-items:center;gap:6px;padding:3px 0;flex-wrap:wrap';
 
   const rows = occupiedSlots.map(slot => {
       const info = managerRateInfo[slot];
@@ -4071,25 +4071,23 @@ function renderManagerRatePanel(){
         <div style="width:48px;font-size:11px;color:#9CA3AF;flex-shrink:0">${SLOT_LABELS[slot]}</div>
         <div style="width:64px;font-size:12px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0">${esc(info.name)}</div>
         ${rateSelectorHtml(slot, info.rate)}
-        ${paidSelectHtml(slot, info.paid, false)}
         <span style="font-size:9px;font-weight:700;color:${info.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${info.manual ? '수' : '자'}</span>
       </div>`;
     }).join('');
 
   const extra = managerRateInfo.extra || { count:0, rate:0, manual:false, paid:false };
   const extraRow = `
-    <div style="${rowStyle}${occupiedSlots.length ? ';border-top:1px dashed #E5E7EB;margin-top:2px;padding-top:8px' : ''}">
+    <div style="${rowStyle}${occupiedSlots.length ? ';border-top:1px dashed #E5E7EB;margin-top:1px;padding-top:6px' : ''}">
       <div style="width:48px;font-size:11px;color:#9CA3AF;flex-shrink:0">추가</div>
       <input type="number" id="f-labor-extra-count" value="${extra.count || 0}" min="0"
         style="width:64px;text-align:center;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0"
-        oninput="this.dataset.manual='1'; const ps=document.getElementById('f-paid-extra'); if(ps) ps.disabled = !(Number(this.value)>0); calcSettlement();">
+        oninput="this.dataset.manual='1'; calcSettlement();">
       ${rateSelectorHtml('extra', extra.rate)}
-      ${paidSelectHtml('extra', extra.paid, !(extra.count > 0))}
       <span style="font-size:9px;font-weight:700;color:${extra.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${extra.manual ? '수' : '자'}</span>
     </div>`;
 
   wrap.innerHTML =
-    (occupiedSlots.length ? rows : '<div style="font-size:12px;color:#9CA3AF;padding:4px 0">배정 담당자 없음</div>')
+    (occupiedSlots.length ? rows : '<div style="font-size:12px;color:#9CA3AF;padding:3px 0">배정 담당자 없음</div>')
     + extraRow;
 }
 
