@@ -1171,18 +1171,20 @@
           </div>
           <div class="form-field">
             <label class="form-label">지역 구분</label>
-            <select class="form-input" id="f-labor-region" onchange="calcSettlement()">
-              <option value="대전">대전 (인당 90,000원)</option>
-              <option value="대전외">대전 외 (인당 120,000원)</option>
+            <select class="form-input" id="f-labor-region" onchange="renderManagerRatePanel(); calcSettlement()">
+              <option value="대전">대전 (2026-08-31까지 90,000 / 09-01부터 70,000)</option>
+              <option value="대전외">대전 외 (2026-08-31까지 120,000 / 09-01부터 100,000)</option>
             </select>
           </div>
           <div class="form-field">
-            <label class="form-label">정산 대상 매니저 수</label>
-            <input class="form-input" id="f-labor-count" type="number" placeholder="자동계산" min="0" max="10" oninput="calcSettlement()"
-              title="관리자 제외, 일반 매니저만 자동 계산됩니다. 필요 시 직접 수정 가능합니다">
-            <div style="font-size:11px;color:#9CA3AF;margin-top:4px">자동 계산됩니다. 필요 시 직접 수정 가능합니다</div>
+            <label class="form-label">정산 대상 인원 (자동)</label>
+            <input class="form-input" id="f-labor-count" type="number" readonly disabled
+              title="담당자 슬롯 + 추가 인원 합계로 자동 계산됩니다. 인원 조정은 아래 '담당자별 일급' 또는 '추가 인원'에서 해주세요">
+            <div style="font-size:11px;color:#9CA3AF;margin-top:4px">담당자 슬롯 + 추가 인원 합계로 자동 계산됩니다</div>
           </div>
         </div>
+        <!-- 담당자별 일급 (2026-09-01 정책 변경 대응) -->
+        <div id="manager-rate-panel"></div>
         <!-- 자동 계산 결과 -->
         <div id="settlement-preview" style="display:none;margin-top:16px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:16px">
           <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:10px;letter-spacing:.5px">자동 계산 결과</div>
@@ -1525,6 +1527,9 @@ function rowToSchedule(row){
     laborRegion:  row.labor_region || '대전',
     laborCount:   row.labor_count  || null,
     laborCost:    row.labor_cost   || null,
+    // 담당자 슬롯(front1/front2/back1/back2)별 일급 이력 + 추가인원(extra) 정보
+    // { front1:{name,rate,assignedAt,manual}, ..., extra:{count,rate,manual} }
+    managerRateInfo: row.manager_rate_info || {},
     netProfit:    row.net_profit   || null,
     laborPaid:    row.labor_paid   || false,
     result:       row.result       || null,
@@ -1605,6 +1610,7 @@ function scheduleToRow(v, notes, cl){
     labor_region:  v.laborRegion  || null,
     labor_count:   v.laborCount   || null,
     labor_cost:    v.laborCost    || null,
+    manager_rate_info: v.managerRateInfo || {},
     net_profit:    v.netProfit    || null,
     labor_paid:    v.laborPaid    || false,
     // result는 saveResult에서 별도 저장 — saveForm에서 덮어쓰지 않음
@@ -1692,6 +1698,19 @@ function showToast(msg){
 }
 // 권한별 일정 필터 — 모든 렌더 함수가 이 함수를 통해 일정을 가져옵니다
 const ADMIN_NAMES = ['강성주', '전수연'];
+
+// ── 매니저 일급 정책 (2026-09-01 KST 기준 변경) ──────────────────────────────
+// 기준일 이전(8/31까지 배정) = 기존 단가, 기준일 이후(9/1부터 배정) = 신규 단가
+// "등록일"이 아니라 "담당자 배정 시점(실시간)" 기준으로 판단한다.
+const LABOR_RATE_CUTOFF = '2026-09-01T00:00:00+09:00';
+const LABOR_RATES_OLD = { '대전': 90000, '대전외': 120000 };
+const LABOR_RATES_NEW = { '대전': 70000, '대전외': 100000 };
+// 기준 시점(whenISO) 기준으로 해당 region의 정책 일급을 반환
+function getPolicyLaborRate(region, whenISO){
+  const t = whenISO ? new Date(whenISO).getTime() : NaN;
+  const table = (!isNaN(t) && t < new Date(LABOR_RATE_CUTOFF).getTime()) ? LABOR_RATES_OLD : LABOR_RATES_NEW;
+  return table[region] || table['대전'];
+}
 
 // 매니저가 해당 예식에 참여하는지 확인 (모든 담당자 필드 검사)
 function schIncludesMgr(s, name){
@@ -3583,6 +3602,7 @@ function openForm(id){
       document.getElementById('f-balance-price').value = is4team ? 500000 : 250000;
     }
     document.getElementById('f-labor-region').value = s?.laborRegion || '대전';
+    renderManagerRatePanel();
     calcSettlement();
   }
   // ── 매니저 권한: 기본정보/담당자 readonly 처리 ──
@@ -3690,21 +3710,169 @@ function getPaidManagerNamesFromForm(){
   return [...new Set(names)].filter(name => !ADMIN_NAMES.includes(name));
 }
 
-function calcLaborCost(){
-  const region = document.getElementById('f-labor-region')?.value || '대전';
-  const rate   = region === '대전외' ? 120000 : 90000;
-  // f-labor-count 값 우선 사용 (수동 입력 가능), 비어있으면 자동계산
-  const countEl = document.getElementById('f-labor-count');
-  const manualCount = countEl ? Number(countEl.value) : NaN;
-  const count = (!isNaN(manualCount) && countEl?.value !== '') ? manualCount : getPaidManagerNamesFromForm().length;
-  return count > 0 ? rate * count : 0;
+// ════════════════════════════════════════════════════════════
+//  💰 매니저 일급 정책 변경 대응 (2026-09-01 KST 기준)
+//  - 담당자가 유지되면 기존 배정 시점의 단가를 그대로 동결
+//  - 담당자가 신규 배정/교체되면 그 시점(현재) 기준 정책 단가 적용
+//  - 관리자가 직접 입력한 단가는 최우선 적용되며, 담당자가 바뀌기 전까지 유지
+//  - 기존에 저장돼 있던 총 인건비/인원수는 최초 진입 시 그대로 역산 동결되어
+//    자동 재계산으로 인해 값이 바뀌지 않음
+// ════════════════════════════════════════════════════════════
+function resolveManagerRateInfo(){
+  const region   = document.getElementById('f-labor-region')?.value || '대전';
+  const origS    = formId ? schedules.find(x => x.id === formId) : null;
+  const prevInfo = origS?.managerRateInfo || {};
+
+  // 폼이 열리기 전(수정 전) 저장돼 있던 담당자명 — 배정 변경 여부 판단 기준
+  const originalFrontParts = (origS?.frontManager || '').split(',').map(m => m.trim());
+  const originalBackParts  = (origS?.backManager  || '').split(',').map(m => m.trim());
+  const originalNames = {
+    front1: originalFrontParts[0] || '',
+    front2: originalFrontParts[1] || '',
+    back1:  originalBackParts[0]  || '',
+    back2:  originalBackParts[1]  || '',
+  };
+
+  const currentNames = {
+    front1: (document.getElementById('f-front1')?.value || '').trim(),
+    front2: (document.getElementById('f-front2')?.value || '').trim(),
+    back1:  (document.getElementById('f-back1')?.value  || '').trim(),
+    back2:  (document.getElementById('f-back2')?.value  || '').trim(),
+  };
+
+  const nowISO = new Date().toISOString();
+  const newInfo = {};
+
+  ['front1','front2','back1','back2'].forEach(slot => {
+    const name = currentNames[slot];
+    if(!name || ADMIN_NAMES.includes(name)) return; // 빈 슬롯/관리자는 일급 대상 아님
+
+    const rateEl   = document.getElementById('f-rate-' + slot);
+    const manualOn = rateEl?.dataset.manual === '1' && rateEl?.dataset.manualName === name;
+    const prevSlot = prevInfo[slot];
+
+    if(manualOn){
+      // 관리자가 직접 입력한 단가 — 최우선, 담당자가 바뀌기 전까지 유지
+      newInfo[slot] = {
+        name, rate: Number(rateEl.value) || 0,
+        assignedAt: prevSlot?.assignedAt || (name === originalNames[slot] ? 'legacy' : nowISO),
+        manual: true,
+      };
+    } else if(prevSlot && prevSlot.name === name){
+      // 담당자 유지 → 이전 배정 단가 그대로 동결 (재계산 안 함)
+      newInfo[slot] = { ...prevSlot };
+    } else if(name === originalNames[slot]){
+      // 이번 정책 이전부터 이미 배정돼 있던 담당자(이력 정보 없음) → 기존 단가로 소급 고정
+      newInfo[slot] = {
+        name, rate: LABOR_RATES_OLD[region] || LABOR_RATES_OLD['대전'],
+        assignedAt: 'legacy', manual: false,
+      };
+    } else {
+      // 신규 배정(교체 포함) → 배정 시점(현재) 기준 정책 단가
+      newInfo[slot] = {
+        name, rate: getPolicyLaborRate(region, nowISO),
+        assignedAt: nowISO, manual: false,
+      };
+    }
+  });
+
+  const namedSlotsCount = Object.keys(newInfo).length;
+  const namedSlotsTotal = Object.values(newInfo).reduce((sum, i) => sum + (i.rate || 0), 0);
+
+  // ── 추가 인원(담당자 슬롯에 없는 인원) — 관리자 수동 입력 전용, 자동계산 없음 ──
+  const extraCountEl  = document.getElementById('f-labor-extra-count');
+  const extraRateEl   = document.getElementById('f-labor-extra-rate');
+  const extraManualOn = extraCountEl?.dataset.manual === '1' || extraRateEl?.dataset.manual === '1';
+  const prevExtra = prevInfo.extra;
+  let newExtra;
+
+  if(extraManualOn){
+    newExtra = {
+      count: Number(extraCountEl?.value) || 0,
+      rate:  Number(extraRateEl?.value)  || 0,
+      manual: true,
+    };
+  } else if(prevExtra){
+    // 이전에 관리자가 입력했던 추가 인원 정보 그대로 유지
+    newExtra = { ...prevExtra };
+  } else if(origS){
+    // 기존 예식(추가인원 이력 정보 없음) — 저장된 총 인건비/인원수와의 차이로
+    // 과거 수동 추가 인원을 역산해 동결 (예: 3명/270,000원 → 2명 슬롯 + 1명 추가)
+    const impliedCount = Math.max(0, (origS.laborCount || 0) - namedSlotsCount);
+    if(impliedCount > 0){
+      const impliedTotal = Math.max(0, (origS.laborCost || 0) - namedSlotsTotal);
+      newExtra = { count: impliedCount, rate: Math.round(impliedTotal / impliedCount), manual: true };
+    } else {
+      newExtra = { count: 0, rate: getPolicyLaborRate(region, origS.createdAt || nowISO), manual: false };
+    }
+  } else {
+    // 신규 예식 — 기본값은 등록 시점 기준 정책 단가로 제안, 관리자가 수정 가능
+    newExtra = { count: 0, rate: getPolicyLaborRate(region, nowISO), manual: false };
+  }
+
+  const laborCost  = namedSlotsTotal + (newExtra.count * newExtra.rate);
+  const laborCount = namedSlotsCount + newExtra.count;
+
+  return { managerRateInfo: { ...newInfo, extra: newExtra }, laborCost, laborCount };
 }
 
-// 담당자 변경 시 f-labor-count 자동세팅 (수동 수정값 덮어쓰지 않음 - 직접 호출 시만 적용)
-function autoFillLaborCount(){
-  const paidManagers = getPaidManagerNamesFromForm();
+// 담당자별 일급 패널 렌더링 (관리자 전용, 정산정보 섹션)
+function renderManagerRatePanel(){
+  const wrap = document.getElementById('manager-rate-panel');
+  if(!wrap) return;
+  if(!ADMIN_NAMES.includes(currentUser.name)){ wrap.innerHTML = ''; return; }
+
+  const { managerRateInfo, laborCount } = resolveManagerRateInfo();
+  const SLOT_LABELS = { front1:'Front 1', front2:'Front 2', back1:'Back 1', back2:'Back 2' };
+
+  const rows = ['front1','front2','back1','back2']
+    .filter(slot => managerRateInfo[slot])
+    .map(slot => {
+      const info = managerRateInfo[slot];
+      return `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="width:70px;font-size:11px;color:#9CA3AF">${SLOT_LABELS[slot]}</div>
+        <div style="flex:1;font-size:13px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(info.name)}</div>
+        <input type="number" class="form-input" id="f-rate-${slot}" value="${info.rate}"
+          style="width:110px;text-align:right;padding:6px 8px"
+          oninput="this.dataset.manual='1'; this.dataset.manualName=(document.getElementById('f-${slot}')?.value||'').trim(); calcSettlement();">
+        <span style="font-size:10px;font-weight:700;color:${info.manual ? '#C7A96B' : '#9CA3AF'};width:28px;text-align:center">${info.manual ? '수동' : '자동'}</span>
+      </div>`;
+    }).join('');
+
+  const extra = managerRateInfo.extra || { count:0, rate:0, manual:false };
+
+  wrap.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin:16px 0 8px;letter-spacing:.5px">담당자별 일급 (관리자 수정 가능)</div>
+    ${rows || '<div style="font-size:12px;color:#9CA3AF;margin-bottom:8px">배정된 담당자가 없습니다</div>'}
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB">
+      <div style="width:70px;font-size:11px;color:#9CA3AF">추가 인원</div>
+      <input type="number" class="form-input" id="f-labor-extra-count" value="${extra.count || 0}" min="0"
+        style="width:56px;text-align:center;padding:6px 4px"
+        oninput="this.dataset.manual='1'; calcSettlement();">
+      <span style="font-size:11px;color:#9CA3AF">명 ×</span>
+      <input type="number" class="form-input" id="f-labor-extra-rate" value="${extra.rate || 0}"
+        style="width:110px;text-align:right;padding:6px 8px"
+        oninput="this.dataset.manual='1'; calcSettlement();">
+      <span style="font-size:11px;color:#9CA3AF">원</span>
+      <span style="font-size:10px;font-weight:700;color:${extra.manual ? '#C7A96B' : '#9CA3AF'};width:28px;text-align:center">${extra.manual ? '수동' : '자동'}</span>
+    </div>
+    <div style="font-size:10px;color:#9CA3AF;margin-top:6px;line-height:1.5">
+      담당자 슬롯에 없는 인원(1인 추가 등)은 자동 계산되지 않으며, 인원 수·1인당 금액을 직접 입력해야 합니다.
+      기본 제안값은 예식 등록 시점 기준 정책 단가이며, 직접 수정 시 이후 예식 수정과 무관하게 유지됩니다.
+    </div>`;
+
   const countEl = document.getElementById('f-labor-count');
-  if(countEl) countEl.value = paidManagers.length || '';
+  if(countEl) countEl.value = laborCount || 0;
+}
+
+function calcLaborCost(){
+  return resolveManagerRateInfo().laborCost;
+}
+
+// 담당자 변경 시 정산 패널 갱신 (하위 호환용 — 기존 호출부 유지)
+function autoFillLaborCount(){
+  renderManagerRatePanel();
 }
 
 function calcNetProfit(){
@@ -3810,9 +3978,10 @@ function getFormValues(){
   const depositPrice = isAdmin ? (Number(document.getElementById('f-deposit-price')?.value) || null) : undefined;
   const balancePrice = isAdmin ? (Number(document.getElementById('f-balance-price')?.value) || null) : undefined;
   const laborRegion = isAdmin ? (document.getElementById('f-labor-region')?.value         || null) : undefined;
-  const paidMgrs    = isAdmin ? getPaidManagerNamesFromForm() : [];
-  const laborCount  = isAdmin ? (paidMgrs.length || 0) : undefined;
-  const laborCost   = isAdmin ? calcLaborCost()  : undefined;
+  const laborBreakdown  = isAdmin ? resolveManagerRateInfo() : null;
+  const laborCount      = isAdmin ? laborBreakdown.laborCount : undefined;
+  const laborCost       = isAdmin ? laborBreakdown.laborCost  : undefined;
+  const managerRateInfo = isAdmin ? laborBreakdown.managerRateInfo : undefined;
   const netProfit   = isAdmin ? calcNetProfit()  : undefined;
 
   return {
@@ -3843,6 +4012,7 @@ function getFormValues(){
     laborRegion,
     laborCount,
     laborCost,
+    managerRateInfo,
     netProfit,
   };
 }
@@ -4116,6 +4286,9 @@ function renderManagerPreview(){
   previewEl.innerHTML = cards.length
     ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${cards.join('')}</div>`
     : '';
+
+  // 담당자 구성이 바뀌면 담당자별 일급 패널도 함께 갱신 (관리자 전용)
+  if(ADMIN_NAMES.includes(currentUser.name)) renderManagerRatePanel();
 
   const date     = document.getElementById('f-date')?.value || '';
   const timeH    = document.getElementById('f-time-h')?.value || '';
@@ -5453,6 +5626,17 @@ function getManagerPayForSchedule(s, managerName){
   const managers = [s.frontManager, s.backManager]
     .join(',').split(',').map(m => m.trim()).filter(Boolean);
   if(!managers.includes(managerName)) return 0;
+  // 담당자 슬롯별 일급 이력 정보가 있으면 그 값을 우선 사용 (2026-09-01 정책 변경 대응)
+  const info = s.managerRateInfo || {};
+  const frontParts = (s.frontManager || '').split(',').map(m => m.trim()).filter(Boolean);
+  const backParts  = (s.backManager  || '').split(',').map(m => m.trim()).filter(Boolean);
+  const slotMap = { front1: frontParts[0], front2: frontParts[1], back1: backParts[0], back2: backParts[1] };
+  for(const slot of ['front1','front2','back1','back2']){
+    if(slotMap[slot] === managerName && info[slot] && info[slot].name === managerName){
+      return info[slot].rate;
+    }
+  }
+  // 이력 정보 없음 (정책 변경 이전부터 배정된 예식) → 기존 고정 단가 사용
   const rate = s.laborRegion === '대전외' ? 120000 : 90000;
   return rate;
 }
