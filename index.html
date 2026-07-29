@@ -3974,7 +3974,7 @@ function resolveManagerRateInfo(){
 
   // ── 추가 인원(담당자 슬롯에 없는 인원) — 관리자 수동 입력 전용, 자동계산 없음 ──
   const extraCountEl  = document.getElementById('f-labor-extra-count');
-  const extraRateEl   = document.getElementById('f-labor-extra-rate');
+  const extraRateEl   = document.getElementById('f-rate-extra');
   const extraPaidEl   = document.getElementById('f-paid-extra');
   const extraManualOn = extraCountEl?.dataset.manual === '1' || extraRateEl?.dataset.manual === '1';
   const prevExtra = prevInfo.extra;
