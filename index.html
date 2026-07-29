@@ -1152,86 +1152,97 @@
         </div>
       </div>
      <!-- ── 섹션 3.5: 정산 정보 (관리자 전용) ── -->
-      <div id="fm-sec-settlement" style="display:none;padding:20px 24px">
-        <div class="hint-box" style="margin-bottom:16px;background:#FDF8F3;border-color:#E8DFD0">
+      <div id="fm-sec-settlement" style="display:none;padding:16px 24px">
+        <div class="hint-box" style="margin-bottom:10px;background:#FDF8F3;border-color:#E8DFD0;padding:6px 10px;font-size:11px">
           🔒 이 섹션은 관리자(강성주·전수연)에게만 표시됩니다.
         </div>
 
-        <!-- 박스 1: 금액 정보 -->
-        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:14px">
-          <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:12px;letter-spacing:.5px">💰 금액 정보</div>
-          <div class="form-grid">
-            <div class="form-field span">
-              <label class="form-label">총금액 (원)</label>
-              <input class="form-input" id="f-total-price" type="text" inputmode="numeric" placeholder="400,000원"
+        <!-- 통합 관리 박스: 금액 / 지역·임금기준 / 담당자·추가인원 / 안내 -->
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px">
+
+          <!-- 총금액 · 계약금 · 잔금 (한 줄 3열) -->
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.3px">총금액</label>
+              <input id="f-total-price" type="text" inputmode="numeric" placeholder="400,000원"
+                style="width:100%;box-sizing:border-box;border:1px solid #E5E7EB;border-radius:6px;padding:6px 8px;font-size:13px;margin-top:3px"
                 oninput="formatWonInput(this); calcSettlement()">
             </div>
-            <div class="form-field">
-              <label class="form-label">계약금 (원)</label>
-              <input class="form-input" id="f-deposit-price" type="text" inputmode="numeric" placeholder="150,000원"
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.3px">계약금</label>
+              <input id="f-deposit-price" type="text" inputmode="numeric" placeholder="150,000원"
+                style="width:100%;box-sizing:border-box;border:1px solid #E5E7EB;border-radius:6px;padding:6px 8px;font-size:13px;margin-top:3px"
                 oninput="formatWonInput(this); calcSettlement()">
             </div>
-            <div class="form-field">
-              <label class="form-label">잔금 (원)</label>
-              <input class="form-input" id="f-balance-price" type="text" inputmode="numeric" placeholder="250,000원"
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.3px">잔금</label>
+              <input id="f-balance-price" type="text" inputmode="numeric" placeholder="250,000원"
+                style="width:100%;box-sizing:border-box;border:1px solid #E5E7EB;border-radius:6px;padding:6px 8px;font-size:13px;margin-top:3px"
                 oninput="formatWonInput(this); calcSettlement()">
             </div>
           </div>
-        </div>
 
-        <!-- 박스 2: 인건비 설정 -->
-        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:14px">
-          <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:12px;letter-spacing:.5px">👥 인건비 설정</div>
-          <div class="form-grid" style="margin-bottom:14px">
-            <div class="form-field">
-              <label class="form-label">지역</label>
-              <select class="form-input" id="f-labor-region" onchange="renderManagerRatePanel(); calcSettlement()">
+          <!-- 지역 · 임금 기준 (한 줄 2열) -->
+          <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:10px;padding-bottom:10px;border-bottom:1px dashed #E5E7EB">
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.3px">지역</label>
+              <select id="f-labor-region" onchange="renderManagerRatePanel(); calcSettlement()"
+                style="width:100%;box-sizing:border-box;border:1px solid #E5E7EB;border-radius:6px;padding:6px 8px;font-size:13px;margin-top:3px;background:#fff">
                 <option value="대전">대전</option>
                 <option value="대전외">대전 외</option>
               </select>
             </div>
-            <div class="form-field">
-              <label class="form-label">임금 기준</label>
+            <div>
+              <label style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.3px">임금 기준</label>
               <input type="checkbox" id="f-use-new-rate" style="display:none"
                 onchange="syncWageBasisButtons(); renderManagerRatePanel(); calcSettlement();">
-              <div style="display:flex;gap:6px">
+              <div style="display:flex;gap:4px;margin-top:3px">
                 <button type="button" id="f-wage-old-btn" onclick="setWageBasis(false)"
-                  style="flex:1;padding:9px;border-radius:8px;border:1px solid #E5E7EB;background:#fff;font-size:12px;font-weight:700;cursor:pointer">기존 임금</button>
+                  style="flex:1;padding:6px;border-radius:6px;border:1px solid #E5E7EB;background:#fff;font-size:12px;font-weight:700;cursor:pointer">기존 임금</button>
                 <button type="button" id="f-wage-new-btn" onclick="setWageBasis(true)"
-                  style="flex:1;padding:9px;border-radius:8px;border:1px solid #E5E7EB;background:#fff;font-size:12px;font-weight:700;cursor:pointer">신규 임금</button>
-              </div>
-              <div style="font-size:10px;color:#9CA3AF;margin-top:6px;line-height:1.5">
-                기존 임금: 대전 90,000원 / 타지역 120,000원<br>신규 임금: 대전 70,000원 / 타지역 100,000원
-              </div>
-              <div id="wage-basis-note" style="font-size:10px;color:#C7A96B;margin-top:4px;line-height:1.5;display:none">
-                신규 배정·교체 담당자와 미확정 추가 인원에만 적용됩니다.<br>기존 담당자의 저장된 일급은 변경되지 않습니다.
+                  style="flex:1;padding:6px;border-radius:6px;border:1px solid #E5E7EB;background:#fff;font-size:12px;font-weight:700;cursor:pointer">신규 임금</button>
               </div>
             </div>
           </div>
-          <!-- 담당자별 일급 + 추가인원 (JS 렌더링) -->
-          <div id="manager-rate-panel"></div>
+
+          <!-- 담당자 / 추가인원 (통합) -->
+          <div style="margin-top:10px">
+            <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:6px">담당자 / 추가인원</div>
+            <div id="manager-rate-panel"></div>
+          </div>
+
+          <!-- 안내 아코디언 (기본 접힘) -->
+          <div style="margin-top:8px">
+            <div onclick="toggleWageBasisNote()" style="cursor:pointer;font-size:11px;color:#9CA3AF;display:flex;align-items:center;gap:4px;user-select:none">
+              <span id="wage-note-arrow">▸</span> ⓘ 임금 기준 안내
+            </div>
+            <div id="wage-basis-note" style="display:none;font-size:10.5px;color:#6B7280;margin-top:6px;line-height:1.7;background:#fff;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px">
+              기존 임금: 대전 90,000원 / 타지역 120,000원<br>
+              신규 임금: 대전 70,000원 / 타지역 100,000원<br><br>
+              임금 기준은 신규 배정·교체 담당자와 미확정 추가 인원의 기본 단가에만 적용되며, 기존 담당자의 저장된 일급은 변경되지 않습니다.<br>
+              담당자 슬롯에 없는 인원(추가 인원)은 자동 계산되지 않으며, 직접 입력한 금액은 이후 예식 수정과 무관하게 유지됩니다.
+            </div>
+          </div>
         </div>
 
-        <!-- 박스 3: 정산 요약 -->
-        <div id="settlement-preview" style="display:none;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:16px">
-          <div style="font-size:11px;font-weight:700;color:#9CA3AF;margin-bottom:10px;letter-spacing:.5px">📊 정산 요약</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-            <div style="text-align:center">
-              <div style="font-size:10px;color:#9CA3AF;margin-bottom:2px">실수령 매출</div>
-              <div style="font-size:9px;color:#C7A96B;margin-bottom:4px">계약금+잔금</div>
+        <!-- 정산 요약 (하단 한 줄 고정) -->
+        <div id="settlement-preview" style="display:none;margin-top:10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:10px 14px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+            <div>
+              <div style="font-size:10px;color:#9CA3AF">총수익</div>
               <div id="preview-total" style="font-size:14px;font-weight:700;color:#4B5563"></div>
             </div>
-            <div style="text-align:center">
-              <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">총 인건비</div>
+            <div>
+              <div style="font-size:10px;color:#9CA3AF">인건비</div>
               <div id="preview-labor" style="font-size:14px;font-weight:700;color:#D97706"></div>
             </div>
-            <div style="text-align:center">
-              <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">예상 순수익</div>
+            <div>
+              <div style="font-size:10px;color:#9CA3AF">순수익</div>
               <div id="preview-net" style="font-size:14px;font-weight:700;color:#059669"></div>
             </div>
           </div>
         </div>
-      </div> 
+      </div>
      <!-- ── 섹션 4: 체크리스트 ── -->
       <div id="fm-sec-checklist" style="display:none;padding:20px 24px">
         <div class="hint-box" style="margin-bottom:12px">💡 현재 진행 상황에 맞게 체크하세요. 언제든 수정 가능합니다.</div>
@@ -3838,7 +3849,6 @@ function syncWageBasisButtons(){
   const isNew  = document.getElementById('f-use-new-rate')?.checked || false;
   const oldBtn = document.getElementById('f-wage-old-btn');
   const newBtn = document.getElementById('f-wage-new-btn');
-  const note   = document.getElementById('wage-basis-note');
   if(oldBtn){
     oldBtn.style.background  = !isNew ? '#111827' : '#fff';
     oldBtn.style.color       = !isNew ? '#fff'    : '#374151';
@@ -3849,7 +3859,16 @@ function syncWageBasisButtons(){
     newBtn.style.color       = isNew ? '#fff'    : '#374151';
     newBtn.style.borderColor = isNew ? '#C7A96B' : '#E5E7EB';
   }
-  if(note) note.style.display = isNew ? 'block' : 'none';
+}
+
+// 임금 기준 안내 아코디언 (기본 접힘, 클릭 시에만 펼침 — 임금기준 선택과는 무관)
+function toggleWageBasisNote(){
+  const note  = document.getElementById('wage-basis-note');
+  const arrow = document.getElementById('wage-note-arrow');
+  if(!note) return;
+  const isOpen = note.style.display !== 'none';
+  note.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▸' : '▾';
 }
 
 function getUseNewRateInitial(s){
@@ -4004,7 +4023,7 @@ function renderManagerRatePanel(){
   if(!wrap) return;
   if(!ADMIN_NAMES.includes(currentUser.name)){ wrap.innerHTML = ''; return; }
 
-  const { managerRateInfo, laborCount } = resolveManagerRateInfo();
+  const { managerRateInfo } = resolveManagerRateInfo();
   const region = document.getElementById('f-labor-region')?.value || '대전';
   const presets = LABOR_RATE_PRESETS[region] || LABOR_RATE_PRESETS['대전'];
   const SLOT_LABELS = { front1:'Front 1', front2:'Front 2', back1:'Back 1', back2:'Back 2' };
@@ -4016,7 +4035,7 @@ function renderManagerRatePanel(){
       `<option value="${p}"${(!isCustom && rate===p) ? ' selected' : ''}>${p.toLocaleString()}원</option>`
     ).join('') + `<option value="custom"${isCustom ? ' selected' : ''}>직접입력</option>`;
     return `
-      <select class="form-input" id="f-rateselect-${idBase}" style="width:100px;padding:6px 6px"
+      <select id="f-rateselect-${idBase}" style="width:88px;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;background:#fff;flex-shrink:0"
         onchange="
           const inp=document.getElementById('f-rate-${idBase}');
           if(this.value==='custom'){ inp.style.display='inline-block'; inp.focus(); }
@@ -4026,16 +4045,16 @@ function renderManagerRatePanel(){
             calcSettlement();
           }
         ">${options}</select>
-      <input type="number" class="form-input" id="f-rate-${idBase}" value="${rate}"
-        style="width:100px;text-align:right;padding:6px 8px;display:${isCustom ? 'inline-block' : 'none'}"
+      <input type="number" id="f-rate-${idBase}" value="${rate}"
+        style="width:88px;text-align:right;padding:5px 6px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0;display:${isCustom ? 'inline-block' : 'none'}"
         oninput="this.dataset.manual='1'; this.dataset.manualName=(document.getElementById('f-${idBase}')?.value||'').trim(); calcSettlement();">`;
   }
 
   // 지급여부 select 공용 (checkbox 대신 select 사용)
   function paidSelectHtml(idBase, paid, disabled){
     return `
-      <select class="form-input" id="f-paid-${idBase}" onchange="calcSettlement();"
-        style="width:88px;padding:6px 4px;color:${paid?'#065F46':'#92400E'}" ${disabled ? 'disabled' : ''}>
+      <select id="f-paid-${idBase}" onchange="calcSettlement();"
+        style="width:76px;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0;color:${paid?'#065F46':'#92400E'};background:#fff" ${disabled ? 'disabled' : ''}>
         <option value="unpaid"${!paid ? ' selected' : ''}>미지급</option>
         <option value="paid"${paid ? ' selected' : ''}>지급완료</option>
       </select>`;
@@ -4043,44 +4062,35 @@ function renderManagerRatePanel(){
 
   const occupiedSlots = ['front1','front2','back1','back2'].filter(slot => managerRateInfo[slot]);
 
+  const rowStyle = 'display:flex;align-items:center;gap:6px;padding:4px 0;flex-wrap:wrap';
+
   const rows = occupiedSlots.map(slot => {
       const info = managerRateInfo[slot];
       return `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <div style="width:60px;font-size:11px;color:#9CA3AF">${SLOT_LABELS[slot]}</div>
-        <div style="width:74px;font-size:13px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(info.name)}</div>
+      <div style="${rowStyle}">
+        <div style="width:48px;font-size:11px;color:#9CA3AF;flex-shrink:0">${SLOT_LABELS[slot]}</div>
+        <div style="width:64px;font-size:12px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0">${esc(info.name)}</div>
         ${rateSelectorHtml(slot, info.rate)}
         ${paidSelectHtml(slot, info.paid, false)}
-        <span style="font-size:10px;font-weight:700;color:${info.manual ? '#C7A96B' : '#9CA3AF'};width:24px;text-align:center">${info.manual ? '수동' : '자동'}</span>
+        <span style="font-size:9px;font-weight:700;color:${info.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${info.manual ? '수' : '자'}</span>
       </div>`;
     }).join('');
 
   const extra = managerRateInfo.extra || { count:0, rate:0, manual:false, paid:false };
-
-  wrap.innerHTML = `
-    <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:10px">
-      배정 담당자 ${occupiedSlots.length}명
-    </div>
-    ${occupiedSlots.length
-      ? rows
-      : '<div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">현재 배정된 담당자가 없습니다.</div>'}
-
-    <div style="margin-top:14px;padding-top:14px;border-top:1px dashed #E5E7EB">
-      <div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:8px">추가 인원</div>
-      <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 8px;align-items:center;max-width:360px">
-        <div style="font-size:10px;color:#9CA3AF">인원 수</div>
-        <div style="font-size:10px;color:#9CA3AF">1인당 일급</div>
-        <div style="font-size:10px;color:#9CA3AF">지급 상태</div>
-        <input type="number" class="form-input" id="f-labor-extra-count" value="${extra.count || 0}" min="0"
-          style="width:64px;text-align:center;padding:6px 4px"
-          oninput="this.dataset.manual='1'; const ps=document.getElementById('f-paid-extra'); if(ps) ps.disabled = !(Number(this.value)>0); calcSettlement();">
-        <div style="display:flex">${rateSelectorHtml('extra', extra.rate)}</div>
-        <div>${paidSelectHtml('extra', extra.paid, !(extra.count > 0))}</div>
-      </div>
-      <div style="font-size:10px;color:#9CA3AF;margin-top:8px;line-height:1.6">
-        임금 기준에 따라 기본 일급이 자동 적용됩니다.<br>직접 수정한 금액은 이후에도 유지됩니다.
-      </div>
+  const extraRow = `
+    <div style="${rowStyle}${occupiedSlots.length ? ';border-top:1px dashed #E5E7EB;margin-top:2px;padding-top:8px' : ''}">
+      <div style="width:48px;font-size:11px;color:#9CA3AF;flex-shrink:0">추가</div>
+      <input type="number" id="f-labor-extra-count" value="${extra.count || 0}" min="0"
+        style="width:64px;text-align:center;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0"
+        oninput="this.dataset.manual='1'; const ps=document.getElementById('f-paid-extra'); if(ps) ps.disabled = !(Number(this.value)>0); calcSettlement();">
+      ${rateSelectorHtml('extra', extra.rate)}
+      ${paidSelectHtml('extra', extra.paid, !(extra.count > 0))}
+      <span style="font-size:9px;font-weight:700;color:${extra.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${extra.manual ? '수' : '자'}</span>
     </div>`;
+
+  wrap.innerHTML =
+    (occupiedSlots.length ? rows : '<div style="font-size:12px;color:#9CA3AF;padding:4px 0">배정 담당자 없음</div>')
+    + extraRow;
 }
 
 function calcLaborCost(){
