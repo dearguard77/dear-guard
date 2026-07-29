@@ -152,7 +152,7 @@
 
   /* SUBTABS */
   .subtab-nav{display:flex;overflow-x:auto;border-bottom:none}
-  .subtab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:8px 16px;font-size:12px;font-weight:400;color:#9CA3AF;white-space:nowrap;transition:all .15s}
+  .subtab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:8px 12px;font-size:12px;font-weight:400;color:#9CA3AF;white-space:nowrap;transition:all .15s}
   .subtab-btn.active{color:#C7A96B;font-weight:700;border-bottom-color:#C7A96B}
 
   /* CHECKLIST */
@@ -311,6 +311,7 @@
   @media(max-width:768px){
     .stats-grid{grid-template-columns:repeat(3,1fr)}
     #nav .nav-right button[onclick="doLogout()"]{padding:5px 7px;font-size:10px}
+    .subtab-btn{padding:8px 7px}
     .form-grid{grid-template-columns:1fr}
     .form-field.span{grid-column:unset}
     .info-box-grid{grid-template-columns:1fr}
@@ -3538,18 +3539,18 @@ async function deleteSch(id){
 
 // ─── FORM MODAL ──────────────────────────────────────────────────────────────
 const FORM_TABS_BASE = [
-  { id:'basic',        label:'📋 기본정보' },
-  { id:'managers',     label:'👥 담당자'   },
-  { id:'fieldmemo',    label:'📌 현장메모' },
-  { id:'checklist',    label:'☑️ 체크리스트' },
+  { id:'basic',        label:'📋 정보' },
+  { id:'managers',     label:'👥 담당자' },
+  { id:'fieldmemo',    label:'📌 메모' },
+  { id:'checklist',    label:'☑️ 체크' },
 ];
 const FORM_TABS_ADMIN = [
-  { id:'basic',        label:'📋 기본정보' },
-  { id:'managers',     label:'👥 담당자'   },
-  { id:'fieldmemo',    label:'📌 현장메모' },
-  { id:'contractmemo', label:'📝 계약참고' },
-  { id:'settlement',   label:'💰 정산정보' },
-  { id:'checklist',    label:'☑️ 체크리스트' },
+  { id:'basic',        label:'📋 정보' },
+  { id:'managers',     label:'👥 담당자' },
+  { id:'fieldmemo',    label:'📌 메모' },
+  { id:'contractmemo', label:'📝 계약' },
+  { id:'settlement',   label:'💰 정산' },
+  { id:'checklist',    label:'☑️ 체크' },
 ];
 // 현재 사용할 탭 목록 (openForm에서 결정)
 let FORM_TABS = FORM_TABS_BASE;
@@ -3931,7 +3932,7 @@ function resolveManagerRateInfo(){
     if(manualOn){
       // 관리자가 직접 입력/선택한 단가 — 최우선, 담당자가 바뀌기 전까지 유지
       newInfo[slot] = {
-        name, rate: Number(rateEl.value) || 0,
+        name, rate: parseWon(rateEl) || 0,
         assignedAt: prevSlot?.assignedAt || (name === originalNames[slot] ? 'legacy' : nowISO),
         manual: true,
         paid: paidEl ? paidEl.value === 'paid' : (prevSlot?.name === name && typeof prevSlot.paid === 'boolean' ? prevSlot.paid : false),
@@ -3983,7 +3984,7 @@ function resolveManagerRateInfo(){
   if(extraManualOn){
     newExtra = {
       count: Number(extraCountEl?.value) || 0,
-      rate:  Number(extraRateEl?.value)  || 0,
+      rate:  parseWon(extraRateEl)  || 0,
       manual: true,
       paid: extraPaidEl ? extraPaidEl.value === 'paid' : (typeof prevExtra?.paid === 'boolean' ? prevExtra.paid : false),
     };
@@ -4018,43 +4019,17 @@ function renderManagerRatePanel(){
   if(!ADMIN_NAMES.includes(currentUser.name)){ wrap.innerHTML = ''; return; }
 
   const { managerRateInfo } = resolveManagerRateInfo();
-  const region = document.getElementById('f-labor-region')?.value || '대전';
-  const presets = LABOR_RATE_PRESETS[region] || LABOR_RATE_PRESETS['대전'];
   const SLOT_LABELS = { front1:'Front 1', front2:'Front 2', back1:'Back 1', back2:'Back 2' };
 
-  // 지역 프리셋 + 직접입력 select/input 한 쌍 생성 (담당자 슬롯/추가인원 공용)
-  function rateSelectorHtml(idBase, rate){
-    const isCustom = !presets.includes(rate);
-    const options = presets.map(p =>
-      `<option value="${p}"${(!isCustom && rate===p) ? ' selected' : ''}>${p.toLocaleString()}원</option>`
-    ).join('') + `<option value="custom"${isCustom ? ' selected' : ''}>직접입력</option>`;
+  // 일급 금액 입력창 (담당자 슬롯/추가인원 공용) — 직접 클릭해서 바로 금액 수정, 콤마+원 표시
+  function rateInputHtml(idBase, rate){
     return `
-      <select id="f-rateselect-${idBase}" style="width:88px;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;background:#fff;flex-shrink:0"
-        onchange="
-          const inp=document.getElementById('f-rate-${idBase}');
-          if(this.value==='custom'){ inp.style.display='inline-block'; inp.focus(); }
-          else {
-            inp.value=this.value; inp.style.display='none';
-            inp.dataset.manual='1'; inp.dataset.manualName=(document.getElementById('f-${idBase}')?.value||'').trim();
-            calcSettlement();
-          }
-        ">${options}</select>
-      <input type="number" id="f-rate-${idBase}" value="${rate}"
-        style="width:88px;text-align:right;padding:5px 6px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0;display:${isCustom ? 'inline-block' : 'none'}"
-        oninput="this.dataset.manual='1'; this.dataset.manualName=(document.getElementById('f-${idBase}')?.value||'').trim(); calcSettlement();">`;
+      <input type="text" inputmode="numeric" id="f-rate-${idBase}" value="${formatWon(rate)}"
+        style="width:96px;text-align:right;padding:5px 6px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0"
+        oninput="formatWonInput(this); this.dataset.manual='1'; this.dataset.manualName=(document.getElementById('f-${idBase}')?.value||'').trim(); calcSettlement();">`;
   }
 
-  // 지급여부 select 공용 (checkbox 대신 select 사용)
-  function paidSelectHtml(idBase, paid, disabled){
-    return `
-      <select id="f-paid-${idBase}" onchange="calcSettlement();"
-        style="width:76px;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0;color:${paid?'#065F46':'#92400E'};background:#fff" ${disabled ? 'disabled' : ''}>
-        <option value="unpaid"${!paid ? ' selected' : ''}>미지급</option>
-        <option value="paid"${paid ? ' selected' : ''}>지급완료</option>
-      </select>`;
-  }
-
-  // 슬롯 1개(라벨+이름+단가+배지)를 하나의 그룹으로 생성 — Front/Back을 나란히 배치하기 위함
+  // 슬롯 1개(라벨+이름+단가)를 하나의 그룹으로 생성 — Front/Back을 나란히 배치하기 위함
   function slotGroupHtml(slot){
     const info = managerRateInfo[slot];
     if(!info) return '';
@@ -4062,8 +4037,7 @@ function renderManagerRatePanel(){
       <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:220px">
         <div style="width:48px;font-size:11px;color:#9CA3AF;flex-shrink:0">${SLOT_LABELS[slot]}</div>
         <div style="width:64px;font-size:12px;font-weight:700;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0">${esc(info.name)}</div>
-        ${rateSelectorHtml(slot, info.rate)}
-        <span style="font-size:9px;font-weight:700;color:${info.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${info.manual ? '수' : '자'}</span>
+        ${rateInputHtml(slot, info.rate)}
       </div>`;
   }
 
@@ -4087,8 +4061,7 @@ function renderManagerRatePanel(){
         <input type="number" id="f-labor-extra-count" value="${extra.count || 0}" min="0"
           style="width:56px;text-align:center;padding:5px 4px;font-size:12px;border:1px solid #E5E7EB;border-radius:6px;flex-shrink:0"
           oninput="this.dataset.manual='1'; calcSettlement();">
-        ${rateSelectorHtml('extra', extra.rate)}
-        <span style="font-size:9px;font-weight:700;color:${extra.manual ? '#C7A96B' : '#D1D5DB'};width:16px;text-align:center;flex-shrink:0">${extra.manual ? '수' : '자'}</span>
+        ${rateInputHtml('extra', extra.rate)}
       </div>
       <div onclick="toggleWageBasisNote()" style="cursor:pointer;font-size:11px;color:#9CA3AF;display:flex;align-items:center;gap:4px;user-select:none;flex-shrink:0">
         <span id="wage-note-arrow">▸</span> ⓘ 임금 기준 안내
