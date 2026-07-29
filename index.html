@@ -3797,6 +3797,11 @@ function resolveManagerRateInfo(){
   const nowISO = new Date().toISOString();
   const newInfo = {};
 
+  // 이번 저장에서 각 이름이 몇 개 슬롯에 나타나는지 카운트
+  // (동일 이름이 동시에 여러 슬롯에 있으면 이름만으로 이관 여부를 판단할 수 없으므로 이관 로직을 건너뜀)
+  const currentNameCounts = {};
+  Object.values(currentNames).forEach(n => { if(n) currentNameCounts[n] = (currentNameCounts[n] || 0) + 1; });
+
   ['front1','front2','back1','back2'].forEach(slot => {
     const name = currentNames[slot];
     if(!name || ADMIN_NAMES.includes(name)) return; // 빈 슬롯/관리자는 일급 대상 아님
@@ -3805,6 +3810,19 @@ function resolveManagerRateInfo(){
     const paidEl   = document.getElementById('f-paid-' + slot);
     const manualOn = rateEl?.dataset.manual === '1' && rateEl?.dataset.manualName === name;
     const prevSlot = prevInfo[slot];
+
+    // Front/Back 역할 이동 감지: 이 슬롯에서는 새 이름이지만, 다른 슬롯에서 이 사람이 빠져나온 경우
+    // 이름이 이번 저장에서 정확히 1개 슬롯에만 나타날 때만(동명이인 오매칭 방지) 이전 정산 정보를 그대로 이관
+    let movedFromSlot = null;
+    if(!manualOn && !(prevSlot && prevSlot.name === name) && currentNameCounts[name] === 1){
+      for(const otherSlot of ['front1','front2','back1','back2']){
+        if(otherSlot === slot) continue;
+        if(prevInfo[otherSlot] && prevInfo[otherSlot].name === name && currentNames[otherSlot] !== name){
+          movedFromSlot = otherSlot;
+          break;
+        }
+      }
+    }
 
     if(manualOn){
       // 관리자가 직접 입력/선택한 단가 — 최우선, 담당자가 바뀌기 전까지 유지
@@ -3820,6 +3838,14 @@ function resolveManagerRateInfo(){
       newInfo[slot] = {
         ...prevSlot,
         paid: paidEl ? paidEl.checked : (typeof prevSlot.paid === 'boolean' ? prevSlot.paid : legacyPaid),
+      };
+    } else if(movedFromSlot){
+      // 같은 담당자가 Front/Back 슬롯만 이동 — 확정 일급/지급여부/수동여부를 새 슬롯으로 그대로 이관
+      const moved = prevInfo[movedFromSlot];
+      newInfo[slot] = {
+        ...moved,
+        name,
+        paid: paidEl ? paidEl.checked : (typeof moved.paid === 'boolean' ? moved.paid : legacyPaid),
       };
     } else if(name === originalNames[slot]){
       // 이번 정책 이전부터 이미 배정돼 있던 담당자(이력 정보 없음) → 기존 단가로 소급 고정
@@ -5680,10 +5706,21 @@ function renderSettle(){
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           ${(() => {
-            const paidForView = managerName ? getManagerPaidStatus(s, managerName) : s.laborPaid;
-            return paidForView
-              ? '<span class="paid-badge">✅ 지급완료</span>'
-              : '<span class="unpaid-badge">⏳ 미지급</span>';
+            if(managerName){
+              const paidForView = getManagerPaidStatus(s, managerName);
+              return paidForView
+                ? '<span class="paid-badge">✅ 지급완료</span>'
+                : '<span class="unpaid-badge">⏳ 미지급</span>';
+            }
+            const st = getScheduleSettlementStatus(s);
+            if(st.mode === 'legacy'){
+              return st.allPaid
+                ? '<span class="paid-badge">✅ 지급완료</span>'
+                : '<span class="unpaid-badge">⏳ 미지급</span>';
+            }
+            if(st.status === 'paid')   return '<span class="paid-badge">✅ 전체지급</span>';
+            if(st.status === 'unpaid') return '<span class="unpaid-badge">⌛ 전체미지급</span>';
+            return `<span class="unpaid-badge">🟡 일부지급 · 미지급 ${st.unpaidAmount.toLocaleString()}원</span>`;
           })()}
         </div>
       </div>
@@ -5755,6 +5792,33 @@ function getManagerRateSlotKey(s, managerName){
     if(slotMap[slot] === managerName) return slot;
   }
   return null;
+}
+
+// 예식 전체의 지급 상태 판정 (정산 리스트 전체보기용)
+// - 담당자별 정산 정보(manager_rate_info)가 있으면 전체지급/일부지급/전체미지급 3단계로 판정
+// - 없으면(정책 변경 이전 예식, 이력 정보 없음) 기존 labor_paid 값으로만 판정(하위 호환)
+function getScheduleSettlementStatus(s){
+  const info = s.managerRateInfo || {};
+  const slotEntries = ['front1','front2','back1','back2'].map(k => info[k]).filter(e => e && e.name);
+  const hasExtra = info.extra && info.extra.count > 0;
+
+  if(!slotEntries.length && !hasExtra){
+    return { mode: 'legacy', allPaid: !!s.laborPaid };
+  }
+
+  let totalTargets = slotEntries.length + (hasExtra ? 1 : 0);
+  let paidTargets  = 0;
+  let unpaidAmount = 0;
+
+  slotEntries.forEach(e => {
+    if(e.paid) paidTargets++; else unpaidAmount += (e.rate || 0);
+  });
+  if(hasExtra){
+    if(info.extra.paid) paidTargets++; else unpaidAmount += (info.extra.count * info.extra.rate);
+  }
+
+  const status = paidTargets === 0 ? 'unpaid' : (paidTargets === totalTargets ? 'paid' : 'partial');
+  return { mode: 'detailed', status, unpaidAmount };
 }
 
 // 담당자별 지급여부 조회 — manager_rate_info에 담당자별 이력이 있으면 그 값을 우선 사용,
@@ -6992,16 +7056,32 @@ Safari / Chrome 등 외부 브라우저 혹은 PC 버전 이용 바랍니다.
 
 async function toggleLaborPaid(schId, checked){
   const s = schedules.find(x => x.id === schId); if(!s) return;
+  const prevInfo = s.managerRateInfo || {};
   s.laborPaid = checked;
+
+  // 담당자별 정산 정보(manager_rate_info)가 있으면 전체 일괄 지급처리 시 개별 지급여부도 함께 동기화
+  const hasDetailInfo = ['front1','front2','back1','back2'].some(k => prevInfo[k] && prevInfo[k].name)
+    || (prevInfo.extra && prevInfo.extra.count > 0);
+  let nextInfo = prevInfo;
+  if(hasDetailInfo){
+    nextInfo = { ...prevInfo };
+    ['front1','front2','back1','back2'].forEach(k => {
+      if(nextInfo[k]) nextInfo[k] = { ...nextInfo[k], paid: checked };
+    });
+    if(nextInfo.extra && nextInfo.extra.count > 0) nextInfo.extra = { ...nextInfo.extra, paid: checked };
+    s.managerRateInfo = nextInfo;
+  }
   renderSettle(); // UI 즉시 반영
 
   try {
-    await sb.patch('schedules', schId, { labor_paid: checked });
+    const patchBody = hasDetailInfo ? { labor_paid: checked, manager_rate_info: nextInfo } : { labor_paid: checked };
+    await sb.patch('schedules', schId, patchBody);
     showToast(checked ? '✅ 인건비 지급 처리 완료' : '↩️ 인건비 미지급으로 변경');
   } catch(e){
     console.error('인건비 지급 처리 실패:', e);
     showToast('⚠️ 저장 실패. 다시 시도해주세요.');
     s.laborPaid = !checked; // 롤백
+    s.managerRateInfo = prevInfo;
     renderSettle();
   }
 }
