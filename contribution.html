@@ -836,10 +836,17 @@ input,select,textarea{font-family:inherit;outline:none}
 
         <div class="tm-sec">① 초기 식권</div>
         <div class="tm-init-row">
-          <span class="tm-init-lbl">초기</span>
-          <input class="tm-init-inp" id="groom-total-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
+          <span class="tm-init-lbl">대인</span>
+          <input class="tm-init-inp" id="groom-adult-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
           <span style="font-size:11px;color:#9CA3AF">장</span>
         </div>
+        <div class="tm-init-row">
+          <span class="tm-init-lbl">소인</span>
+          <input class="tm-init-inp" id="groom-child-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
+          <span style="font-size:11px;color:#9CA3AF">장</span>
+        </div>
+        <!-- 기존 코드 호환용 hidden input -->
+        <input type="hidden" id="groom-total-ticket">
 
         <div class="tm-sec">② 추가 발급</div>
         <div class="tm-issue-row">
@@ -857,10 +864,16 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
 
         <div class="tm-sec">③ 현재 식권 현황</div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-g-init">미설정</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가 발급</span><span class="tm-stat-val" style="color:#059669" id="tp-g-extra">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-g-used">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-g" id="tp-g-remain">—</span></div>
+        <div style="font-size:10px;font-weight:700;color:#6B7280;margin-bottom:3px">대인</div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-g-init-adult">미설정</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가</span><span class="tm-stat-val" style="color:#059669" id="tp-g-extra-adult">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-g-used-adult">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-g" id="tp-g-remain-adult">—</span></div>
+        <div style="font-size:10px;font-weight:700;color:#6B7280;margin:6px 0 3px">소인</div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-g-init-child">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가</span><span class="tm-stat-val" style="color:#059669" id="tp-g-extra-child">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-g-used-child">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-g" id="tp-g-remain-child">0장</span></div>
       </div>
 
       <!-- ══ 신부측 ══ -->
@@ -869,10 +882,17 @@ input,select,textarea{font-family:inherit;outline:none}
 
         <div class="tm-sec">① 초기 식권</div>
         <div class="tm-init-row">
-          <span class="tm-init-lbl">초기</span>
-          <input class="tm-init-inp" id="bride-total-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
+          <span class="tm-init-lbl">대인</span>
+          <input class="tm-init-inp" id="bride-adult-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
           <span style="font-size:11px;color:#9CA3AF">장</span>
         </div>
+        <div class="tm-init-row">
+          <span class="tm-init-lbl">소인</span>
+          <input class="tm-init-inp" id="bride-child-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
+          <span style="font-size:11px;color:#9CA3AF">장</span>
+        </div>
+        <!-- 기존 코드 호환용 hidden input -->
+        <input type="hidden" id="bride-total-ticket">
 
         <div class="tm-sec">② 추가 발급</div>
         <div class="tm-issue-row">
@@ -890,10 +910,16 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
 
         <div class="tm-sec">③ 현재 식권 현황</div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-b-init">미설정</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가 발급</span><span class="tm-stat-val" style="color:#059669" id="tp-b-extra">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-b-used">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-b" id="tp-b-remain">—</span></div>
+        <div style="font-size:10px;font-weight:700;color:#6B7280;margin-bottom:3px">대인</div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-b-init-adult">미설정</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가</span><span class="tm-stat-val" style="color:#059669" id="tp-b-extra-adult">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-b-used-adult">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-b" id="tp-b-remain-adult">—</span></div>
+        <div style="font-size:10px;font-weight:700;color:#6B7280;margin:6px 0 3px">소인</div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-b-init-child">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가</span><span class="tm-stat-val" style="color:#059669" id="tp-b-extra-child">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-b-used-child">0장</span></div>
+        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-b" id="tp-b-remain-child">0장</span></div>
       </div>
     </div>
     <!-- 호환용 hidden IDs -->
@@ -1091,7 +1117,7 @@ const STATUS_CFG={'계약완료':{c:'#6B7280'},'인터뷰대기':{c:'#D97706'},'
 const TODAY=(()=>{ const d=new Date(); const k=new Date(d.getTime()+9*60*60*1000); return k.toISOString().slice(0,10); })();
 
 let currentUser=null, currentSchedule=null, logs=[];
-let totalTickets={groom:0,bride:0};
+let totalTickets={groom:0,bride:0,groomAdult:0,groomChild:0,brideAdult:0,brideChild:0};
 let ticketExtras=[], flowerLogs=[], opsLogs=[];
 const st={side:'groom',payment:'cash',amount:0,relation:'',adultTicket:1,childTicket:0};
 
@@ -1306,8 +1332,14 @@ async function addTicketExtra(){
   } catch(e){ console.error('[DG] addTicketExtra 오류:', e); showToast('⚠️ 저장 실패: '+e.message); }
 }
 async function deleteTicketExtra(id){
-  if(!confirm('추가 식권 기록을 삭제하시겠습니까?')) return;
-  try { await fetch(sb.url('ticket_additions','?id=eq.'+id),{method:'DELETE',headers:sb.h}); ticketExtras=ticketExtras.filter(x=>x.id!==id); renderTicketExtraList(); renderStats(); } catch(e){ showToast('⚠️ 삭제 실패'); }
+  if(!confirm('이 추가 발급 내역을 삭제하시겠습니까?')) return;
+  try {
+    await fetch(sb.url('ticket_additions','?id=eq.'+id),{method:'DELETE',headers:sb.h});
+    ticketExtras=ticketExtras.filter(x=>x.id!==id);
+    renderTicketExtraList(); renderStats();
+    if(document.getElementById('ticket-modal')?.style.display!=='none') renderTicketModal();
+    showToast('✅ 삭제 완료');
+  } catch(e){ showToast('⚠️ 삭제 실패'); }
 }
 function renderTicketExtraList(){
   const el=document.getElementById('ticket-extra-list');
@@ -1484,8 +1516,18 @@ function renderPreShareList(){
 }
 
 async function saveTotalTickets(){
-  totalTickets.groom = Number(document.getElementById('groom-total-ticket').value)||0;
-  totalTickets.bride = Number(document.getElementById('bride-total-ticket').value)||0;
+  // 대인/소인 세션 상태 갱신 (DB에는 총합만 저장)
+  totalTickets.groomAdult = Number(document.getElementById('groom-adult-ticket')?.value)||0;
+  totalTickets.groomChild = Number(document.getElementById('groom-child-ticket')?.value)||0;
+  totalTickets.brideAdult = Number(document.getElementById('bride-adult-ticket')?.value)||0;
+  totalTickets.brideChild = Number(document.getElementById('bride-child-ticket')?.value)||0;
+  totalTickets.groom = totalTickets.groomAdult + totalTickets.groomChild;
+  totalTickets.bride = totalTickets.brideAdult + totalTickets.brideChild;
+  // 기존 hidden total input 동기화 (renderStats 등 기존 코드 호환)
+  const gtEl=document.getElementById('groom-total-ticket');
+  const btEl=document.getElementById('bride-total-ticket');
+  if(gtEl) gtEl.value = totalTickets.groom||'';
+  if(btEl) btEl.value = totalTickets.bride||'';
   if(currentSchedule){
     try{
       await sb.patch('schedules', currentSchedule.id, {
@@ -2202,6 +2244,15 @@ function openTicketModal(){
   // 현재 접수 측에 맞게 탭 초기화
   const side = document.getElementById('side-groom')?.classList.contains('tog-blue') ? 'g' : 'b';
   setTicketTab(side, false);
+  // 초기 식권 입력값 복원
+  const gaEl=document.getElementById('groom-adult-ticket');
+  const gcEl=document.getElementById('groom-child-ticket');
+  const baEl=document.getElementById('bride-adult-ticket');
+  const bcEl=document.getElementById('bride-child-ticket');
+  if(gaEl) gaEl.value = totalTickets.groomAdult || (totalTickets.groom||'');
+  if(gcEl) gcEl.value = totalTickets.groomChild || '';
+  if(baEl) baEl.value = totalTickets.brideAdult || (totalTickets.bride||'');
+  if(bcEl) bcEl.value = totalTickets.brideChild || '';
   renderTicketModal();
   document.getElementById('ticket-modal').style.display='flex';
 }
@@ -2234,21 +2285,30 @@ function renderTicketModal(){
   };
 
   // ── 신랑측 ──
-  const gInit  = totalTickets.groom || 0;
-  const gExtras= ticketExtras.filter(t=>t.side==='신랑측');
-  const gExtra = gExtras.reduce((s,t)=>s+(t.amount||0),0);
-  const gUsed  = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.adult_ticket||0),0);
-  const gPreS  = preShares.filter(t=>t.side==='신랑측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
-  const gTotal = gInit > 0 ? gInit + gExtra : null;
-  const gRemain= gTotal !== null ? gTotal - gUsed - gPreS : null;
-  const gColor = gRemain===null?'#9CA3AF':gRemain<=10?'#DC2626':gRemain<=20?'#D97706':'#2563EB';
+  const gAdultInit = totalTickets.groomAdult || 0;
+  const gChildInit = totalTickets.groomChild || 0;
+  const gExtras    = ticketExtras.filter(t=>t.side==='신랑측');
+  const gExtraAdult= gExtras.filter(t=>t.memo!=='소인').reduce((s,t)=>s+(t.amount||0),0);
+  const gExtraChild= gExtras.filter(t=>t.memo==='소인').reduce((s,t)=>s+(t.amount||0),0);
+  const gUsedAdult = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const gUsedChild = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.child_ticket||0),0);
+  const gPreS      = preShares.filter(t=>t.side==='신랑측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
+  const gRemainAdult = gAdultInit > 0 ? gAdultInit + gExtraAdult - gUsedAdult - gPreS : null;
+  const gRemainChild = gChildInit + gExtraChild - gUsedChild;
+  const gRemainColor = gRemainAdult===null?'#9CA3AF':gRemainAdult<=10?'#DC2626':gRemainAdult<=20?'#D97706':'#2563EB';
 
-  se2('tp-g-init',  gInit > 0 ? gInit+'장' : '미설정');
-  se2('tp-g-extra', gExtra+'장', '#059669');
-  se2('tp-g-used',  (gUsed+gPreS)+'장');
-  se2('tp-g-remain', gRemain!==null ? gRemain+'장' : '—', gColor);
+  // 신랑측 현황 - 대인
+  se2('tp-g-init-adult',  gAdultInit > 0 ? gAdultInit+'장' : '미설정');
+  se2('tp-g-extra-adult', gExtraAdult+'장', '#059669');
+  se2('tp-g-used-adult',  gUsedAdult+'장');
+  se2('tp-g-remain-adult', gRemainAdult!==null ? gRemainAdult+'장' : '—', gRemainColor);
+  // 신랑측 현황 - 소인
+  se2('tp-g-init-child',  gChildInit+'장');
+  se2('tp-g-extra-child', gExtraChild+'장', '#059669');
+  se2('tp-g-used-child',  gUsedChild+'장');
+  se2('tp-g-remain-child', gRemainChild+'장', gRemainChild>0?'#2563EB':'#9CA3AF');
 
-  // 신랑측 발급 내역
+  // 신랑측 발급 내역 + 삭제 버튼
   const hg = document.getElementById('tm-history-g');
   if(hg){
     if(!gExtras.length){
@@ -2258,30 +2318,41 @@ function renderTicketModal(){
         const timeStr = t.created_at ? fmtTime(t.created_at) : '';
         const ttype = t.memo || '대인';
         return `<div class="tm-history-item">
-          <span style="color:#9CA3AF">${timeStr}</span>
-          <span style="color:#374151">${ttype}</span>
-          <span style="font-weight:700;color:#059669">+${t.amount||0}장</span>
+          <span style="color:#9CA3AF;flex-shrink:0;min-width:32px">${timeStr}</span>
+          <span style="color:#374151;flex-shrink:0;min-width:28px">${ttype}</span>
+          <span style="font-weight:700;color:#059669;flex:1">+${t.amount||0}장</span>
+          <button onclick="deleteTicketExtra(${t.id})" title="삭제"
+            style="background:none;border:1px solid #FCA5A5;border-radius:4px;color:#EF4444;cursor:pointer;font-size:10px;padding:1px 6px;flex-shrink:0;line-height:1.4">삭제</button>
         </div>`;
       }).join('');
     }
   }
 
   // ── 신부측 ──
-  const bInit  = totalTickets.bride || 0;
-  const bExtras= ticketExtras.filter(t=>t.side==='신부측');
-  const bExtra = bExtras.reduce((s,t)=>s+(t.amount||0),0);
-  const bUsed  = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
-  const bPreS  = preShares.filter(t=>t.side==='신부측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
-  const bTotal = bInit > 0 ? bInit + bExtra : null;
-  const bRemain= bTotal !== null ? bTotal - bUsed - bPreS : null;
-  const bColor = bRemain===null?'#9CA3AF':bRemain<=10?'#DC2626':bRemain<=20?'#D97706':'#DB2777';
+  const bAdultInit = totalTickets.brideAdult || 0;
+  const bChildInit = totalTickets.brideChild || 0;
+  const bExtras    = ticketExtras.filter(t=>t.side==='신부측');
+  const bExtraAdult= bExtras.filter(t=>t.memo!=='소인').reduce((s,t)=>s+(t.amount||0),0);
+  const bExtraChild= bExtras.filter(t=>t.memo==='소인').reduce((s,t)=>s+(t.amount||0),0);
+  const bUsedAdult = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const bUsedChild = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
+  const bPreS      = preShares.filter(t=>t.side==='신부측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
+  const bRemainAdult = bAdultInit > 0 ? bAdultInit + bExtraAdult - bUsedAdult - bPreS : null;
+  const bRemainChild = bChildInit + bExtraChild - bUsedChild;
+  const bRemainColor = bRemainAdult===null?'#9CA3AF':bRemainAdult<=10?'#DC2626':bRemainAdult<=20?'#D97706':'#DB2777';
 
-  se2('tp-b-init',  bInit > 0 ? bInit+'장' : '미설정');
-  se2('tp-b-extra', bExtra+'장', '#059669');
-  se2('tp-b-used',  (bUsed+bPreS)+'장');
-  se2('tp-b-remain', bRemain!==null ? bRemain+'장' : '—', bColor);
+  // 신부측 현황 - 대인
+  se2('tp-b-init-adult',  bAdultInit > 0 ? bAdultInit+'장' : '미설정');
+  se2('tp-b-extra-adult', bExtraAdult+'장', '#059669');
+  se2('tp-b-used-adult',  bUsedAdult+'장');
+  se2('tp-b-remain-adult', bRemainAdult!==null ? bRemainAdult+'장' : '—', bRemainColor);
+  // 신부측 현황 - 소인
+  se2('tp-b-init-child',  bChildInit+'장');
+  se2('tp-b-extra-child', bExtraChild+'장', '#059669');
+  se2('tp-b-used-child',  bUsedChild+'장');
+  se2('tp-b-remain-child', bRemainChild+'장', bRemainChild>0?'#DB2777':'#9CA3AF');
 
-  // 신부측 발급 내역
+  // 신부측 발급 내역 + 삭제 버튼
   const hb = document.getElementById('tm-history-b');
   if(hb){
     if(!bExtras.length){
@@ -2291,9 +2362,11 @@ function renderTicketModal(){
         const timeStr = t.created_at ? fmtTime(t.created_at) : '';
         const ttype = t.memo || '대인';
         return `<div class="tm-history-item">
-          <span style="color:#9CA3AF">${timeStr}</span>
-          <span style="color:#374151">${ttype}</span>
-          <span style="font-weight:700;color:#059669">+${t.amount||0}장</span>
+          <span style="color:#9CA3AF;flex-shrink:0;min-width:32px">${timeStr}</span>
+          <span style="color:#374151;flex-shrink:0;min-width:28px">${ttype}</span>
+          <span style="font-weight:700;color:#059669;flex:1">+${t.amount||0}장</span>
+          <button onclick="deleteTicketExtra(${t.id})" title="삭제"
+            style="background:none;border:1px solid #FCA5A5;border-radius:4px;color:#EF4444;cursor:pointer;font-size:10px;padding:1px 6px;flex-shrink:0;line-height:1.4">삭제</button>
         </div>`;
       }).join('');
     }
