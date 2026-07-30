@@ -975,7 +975,7 @@ input,select,textarea{font-family:inherit;outline:none}
   <div class="cash-calc-box">
     <div class="cash-calc-hdr">
       <span class="cash-calc-title">🧮 현금 계수 계산기</span>
-      <span style="font-size:10px;color:#9CA3AF">현장 확인용 · 저장 안 됨</span>
+      <span id="cash-save-status" style="font-size:10px;color:#9CA3AF">실시간 자동 저장</span>
     </div>
     <!-- 신랑/신부 탭 -->
     <div class="cash-side-tabs" id="cash-side-tabs">
@@ -1327,6 +1327,7 @@ async function selectSchedule(id){
     // 초기 식권: DB값만 신뢰 (localStorage는 기기별로 달라져 불일치 원인)
     totalTickets.groom = currentSchedule.ticket_total_groom || 0;
     totalTickets.bride = currentSchedule.ticket_total_bride || 0;
+    applyCashCountsFromSchedule();
     sv('groom-total-ticket',totalTickets.groom||'');
     sv('bride-total-ticket',totalTickets.bride||'');
     document.getElementById('schedule-select-screen').style.display='none';
@@ -1815,6 +1816,9 @@ function subscribeRealtime(){
           const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
           sv('groom-total-ticket', totalTickets.groom||'');
           sv('bride-total-ticket', totalTickets.bride||'');
+          // 다른 기기의 현금 계수 수정값 즉시 반영 (계산기 창이 열려있으면 화면도 갱신)
+          applyCashCountsFromSchedule();
+          refreshCashCalcIfOpen();
           loadHandover();
           renderStats();
         }
@@ -2437,16 +2441,51 @@ async function addTicketExtraFromPopup(side, typeElId, amountElId){
 }
 // ────────────────────────────────────────────────────────────────────────────
 
-// ── 현금 계수 계산기 ─────────────────────────────────────────────────────
+// ── 현금 계수 계산기 (schedules.cash_count_groom / cash_count_bride 에 예식별 저장) ──
 const CASH_DENOMS = [50000, 10000, 5000, 1000];
-// 측별 수량 상태 (팝업 닫을 때까지 유지, 다시 열면 초기화)
+// 측별 수량 상태 — currentSchedule의 cash_count_groom/bride로부터 채워짐 (DB와 동기화)
 const _cashQty = { g: [0,0,0,0], b: [0,0,0,0] };
 let _cashSide = 'g'; // 현재 선택 측
+let _cashSaveTimers = { g: null, b: null };
+let _cashStatusRevertTimer = null;
 
-function openCashCalc(){
+// currentSchedule.cash_count_groom/bride → _cashQty로 반영 (배열 형식 아니면 [0,0,0,0])
+function applyCashCountsFromSchedule(){
+  if(!currentSchedule) return;
+  const cg = Array.isArray(currentSchedule.cash_count_groom) && currentSchedule.cash_count_groom.length===4
+    ? currentSchedule.cash_count_groom : [0,0,0,0];
+  const cb = Array.isArray(currentSchedule.cash_count_bride) && currentSchedule.cash_count_bride.length===4
+    ? currentSchedule.cash_count_bride : [0,0,0,0];
+  _cashQty.g = cg.map(v=>Math.max(0,parseInt(v)||0));
+  _cashQty.b = cb.map(v=>Math.max(0,parseInt(v)||0));
+}
+
+// 계산기 창이 열려 있을 때, 실시간으로 들어온 DB 값을 화면에도 즉시 반영
+function refreshCashCalcIfOpen(){
+  const modal=document.getElementById('cash-calc-modal');
+  if(!modal || modal.style.display!=='flex') return;
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('cash-qty-'+i);
+    if(el) el.value=_cashQty[_cashSide][i]||0;
+  }
+  cashUpdate();
+}
+
+async function openCashCalc(){
   // 현재 접수 측 기준으로 기본 탭 설정
   const activeSide = document.getElementById('side-groom')?.classList.contains('tog-blue') ? 'g' : 'b';
-  // 탭 설정 및 입력창 복원 (수량은 초기화하지 않음 — 신랑측/신부측 각각 유지)
+  // 계산기 열 때 DB 최신값 불러오기 (다른 기기에서 수정했을 수 있으므로)
+  if(currentSchedule){
+    try{
+      const rows=await sb.get('schedules',`?id=eq.${currentSchedule.id}&select=cash_count_groom,cash_count_bride`);
+      if(rows && rows[0]){
+        currentSchedule.cash_count_groom=rows[0].cash_count_groom;
+        currentSchedule.cash_count_bride=rows[0].cash_count_bride;
+      }
+    }catch(e){ console.warn('[DG] 현금 계수 불러오기 실패:',e); }
+  }
+  applyCashCountsFromSchedule();
+  // 탭 설정 및 입력창 복원
   _setCashSideInternal(activeSide);
   document.getElementById('cash-calc-modal').style.display='flex';
 }
@@ -2479,6 +2518,42 @@ function _setCashSideInternal(side){
   cashUpdate();
 }
 
+// DB 저장 (300~500ms 디바운스)
+function saveCashCountDebounced(side){
+  setCashSaveStatus('saving');
+  clearTimeout(_cashSaveTimers[side]);
+  _cashSaveTimers[side]=setTimeout(()=>{ saveCashCountNow(side); }, 400);
+}
+
+async function saveCashCountNow(side){
+  if(!currentSchedule) return;
+  const col = side==='g' ? 'cash_count_groom' : 'cash_count_bride';
+  try{
+    await sb.patch('schedules', currentSchedule.id, { [col]: _cashQty[side] });
+    currentSchedule[col] = _cashQty[side].slice();
+    setCashSaveStatus('saved');
+  }catch(e){
+    console.error('[DG] 현금 계수 저장 실패:', e);
+    setCashSaveStatus('error');
+  }
+}
+
+// 상단 저장 상태 문구 (저장 중 / 저장됨 / 저장 실패 → 잠시 후 기본 문구로 복귀)
+function setCashSaveStatus(state){
+  const el=document.getElementById('cash-save-status');
+  if(!el) return;
+  clearTimeout(_cashStatusRevertTimer);
+  if(state==='saving'){
+    el.textContent='저장 중'; el.style.color='#9CA3AF';
+  } else if(state==='saved'){
+    el.textContent='저장됨'; el.style.color='#059669';
+    _cashStatusRevertTimer=setTimeout(()=>{ el.textContent='실시간 자동 저장'; el.style.color='#9CA3AF'; },1500);
+  } else if(state==='error'){
+    el.textContent='저장 실패'; el.style.color='#DC2626';
+    _cashStatusRevertTimer=setTimeout(()=>{ el.textContent='실시간 자동 저장'; el.style.color='#9CA3AF'; },2500);
+  }
+}
+
 function cashStep(idx, delta){
   const el=document.getElementById('cash-qty-'+idx);
   if(!el) return;
@@ -2487,12 +2562,14 @@ function cashStep(idx, delta){
   el.value=v;
   _cashQty[_cashSide][idx]=v;
   cashUpdate();
+  saveCashCountDebounced(_cashSide);
 }
 
 function cashQtyInput(idx){
   const el=document.getElementById('cash-qty-'+idx);
   _cashQty[_cashSide][idx]=Math.max(0,parseInt(el?.value)||0);
   cashUpdate();
+  saveCashCountDebounced(_cashSide);
 }
 
 function cashQtyChange(idx){
@@ -2503,6 +2580,7 @@ function cashQtyChange(idx){
   el.value=v;
   _cashQty[_cashSide][idx]=v;
   cashUpdate();
+  saveCashCountDebounced(_cashSide);
 }
 
 function cashReset(){
@@ -2514,6 +2592,10 @@ function cashReset(){
     if(amtEl) amtEl.textContent='0원';
   }
   cashUpdate();
+  // 초기화는 디바운스 없이 즉시 저장
+  clearTimeout(_cashSaveTimers[_cashSide]);
+  setCashSaveStatus('saving');
+  saveCashCountNow(_cashSide);
 }
 
 function cashUpdate(){
