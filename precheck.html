@@ -830,24 +830,20 @@ function renderHeader(){
   const s = schedule;
   const g = (s.groom_name||'').trim(), b = (s.bride_name||'').trim();
   let names, displayTitle;
-  const isSingleMode = (schedule && schedule.wedding_mode === '단측');
-  if(isSingleMode){
-    if(g && !b){
-      names = `🤵 ${g} 신랑측`;
-      displayTitle = `${g} 신랑측 본식 준비 체크`;
-    } else if(b && !g){
-      names = `👰 ${b} 신부측`;
-      displayTitle = `${b} 신부측 본식 준비 체크`;
-    } else if(g){
-      names = `🤵 ${g} 신랑측`;
-      displayTitle = `${g} 신랑측 본식 준비 체크`;
-    } else {
-      names = '—';
-      displayTitle = 'Dear Guard · 본식 준비 체크';
-    }
+  // 헤더 이름 표시는 wedding_mode가 아니라 신랑/신부 이름이 실제로 존재하는지만으로 판단
+  // (STEP1 장부 방식인 live_mode/single_side/sideFilter 로직과는 별개이며 그대로 둠)
+  if(g && b){
+    names = `${g} ♥ ${b}`;
+    displayTitle = `${g} ♥ ${b} 본식 준비 체크`;
+  } else if(g){
+    names = `🤵 ${g} 신랑측`;
+    displayTitle = `${g} 신랑측 본식 준비 체크`;
+  } else if(b){
+    names = `👰 ${b} 신부측`;
+    displayTitle = `${b} 신부측 본식 준비 체크`;
   } else {
-    names = (g&&b) ? `${g} ♥ ${b}` : g||b||'—';
-    displayTitle = (g&&b) ? `${g} ♥ ${b} 본식 준비 체크` : (g||b) ? `${g||b} 본식 준비 체크` : 'Dear Guard · 본식 준비 체크';
+    names = '—';
+    displayTitle = 'Dear Guard · 본식 준비 체크';
   }
   document.getElementById('hdr-names').textContent = names;
 
