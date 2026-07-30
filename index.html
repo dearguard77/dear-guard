@@ -941,7 +941,7 @@
       <div class="modal-brand">Dear Guard · 예식 상세</div>
       <div class="modal-title" id="dm-title"></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px" id="dm-badges"></div>
-      <div id="dm-reg-date" style="display:none;font-size:9px;color:#C4C4C4;margin-top:4px;letter-spacing:.3px"></div>
+      <div id="dm-reg-date" style="display:none;font-size:12px;color:#6B7280;margin-top:6px;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
     </div>
     <div class="modal-body" id="dm-body"></div>
     <div class="modal-footer" id="dm-footer"></div>
@@ -2578,15 +2578,22 @@ function openDetail(id){
         </button>
       </span>
     </span>`;
-  const _precheckBadge = s.precheckStatus==='submitted'
-    ? '<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📋 체크완료</span>'
-    : '<span style="background:#F3F4F6;color:#9CA3AF;border:1px solid #E5E7EB;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📋 체크미완</span>';
-  document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>${(s.contractSigned||s.contractStatus==='completed'||!!s.contractSignedAt)?'<span style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">📝 계약완료</span>':'<span style="background:#FEF9C3;color:#92400E;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">⏳ 계약대기</span>'}${_precheckBadge}`;
+  // 진행 상태 뱃지 + 예식 날짜·시간 (기존 위치 그대로 유지)
+  document.getElementById('dm-badges').innerHTML=`${badge(s.status)}<span style="font-size:12px;color:#6B7280">${getDateWithDay(s.date)} · ${esc(s.time)}</span>`;
 
-  // 관리자 전용 계약일 표시
+  // 계약/체크 상태 + 계약일 — 헤더 하단 한 줄 통합 표시 (클릭 시 기존 계약/체크 모달 연결)
   const dmRegDate = document.getElementById('dm-reg-date');
   if(dmRegDate){
-    // contract_date 우선, 없으면 created_at을 KST(Asia/Seoul)로 변환
+    // 계약 상태 판별 조건 (기존과 동일)
+    const contractDone  = (s.contractSigned||s.contractStatus==='completed'||!!s.contractSignedAt);
+    const contractLabel = contractDone ? '계약완료' : '계약대기';
+    const contractColor = contractDone ? '#059669' : '#92400E';
+    // 체크(사전점검) 상태 판별 조건 (기존과 동일)
+    const precheckDone = s.precheckStatus==='submitted';
+    const checkLabel   = precheckDone ? '체크완료' : '체크미완';
+    const checkColor    = precheckDone ? '#059669' : '#9CA3AF';
+
+    // contract_date 우선, 없으면 created_at을 KST(Asia/Seoul)로 변환 (기존 계산 로직 그대로)
     let regDateStr = '';
     if(s.contractDate){
       regDateStr = s.contractDate.slice(0,10).replace(/-/g,'.');
@@ -2598,12 +2605,16 @@ function openDetail(id){
       const d = String(kstDate.getDate()).padStart(2,'0');
       regDateStr = `${y}.${m}.${d}`;
     }
-    if(ADMIN_NAMES.includes(currentUser.name) && regDateStr){
-      dmRegDate.style.display = 'block';
-      dmRegDate.textContent = `계약일 ${regDateStr}`;
-    } else {
-      dmRegDate.style.display = 'none';
-    }
+    // 계약일은 기존과 동일하게 관리자에게만 표시
+    const regDatePart = (ADMIN_NAMES.includes(currentUser.name) && regDateStr)
+      ? ` <span style="color:#D1D5DB">|</span> 계약일 ${regDateStr}` : '';
+
+    dmRegDate.style.display = 'block';
+    dmRegDate.innerHTML =
+      `<span onclick="event.stopPropagation();openContractModal(${s.id})" style="cursor:pointer;color:${contractColor};font-weight:700">${contractLabel}</span>` +
+      ` <span style="color:#D1D5DB">|</span> ` +
+      `<span onclick="event.stopPropagation();openPrecheckModal(${s.id})" style="cursor:pointer;color:${checkColor};font-weight:700">${checkLabel}</span>` +
+      regDatePart;
   }
 
   const canEdit=currentUser.canEdit||s.frontManager===currentUser.name||s.backManager===currentUser.name;
@@ -2835,15 +2846,6 @@ function openDetail(id){
             padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer">
           🗑️ 삭제
         </button>` : ''}
-      ${isAdmin ? `
-      <button onclick="openContractModal(${id})"
-        style="background:#111827;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
-        📝계약
-      </button>
-      <button onclick="openPrecheckModal(${id})"
-        style="background:#374151;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
-        📋체크
-      </button>` : ''}
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-secondary sm" onclick="closeDetail();openResult(${id})">📊 결과 ${s.result?'수정':'입력'}</button>
