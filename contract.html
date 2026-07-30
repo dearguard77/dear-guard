@@ -32,7 +32,7 @@
 :root{
   --bg:#F7F6F4;--bg2:#fff;--bg3:#F9F8F6;
   --border:#E8E4DE;--border2:#EDE9E2;
-  --gold:#C7A96B;--gold2:#A8893A;--gold-bg:#FDF8F0;
+  --gold:#374151;--gold2:#6B7280;--gold-bg:#F9FAFB;
   --text:#111827;--text2:#6B7280;--text3:#9CA3AF;
   --green:#059669;--red:#DC2626;
   --radius:10px;--radius-sm:6px;
@@ -43,8 +43,8 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* ── 로딩/에러 ── */
 #loading{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:16px}
-.loading-logo{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
-.spinner{width:26px;height:26px;border:2px solid rgba(199,169,107,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+.loading-logo{font-size:13px;font-weight:700;color:#9CA3AF;letter-spacing:3px;text-transform:uppercase}
+.spinner{width:26px;height:26px;border:2px solid rgba(0,0,0,.08);border-top-color:#9CA3AF;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 #error-screen{display:none;position:fixed;inset:0;background:var(--bg2);align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px}
 
@@ -53,26 +53,26 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* ── 헤더 ── */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:24px 20px 0;text-align:center;position:sticky;top:0;z-index:50}
-.hdr-brand{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;opacity:.9}
+.hdr-brand{font-size:10px;font-weight:600;color:#9CA3AF;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;opacity:.9}
 .hdr-couple{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px;line-height:1.2;margin-bottom:6px}
 .hdr-info{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:6px;font-weight:400}
-.hdr-sub{font-size:12px;color:var(--gold2);font-weight:500;margin-bottom:16px}
+.hdr-sub{font-size:12px;color:#6B7280;font-weight:500;margin-bottom:16px}
 
 /* ── 진행 바 ── */
 .progress-wrap{border-top:1px solid var(--border);padding:14px 20px;margin:0 -20px 0}
 .progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
 .progress-label{font-size:11px;font-weight:600;color:var(--text2)}
-.progress-pct{font-size:11px;font-weight:700;color:var(--gold)}
+.progress-pct{font-size:11px;font-weight:700;color:#374151}
 .progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),#E8C98A);border-radius:2px;transition:width .4s ease}
+.progress-fill{height:100%;background:#374151;border-radius:2px;transition:width .4s ease}
 
 /* ── 완료 배너 ── */
 #signed-banner{display:none;margin:16px;padding:18px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:var(--radius);text-align:center}
 .signed-title{font-size:15px;font-weight:700;color:var(--green);margin-bottom:4px}
 .signed-sub{font-size:12px;color:#065F46;line-height:1.7}
 .signed-btn-group{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-.signed-btn{width:100%;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer}
-.signed-btn.outline{background:var(--bg2);color:var(--gold2);border:1px solid var(--gold)}
+.signed-btn{width:100%;background:#1F2937;color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer}
+.signed-btn.outline{background:var(--bg2);color:#374151;border:1px solid #E5E7EB}
 .signed-inapp-notice{margin-top:10px;font-size:11px;color:#065F46;line-height:1.7;background:#D1FAE5;border-radius:var(--radius-sm);padding:10px 12px}
 
 /* ── 섹션 카드 ── */
@@ -80,7 +80,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .section-hdr{padding:16px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
 .section-icon{font-size:16px;flex-shrink:0;opacity:.85}
 .section-meta{flex:1;min-width:0}
-.section-num{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.section-num{font-size:10px;font-weight:600;color:#6B7280;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
 .section-title{font-size:14px;font-weight:700;color:var(--text)}
 .section-toggle{font-size:11px;color:var(--text3);flex-shrink:0;transition:transform .2s}
 .section-toggle.open{transform:rotate(180deg)}
@@ -92,12 +92,12 @@ input,select,textarea{font-family:inherit;outline:none}
 .info-row:last-child{border-bottom:none}
 .info-lbl{color:var(--text3);font-weight:400}
 .info-val{font-weight:600;color:var(--text);text-align:right}
-.info-val.gold{color:var(--gold2)}
+.info-val.gold{color:#111827}
 
 /* ── 결제 정보 ── */
-.payment-total-box{background:var(--gold-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
-.payment-total-lbl{font-size:11px;font-weight:600;color:var(--gold2);letter-spacing:.3px;text-transform:uppercase}
-.payment-total-val{font-size:22px;font-weight:800;color:var(--gold2)}
+.payment-total-box{background:#F9FAFB;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.payment-total-lbl{font-size:11px;font-weight:600;color:#6B7280;letter-spacing:.3px;text-transform:uppercase}
+.payment-total-val{font-size:22px;font-weight:800;color:#111827}
 .payment-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px}
 .payment-row:last-child{border-bottom:none}
 .payment-lbl{color:var(--text2);font-weight:400}
@@ -111,6 +111,14 @@ input,select,textarea{font-family:inherit;outline:none}
 .couple-code-box{margin-top:14px;padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .couple-code-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px}
 .couple-code-desc{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px}
+.couple-code-row{display:flex;gap:8px;width:100%}
+.couple-code-row input{min-width:0}
+.couple-code-row button{flex-shrink:0;width:auto}
+@media(max-width:380px){
+  .couple-code-row{flex-direction:column}
+  .couple-code-row input{width:100%}
+  .couple-code-row button{width:100%}
+}
 
 /* ── 조항 accordion ── */
 .clause{margin-bottom:6px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
@@ -122,27 +130,27 @@ input,select,textarea{font-family:inherit;outline:none}
 .clause-body p{font-size:12px;color:var(--text2);line-height:1.9;margin-bottom:6px;font-weight:400}
 .clause-body p:last-child{margin-bottom:0}
 .clause-body .item{font-size:12px;color:var(--text2);line-height:1.9;padding-left:14px;position:relative;margin-bottom:4px;font-weight:400}
-.clause-body .item::before{content:'·';position:absolute;left:3px;color:var(--gold)}
+.clause-body .item::before{content:'·';position:absolute;left:3px;color:#9CA3AF}
 .refund-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}
 .refund-table th{background:var(--bg3);padding:7px 8px;font-weight:600;color:var(--text2);border:1px solid var(--border)}
 .refund-table td{padding:7px 8px;border:1px solid var(--border);color:var(--text);line-height:1.5}
 
 /* ── 동의 체크 ── */
 .agree-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;background:var(--bg2);margin-bottom:6px}
-.agree-item.checked{border-color:var(--gold);background:var(--gold-bg)}
+.agree-item.checked{border-color:#374151;background:#F3F4F6}
 .agree-item input[type=checkbox]{display:none}
 .agree-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .15s;position:relative;display:flex;align-items:center;justify-content:center}
-.agree-item.checked .agree-dot{border-color:var(--gold);background:var(--gold)}
+.agree-item.checked .agree-dot{border-color:#374151;background:#374151}
 .agree-item.checked .agree-dot::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
 .agree-text{font-size:13px;font-weight:500;color:var(--text);flex:1;line-height:1.4}
-.agree-all{margin-bottom:10px;padding:13px 14px;background:var(--gold-bg);border:1px solid var(--gold);border-radius:var(--radius-sm);display:flex;align-items:center;gap:10px;cursor:pointer}
-.agree-all-text{font-size:13px;font-weight:700;color:var(--gold2)}
+.agree-all{margin-bottom:10px;padding:13px 14px;background:#F3F4F6;border:1px solid #9CA3AF;border-radius:var(--radius-sm);display:flex;align-items:center;gap:10px;cursor:pointer}
+.agree-all-text{font-size:13px;font-weight:700;color:#374151}
 
 /* ── 약관 확인 입력창 ── */
-.agree-confirm-wrap{margin-top:14px;padding:16px;background:#FFF9EC;border:1px solid var(--gold);border-radius:var(--radius-sm)}
-.agree-confirm-label{font-size:12px;color:var(--gold2);font-weight:500;line-height:1.8;margin-bottom:10px}
+.agree-confirm-wrap{margin-top:14px;padding:16px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:var(--radius-sm)}
+.agree-confirm-label{font-size:12px;color:#374151;font-weight:500;line-height:1.8;margin-bottom:10px}
 .agree-confirm-input{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;font-weight:600;color:var(--text);background:#fff;transition:border-color .15s;text-align:center}
-.agree-confirm-input:focus{border-color:var(--gold)}
+.agree-confirm-input:focus{border-color:#374151}
 .agree-confirm-input.valid{border-color:var(--green);background:#F0FDF4;color:var(--green)}
 
 /* ── 서명 패드 ── */
@@ -170,11 +178,11 @@ input,select,textarea{font-family:inherit;outline:none}
 .complete-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px}
 .complete-sub{font-size:13px;color:var(--text2);line-height:1.9;font-weight:400}
 .complete-btn-group{display:flex;flex-direction:column;gap:8px;margin-top:28px}
-.pdf-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:13px 24px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
-.pdf-btn.outline{background:var(--bg2);color:var(--gold2);border:1px solid var(--gold)}
+.pdf-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:#1F2937;color:#fff;border:none;border-radius:var(--radius-sm);padding:13px 24px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.pdf-btn.outline{background:var(--bg2);color:#374151;border:1px solid #E5E7EB}
 .pdf-btn.gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
-.inapp-notice{margin-top:18px;background:#FFF9EC;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:left}
-.inapp-notice-title{font-size:12px;font-weight:700;color:var(--gold2);margin-bottom:6px}
+.inapp-notice{margin-top:18px;background:#F9FAFB;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:left}
+.inapp-notice-title{font-size:12px;font-weight:700;color:#374151;margin-bottom:6px}
 .inapp-notice-body{font-size:12px;color:var(--text2);line-height:1.9;font-weight:400}
 
 /* ── 이미지 미리보기 모달 ── */
@@ -182,8 +190,8 @@ input,select,textarea{font-family:inherit;outline:none}
 #img-preview-modal.open{display:flex}
 .img-preview-box{background:#fff;border-radius:var(--radius);padding:16px;max-width:480px;width:100%;margin:auto}
 .img-preview-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;text-align:center}
-.img-preview-guide{font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;text-align:center;background:#FFF9EC;border:1px solid var(--gold);border-radius:var(--radius-sm);padding:10px 12px}
-.img-preview-guide strong{color:var(--gold2)}
+.img-preview-guide{font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;text-align:center;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:var(--radius-sm);padding:10px 12px}
+.img-preview-guide strong{color:#111827}
 #img-preview-el{width:100%;border-radius:var(--radius-sm);display:block;border:1px solid var(--border)}
 .img-preview-close{width:100%;margin-top:12px;background:#1F2937;color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:14px;font-weight:700;cursor:pointer}
 
@@ -193,11 +201,11 @@ input,select,textarea{font-family:inherit;outline:none}
 /* ── 필드 ── */
 .field-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block}
 .field-input{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;color:var(--text);background:#fff;transition:border-color .15s;font-family:inherit}
-.field-input:focus{border-color:var(--gold)}
+.field-input:focus{border-color:#374151}
 
 /* ── form-input (짝꿍코드) ── */
 .form-input{border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text);background:#fff;transition:border-color .15s;font-family:inherit}
-.form-input:focus{border-color:var(--gold)}
+.form-input:focus{border-color:#374151}
 
 @media(min-width:481px){
   #app,#complete-screen{border-left:1px solid var(--border);border-right:1px solid var(--border);min-height:100vh}
@@ -273,8 +281,8 @@ input,select,textarea{font-family:inherit;outline:none}
     <div class="section-body" id="sec-payment-body">
       <div id="payment-rows"></div>
       <div id="couple-discount-row" style="display:none;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;display:flex;justify-content:space-between;align-items:baseline">
-        <span style="color:var(--gold2);font-weight:600">짝꿍 할인</span>
-        <span style="color:var(--gold2);font-weight:600">-10,000원</span>
+        <span style="color:#059669;font-weight:600">짝꿍 할인</span>
+        <span style="color:#059669;font-weight:600">-10,000원</span>
       </div>
       <!-- 짝꿍 할인코드 입력 영역 -->
       <div class="couple-code-box">
@@ -283,16 +291,16 @@ input,select,textarea{font-family:inherit;outline:none}
           추천받으신 분의 짝꿍코드를 입력해주세요.<br>
           <span style="color:var(--text3)">• 계약일로부터 1주일 이내 입력 가능&nbsp;&nbsp;• 계약당 1회 적용</span>
         </div>
-        <div style="display:flex;gap:8px">
-          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px;width:auto">
-          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:0 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;height:40px">코드 적용</button>
+        <div class="couple-code-row">
+          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px;width:auto;min-width:0">
+          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:#1F2937;color:#fff;border:none;border-radius:var(--radius-sm);padding:0 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;height:40px;flex-shrink:0">코드 적용</button>
         </div>
         <div id="couple-code-msg" style="margin-top:8px;font-size:12px;display:none"></div>
       </div>
       <div style="margin-top:12px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;color:var(--text2);line-height:1.7">
         ※ 본 계약서는 배상 범위 및 책임 기준을 명확히 하기 위해 정가 기준으로 작성됩니다.
       </div>
-      <div style="margin-top:6px;padding:10px 12px;background:var(--gold-bg);border-radius:var(--radius-sm);font-size:11px;color:var(--gold2);line-height:1.7">
+      <div style="margin-top:6px;padding:10px 12px;background:#F9FAFB;border-radius:var(--radius-sm);font-size:11px;color:#374151;line-height:1.7">
         ※ 계약 후기 할인, 짝꿍 할인 등 프로모션 혜택은 조건 충족 시 잔금 결제 금액에서 차감 적용됩니다.
       </div>
     </div>
@@ -433,7 +441,7 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="section-body" id="sec-agree-body">
       <div class="agree-all" onclick="toggleAllAgree()">
-        <div class="agree-dot" id="all-agree-dot" style="border:2px solid var(--gold)"></div>
+        <div class="agree-dot" id="all-agree-dot" style="border:2px solid #E5E7EB"></div>
         <span class="agree-all-text">전체 동의</span>
       </div>
       <div class="agree-item" id="ag1" onclick="toggleAgree('ag1',1)">
@@ -778,15 +786,15 @@ function renderPayment(){
 
   if(hasAnyDiscount){
     appliedPresets.forEach(d => {
-      html += `<div class="info-row"><span class="info-lbl" style="color:#C7A96B">${esc(d.label)}</span><span class="info-val" style="color:#C7A96B">-${d.amount.toLocaleString()}원</span></div>`;
+      html += `<div class="info-row"><span class="info-lbl" style="color:#059669">${esc(d.label)}</span><span class="info-val" style="color:#059669">-${d.amount.toLocaleString()}원</span></div>`;
     });
     if(etcDiscount > 0){
-      html += `<div class="info-row"><span class="info-lbl" style="color:#C7A96B">기타 할인</span><span class="info-val" style="color:#C7A96B">-${etcDiscount.toLocaleString()}원</span></div>`;
+      html += `<div class="info-row"><span class="info-lbl" style="color:#059669">기타 할인</span><span class="info-val" style="color:#059669">-${etcDiscount.toLocaleString()}원</span></div>`;
     }
     if(coupleTotal > 0){
-      html += `<div class="info-row"><span class="info-lbl" style="color:#C7A96B">짝꿍 할인</span><span class="info-val" style="color:#C7A96B">-${coupleTotal.toLocaleString()}원</span></div>`;
+      html += `<div class="info-row"><span class="info-lbl" style="color:#059669">짝꿍 할인</span><span class="info-val" style="color:#059669">-${coupleTotal.toLocaleString()}원</span></div>`;
     }
-    html += `<div class="info-row" style="border-top:1.5px solid #C7A96B;padding-top:8px"><span class="info-lbl" style="font-weight:700">최종 잔금</span><span class="info-val" style="font-weight:700">${fmt(finalBalance)}</span></div>`;
+    html += `<div class="info-row" style="border-top:1.5px solid #E5E7EB;padding-top:8px"><span class="info-lbl" style="font-weight:700">최종 잔금</span><span class="info-val" style="font-weight:700">${fmt(finalBalance)}</span></div>`;
   }
 
   document.getElementById('payment-rows').innerHTML = html;
@@ -1264,11 +1272,11 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
   <style>
     #pdf-contract * { box-sizing:border-box; font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
     #pdf-contract .pdf-page { width:794px; min-height:1123px; padding:60px 90px; background:#fff; }
-    #pdf-contract .pdf-header { background:#C7A96B; padding:14px 90px; display:flex; align-items:center; gap:10px; }
+    #pdf-contract .pdf-header { background:#1F2937; padding:14px 90px; display:flex; align-items:center; gap:10px; }
     #pdf-contract .pdf-header-logo { font-family:Georgia,serif; font-size:18px; font-weight:700; color:#fff; letter-spacing:3px; }
     #pdf-contract .pdf-header-sub { font-size:11px; color:rgba(255,255,255,.8); margin-top:2px; }
     #pdf-contract .pdf-title { font-size:22px; font-weight:900; color:#111827; margin-bottom:4px; margin-top:28px; }
-    #pdf-contract .pdf-couple { font-size:17px; font-weight:800; color:#C7A96B; margin-bottom:6px; }
+    #pdf-contract .pdf-couple { font-size:17px; font-weight:800; color:#111827; margin-bottom:6px; }
     #pdf-contract .pdf-meta { font-size:12px; color:#6B7280; margin-bottom:4px; }
     #pdf-contract .pdf-desc { font-size:12px; color:#374151; margin:14px 0 24px; line-height:1.8; }
     #pdf-contract hr { border:none; border-top:1.5px solid #E8E2D9; margin:20px 0; }
@@ -1277,10 +1285,10 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
     #pdf-contract .pdf-info-row:last-child { border-bottom:none; }
     #pdf-contract .pdf-info-lbl { color:#6B7280; width:140px; flex-shrink:0; }
     #pdf-contract .pdf-info-val { font-weight:700; color:#111827; flex:1; }
-    #pdf-contract .pdf-info-val.gold { color:#C7A96B; }
+    #pdf-contract .pdf-info-val.gold { color:#111827; }
     #pdf-contract .pdf-clause-title { font-size:13px; font-weight:800; color:#111827; margin:14px 0 6px; }
     #pdf-contract .pdf-clause-item { font-size:12px; color:#374151; padding-left:22px; position:relative; margin-bottom:6px; line-height:1.8; }
-    #pdf-contract .pdf-clause-num { position:absolute; left:0; top:0; color:#C7A96B; font-size:12px; font-weight:700; }
+    #pdf-contract .pdf-clause-num { position:absolute; left:0; top:0; color:#6B7280; font-size:12px; font-weight:700; }
     #pdf-contract .pdf-refund { width:100%; border-collapse:collapse; margin:10px 0; font-size:12px; }
     #pdf-contract .pdf-refund th { background:#F9F7F4; padding:7px 12px; border:1px solid #E8E2D9; font-weight:700; color:#374151; text-align:left; }
     #pdf-contract .pdf-refund td { padding:7px 12px; border:1px solid #E8E2D9; color:#111827; }
@@ -1294,7 +1302,7 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
     #pdf-contract .pdf-sign-img-wrap img { max-height:56px; max-width:150px; object-fit:contain; background:transparent !important; border:none !important; box-shadow:none !important; }
     #pdf-contract .pdf-sign-date { font-size:11px; color:#6B7280; margin-top:6px; }
     #pdf-contract .pdf-footer { margin-top:36px; padding-top:14px; border-top:1px solid #E8E2D9; font-size:10px; color:#9CA3AF; text-align:center; line-height:1.8; }
-    #pdf-contract .pdf-notice { background:#F9F7F4; border-left:3px solid #C7A96B; padding:10px 14px; font-size:11px; color:#6B7280; line-height:1.7; margin:10px 0; }
+    #pdf-contract .pdf-notice { background:#F9F7F4; border-left:3px solid #E5E7EB; padding:10px 14px; font-size:11px; color:#6B7280; line-height:1.7; margin:10px 0; }
   </style>
 
   <!-- 헤더 -->
@@ -1338,15 +1346,15 @@ async function buildPdfDiv(signerName, sigDataUrl, signedAt){
         <div class="pdf-info-row"><span class="pdf-info-lbl">잔금</span><span class="pdf-info-val">${fmtP(cs.baseBalance)}</span></div>`;
       if(cs.totalDiscount > 0){
         cs.appliedPresets.forEach(d => {
-          rows += `<div class="pdf-info-row"><span class="pdf-info-lbl" style="color:#C7A96B">${d.label}</span><span class="pdf-info-val" style="color:#C7A96B">-${d.amount.toLocaleString()}원</span></div>`;
+          rows += `<div class="pdf-info-row"><span class="pdf-info-lbl" style="color:#059669">${d.label}</span><span class="pdf-info-val" style="color:#059669">-${d.amount.toLocaleString()}원</span></div>`;
         });
         if(cs.etcDiscount > 0){
-          rows += `<div class="pdf-info-row"><span class="pdf-info-lbl" style="color:#C7A96B">기타 할인</span><span class="pdf-info-val" style="color:#C7A96B">-${cs.etcDiscount.toLocaleString()}원</span></div>`;
+          rows += `<div class="pdf-info-row"><span class="pdf-info-lbl" style="color:#059669">기타 할인</span><span class="pdf-info-val" style="color:#059669">-${cs.etcDiscount.toLocaleString()}원</span></div>`;
         }
         if(cs.coupleTotal > 0){
-          rows += `<div class="pdf-info-row"><span class="pdf-info-lbl" style="color:#C7A96B">짝꿍 할인</span><span class="pdf-info-val" style="color:#C7A96B">-${cs.coupleTotal.toLocaleString()}원</span></div>`;
+          rows += `<div class="pdf-info-row"><span class="pdf-info-lbl" style="color:#059669">짝꿍 할인</span><span class="pdf-info-val" style="color:#059669">-${cs.coupleTotal.toLocaleString()}원</span></div>`;
         }
-        rows += `<div class="pdf-info-row" style="border-top:1.5px solid #C7A96B;padding-top:6px"><span class="pdf-info-lbl" style="font-weight:700">최종 잔금</span><span class="pdf-info-val" style="font-weight:700">${fmtP(cs.finalBalance)}</span></div>`;
+        rows += `<div class="pdf-info-row" style="border-top:1.5px solid #E5E7EB;padding-top:6px"><span class="pdf-info-lbl" style="font-weight:700">최종 잔금</span><span class="pdf-info-val" style="font-weight:700">${fmtP(cs.finalBalance)}</span></div>`;
       }
       return rows;
     })()}

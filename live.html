@@ -27,7 +27,7 @@
 /* ── Variables ── */
 :root{
   --bg:#F5F5F4;--bg2:#fff;--bg3:#F9F9F8;--border:#E5E5E3;
-  --gold:#B8933A;--gold2:#C7A96B;--text:#111827;--text2:#6B7280;--text3:#9CA3AF;
+  --gold:#374151;--gold2:#374151;--text:#111827;--text2:#6B7280;--text3:#9CA3AF;
   --blue:#2563EB;--pink:#DB2777;--green:#059669;--red:#DC2626;
   --radius:4px;
 }
@@ -35,7 +35,7 @@
 html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--text);font-size:13px;-webkit-font-smoothing:antialiased}
 /* ── Loading ── */
 #loading{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:12px}
-.spinner{width:28px;height:28px;border:2px solid rgba(0,0,0,.08);border-top-color:var(--gold2);border-radius:50%;animation:spin .8s linear infinite}
+.spinner{width:28px;height:28px;border:2px solid rgba(0,0,0,.08);border-top-color:#9CA3AF;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-logo{font-size:15px;font-weight:700;color:var(--text2);letter-spacing:3px}
 #error-screen{display:none;position:fixed;inset:0;background:var(--bg2);align-items:center;justify-content:center;flex-direction:column;gap:8px;text-align:center;padding:24px}
@@ -68,13 +68,13 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 }
 .sum-card{padding:14px 16px;display:flex;flex-direction:column;justify-content:center;border-left:3px solid transparent;border-radius:0;background:var(--bg2)}
 .sum-card+.sum-card{border-top:1px solid var(--border)}
-.sum-card.total{border-left:3px solid var(--gold2);grid-row:span 2;border-top:none;justify-content:space-between}
+.sum-card.total{border-left:3px solid #374151;grid-row:span 2;border-top:none;justify-content:space-between}
 .sum-card.groom{border-left:3px solid var(--blue);border-top:none}
 .sum-card.bride{border-left:3px solid var(--pink)}
 .sum-card.ticket{border-left:3px solid #7C3AED;grid-column:span 2}
 .sum-lbl{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;color:var(--text3)}
 .sum-val{font-size:20px;font-weight:800;line-height:1;margin-bottom:3px;color:var(--text)}
-.sum-val.gold{color:var(--gold2);font-size:36px}
+.sum-val.gold{color:#111827;font-size:36px}
 .sum-val.blue{color:var(--blue);font-size:18px}
 .sum-val.pink{color:var(--pink);font-size:18px}
 .sum-val.purple{color:#7C3AED}
@@ -94,7 +94,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 .ho-item:last-child{border-bottom:none}
 .ho-lbl{font-size:9px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px;font-weight:600}
 .ho-val{font-weight:600;color:var(--text);line-height:1.5;word-break:break-all}
-.ho-pw{font-size:20px;font-weight:900;color:var(--gold2);letter-spacing:4px;text-align:center;padding:8px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:5px}
+.ho-pw{font-size:20px;font-weight:900;color:#111827;letter-spacing:4px;text-align:center;padding:8px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:5px}
 .ho-link{display:block;border:1px solid var(--border);border-radius:var(--radius);padding:5px 9px;font-size:11px;font-weight:600;color:var(--blue);text-decoration:none;margin-bottom:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ho-template{display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--border);border-radius:var(--radius);padding:7px;text-decoration:none;color:var(--text2);font-size:11px;font-weight:600}
 .flower-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid #F3F3F2;font-size:13px}
@@ -108,9 +108,9 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 #tbl-ctrl{padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;background:var(--bg2)}
 .tbl-ctrl-title{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap}
 .ctrl-select{height:28px;border:1px solid var(--border);border-radius:var(--radius);padding:0 8px;font-size:11px;background:var(--bg2);color:var(--text);cursor:pointer;outline:none;font-family:inherit}
-.ctrl-select:focus{border-color:var(--gold2)}
+.ctrl-select:focus{border-color:#374151}
 .ctrl-input{height:28px;border:1px solid var(--border);border-radius:var(--radius);padding:0 8px;font-size:11px;background:var(--bg2);color:var(--text);outline:none;width:110px;font-family:inherit}
-.ctrl-input:focus{border-color:var(--gold2)}
+.ctrl-input:focus{border-color:#374151}
 /* Tab - underline style */
 .ctrl-tab{border-radius:0;padding:6px 12px;font-size:12px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:var(--text3);cursor:pointer;transition:all .1s;white-space:nowrap;font-family:inherit}
 .ctrl-tab.on{border-bottom:2px solid var(--text);color:var(--text);font-weight:700}
@@ -134,14 +134,14 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 .tc-name{flex:1;min-width:0;padding:6px 10px;overflow:visible}
 .tc-name-main{font-weight:700;color:var(--text);white-space:normal;overflow:visible;text-overflow:unset;font-size:15px;word-break:keep-all;line-height:1.4}
 .tc-name-sub{font-size:12px;color:var(--text3);white-space:normal;overflow:visible;text-overflow:unset;margin-top:1px;word-break:keep-all;line-height:1.4}
-.tc-amt{width:96px;flex-shrink:0;padding:10px 10px 6px;text-align:right;font-weight:800;color:var(--gold);font-size:15px}
+.tc-amt{width:96px;flex-shrink:0;padding:10px 10px 6px;text-align:right;font-weight:800;color:#111827;font-size:15px}
 .tc-tkt{width:84px;flex-shrink:0;padding:10px 6px 6px;display:flex;gap:3px;flex-wrap:wrap;align-items:flex-start}
 .tc-pay{width:56px;flex-shrink:0;padding:10px 4px 6px;text-align:center}
 .tc-time{width:48px;flex-shrink:0;padding:10px 4px 6px;text-align:right;font-size:11px;color:var(--text3)}
 .th-sort{cursor:pointer;user-select:none}
 .th-sort:hover{color:var(--text)}
-.th-sort.asc::after{content:" ↑";color:var(--gold2)}
-.th-sort.desc::after{content:" ↓";color:var(--gold2)}
+.th-sort.asc::after{content:" ↑";color:#6B7280}
+.th-sort.desc::after{content:" ↓";color:#6B7280}
 /* ── Badges ── */
 .badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
 .badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
@@ -236,7 +236,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
         <div class="wedding-brand">DEAR GUARD</div>
         <div class="wedding-names" id="hdr-names">—</div>
         <div class="wedding-info" id="hdr-info-dt">—</div>
-        <div class="wedding-info" id="hdr-info-hall" style="color:var(--gold2);font-weight:700">—</div>
+        <div class="wedding-info" id="hdr-info-hall" style="color:#374151;font-weight:700">—</div>
       </div>
       <div class="wedding-footer">
         <span id="mode-badge"></span>
@@ -1032,7 +1032,7 @@ function renderOpsList(){
   function buildRows(list){
     if(!list.length) return '<div style="font-size:11px;color:var(--text3);padding:3px 0 5px">없음</div>';
     return list.map(l=>`<div class="ops-row">
-      <span style="font-size:12px;color:var(--gold2);font-weight:700;flex-shrink:0;white-space:nowrap">${esc(l.time_str||'')}</span>
+      <span style="font-size:12px;color:#6B7280;font-weight:700;flex-shrink:0;white-space:nowrap">${esc(l.time_str||'')}</span>
       <span style="flex:1;min-width:0;font-size:13px;white-space:normal;word-break:keep-all;line-height:1.5">${esc(l.content||'')}</span>
     </div>`).join('');
   }
@@ -1070,7 +1070,7 @@ function renderHandover(){
     if(!name&&!phone) html+='<div style="font-size:11px;color:var(--text3)">—</div>';
     html+='</div>';
     html+='<div class="ho-compact-cell" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:60px"><div class="ho-lbl">🔒 비번</div>';
-    if(pw) html+='<div style="font-size:16px;font-weight:900;letter-spacing:3px;color:var(--gold2)">'+esc(pw)+'</div>';
+    if(pw) html+='<div style="font-size:16px;font-weight:900;letter-spacing:3px;color:#111827">'+esc(pw)+'</div>';
     else   html+='<div style="font-size:11px;color:var(--text3)">—</div>';
     html+='</div>';
     html+='<div class="ho-compact-cell" style="overflow:hidden"><div class="ho-lbl">인계물품</div>';
@@ -1082,7 +1082,7 @@ function renderHandover(){
     html+='<a href="#" onclick="openLiveBoard();return false;" class="ho-link" style="font-size:12px;color:var(--blue);font-weight:700;text-decoration:none;cursor:pointer">📹 실시간 현황보기</a>';
     html+='</div>';
     html+='<div class="ho-compact-cell" style="display:flex;align-items:center;justify-content:center">';
-    html+='<a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link" target="_blank" style="font-size:11px;font-weight:700;color:var(--gold2);text-decoration:none;white-space:nowrap">💌 답례인사</a>';
+    html+='<a href="https://www.notion.so/342a50dd911f80aca464d5cbc20cdaca?source=copy_link" target="_blank" style="font-size:11px;font-weight:700;color:#374151;text-decoration:none;white-space:nowrap">💌 답례인사</a>';
     html+='</div></div>';
     return html;
   }

@@ -13,9 +13,9 @@
   *{box-sizing:border-box;margin:0;padding:0}
   /* ═══ 디자인 토큰 (1차 작업: 값은 기존과 동일하게 유지, 변수화만 진행) ═══ */
   :root{
-    --bg:#F8F7F5; --bg2:#fff; --bg3:#FDF8F3;
-    --border:#E5E7EB; --border2:#E8DFD0;
-    --gold:#C7A96B; --gold2:#A8893A; --gold-bg:#FDF8F3;
+    --bg:#F8F7F5; --bg2:#fff; --bg3:#F9FAFB;
+    --border:#E5E7EB; --border2:#E5E7EB;
+    --gold:#374151; --gold2:#111827; --gold-bg:#F9FAFB;
     --text:#111827; --text2:#6B7280; --text3:#9CA3AF;
     --blue:#2563EB; --pink:#DB2777; --green:#059669; --red:#DC2626; --orange:#D97706;
     --radius-sm:8px; --radius:10px; --radius-md:12px; --radius-lg:16px; --radius-xl:24px; --radius-pill:20px;
@@ -28,18 +28,18 @@
   #nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border2);padding:0 12px;display:flex;flex-wrap:nowrap;align-items:center;height:56px;min-height:56px;max-height:56px;gap:6px;overflow:visible}
   #nav .tab-wrap{flex:1;display:flex;gap:4px;justify-content:center;overflow:hidden}
   #nav .nav-right{display:flex;flex-direction:row;align-items:center;gap:6px;flex-shrink:0;white-space:nowrap}
-  #nav .brand{font-family:Georgia,serif;font-size:17px;font-weight:700;color:var(--gold);letter-spacing:1px}
+  #nav .brand{font-family:Georgia,serif;font-size:17px;font-weight:700;color:#9CA3AF;letter-spacing:1px}
   .tab-btn{background:none;border:1px solid transparent;border-radius:var(--radius-sm);padding:6px 12px;font-size:13px;font-weight:500;color:var(--text2);transition:all .15s}
-  .tab-btn.active{background:var(--gold-bg);border-color:var(--border2);color:var(--gold);font-weight:700}
-  #reg-btn{background:#fff;color:var(--gold2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 14px;font-size:12px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:4px;min-width:80px;justify-content:center}
+  .tab-btn.active{background:#F3F4F6;border-color:#374151;color:#374151;font-weight:700}
+  #reg-btn{background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:var(--radius-sm);padding:7px 14px;font-size:12px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:4px;min-width:80px;justify-content:center}
   #reg-btn:hover{background:#F8FAFC}
-  #user-btn{display:flex;align-items:center;gap:8px;background:var(--gold-bg);border:1px solid var(--border2);border-radius:8px;padding:5px 12px 5px 5px}
+  #user-btn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:5px 12px 5px 5px}
   #user-btn:hover{background:#F8FAFC}
   .avatar{width:28px;height:28px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .user-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);padding:8px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;display:none;max-height:70vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,16px)}
   .user-drop.open{display:block}
   .user-drop-item{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;border-radius:var(--radius-sm);padding:8px;text-align:left}
-  .user-drop-item:hover,.user-drop-item.selected{background:var(--gold-bg)}
+  .user-drop-item:hover,.user-drop-item.selected{background:#F3F4F6}
 
   /* MAIN */
   #main{max-width:900px;margin:0 auto;padding:24px 16px 100px}
@@ -86,7 +86,7 @@
 
   /* UPCOMING CARD */
   .upcoming-card{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px;margin-bottom:8px}
-  .upcoming-card:hover{border-color:#C7A96B;background:#FAFAF8}
+  .upcoming-card:hover{border-color:#9CA3AF;background:#FAFAF8}
   .dday-box{min-width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
 
   /* BADGE */
@@ -106,22 +106,22 @@
   .cal-nav-title{font-weight:700;font-size:16px;color:#111827}
   .cal-jump-wrap{display:flex;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap}
   .cal-jump-select{height:30px;border:1px solid #E5E7EB;border-radius:8px;padding:0 8px;font-size:12px;background:#fff;color:#374151;cursor:pointer;font-family:inherit}
-  .cal-jump-select:focus{outline:none;border-color:#C7A96B}
+  .cal-jump-select:focus{outline:none;border-color:#374151}
   .rt-step-btn{flex-shrink:0;padding:8px 14px;border-radius:8px;border:1px solid #E5E7EB;background:#fff;color:#6B7280;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
   .rt-step-btn:hover{background:#F8FAFC}
   .result-step-tabs{display:flex;flex-wrap:wrap;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
   .rt-step-label-mo{display:none}
   /* 활성 상태 — 공용 라이트 골드 칩 스타일로 통일 (기존 단계별 그라데이션/솔드 골드 제거) */
-  .rt-step-btn.rt-step-active{background:#FDF8F3 !important;border-color:#E8DFD0 !important;color:#A8893A !important}
+  .rt-step-btn.rt-step-active{background:#F3F4F6 !important;border-color:#374151 !important;color:#374151 !important}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#E5E7EB;border-radius:12px;overflow:hidden}
   .cal-head{background:#F9FAFB;text-align:center;padding:8px 0;font-size:11px;font-weight:700}
   .cal-cell{background:#fff;min-height:70px;padding:6px 4px;cursor:default;transition:background .15s}
   .cal-cell.has-events{cursor:pointer}
   .cal-cell.has-events:hover{background:#F5F0E8}
-  .cal-cell.today{background:#FDF8F3}
+  .cal-cell.today{background:#F3F4F6}
   .cal-day{font-size:12px;text-align:center;margin-bottom:3px;font-weight:500}
-  .cal-day.today-num{font-weight:800;color:#C7A96B}
-  .cal-today-circle{background:#C7A96B;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+  .cal-day.today-num{font-weight:800;color:#374151}
+  .cal-today-circle{background:#374151;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
   .cal-event-pill{border-radius:4px;padding:1px 4px;font-size:9px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;margin-bottom:2px}
   .cal-legend{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
   .cal-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#6B7280}
@@ -135,7 +135,7 @@
   #calendar-wrap .cal-head{font-weight:600;padding:7px 0}
   /* SCHEDULE LIST */
   .sch-row{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s;margin-bottom:8px}
-  .sch-row:hover{border-color:#C7A96B;background:#FAFAF8}
+  .sch-row:hover{border-color:#9CA3AF;background:#FAFAF8}
   .sch-icon{width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
   .sch-del-btn{background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:600}
 
@@ -143,11 +143,11 @@
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:20px 16px;overflow-y:auto}
   .modal-box{background:#fff;border-radius:20px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);margin-bottom:20px;display:flex;flex-direction:column;max-height:92vh}
   .modal-box.sm{max-width:480px}
-  .modal-header{background:linear-gradient(135deg,#F9F5EF,#FDF8F3);padding:20px 24px;border-bottom:1px solid #F0EBE1;position:relative;flex-shrink:0}
-  .modal-brand{font-size:10px;font-weight:700;color:#C7A96B;letter-spacing:2px;margin-bottom:4px}
+  .modal-header{background:#fff;padding:20px 24px;border-bottom:1px solid #E5E7EB;position:relative;flex-shrink:0}
+  .modal-brand{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:2px;margin-bottom:4px}
   .modal-title{font-size:18px;font-weight:800;color:#111827}
   .modal-body{padding:20px 24px;overflow-y:auto;flex:1}
-  .modal-footer{padding:14px 24px;border-top:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center;background:#FAFAF8;flex-shrink:0;flex-wrap:wrap;gap:8px}
+  .modal-footer{padding:14px 24px;border-top:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center;background:#FAFAFA;flex-shrink:0;flex-wrap:wrap;gap:8px}
   .x-btn{position:absolute;top:14px;right:14px;background:#E5E7EB;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;display:flex;align-items:center;justify-content:center;color:#6B7280;line-height:1}
 
   /* GUIDE POPUP (openContractModal / openPrecheckModal 전용 공통 클래스) */
@@ -159,7 +159,7 @@
   .guide-action-grid{display:flex;flex-wrap:wrap;gap:8px}
   .guide-btn{flex:1;min-width:110px;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:4px}
   .guide-btn:hover{background:#F8FAFC}
-  .guide-btn-primary{border-color:#E8DFD0;color:#A8893A}
+  .guide-btn-primary{border-color:#E5E7EB;color:#374151}
   .guide-btn-danger{background:#FEF2F2;border-color:#FCA5A5;color:#DC2626}
   .guide-btn-warn{background:#FFF7ED;border-color:#FED7AA;color:#C2410C}
   .guide-btn-success{background:#ECFDF5;border-color:#A7F3D0;color:#059669}
@@ -171,15 +171,15 @@
   .form-field.span{grid-column:1/-1}
   .form-label{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.3px}
   .form-input{border:1px solid #E5E7EB;border-radius:8px;padding:9px 12px;font-size:13px;color:#111827;background:#fff;outline:none;width:100%}
-  .form-input:focus{border-color:#C7A96B}
+  .form-input:focus{border-color:#374151}
   .form-input.err{border-color:#EF4444}
   .form-err{font-size:11px;color:#EF4444;margin-top:2px}
-  .hint-box{background:#FDF8F3;border:1px solid #E8DFD0;border-radius:10px;padding:12px 14px;font-size:12px;color:#92773A}
+  .hint-box{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;font-size:12px;color:#374151}
 
   /* SUBTABS */
   .subtab-nav{display:flex;overflow-x:auto;border-bottom:none}
   .subtab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:8px 12px;font-size:12px;font-weight:400;color:#9CA3AF;white-space:nowrap;transition:all .15s}
-  .subtab-btn.active{color:#C7A96B;font-weight:700;border-bottom-color:#C7A96B}
+  .subtab-btn.active{color:#374151;font-weight:700;border-bottom-color:#374151}
 
   /* CHECKLIST */
   .check-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:6px;border:1px solid #E5E7EB;background:#F9FAFB;transition:all .15s;cursor:pointer}
@@ -205,21 +205,21 @@
   .info-row3:last-child,.info-row2:last-child{margin-bottom:0}
   .venue-review-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
   .venue-review-sep{color:#D1D5DB;font-weight:400}
-  .venue-review-btn{display:inline-flex;align-items:center;gap:4px;background:#FDF8F3;border:1px solid #E8DFD0;color:#C7A96B;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:inherit}
+  .venue-review-btn{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;font-family:inherit}
   .venue-review-btn:hover{background:#F5EFE6}
-  .manager-card{background:linear-gradient(135deg,#F9F5EF,#FDF8F3);border:1px solid #E8DFD0;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px}
-  .manager-avatar{width:36px;height:36px;border-radius:50%;background:#C7A96B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .manager-card{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+  .manager-avatar{width:36px;height:36px;border-radius:50%;background:#374151;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 
   /* RESULT CARDS */
   .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .result-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .result-card{border-radius:10px;padding:12px;text-align:center;border:1px solid #E5E7EB}
-  .result-card.gold{background:linear-gradient(135deg,#FDF8F3,#F9F0E0);border-color:#E8DFD0}
+  .result-card.gold{background:#F9FAFB;border-color:#E5E7EB}
   .result-card-icon{font-size:20px;margin-bottom:4px}
   .result-card-lbl{font-size:10px;color:#9CA3AF;margin-bottom:2px}
   .result-card-val{font-size:16px;font-weight:800;color:#111827}
-  .result-card.gold .result-card-val{color:#C7A96B}
-  .result-notes{margin-top:10px;background:#F9FAFB;border-radius:8px;padding:10px 14px;font-size:12px;color:#6B7280;border-left:3px solid #C7A96B}
+  .result-card.gold .result-card-val{color:#111827}
+  .result-notes{margin-top:10px;background:#F9FAFB;border-radius:8px;padding:10px 14px;font-size:12px;color:#6B7280;border-left:3px solid #374151}
   .empty-result{background:#F9FAFB;border:1px dashed #E5E7EB;border-radius:10px;padding:16px;text-align:center;color:#9CA3AF;font-size:13px}
 
   /* PRESET TAGS */
@@ -232,7 +232,8 @@
   /* GENERAL BUTTONS */
   .btn{background:#fff;border:1px solid #E5E7EB;border-radius:8px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-family:inherit;box-shadow:none}
   .btn:hover{background:#F8FAFC}
-  .btn-primary{background:#fff;color:#A8893A;border-color:#E8DFD0;padding:10px 20px;font-size:13px}
+  .btn-primary{background:#1F2937;color:#fff;border-color:#1F2937;padding:10px 20px;font-size:13px}
+  .btn-primary:hover{background:#111827}
   .btn-primary.sm{padding:6px 14px;font-size:12px}
   .btn-secondary{background:#fff;color:#374151;border-color:#E5E7EB;padding:10px 20px;font-size:13px}
   .btn-secondary.sm{padding:6px 14px;font-size:12px}
@@ -255,18 +256,18 @@
 
   /* LOADING */
   #loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:12px}
-  .spinner{width:36px;height:36px;border:3px solid #E8DFD0;border-top-color:#C7A96B;border-radius:50%;animation:spin .8s linear infinite}
+  .spinner{width:36px;height:36px;border:3px solid rgba(0,0,0,.08);border-top-color:#9CA3AF;border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
  
   /* LOGIN */
-  #login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#F8F5F0,#FDF8F3);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
+  #login-screen{position:fixed;inset:0;background:#F9FAFB;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
   .login-box{background:var(--bg2);border-radius:var(--radius-xl);padding:40px 32px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.12)}
   .login-sub{font-size:12px;color:var(--text3);text-align:center;margin-bottom:32px}
   .login-field{margin-bottom:14px}
   .login-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block}
   .login-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 14px;font-size:14px;color:var(--text);outline:none;font-family:inherit;transition:border-color .15s}
   .login-input:focus{border-color:var(--gold)}
-  .login-btn{width:100%;background:#fff;color:var(--gold2);border:1px solid var(--border2);border-radius:var(--radius);padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit;transition:background .15s}
+  .login-btn{width:100%;background:#1F2937;color:#fff;border:1px solid #1F2937;border-radius:var(--radius);padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit;transition:background .15s}
   .login-btn:hover{background:#F8FAFC}
   .login-err{font-size:12px;color:#EF4444;text-align:center;margin-top:10px;min-height:18px;font-weight:600}
 
@@ -281,7 +282,7 @@
  /* STATUS FILTER */
   .status-filter-btn{border:1px solid #E5E7EB;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;background:#fff;color:#6B7280;cursor:pointer;transition:all .15s;font-family:inherit}
   .status-filter-btn:hover{background:#F8FAFC;border-color:#E5E7EB}
-  .status-filter-btn.active{background:#C7A96B;color:#fff;border-color:#C7A96B}
+  .status-filter-btn.active{background:#374151;color:#fff;border-color:#374151}
   .status-filter-btn[data-status="계약완료"].active   {background:#6B7280;border-color:#6B7280}
   .status-filter-btn[data-status="인터뷰대기"].active  {background:#F59E0B;border-color:#F59E0B}
   .status-filter-btn[data-status="최종준비완료"].active{background:#3B82F6;border-color:#3B82F6}
@@ -290,10 +291,10 @@
 
   /* NOTIFICATIONS */
   .notif-item{padding:12px 16px;border-bottom:1px solid #F9FAFB;cursor:pointer;transition:background .15s;display:flex;gap:10px;align-items:flex-start}
-  .notif-item:hover{background:#FDF8F3}
-  .notif-item.unread{background:#FFF9F0;border-left:3px solid #C7A96B}
+  .notif-item:hover{background:#F3F4F6}
+  .notif-item.unread{background:#F3F4F6;border-left:3px solid #374151}
   .notif-item.read{border-left:3px solid transparent}
-  .notif-dot{width:8px;height:8px;border-radius:50%;background:#C7A96B;flex-shrink:0;margin-top:4px}
+  .notif-dot{width:8px;height:8px;border-radius:50%;background:#374151;flex-shrink:0;margin-top:4px}
   .notif-dot.read{background:#E5E7EB}
   .notif-msg{font-size:12px;color:#374151;line-height:1.5;white-space:pre-line;word-break:break-word}
   .notif-time{font-size:10px;color:#9CA3AF;margin-top:3px}
@@ -440,7 +441,7 @@
 
     <!-- 관리자: 드롭다운 프로필 -->
     <div id="admin-user-wrap" style="display:none;position:relative;flex-shrink:0">
-      <button id="user-btn" onclick="toggleDrop()" style="display:flex;flex-direction:row;align-items:center;gap:8px;background:#FDF8F3;border:1px solid #E8DFD0;border-radius:20px;padding:5px 12px 5px 5px">
+      <button id="user-btn" onclick="toggleDrop()" style="display:flex;flex-direction:row;align-items:center;gap:8px;background:#fff;border:1px solid #E5E7EB;border-radius:20px;padding:5px 12px 5px 5px">
         <div class="avatar" id="nav-avatar">대</div>
         <div style="line-height:1.2">
           <div id="nav-name" style="font-size:12px;font-weight:700;color:#111827;line-height:1"></div>
@@ -451,7 +452,7 @@
     </div>
 
     <!-- 일반 매니저: 이름 표시 -->
-    <div id="normal-user-wrap" style="display:none;flex-direction:row;align-items:center;gap:8px;background:#FDF8F3;border:1px solid #E8DFD0;border-radius:8px;padding:5px 12px 5px 5px;flex-shrink:0">
+    <div id="normal-user-wrap" style="display:none;flex-direction:row;align-items:center;gap:8px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:5px 12px 5px 5px;flex-shrink:0">
       <div class="avatar" id="normal-avatar">매</div>
       <div style="line-height:1.2">
         <div id="normal-name" style="font-size:12px;font-weight:700;color:#111827;line-height:1"></div>
@@ -469,9 +470,9 @@
       </button>
       <!-- 알림 드롭다운 -->
       <div id="notif-drop" style="display:none;background:#fff;border:1px solid #E5E7EB;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:400;flex-direction:column">
-        <div style="padding:14px 16px;border-bottom:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:sticky;top:0;background:#fff;z-index:1">
+        <div style="padding:14px 16px;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:sticky;top:0;background:#fff;z-index:1">
           <span style="font-size:14px;font-weight:800;color:#111827">🔔 알림</span>
-          <button onclick="markAllRead()" style="background:none;border:none;font-size:11px;color:#C7A96B;font-weight:700;cursor:pointer">모두 읽음</button>
+          <button onclick="markAllRead()" style="background:none;border:none;font-size:11px;color:#374151;font-weight:700;cursor:pointer">모두 읽음</button>
         </div>
         <div id="notif-list"></div>
       </div>
@@ -507,7 +508,7 @@
     <!-- 운영 바로가기 (관리자 전용) -->
     <div id="home-admin-shortcuts" style="display:none;margin-bottom:14px">
       <div class="sec-header" style="margin-bottom:0;cursor:pointer" onclick="toggleShortcutContent('admin')">
-        <h2>운영 바로가기 <span id="shortcut-admin-icon" style="font-size:11px;color:#A8893A">▸</span></h2>
+        <h2>운영 바로가기 <span id="shortcut-admin-icon" style="font-size:11px;color:#9CA3AF">▸</span></h2>
       </div>
       <div id="shortcut-admin-content" style="display:none;margin-top:8px">
         <div class="shortcuts-grid">
@@ -533,7 +534,7 @@
     <!-- 매뉴얼 바로가기 (매니저 전용) -->
     <div id="home-manager-shortcuts" style="display:none;margin-bottom:14px">
       <div class="sec-header" style="margin-bottom:0;cursor:pointer" onclick="toggleShortcutContent('manager')">
-        <h2>운영 바로가기 <span id="shortcut-manager-icon" style="font-size:11px;color:#A8893A">▸</span></h2>
+        <h2>운영 바로가기 <span id="shortcut-manager-icon" style="font-size:11px;color:#9CA3AF">▸</span></h2>
       </div>
       <div id="shortcut-manager-content" style="display:none;margin-top:8px">
         <button onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px">
@@ -567,7 +568,7 @@
       <div id="cal-my-only-wrap" style="display:none;margin-bottom:12px">
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#374151;cursor:pointer">
-            <input type="checkbox" id="cal-my-only" onchange="toggleCalendarMyOnly()" style="width:15px;height:15px;accent-color:#C7A96B">
+            <input type="checkbox" id="cal-my-only" onchange="toggleCalendarMyOnly()" style="width:15px;height:15px;accent-color:#374151">
             내 일정만 보기
           </label>
           <!-- 관리자 전용 매니저 필터 -->
@@ -666,7 +667,7 @@
     <!-- 인건비 미지급 필터 -->
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;cursor:pointer">
-        <input type="checkbox" id="settle-unpaid-only" onchange="renderSettle()" style="width:15px;height:15px;accent-color:#C7A96B">
+        <input type="checkbox" id="settle-unpaid-only" onchange="renderSettle()" style="width:15px;height:15px;accent-color:#374151">
         미지급 건만 보기
       </label>
     </div>
@@ -683,17 +684,17 @@
     <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:14px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div style="font-size:12px;font-weight:700;color:#6B7280">보고 대상</div>
-        <div id="rt-target-indicator" style="font-size:11px;font-weight:700;color:#A8893A;background:#FDF8F3;border:1px solid #E8DFD0;border-radius:8px;padding:2px 8px">현재: 신부님</div>
+        <div id="rt-target-indicator" style="font-size:11px;font-weight:700;color:#374151;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:2px 8px">현재: 신부님</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
-          <input type="radio" name="rt-target" value="신부님" checked onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신부님
+          <input type="radio" name="rt-target" value="신부님" checked onchange="rtSetTarget(this.value)" style="accent-color:#374151"> 신부님
         </label>
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
-          <input type="radio" name="rt-target" value="신랑님" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신랑님
+          <input type="radio" name="rt-target" value="신랑님" onchange="rtSetTarget(this.value)" style="accent-color:#374151"> 신랑님
         </label>
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
-          <input type="radio" name="rt-target" value="양측 진행" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 양측 진행
+          <input type="radio" name="rt-target" value="양측 진행" onchange="rtSetTarget(this.value)" style="accent-color:#374151"> 양측 진행
         </label>
       </div>
       <!-- 예식 선택 (2차 자동연동용) -->
@@ -717,7 +718,7 @@
     <!-- 0차 출발안내 -->
     <div id="rt-step-0" class="rt-step-panel">
       <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 출발 안내 메시지를 생성합니다.</div>
-      <button onclick="rtGenStep0()" style="width:100%;background:#fff;color:#A8893A;border:1px solid #E8DFD0;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
+      <button onclick="rtGenStep0()" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
       <textarea id="rt-out-0" class="form-input" rows="12" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
       <button onclick="rtCopy('rt-out-0')" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">📋 복사하기</button>
     </div>
@@ -725,7 +726,7 @@
     <!-- 1차 도착안내 -->
     <div id="rt-step-1" class="rt-step-panel" style="display:none">
       <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 도착 안내 메시지를 생성합니다.</div>
-      <button onclick="rtGenStep1()" style="width:100%;background:#fff;color:#A8893A;border:1px solid #E8DFD0;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
+      <button onclick="rtGenStep1()" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
       <textarea id="rt-out-1" class="form-input" rows="16" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
       <button onclick="rtCopy('rt-out-1')" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">📋 복사하기</button>
     </div>
@@ -736,10 +737,10 @@
       <!-- 현장 프리셋 -->
       <div style="background:#F9FAFB;border-radius:8px;padding:10px 12px;margin-bottom:10px">
         <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">현장 진행 상황</div>
-        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-smooth" style="accent-color:#C7A96B"> 원활하게 진행</label>
-        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-wait" style="accent-color:#C7A96B"> 대기 발생</label>
-        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-vip" style="accent-color:#C7A96B"> VIP 응대</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-extra" style="accent-color:#C7A96B"> 식권 추가 발급</label>
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-smooth" style="accent-color:#374151"> 원활하게 진행</label>
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-wait" style="accent-color:#374151"> 대기 발생</label>
+        <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-vip" style="accent-color:#374151"> VIP 응대</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="rt-chk-extra" style="accent-color:#374151"> 식권 추가 발급</label>
       </div>
       <!-- 특이사항 -->
       <div style="margin-bottom:10px">
@@ -747,7 +748,7 @@
         <div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">예식 선택 시 장부의 운영메모가 자동으로 채워집니다. 직접 수정/추가 입력 가능합니다.</div>
         <textarea id="rt-notes-2" class="form-input" rows="3" style="font-size:12px;resize:vertical" placeholder="특이사항을 직접 입력하세요 (선택)"></textarea>
       </div>
-      <button onclick="rtGenStep2()" style="width:100%;background:#fff;color:#A8893A;border:1px solid #E8DFD0;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
+      <button onclick="rtGenStep2()" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
       <textarea id="rt-out-2" class="form-input" rows="18" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
       <button onclick="rtCopy('rt-out-2')" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">📋 복사하기</button>
     </div>
@@ -768,7 +769,7 @@
         <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">추가 상황</div>
         <!-- 봉투 접수 -->
         <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:6px">📪 봉투 접수</div>
+          <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px">📪 봉투 접수</div>
           <input id="rt-env-names" class="form-input" placeholder="전달자명 (예: 강성주, 전수연) — 비워두면 미출력" style="font-size:12px" oninput="rtAutoSaveClosing()">
         </div>
         <!-- 식권 배부 -->
@@ -783,24 +784,24 @@
       </div>
       <!-- 전자 인계확인서 -->
       <div style="margin-bottom:14px">
-        <div style="background:#FDF8F3;border:1px solid #E8DFD0;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px;margin-bottom:10px">
           <div style="font-size:13px;color:#92400E;line-height:1.7">
             📌 인계 물품 설명 후 수령인이 직접 체크 및 전자서명 해주세요.<br>
             📎 인계 완료 후 인계확인서를 저장하여 화환 사진과 함께 전달해주세요.<br>
             ⚠️ 체크는 매니저가 아닌 수령인이 직접 진행해야 합니다.
           </div>
         </div>
-        <button id="hv-open-btn" onclick="rtOpenHandoverCert()" style="width:100%;background:#fff;border:1.5px solid #C7A96B;color:#C7A96B;border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">📝 수령인 확인 및 서명</button>
+        <button id="hv-open-btn" onclick="rtOpenHandoverCert()" style="width:100%;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">📝 수령인 확인 및 서명</button>
         <div id="hv-status-badge" style="display:none;margin-top:8px">
           <div style="text-align:center;font-size:12px;font-weight:700;color:#059669;margin-bottom:8px">✅ 인계확인서 서명 완료</div>
           <div style="display:flex;gap:8px">
-            <button onclick="rtViewHandoverCert()" style="flex:1;background:#fff;border:1px solid #E8DFD0;color:#A8893A;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">👁 인계확인서 보기</button>
-            <button onclick="rtSaveHandoverCertImage()" style="flex:1;background:#fff;color:#A8893A;border:1px solid #E8DFD0;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">🖼 이미지 저장</button>
+            <button onclick="rtViewHandoverCert()" style="flex:1;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">👁 인계확인서 보기</button>
+            <button onclick="rtSaveHandoverCertImage()" style="flex:1;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">🖼 이미지 저장</button>
           </div>
         </div>
       </div>
 
-      <button onclick="rtGenStep3()" style="width:100%;background:#fff;color:#A8893A;border:1px solid #E8DFD0;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
+      <button onclick="rtGenStep3()" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
       <textarea id="rt-out-3" class="form-input" rows="6" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
       <button onclick="rtCopy('rt-out-3')" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">📋 복사하기</button>
     </div>
@@ -808,7 +809,7 @@
     <!-- 4차 장부안내 -->
     <div id="rt-step-4" class="rt-step-panel" style="display:none">
       <div style="font-size:12px;color:#9CA3AF;margin-bottom:10px">📍 장부 안내 메시지를 생성합니다.</div>
-      <button onclick="rtGenStep4()" style="width:100%;background:#fff;color:#A8893A;border:1px solid #E8DFD0;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
+      <button onclick="rtGenStep4()" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">✏️ 문구 생성</button>
       <textarea id="rt-out-4" class="form-input" rows="20" style="font-size:12px;resize:vertical;font-family:inherit" placeholder="문구 생성 버튼을 눌러주세요"></textarea>
       <button onclick="rtCopy('rt-out-4')" style="width:100%;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">📋 복사하기</button>
     </div>
@@ -857,8 +858,8 @@
           </select>
         </div>
       </div>
-      <button onclick="renderAssignAvailability()" style="width:100%;margin-top:14px;background:#fff;color:#A8893A;border:1px solid #E8DFD0;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">🤖 가능 매니저 확인</button>
-      <div style="font-size:11px;color:#9CA3AF;margin-top:6px">불가일정·기존 배정·이동시간을 고려합니다. 실제 저장은 예식 수정에서 직접 해주세요.<br><span style="color:#C7A96B;font-weight:600">기준: 도착 80분 전 / 종료 50분 후</span></div>
+      <button onclick="renderAssignAvailability()" style="width:100%;margin-top:14px;background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#fff'">🤖 가능 매니저 확인</button>
+      <div style="font-size:11px;color:#9CA3AF;margin-top:6px">불가일정·기존 배정·이동시간을 고려합니다. 실제 저장은 예식 수정에서 직접 해주세요.<br><span style="color:#6B7280;font-weight:600">기준: 도착 80분 전 / 종료 50분 후</span></div>
     </div>
     <div id="assign-result"></div>
   </div>
@@ -900,7 +901,7 @@
   <div style="background:#fff;border-radius:10px;max-width:460px;width:100%;margin:40px auto;border:1px solid #E5E7EB">
     <div style="background:#fff;padding:16px 20px;border-radius:10px 10px 0 0;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center">
       <div>
-        <div style="font-size:10px;font-weight:700;color:#C7A96B;letter-spacing:2px">DEAR GUARD · 매니저 현황</div>
+        <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:2px">DEAR GUARD · 매니저 현황</div>
         <div id="uvDay-title" style="font-size:16px;font-weight:800;color:#111827;margin-top:2px"></div>
       </div>
       <button onclick="closeUvDayModal()" style="background:#E5E7EB;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;color:#6B7280">✕</button>
@@ -927,7 +928,7 @@
     <!-- 탭 -->
     <div style="display:flex;gap:0;border-bottom:2px solid #E5E7EB;margin-bottom:14px">
       <button id="referral-tab-avail" onclick="switchReferralTab('avail')"
-        style="flex:1;background:none;border:none;border-bottom:2px solid #C7A96B;margin-bottom:-2px;padding:8px 0;font-size:13px;font-weight:700;color:#C7A96B;cursor:pointer">
+        style="flex:1;background:none;border:none;border-bottom:2px solid #374151;margin-bottom:-2px;padding:8px 0;font-size:13px;font-weight:700;color:#374151;cursor:pointer">
         사용 가능 <span id="referral-cnt-avail" style="font-size:11px;background:#FEF3C7;color:#92400E;border-radius:8px;padding:1px 6px;margin-left:4px"></span>
       </button>
       <button id="referral-tab-used" onclick="switchReferralTab('used')"
@@ -991,10 +992,10 @@
             <label class="form-label">계약 대표 측 <span style="color:#EF4444">*</span> <span style="font-size:10px;color:#9CA3AF">양측 예식일 때 대표 계약자를 선택하세요</span></label>
             <div style="display:flex;gap:10px;align-items:center">
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600">
-                <input type="radio" name="f-contract-owner" id="f-owner-groom" value="신랑측" style="accent-color:#C7A96B"> 신랑
+                <input type="radio" name="f-contract-owner" id="f-owner-groom" value="신랑측" style="accent-color:#374151"> 신랑
               </label>
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600">
-                <input type="radio" name="f-contract-owner" id="f-owner-bride" value="신부측" style="accent-color:#C7A96B"> 신부
+                <input type="radio" name="f-contract-owner" id="f-owner-bride" value="신부측" style="accent-color:#374151"> 신부
               </label>
             </div>
           </div>
@@ -1184,7 +1185,7 @@
       </div>
      <!-- ── 섹션 3.5: 정산 정보 (관리자 전용) ── -->
       <div id="fm-sec-settlement" style="display:none;padding:16px 24px">
-        <div class="hint-box" style="margin-bottom:10px;background:#FDF8F3;border-color:#E8DFD0;padding:6px 10px;font-size:11px">
+        <div class="hint-box" style="margin-bottom:10px;background:#F9FAFB;border-color:#E5E7EB;padding:6px 10px;font-size:11px">
           🔒 이 섹션은 관리자(강성주·전수연)에게만 표시됩니다.
         </div>
 
@@ -1300,9 +1301,9 @@
         <div class="form-field"><label class="form-label">식권 사용 (매)</label><input class="form-input" id="r-ticket-used" type="number" placeholder="248"></div>
       </div>
       <div class="form-field" style="margin-top:12px"><label class="form-label">특이사항</label><textarea class="form-input" id="r-notes" rows="3" placeholder="현장 특이사항, VIP 응대 결과 등" style="resize:vertical;line-height:1.6"></textarea></div>
-      <div id="amount-preview" style="display:none;margin-top:12px;background:linear-gradient(135deg,#FDF8F3,#F9F0E0);border:1px solid #E8DFD0;border-radius:10px;padding:12px;text-align:center">
+      <div id="amount-preview" style="display:none;margin-top:12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px;text-align:center">
         <div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">총 축의금</div>
-        <div id="amount-preview-val" style="font-size:22px;font-weight:800;color:#C7A96B"></div>
+        <div id="amount-preview-val" style="font-size:22px;font-weight:800;color:#111827"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1325,21 +1326,21 @@
     <div class="modal-body">
 
       <!-- 1. 수령인 정보 -->
-      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:10px;padding:16px;margin-bottom:12px">
+      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:10px">① 수령인 정보</div>
         <div class="form-field" style="margin-bottom:10px"><label class="form-label">관계 / 성함</label><input class="form-input" id="hv-name" placeholder="예) 친동생 신민지, 고모 김희애" oninput="rtValidateHandover()"></div>
         <div class="form-field"><label class="form-label">연락처</label><input class="form-input" id="hv-phone" type="tel" placeholder="010-0000-0000" oninput="rtValidateHandover()"></div>
       </div>
 
       <!-- 2. 인계 물품 확인 -->
-      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:10px;padding:16px;margin-bottom:12px">
+      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:2px">② 인계 물품 확인</div>
         <div style="font-size:11px;color:#9CA3AF;margin-bottom:12px">설명을 들으신 후 하나씩 체크해주세요</div>
         <div id="hv-items-checklist"></div>
       </div>
 
       <!-- 3. 수령인 서명 -->
-      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:10px;padding:16px;margin-bottom:12px">
+      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:10px">③ 수령인 서명</div>
         <div style="border:1.5px dashed #D4C7AE;border-radius:12px;background:#FAFAF9;overflow:hidden;position:relative">
           <canvas id="hv-sign-canvas" style="width:100%;height:160px;display:block;touch-action:none;background:#fff"></canvas>
@@ -1412,7 +1413,7 @@
       <!-- 부부동반 등록/수정 (신규 등록 + 수정 모드 모두 지원) -->
       <div id="uv-couple-wrap" style="display:none;margin-top:12px;background:#FFF9F0;border:1.5px solid #FDE68A;border-radius:10px;padding:10px 14px">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-          <input type="checkbox" id="uv-couple-chk" style="width:15px;height:15px;accent-color:#C7A96B">
+          <input type="checkbox" id="uv-couple-chk" style="width:15px;height:15px;accent-color:#374151">
           <span id="uv-couple-label" style="font-size:13px;font-weight:700;color:#92400E">💑 부부동반 등록</span>
         </label>
         <div id="uv-couple-partner" style="font-size:11px;color:#9CA3AF;margin-top:4px;margin-left:23px"></div>
@@ -1905,7 +1906,7 @@ async function startApp(){
           </code>
         </div>
         <button onclick="document.getElementById('loading-overlay').style.display='none';renderAll()"
-          style="background:#C7A96B;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+          style="background:#1F2937;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
           키 없이 미리보기로 계속
         </button>
       </div>`;
@@ -2003,7 +2004,7 @@ function renderUserDrop(){
   drop.innerHTML = `<div style="font-size:10px;color:#9CA3AF;padding:4px 8px 8px;font-weight:600">📋 조회 전환 (관리자 전용)</div>`
     + USERS.map(u=>`
     <button class="user-drop-item ${u.id===currentUser.id?'selected':''}" onclick="switchUser(${u.id})">
-      <div class="avatar" style="background:${u.id===currentUser.id?'#C7A96B':'#E5E7EB'};color:${u.id===currentUser.id?'#fff':'#6B7280'}">${u.avatar}</div>
+      <div class="avatar" style="background:${u.id===currentUser.id?'#374151':'#E5E7EB'};color:${u.id===currentUser.id?'#fff':'#6B7280'}">${u.avatar}</div>
       <div>
         <div style="font-size:13px;font-weight:600;color:#111827">${esc(u.name)}</div>
         <div style="font-size:10px;color:#9CA3AF">${esc(u.role)}${u.isAdmin?' · 관리자':''}</div>
@@ -2040,7 +2041,7 @@ function renderStats(){
   const urgent    = vs.filter(s=>s.status==='긴급확인').length;
 
   const statItems = [
-    {label:'이번달 예식',value:monthCnt, icon:'🗓', color:'#A8893A', click:'switchTab(\'calendar\',null,document.querySelectorAll(\'.bnav-btn\')[1])'},
+    {label:'이번달 예식',value:monthCnt, icon:'🗓', color:'#374151', click:'switchTab(\'calendar\',null,document.querySelectorAll(\'.bnav-btn\')[1])'},
     {label:'잔금 미완',  value:noBalance,icon:'💰', color:'#D97706', click:''},
     {label:'긴급 확인',  value:urgent,   icon:'🚨', color:'#DC2626', click:'openUrgentFilter()'},
   ];
@@ -2079,7 +2080,7 @@ function renderToday(){
             </div>
             <div style="font-size:12px;color:#6B7280">${esc(s.hall)}</div>
           </div>
-          <span style="background:#FDF8F3;color:#A8893A;border-radius:6px;
+          <span style="background:#F3F4F6;color:#374151;border-radius:6px;
             padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">
             ${esc(s.status)}
           </span>
@@ -2093,7 +2094,7 @@ function renderToday(){
         ${s.handoverPerson ? `<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:5px 10px;font-size:11px;color:#DC2626;margin-bottom:8px;font-weight:700">인계자: ${esc(s.handoverPerson)}</div>` : ''}
         <div style="display:flex;align-items:center;gap:6px">
           <div style="flex:1;height:4px;background:#E5E7EB;border-radius:99px;overflow:hidden">
-            <div style="height:100%;border-radius:99px;background:#C7A96B;
+            <div style="height:100%;border-radius:99px;background:#374151;
               width:${Math.round(Object.values(s.checklist).filter(Boolean).length/Object.keys(s.checklist).length*100)}%"></div>
           </div>
           <span style="font-size:10px;color:#9CA3AF">
@@ -2176,7 +2177,7 @@ function renderPrecheckReminder(){
         onmouseout="this.style.background='#fff'">
         <div style="min-width:36px;text-align:center;flex-shrink:0">
           <div style="font-size:14px;line-height:1;margin-bottom:2px">${sideIcon(s)}</div>
-          <div style="font-size:11px;font-weight:800;color:#A8893A">${dday}</div>
+          <div style="font-size:11px;font-weight:800;color:#374151">${dday}</div>
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
@@ -2253,7 +2254,7 @@ const byDay = day => {
       <button class="btn btn-ghost sm" onclick="calMove(-1)">‹ 이전</button>
       <div style="text-align:center">
         <div class="cal-nav-title">${calYear}년 ${calMonth+1}월</div>
-        <div style="font-size:11px;color:#A8893A;font-weight:700;margin-top:2px">예식 총 ${calMonthCnt}건</div>
+        <div style="font-size:11px;color:#374151;font-weight:700;margin-top:2px">예식 총 ${calMonthCnt}건</div>
         ${isAdminCal ? `<div style="font-size:10px;color:#9CA3AF;margin-top:2px">레디백 예상 ${readybagCnt}개</div>` : ''}
         <div class="cal-jump-wrap">
           <select id="cal-year-select" class="cal-jump-select" onchange="jumpCalendarMonth()">
@@ -2277,7 +2278,7 @@ const byDay = day => {
         const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const isToday=ds===TODAY;
         const isHoliday=idx%7===0;const isSat=idx%7===6;
-        const dayCol=isToday?'#A8893A':isHoliday?'#DC2626':isSat?'#2563EB':'#374151';
+        const dayCol=isToday?'#374151':isHoliday?'#DC2626':isSat?'#2563EB':'#374151';
         const dayNum=isToday?`<span class="cal-today-circle">${day}</span>`:day;
         const pills = ss.slice(0,5).map(s => {
           const name = (s.brideName||s.groomName||'예식');
@@ -2567,8 +2568,8 @@ function openDetail(id){
       </span>
       <span style="display:flex;gap:6px;flex-shrink:0">
         <button onclick="event.stopPropagation();window.open('/contribution.html?schedule_id=${s.id}','_blank')"
-          onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#FDF8F3'"
-          style="background:#FDF8F3;color:#A8893A;border:1px solid #E8DFD0;border-radius:8px;
+          onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='#F3F4F6'"
+          style="background:#F3F4F6;color:#374151;border:1px solid #E5E7EB;border-radius:8px;
             padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;
             display:inline-flex;align-items:center;gap:3px">
           <span style="font-size:10px">💌</span>접수
@@ -2632,8 +2633,8 @@ function openDetail(id){
         <div class="info-box"><div class="info-box-lbl">도착 시간</div><div class="info-box-val">${esc(s.arrivalTime)||'-'}</div></div>
       </div>
       <div class="info-row2">
-        <div class="info-box"><div class="info-box-lbl">신랑 연락처</div><div class="info-box-val">${s.groomPhone ? `<a href="tel:${esc(s.groomPhone)}" style="color:#C7A96B;text-decoration:none">${esc(s.groomPhone)}</a>` : '-'}</div></div>
-        <div class="info-box"><div class="info-box-lbl">신부 연락처</div><div class="info-box-val">${s.bridePhone ? `<a href="tel:${esc(s.bridePhone)}" style="color:#C7A96B;text-decoration:none">${esc(s.bridePhone)}</a>` : '-'}</div></div>
+        <div class="info-box"><div class="info-box-lbl">신랑 연락처</div><div class="info-box-val">${s.groomPhone ? `<a href="tel:${esc(s.groomPhone)}" style="color:#374151;text-decoration:none">${esc(s.groomPhone)}</a>` : '-'}</div></div>
+        <div class="info-box"><div class="info-box-lbl">신부 연락처</div><div class="info-box-val">${s.bridePhone ? `<a href="tel:${esc(s.bridePhone)}" style="color:#374151;text-decoration:none">${esc(s.bridePhone)}</a>` : '-'}</div></div>
       </div>
       <div class="info-box" style="margin-bottom:10px">
         <div class="info-box-lbl">웨딩홀 · 예식홀</div>
@@ -3199,8 +3200,8 @@ function switchReferralTab(tab){
     const btn = document.getElementById(`referral-tab-${t}`);
     if(!btn) return;
     const isActive = t === tab;
-    btn.style.borderBottomColor = isActive ? '#C7A96B' : 'transparent';
-    btn.style.color             = isActive ? '#C7A96B' : '#9CA3AF';
+    btn.style.borderBottomColor = isActive ? '#374151' : 'transparent';
+    btn.style.color             = isActive ? '#374151' : '#9CA3AF';
     btn.style.fontWeight        = isActive ? '700'     : '600';
   });
   renderReferralList();
@@ -3294,7 +3295,7 @@ function renderReferralList(){
           <span style="background:#D1FAE5;color:#065F46;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">사용가능</span>
         </div>
         <div style="font-size:13px;color:#374151;margin-bottom:3px">
-          대표 짝꿍코드: <b style="font-size:15px;color:#C7A96B;letter-spacing:.5px">${esc(r.code)}</b>
+          대표 짝꿍코드: <b style="font-size:15px;color:#111827;letter-spacing:.5px">${esc(r.code)}</b>
         </div>
         ${r.contractDate ? `<div style="font-size:11px;color:#6B7280">계약일: ${r.contractDate}</div>` : ''}
         ${r.weddingDate  ? `<div style="font-size:11px;color:#6B7280">예식일: ${r.weddingDate}</div>`  : ''}
@@ -3390,7 +3391,7 @@ function renderReferralList(){
           <span style="background:#FEF3C7;color:#92400E;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">사용완료</span>
         </div>
         <div style="font-size:13px;color:#374151;margin-bottom:3px">
-          사용된 코드: <b style="font-size:15px;color:#C7A96B;letter-spacing:.5px">${esc(u.used_code)}</b>
+          사용된 코드: <b style="font-size:15px;color:#111827;letter-spacing:.5px">${esc(u.used_code)}</b>
         </div>
         ${u.used_by_name ? `<div style="font-size:11px;color:#92400E">→ 사용자: ${esc(u.used_by_name)}</div>` : ''}
         ${dateStr        ? `<div style="font-size:11px;color:#6B7280">${u.source==='legacy'?'등록일':'사용일'}: ${dateStr}</div>` : ''}
@@ -3909,9 +3910,9 @@ function syncWageBasisButtons(){
     oldBtn.style.borderColor = !isNew ? '#111827' : '#E5E7EB';
   }
   if(newBtn){
-    newBtn.style.background  = isNew ? '#C7A96B' : '#fff';
+    newBtn.style.background  = isNew ? '#111827' : '#fff';
     newBtn.style.color       = isNew ? '#fff'    : '#374151';
-    newBtn.style.borderColor = isNew ? '#C7A96B' : '#E5E7EB';
+    newBtn.style.borderColor = isNew ? '#111827' : '#E5E7EB';
   }
 }
 
@@ -4991,7 +4992,7 @@ function renderUnavailCal(){
         const ds = `${uvCalYear}-${String(uvCalMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const isToday = ds === TODAY;
         const isHol   = idx%7===0, isSat = idx%7===6;
-        const dayCol  = isToday?'#C7A96B':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
+        const dayCol  = isToday?'#374151':isHol?'#EF4444':isSat?'#3B82F6':'#374151';
         const dayNum  = isToday ? `<span class="cal-today-circle">${day}</span>` : day;
         const uu      = byDay(day);
 
@@ -5378,7 +5379,7 @@ function openUvDayModal(ds){
     if(!canEdit(n)) return '';
     if(existingId){
       return `<button onclick="closeUvDayModal();uvOpenEdit(${existingId})"
-        style="font-size:10px;background:#fff;border:1px solid #C7A96B;border-radius:5px;padding:2px 8px;cursor:pointer;color:#C7A96B;font-weight:700;white-space:nowrap">수정</button>`;
+        style="font-size:10px;background:#fff;border:1px solid #E5E7EB;border-radius:5px;padding:2px 8px;cursor:pointer;color:#374151;font-weight:700;white-space:nowrap">수정</button>`;
     }
     // ds, n 모두 단따옴표로 감싸기 (한국어 이름/날짜에 쌍따옴표 없음)
     return `<button onclick="closeUvDayModal();uvOpenNew('${ds}','${n}')"
@@ -5719,7 +5720,7 @@ function showUvEditDialog(myName, partnerName){
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <button onclick="document.getElementById('uv-confirm-dialog').remove();window._uvResolve('both')"
-            style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            style="background:#1F2937;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
             둘 다 수정 (${esc(myName)} + ${esc(partnerName)})
           </button>
           <button onclick="document.getElementById('uv-confirm-dialog').remove();window._uvResolve('mine')"
@@ -6162,7 +6163,7 @@ function renderAssignAvailability(){
 
   const isAdmin = n => ADMIN_NAMES.includes(n);
   const badge = n => isAdmin(n)
-    ? `<span style="font-size:10px;background:#FDF8F3;color:#C7A96B;border-radius:4px;padding:1px 6px;margin-left:4px;font-weight:700">관리자</span>`
+    ? `<span style="font-size:10px;background:#F3F4F6;color:#374151;border-radius:4px;padding:1px 6px;margin-left:4px;font-weight:700">관리자</span>`
     : '';
 
   const nameRow = (item, color) =>
@@ -6756,7 +6757,7 @@ function rtOpenHandoverCert(){
   const listEl = document.getElementById('hv-items-checklist');
   const itemsHtml = items.map((label, i) => `
     <div class="hv-chk-card" id="hv-chk-card-item${i}" onclick="rtToggleHandoverCheck('item${i}')"
-      style="display:flex;align-items:center;gap:12px;background:#FAF8F4;border:1.5px solid #E8DFD0;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer">
+      style="display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer">
       <div class="hv-chk-box" id="hv-chk-box-item${i}"
         style="width:26px;height:26px;border-radius:8px;border:2px solid #D4C7AE;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:900">
       </div>
@@ -6764,7 +6765,7 @@ function rtOpenHandoverCert(){
     </div>`).join('');
   const procHtml = procedureItems.map((label, i) => `
     <div class="hv-chk-card" id="hv-chk-card-proc${i}" onclick="rtToggleHandoverCheck('proc${i}')"
-      style="display:flex;align-items:center;gap:12px;background:#FAF8F4;border:1.5px solid #E8DFD0;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer">
+      style="display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer">
       <div class="hv-chk-box" id="hv-chk-box-proc${i}"
         style="width:26px;height:26px;border-radius:8px;border:2px solid #D4C7AE;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:900">
       </div>
@@ -6809,11 +6810,11 @@ function rtToggleHandoverCheck(key){
   const card = document.getElementById('hv-chk-card-'+key);
   const box  = document.getElementById('hv-chk-box-'+key);
   if(hvChecks[key]){
-    card.style.background = '#FDF8F3'; card.style.borderColor = '#C7A96B';
-    box.style.background = '#C7A96B'; box.style.borderColor = '#C7A96B';
+    card.style.background = '#F3F4F6'; card.style.borderColor = '#374151';
+    box.style.background = '#374151'; box.style.borderColor = '#374151';
     box.textContent = '✓';
   } else {
-    card.style.background = '#FAF8F4'; card.style.borderColor = '#E8DFD0';
+    card.style.background = '#fff'; card.style.borderColor = '#E5E7EB';
     box.style.background = '#fff'; box.style.borderColor = '#D4C7AE';
     box.textContent = '';
   }
@@ -6832,8 +6833,8 @@ function rtValidateHandover(){
   if(btn){
     btn.disabled = !allValid;
     btn.style.background = allValid ? '#fff' : '#F9FAFB';
-    btn.style.borderColor = allValid ? '#E8DFD0' : '#E5E7EB';
-    btn.style.color = allValid ? '#A8893A' : '#9CA3AF';
+    btn.style.borderColor = allValid ? '#374151' : '#E5E7EB';
+    btn.style.color = allValid ? '#374151' : '#9CA3AF';
     btn.style.cursor = allValid ? 'pointer' : 'not-allowed';
   }
   if(helper){
@@ -7038,17 +7039,17 @@ async function rtSaveHandoverCertImage(viewOnly){
   div.style.cssText = 'position:absolute;top:0;left:0;width:640px;background:#fff;font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#111827;z-index:-9999;visibility:hidden';
 
   div.innerHTML = `
-    <div style="width:640px;padding:0;background:#fff;border:1px solid #E8DFD0">
-      <div style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);padding:28px 40px;text-align:center">
+    <div style="width:640px;padding:0;background:#fff;border:1px solid #E5E7EB">
+      <div style="background:#1F2937;padding:28px 40px;text-align:center">
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:3px;margin-bottom:6px">Dear Guard</div>
         <div style="font-size:23px;font-weight:900;color:#fff;letter-spacing:6px">인 계 확 인 서</div>
       </div>
       <div style="padding:36px 40px 0">
-        <div style="font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:26px;padding-bottom:22px;border-bottom:2px solid #F0EBE1;line-height:1.7">
+        <div style="font-size:12px;color:#9CA3AF;text-align:center;margin-bottom:26px;padding-bottom:22px;border-bottom:2px solid #E5E7EB;line-height:1.7">
           수령인 본인이 직접 항목을 확인하고<br>전자서명까지 완료하였음을 증빙합니다.
         </div>
 
-        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">기본 정보</div>
+        <div style="font-size:12px;font-weight:800;color:#6B7280;letter-spacing:.5px;margin-bottom:10px">기본 정보</div>
         <div style="display:flex;padding:8px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
           <div style="width:110px;color:#9CA3AF;font-weight:600">예식명</div>
           <div style="flex:1;font-weight:700">${esc(coupleName(s))}</div>
@@ -7062,7 +7063,7 @@ async function rtSaveHandoverCertImage(viewOnly){
           <div style="flex:1;font-weight:700">${esc(s.hall||'-')}</div>
         </div>
 
-        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">수령인 정보</div>
+        <div style="font-size:12px;font-weight:800;color:#6B7280;letter-spacing:.5px;margin-bottom:10px">수령인 정보</div>
         <div style="display:flex;padding:8px 0;border-bottom:1px solid #F5F3F0;font-size:14px">
           <div style="width:110px;color:#9CA3AF;font-weight:600">관계 / 성함</div>
           <div style="flex:1;font-weight:700">${esc(nameDisplay)}</div>
@@ -7072,25 +7073,25 @@ async function rtSaveHandoverCertImage(viewOnly){
           <div style="flex:1;font-weight:700">${esc(phoneRaw||'-')}</div>
         </div>
 
-        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">인계 품목</div>
+        <div style="font-size:12px;font-weight:800;color:#6B7280;letter-spacing:.5px;margin-bottom:10px">인계 품목</div>
         ${itemsArr.map(it=>`<div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#374151;padding:5px 0">
           <span style="color:#10B981;font-weight:900;font-size:15px">☑</span>${esc(it)}
         </div>`).join('')}
 
-        <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-top:18px;margin-bottom:10px">확인 사항</div>
+        <div style="font-size:12px;font-weight:800;color:#6B7280;letter-spacing:.5px;margin-top:18px;margin-bottom:10px">확인 사항</div>
         ${procedureItems.map(it=>`<div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#374151;padding:5px 0">
           <span style="color:#10B981;font-weight:900;font-size:15px">☑</span>${esc(it)}
         </div>`).join('')}
 
         ${closingItems.length ? `
         <div style="margin-top:24px">
-          <div style="font-size:12px;font-weight:800;color:#C7A96B;letter-spacing:.5px;margin-bottom:10px">접수 마감 후 상황</div>
+          <div style="font-size:12px;font-weight:800;color:#6B7280;letter-spacing:.5px;margin-bottom:10px">접수 마감 후 상황</div>
           <div style="background:#FAFAF9;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;font-size:13px;color:#374151;line-height:1.7">
             ${closingItems.map(item=>`<div style="margin-bottom:${closingItems.length>1?'10px':'0'}">· ${esc(item)}</div>`).join('')}
           </div>
         </div>` : ''}
 
-        <div style="margin-top:30px;border-top:2px solid #C7A96B;padding-top:20px">
+        <div style="margin-top:30px;border-top:2px solid #E5E7EB;padding-top:20px">
           <div style="text-align:center;margin-bottom:18px">
             <div style="font-size:11px;color:#9CA3AF;font-weight:700;letter-spacing:1px;margin-bottom:6px">인 계 일 시</div>
             <div style="font-size:19px;font-weight:900;color:#92400E;letter-spacing:.5px">${dateTimeStr}</div>
@@ -7343,13 +7344,13 @@ function formatNotifFull(msg){
             : `${date} <span>(${dName})</span> ${time}`;
         }
       );
-      return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:3px;word-break:break-word;line-height:1.5">${safeFirst}</div>`;
+      return `<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:3px;word-break:break-word;line-height:1.5">${safeFirst}</div>`;
     }
 
     // 2번째 줄: 신청 측 → 골드 굵게 (이름 직접 표시)
     if(line.startsWith('신청 측')){
       const val = line.replace(/^신청\s*측\s*:?\s*/, '').trim();
-      return `<div style="font-size:12px;font-weight:700;color:#C7A96B;margin-bottom:4px;word-break:break-word;line-height:1.5">${esc(val)}</div>`;
+      return `<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:4px;word-break:break-word;line-height:1.5">${esc(val)}</div>`;
     }
 
     // 3번째 줄: Front / Back 담당자 → 연회색 작게
@@ -7379,7 +7380,7 @@ function renderNotifList(){
         <!-- PC: 전체 메시지, 모바일: 축약 표시 -->
         <div class="notif-msg notif-full">${formatNotifFull(n.message)}</div>
         <div class="notif-compact" style="display:none">
-          <div style="font-size:11px;font-weight:700;color:#C7A96B;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
             ${esc(typeLabel)}
           </div>
           ${nameLine ? `<div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:1px">
@@ -7708,27 +7709,27 @@ function showPhotoReminder(s){
 
   const popup = document.createElement('div');
   popup.id = 'photo-reminder-popup';
-  popup.style.cssText = 'position:fixed;bottom:90px;right:16px;left:16px;max-width:360px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.2);border:2px solid #C7A96B;z-index:3000;overflow:hidden;animation:slideUpPhoto .3s ease';
+  popup.style.cssText = 'position:fixed;bottom:90px;right:16px;left:16px;max-width:360px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.2);border:1px solid #E5E7EB;z-index:3000;overflow:hidden;animation:slideUpPhoto .3s ease';
 
   const name = esc(coupleName(s));
   const sid  = s.id;
 
   popup.innerHTML =
     '<style>@keyframes slideUpPhoto{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}</style>' +
-    '<div style="background:linear-gradient(135deg,#C7A96B,#E8C98A);padding:12px 16px;display:flex;align-items:center;justify-content:space-between">' +
+    '<div style="background:#1F2937;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">' +
       '<div style="font-size:14px;font-weight:800;color:#fff">📸 현장 사진 촬영 알림</div>' +
       '<button id="photo-reminder-close" style="background:rgba(255,255,255,.3);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:14px;cursor:pointer;line-height:1">✕</button>' +
     '</div>' +
     '<div style="padding:14px 16px">' +
       '<div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px">' + name + ' 본식 시작 5분 경과!</div>' +
-      '<div style="font-size:12px;color:#374151;line-height:2;background:#FDF8F3;border-radius:8px;padding:10px 14px;margin-bottom:12px">' +
+      '<div style="font-size:12px;color:#374151;line-height:2;background:#F9FAFB;border-radius:8px;padding:10px 14px;margin-bottom:12px">' +
         '☑️ 화환 / 축기 사진<br>' +
         '☑️ 축의대 현장 사진<br>' +
         '☑️ 식권 테이블 사진<br>' +
         '☑️ 전반적인 현장 분위기 사진' +
       '</div>' +
       '<div style="display:flex;gap:8px">' +
-        '<button onclick="closeDetail();openDetail(' + sid + ');document.getElementById(\'photo-reminder-popup\').remove()" style="flex:1;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">📋 예식 상세 보기</button>' +
+        '<button onclick="closeDetail();openDetail(' + sid + ');document.getElementById(\'photo-reminder-popup\').remove()" style="flex:1;background:#1F2937;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">📋 예식 상세 보기</button>' +
         '<button id="photo-reminder-confirm" style="flex:1;background:#F3F4F6;color:#374151;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">✅ 촬영 완료</button>' +
       '</div>' +
     '</div>';

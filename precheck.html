@@ -28,7 +28,7 @@
 :root{
   --bg:#F4F4F3;--bg2:#fff;--bg3:#F8F8F7;
   --border:#E5E5E3;--border2:#EAEAE8;
-  --gold:#C7A96B;--gold2:#A8893A;--gold-bg:#FDF8F0;
+  --gold:#374151;--gold2:#374151;--gold-bg:#F9FAFB;
   --text:#111827;--text2:#6B7280;--text3:#9CA3AF;
   --blue:#2563EB;--pink:#DB2777;--green:#059669;
   --radius:6px;--radius-sm:4px;
@@ -39,8 +39,8 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* ── 로딩/에러 ── */
 #loading{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:14px}
-.loading-logo{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
-.spinner{width:26px;height:26px;border:2px solid rgba(199,169,107,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+.loading-logo{font-size:13px;font-weight:700;color:#9CA3AF;letter-spacing:3px;text-transform:uppercase}
+.spinner{width:26px;height:26px;border:2px solid rgba(0,0,0,.08);border-top-color:#9CA3AF;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 #error-screen{display:none;position:fixed;inset:0;background:var(--bg2);align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px}
 
@@ -49,7 +49,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* ── 헤더 ── */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:20px 18px 0;text-align:center;position:sticky;top:0;z-index:50}
-.hdr-brand{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;opacity:.9}
+.hdr-brand{font-size:10px;font-weight:600;color:#9CA3AF;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;opacity:.9}
 .hdr-names{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.5px;line-height:1.2;margin-bottom:4px}
 .hdr-info{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px;font-weight:400}
 
@@ -57,16 +57,16 @@ input,select,textarea{font-family:inherit;outline:none}
 .progress-wrap{margin:0 -18px 0;border-top:1px solid var(--border);padding:10px 18px}
 .progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .progress-label{font-size:11px;font-weight:500;color:var(--text2)}
-.progress-pct{font-size:11px;font-weight:700;color:var(--gold)}
+.progress-pct{font-size:11px;font-weight:700;color:#374151}
 .progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
-.progress-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .4s ease}
+.progress-fill{height:100%;background:#374151;border-radius:2px;transition:width .4s ease}
 
 /* ── 섹션 카드 ── */
 .section{margin:10px 12px 0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s}
 .section-hdr{padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
 .section-icon{font-size:15px;flex-shrink:0;opacity:.8}
 .section-meta{flex:1;min-width:0}
-.section-num{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.section-num{font-size:10px;font-weight:600;color:#6B7280;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
 .section-title{font-size:14px;font-weight:700;color:var(--text)}
 .section-status{font-size:10px;color:var(--text3);margin-top:1px;font-weight:400}
 .section-toggle{font-size:11px;color:var(--text3);flex-shrink:0;transition:transform .2s}
@@ -91,10 +91,10 @@ input,select,textarea{font-family:inherit;outline:none}
 /* ── 라디오 그룹 ── */
 .radio-group{display:flex;flex-direction:column;gap:6px}
 .radio-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .15s,background .15s;background:#fff}
-.radio-item.selected{border-color:var(--gold);background:var(--gold-bg)}
+.radio-item.selected{border-color:#9CA3AF;background:#F3F4F6}
 .radio-item input[type=radio]{display:none}
 .radio-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .15s;position:relative}
-.radio-item.selected .radio-dot{border-color:var(--gold);background:var(--gold)}
+.radio-item.selected .radio-dot{border-color:#374151;background:#374151}
 .radio-item.selected .radio-dot::after{content:'';position:absolute;inset:3px;border-radius:50%;background:#fff}
 .radio-label{font-size:13px;font-weight:600;color:var(--text)}
 .radio-desc{font-size:11px;color:var(--text3);margin-top:1px;font-weight:400}
@@ -117,7 +117,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .pre-share-item:last-child{margin-bottom:0}
 .ps-icon{font-size:13px;flex-shrink:0}
 .ps-name{flex:1;font-weight:600;color:var(--text)}
-.ps-amt{font-weight:600;color:var(--gold2);flex-shrink:0}
+.ps-amt{font-weight:600;color:#111827;flex-shrink:0}
 .ps-del{width:20px;height:20px;background:#FEF2F2;color:#DC2626;border:none;border-radius:var(--radius-sm);font-size:11px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 
 /* ── 추가 버튼 행 ── */
@@ -130,7 +130,7 @@ input,select,textarea{font-family:inherit;outline:none}
 
 /* ── 안내 박스 ── */
 .info-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;font-weight:400}
-.info-box.gold{background:var(--gold-bg);border-color:#E8D5B0;color:#7A6020}
+.info-box.gold{background:#F9FAFB;border-color:#E5E7EB;color:#374151}
 .info-box.green{background:#ECFDF5;border-color:#A7F3D0;color:#065F46}
 .info-box.pink{background:#FDF2F8;border-color:#FBCFE8;color:#9D174D}
 .info-box.blue{background:#EFF6FF;border-color:#BFDBFE;color:#1E40AF}
@@ -222,7 +222,7 @@ input,select,textarea{font-family:inherit;outline:none}
           </label>
 
           <!-- [수정1] 단측 진행 선택 즉시 바로 아래에 진행측 선택 노출 -->
-          <div id="single-side-wrap" style="display:none;padding:10px 12px;background:var(--gold-bg);border:1.5px solid #E8D5B0;border-radius:var(--radius-sm);">
+          <div id="single-side-wrap" style="display:none;padding:10px 12px;background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:var(--radius-sm);">
             <div class="info-box gold" style="margin-bottom:10px">👤 단측 진행 모드입니다.<br>해당 측 정보만 입력해주시면 됩니다 😊</div>
             <!-- 필수 선택 안내 -->
             <div class="single-side-required" id="single-side-required">⚠️ 단측 진행 시 반드시 진행 측을 선택해주세요.</div>
@@ -467,7 +467,7 @@ input,select,textarea{font-family:inherit;outline:none}
               · 축의금 금액 확인 <strong style="color:#EF4444">❌</strong><br>
               · 봉투 개봉 없이 밀봉 보관 후 전달
             </div>
-            <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:5px">→ 금액 확인 없이 그대로 전달받고 싶은 경우 추천</div>
+            <div style="font-size:10px;color:#6B7280;font-weight:700;margin-top:5px">→ 금액 확인 없이 그대로 전달받고 싶은 경우 추천</div>
           </div>
         </label>
         <label class="radio-item" data-val="confirmed" onclick="selectRadio('cash-group',this,'confirmed');updateProgress();autoSaveDraft()">
@@ -480,7 +480,7 @@ input,select,textarea{font-family:inherit;outline:none}
               · 금액 확인 후 다시 봉투에 보관<br>
               · 봉투 상태 그대로 전달
             </div>
-            <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:5px">→ 금액 확인은 필요하지만 봉투도 함께 보관하고 싶은 경우 추천</div>
+            <div style="font-size:10px;color:#6B7280;font-weight:700;margin-top:5px">→ 금액 확인은 필요하지만 봉투도 함께 보관하고 싶은 경우 추천</div>
           </div>
         </label>
         <label class="radio-item" data-val="sorted" onclick="selectRadio('cash-group',this,'sorted');updateProgress();autoSaveDraft()">
@@ -493,7 +493,7 @@ input,select,textarea{font-family:inherit;outline:none}
               · 현금을 봉투에서 분리 후 계수<br>
               · 5만원권 / 1만원권 등 권종별 정리
             </div>
-            <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:5px">→ 권종별로 정리하여 전달받는 방식</div>
+            <div style="font-size:10px;color:#6B7280;font-weight:700;margin-top:5px">→ 권종별로 정리하여 전달받는 방식</div>
           </div>
         </label>
       </div>
