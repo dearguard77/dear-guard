@@ -46,11 +46,13 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 /* ── Header ── */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:0;flex-shrink:0;display:grid;grid-template-columns:1fr 1fr}
 /* ── Wedding Info Panel ── */
-#hdr-wedding{border-right:1px solid var(--border);padding:16px 20px;display:flex;flex-direction:column;justify-content:center;gap:8px;background:var(--bg2) !important;border-radius:0 !important;border-top:none !important;border-left:none !important;border-bottom:none !important}
+#hdr-wedding{border-right:1px solid var(--border);padding:16px 20px;display:flex;flex-direction:column;justify-content:center;gap:0;background:var(--bg2) !important;border-radius:0 !important;border-top:none !important;border-left:none !important;border-bottom:none !important}
 .wedding-brand{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:3px;text-transform:uppercase}
-.wedding-names{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px;line-height:1.15}
+.wedding-names{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px;line-height:1.2}
 .wedding-info{font-size:14px;font-weight:500;color:var(--text2)}
-.wedding-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.wedding-info+.wedding-info{margin-top:3px}
+.wedding-names+.wedding-info{margin-top:4px}
+.wedding-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
 #mode-badge{font-size:11px;font-weight:600;border-radius:3px;padding:3px 8px;border:1px solid currentColor}
 .live-pill{display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(5,150,105,.25);border-radius:3px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--green);background:rgba(5,150,105,.06)}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
@@ -193,7 +195,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 <div id="app">
   <div id="hdr">
     <div id="hdr-wedding">
-      <div>
+      <div style="margin-bottom:16px">
         <div class="wedding-brand">DEAR GUARD</div>
         <div class="wedding-names" id="hdr-names">—</div>
         <div class="wedding-info" id="hdr-info-dt">—</div>
