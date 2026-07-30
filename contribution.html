@@ -1767,7 +1767,13 @@ async function deleteOpsLog(id, side){
 
 async function loadLogs(){
   if(!currentSchedule) return;
-  try { logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`); renderStats(); renderFullList(); } catch(e){ console.error('logs 로드 실패:',e); }
+  try {
+    logs=await sb.get('contribution_logs',`?schedule_id=eq.${currentSchedule.id}&order=created_at.desc`);
+    renderStats(); renderFullList();
+    // 현금 계산기 창이 열려 있으면 최신 접수 총액 기준으로 대조 결과도 즉시 갱신
+    const cashModal=document.getElementById('cash-calc-modal');
+    if(cashModal && cashModal.style.display==='flex') cashUpdate();
+  } catch(e){ console.error('logs 로드 실패:',e); }
 }
 async function initSeqIfNeeded(){
   if(!currentSchedule) return;
@@ -2440,10 +2446,7 @@ let _cashSide = 'g'; // 현재 선택 측
 function openCashCalc(){
   // 현재 접수 측 기준으로 기본 탭 설정
   const activeSide = document.getElementById('side-groom')?.classList.contains('tog-blue') ? 'g' : 'b';
-  // 수량 초기화
-  _cashQty.g = [0,0,0,0];
-  _cashQty.b = [0,0,0,0];
-  // 탭 설정 및 입력창 복원
+  // 탭 설정 및 입력창 복원 (수량은 초기화하지 않음 — 신랑측/신부측 각각 유지)
   _setCashSideInternal(activeSide);
   document.getElementById('cash-calc-modal').style.display='flex';
 }
