@@ -290,11 +290,11 @@ input,select,textarea{font-family:inherit;outline:none}
 @media(max-width:540px){.tm-tabs{display:flex}}
 .tm-body{display:grid;grid-template-columns:1fr 1fr}
 @media(max-width:540px){.tm-body{grid-template-columns:1fr}}
-.tm-col{padding:14px 16px;border-right:1px solid var(--border);overflow:hidden}
+.tm-col{padding:10px 14px;border-right:1px solid var(--border);overflow:hidden}
 .tm-col:last-child{border-right:none}
 @media(max-width:540px){.tm-col{border-right:none;border-bottom:1px solid var(--border);display:none}.tm-col.tm-visible{display:block}.tm-col:last-child{border-bottom:none}}
-.tm-col-title{font-size:14px;font-weight:700;margin-bottom:12px}
-.tm-sec{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin:12px 0 7px}
+.tm-col-title{font-size:13px;font-weight:700;margin-bottom:8px}
+.tm-sec{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin:8px 0 5px}
 .tm-sec:first-of-type{margin-top:0}
 .tm-issue-row{display:flex;align-items:center;gap:5px;margin-bottom:6px}
 .tm-type-sel{height:28px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;padding:0 6px;background:var(--bg2);flex-shrink:0;cursor:pointer}
@@ -302,7 +302,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .tm-issue-inp:focus{border-color:var(--blue);outline:none}
 .tm-issue-btn-g{height:28px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-sm);padding:0 12px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0}
 .tm-issue-btn-b{height:28px;background:var(--pink);color:#fff;border:none;border-radius:var(--r-sm);padding:0 12px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0}
-.tm-history{max-height:72px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);padding:4px 8px;margin-bottom:4px;background:var(--bg3);min-height:32px}
+.tm-history{max-height:52px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);padding:3px 8px;margin-bottom:4px;background:var(--bg3);min-height:24px}
 .tm-history-item{display:flex;justify-content:space-between;align-items:center;padding:2px 0;font-size:11px;border-bottom:1px solid var(--border)}
 .tm-history-item:last-child{border-bottom:none}
 .tm-history-empty{font-size:10px;color:var(--text3);text-align:center;padding:6px 0}
@@ -860,14 +860,12 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="tm-col-title" style="color:#2563EB">🤵 신랑측</div>
 
         <div class="tm-sec">① 초기 식권</div>
-        <div class="tm-init-row">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">
           <span class="tm-init-lbl">대인</span>
-          <input class="tm-init-inp" id="groom-adult-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
+          <input class="tm-init-inp" id="groom-adult-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()" style="width:56px">
           <span style="font-size:11px;color:#9CA3AF">장</span>
-        </div>
-        <div class="tm-init-row">
-          <span class="tm-init-lbl">소인</span>
-          <input class="tm-init-inp" id="groom-child-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
+          <span class="tm-init-lbl" style="margin-left:4px">소인</span>
+          <input class="tm-init-inp" id="groom-child-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()" style="width:56px">
           <span style="font-size:11px;color:#9CA3AF">장</span>
         </div>
         <!-- 기존 코드 호환용 hidden input -->
@@ -916,14 +914,12 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="tm-col-title" style="color:#DB2777">👰 신부측</div>
 
         <div class="tm-sec">① 초기 식권</div>
-        <div class="tm-init-row">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">
           <span class="tm-init-lbl">대인</span>
-          <input class="tm-init-inp" id="bride-adult-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
+          <input class="tm-init-inp" id="bride-adult-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()" style="width:56px">
           <span style="font-size:11px;color:#9CA3AF">장</span>
-        </div>
-        <div class="tm-init-row">
-          <span class="tm-init-lbl">소인</span>
-          <input class="tm-init-inp" id="bride-child-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()">
+          <span class="tm-init-lbl" style="margin-left:4px">소인</span>
+          <input class="tm-init-inp" id="bride-child-ticket" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveTotalTickets();renderTicketModal()" style="width:56px">
           <span style="font-size:11px;color:#9CA3AF">장</span>
         </div>
         <!-- 기존 코드 호환용 hidden input -->
