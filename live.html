@@ -195,9 +195,11 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 .lb-side-badge{display:block;margin:0 auto 16px;width:fit-content;font-size:12px;font-weight:700;padding:6px 18px;border-radius:20px}
 .lb-side-badge.groom{background:#EFF6FF;border:1px solid #BFDBFE;color:#2563EB}
 .lb-side-badge.bride{background:#FDF2F8;border:1px solid #FBCFE8;color:#DB2777}
-.lb-link-row{display:flex;gap:8px;margin-bottom:14px}
-.lb-link-btn{flex:1;text-align:center;background:#FFFFFF;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:9px 10px;font-size:12px;font-weight:700;text-decoration:none;transition:background .15s}
-.lb-link-btn:hover{background:#F9FAFB}
+.lb-toggle-row{display:flex;gap:18px;justify-content:center;margin-bottom:14px}
+.lb-toggle-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:#9CA3AF;font-size:12px;font-weight:600;cursor:pointer;padding:4px 2px;font-family:inherit}
+.lb-toggle-btn.active{color:#111827;font-weight:700}
+.lb-toggle-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid #9CA3AF;background:transparent;flex-shrink:0;transition:all .15s}
+.lb-toggle-btn.active .lb-toggle-dot{background:#111827;border-color:#111827}
 .lb-cam-wrap{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 @media(min-width:901px){
   .lb-card{max-width:520px}
@@ -401,9 +403,9 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
     <div class="lb-sub">LIVE BOARD</div>
     <div class="lb-names" id="lb-names">—</div>
     <div class="lb-side-badge" id="lb-side-badge">—</div>
-    <div class="lb-link-row">
-      <a class="lb-link-btn" id="lb-link-live1" href="#" target="_blank" rel="noopener">접수측 다시보기</a>
-      <a class="lb-link-btn" id="lb-link-live2" href="#" target="_blank" rel="noopener">기록측 다시보기</a>
+    <div class="lb-toggle-row" id="lb-toggle-row">
+      <button type="button" class="lb-toggle-btn active" id="lb-toggle-live1" onclick="lbSwitchVideo('live1')"><span class="lb-toggle-dot"></span>접수측 영상</button>
+      <button type="button" class="lb-toggle-btn" id="lb-toggle-live2" onclick="lbSwitchVideo('live2')"><span class="lb-toggle-dot"></span>기록측 영상</button>
     </div>
     <div class="lb-cam-wrap">
       <div class="lb-cam-box" id="lb-cam-front-box">
@@ -661,6 +663,7 @@ function lbBuildEmbedUrl(videoId){
 
 // ── LIVE BOARD 상태 (기존 실시간 장부 상태와 완전히 분리된 전용 변수) ──
 var lbPlayerFront=null;
+var lbActiveVideoKey='live1', lbLive1Url='', lbLive2Url='', lbActiveSide='groom';
 var lbLogsSorted=[];               // 해당 측 로그, created_at 오름차순 + 상대 재생초(relSec)
 var lbFinalTotal=0, lbFinalCount=0;// 해당 측 최종 누적값(분모) — 다시보기가 끝나면 도달해야 하는 값
 var lbRevealedIndex=-1;            // 지금까지 반영된 로그 인덱스
@@ -858,7 +861,11 @@ function lbSetupCam(prefix,url,isFront,side){
     events:{
       onReady:isFront?lbHandleFrontReady:undefined,
       onStateChange:isFront?lbHandleFrontStateChange:undefined,
-      onError:function(e){ lbHandlePlayerError(prefix, side, url, videoId, e); }
+      onError:function(e){
+        var curUrl = lbActiveVideoKey==='live1' ? lbLive1Url : lbLive2Url;
+        var curVideoId = lbExtractYouTubeId(curUrl);
+        lbHandlePlayerError(prefix, side, curUrl, curVideoId, e);
+      }
     }
   });
   if(isFront) lbPlayerFront=player;
@@ -868,6 +875,39 @@ function lbDestroyPlayers(){
   lbStopPolling();
   if(lbPlayerFront&&typeof lbPlayerFront.destroy==='function'){ try{lbPlayerFront.destroy();}catch(e){} }
   lbPlayerFront=null;
+}
+
+function lbUpdateToggleUI(){
+  const b1=document.getElementById('lb-toggle-live1');
+  const b2=document.getElementById('lb-toggle-live2');
+  if(b1) b1.classList.toggle('active', lbActiveVideoKey==='live1');
+  if(b2) b2.classList.toggle('active', lbActiveVideoKey==='live2');
+}
+
+// 접수측/기록측 영상 전환 — 기존 플레이어를 제거하지 않고 loadVideoById()로 영상만 교체
+// (교체 후 애니메이션은 lbPollTick의 기존 탐색 감지 로직이 새 영상의 currentTime을 그대로 읽어 자동으로 재계산함)
+function lbSwitchVideo(key){
+  if(key===lbActiveVideoKey) return;
+  const url = key==='live1' ? lbLive1Url : lbLive2Url;
+  if(!url) return; // 등록되지 않은 영상이면 전환하지 않음
+  lbActiveVideoKey = key;
+  lbUpdateToggleUI();
+  const videoId = lbExtractYouTubeId(url);
+  const wrap = document.getElementById('lb-cam-front-wrap');
+  const empty = document.getElementById('lb-cam-front-empty');
+  if(!videoId){
+    if(wrap) wrap.style.display='none';
+    if(empty){ empty.style.display='flex'; empty.textContent='등록된 다시보기 영상이 없습니다.'; }
+    return;
+  }
+  if(empty) empty.style.display='none';
+  if(wrap) wrap.style.display='block';
+  if(lbPlayerFront && typeof lbPlayerFront.loadVideoById==='function'){
+    lbPlayerFront.loadVideoById(videoId);
+  } else {
+    // 최초 접수측 영상이 없어 플레이어가 아직 생성되지 않았던 경우에만 새로 생성
+    lbSetupCam('front', url, true, lbActiveSide);
+  }
 }
 
 function openLiveBoard(){
@@ -897,17 +937,20 @@ function openLiveBoard(){
   lbResetState();
   overlay.classList.add('open');
 
-  // 상단 "접수측 다시보기(live1)" / "기록측 다시보기(live2)" 버튼 — 계약상 다시보기 링크 제공은 새 탭으로 그대로 유지
-  const live1Url = side==='groom'?schedule.groom_live1:schedule.bride_live1;
-  const live2Url = side==='groom'?schedule.groom_live2:schedule.bride_live2;
-  const link1El = document.getElementById('lb-link-live1');
-  const link2El = document.getElementById('lb-link-live2');
-  if(link1El){ link1El.href = live1Url || '#'; link1El.style.display = live1Url ? 'block' : 'none'; }
-  if(link2El){ link2El.href = live2Url || '#'; link2El.style.display = live2Url ? 'block' : 'none'; }
+  // 접수측(live1)/기록측(live2) 영상 URL을 전역 상태로 저장 — 토글로 같은 플레이어 안에서 교체
+  lbLive1Url = side==='groom'?schedule.groom_live1:schedule.bride_live1;
+  lbLive2Url = side==='groom'?schedule.groom_live2:schedule.bride_live2;
+  lbActiveSide = side;
+  lbActiveVideoKey = 'live1'; // 열 때마다 기본은 접수측 영상부터 표시
+  const toggleLive1El = document.getElementById('lb-toggle-live1');
+  const toggleLive2El = document.getElementById('lb-toggle-live2');
+  if(toggleLive1El) toggleLive1El.style.display = lbLive1Url ? 'flex' : 'none';
+  if(toggleLive2El) toggleLive2El.style.display = lbLive2Url ? 'flex' : 'none';
+  lbUpdateToggleUI();
 
-  // 중앙 영상 플레이어는 1개만 표시 (LIVE1 · 접수측 영상). BACK CAM은 임베드하지 않음
+  // 중앙 영상 플레이어는 1개만 표시 (기본: 접수측/LIVE1). 토글로 같은 플레이어 안에서 기록측(LIVE2)으로 교체 가능
   lbEnsureYTApi(function(){
-    lbSetupCam('front', live1Url, true, side);
+    lbSetupCam('front', lbLive1Url, true, side);
   });
 }
 
