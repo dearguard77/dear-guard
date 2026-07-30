@@ -200,18 +200,23 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 }
 .lb-cam-box{position:relative;background:#241F1B;border-radius:16px;overflow:hidden;aspect-ratio:16/10}
 .lb-cam-label{position:absolute;top:8px;left:10px;z-index:2;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:6px}
-.lb-cam-live{position:absolute;top:8px;right:10px;z-index:2;display:flex;align-items:center;gap:4px;background:#DC2626;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
-.lb-cam-live .dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:pulse 1.5s ease-in-out infinite}
+.lb-cam-live{position:absolute;top:8px;right:10px;z-index:2;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
 .lb-cam-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8A8378;font-size:12px;text-align:center;padding:0 12px}
-.lb-cam-box iframe{width:100%;height:100%;border:none;display:block}
+#lb-cam-front-wrap,#lb-cam-back-wrap{position:absolute;inset:0;width:100%;height:100%}
+#lb-cam-front-player,#lb-cam-back-player{width:100%;height:100%;border:none}
 .lb-stats-card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .lb-stats-lbl{text-align:center;font-size:12px;color:#9C958A;margin-bottom:4px}
 .lb-stats-amt{text-align:center;font-size:30px;font-weight:800;color:#E8735F;letter-spacing:-.5px}
+.lb-amt-badge{position:absolute;top:-4px;right:6px;background:#DC2626;color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap}
+.lb-amt-badge.show{opacity:1;transform:translateY(0)}
 .lb-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 .lb-stats-item{background:#F7F3EC;border-radius:10px;padding:8px;text-align:center}
 .lb-stats-item-lbl{font-size:10px;color:#9C958A;margin-bottom:2px}
 .lb-stats-item-val{font-size:15px;font-weight:800;color:#2B2620}
-.lb-live-indicator{display:flex;justify-content:center;margin-top:14px}
+.lb-gauge-wrap{margin-top:16px}
+.lb-gauge-bg{height:8px;background:#F0EBE3;border-radius:99px;overflow:hidden}
+.lb-gauge-fill{height:100%;background:#E8735F;border-radius:99px;transition:width .4s ease;width:0%}
+.lb-gauge-txt{text-align:center;font-size:11px;color:#9C958A;margin-top:6px}
 /* 기존 LIVE1/LIVE2 버튼은 삭제하지 않고 항상 숨김 처리만 (데이터/onclick·setLiveBtn 로직은 그대로 유지) */
 #groom-live-btn-1,#groom-live-btn-2,#bride-live-btn-1,#bride-live-btn-2{display:none !important}
 </style>
@@ -382,37 +387,47 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 
 <div id="upd">✓ 업데이트</div>
 
-<!-- Live Board — 📹 실시간 확인하기 클릭 시 표시되는 신규 오버레이 (기존 화면과 별개) -->
+<!-- Live Board — 신랑측/신부측 운영정보의 '📹 실시간 현황보기' 클릭 시 표시되는 다시보기 전용 오버레이 -->
 <div id="live-board-overlay" onclick="if(event.target===this) closeLiveBoard()">
   <div class="lb-card">
     <button class="lb-close" onclick="closeLiveBoard()">✕</button>
-    <div class="lb-brand">LIVE BOARD</div>
-    <div class="lb-sub">DEAR GUARD</div>
+    <div class="lb-brand">DEAR GUARD</div>
+    <div class="lb-sub">LIVE BOARD</div>
     <div class="lb-names" id="lb-names">—</div>
     <div class="lb-side-badge" id="lb-side-badge">—</div>
     <div class="lb-cam-wrap">
       <div class="lb-cam-box" id="lb-cam-front-box">
         <div class="lb-cam-label">FRONT CAM</div>
-        <div class="lb-cam-live"><span class="dot"></span>LIVE</div>
-        <div class="lb-cam-empty" id="lb-cam-front-empty">등록된 영상이 없습니다</div>
-        <iframe id="lb-cam-front-iframe" style="display:none" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        <div class="lb-cam-live">다시보기</div>
+        <div class="lb-cam-empty" id="lb-cam-front-empty">등록된 다시보기 영상이 없습니다.</div>
+        <div id="lb-cam-front-wrap" style="display:none;width:100%;height:100%">
+          <div id="lb-cam-front-player" style="width:100%;height:100%"></div>
+        </div>
       </div>
       <div class="lb-cam-box" id="lb-cam-back-box">
         <div class="lb-cam-label">BACK CAM</div>
-        <div class="lb-cam-live"><span class="dot"></span>LIVE</div>
-        <div class="lb-cam-empty" id="lb-cam-back-empty">등록된 영상이 없습니다</div>
-        <iframe id="lb-cam-back-iframe" style="display:none" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+        <div class="lb-cam-live">다시보기</div>
+        <div class="lb-cam-empty" id="lb-cam-back-empty">등록된 다시보기 영상이 없습니다.</div>
+        <div id="lb-cam-back-wrap" style="display:none;width:100%;height:100%">
+          <div id="lb-cam-back-player" style="width:100%;height:100%"></div>
+        </div>
       </div>
     </div>
     <div class="lb-stats-card">
-      <div class="lb-stats-lbl">지금까지 모인 축의금</div>
-      <div class="lb-stats-amt" id="lb-total-amount">0원</div>
+      <div class="lb-stats-lbl">현재까지 누적 축의금</div>
+      <div style="position:relative">
+        <div class="lb-stats-amt" id="lb-total-amount">0원</div>
+        <div class="lb-amt-badge" id="lb-amt-badge">+0원</div>
+      </div>
       <div class="lb-stats-grid">
         <div class="lb-stats-item"><div class="lb-stats-item-lbl">접수 건수</div><div class="lb-stats-item-val" id="lb-count">0건</div></div>
         <div class="lb-stats-item"><div class="lb-stats-item-lbl">사용 식권</div><div class="lb-stats-item-val" id="lb-tickets">0장</div></div>
       </div>
+      <div class="lb-gauge-wrap">
+        <div class="lb-gauge-bg"><div class="lb-gauge-fill" id="lb-gauge-fill" style="width:0%"></div></div>
+        <div class="lb-gauge-txt" id="lb-gauge-txt">진행률 0% · 총 0건 중 0건</div>
+      </div>
     </div>
-    <div class="lb-live-indicator"><span class="live-pill"><span class="live-dot"></span>실시간 접수 중</span></div>
   </div>
 </div>
 
@@ -596,13 +611,12 @@ function renderStats(){
       if(brideWrap) brideWrap.style.display=hasB?'':'none';
     }
   }
-  updateLiveBoardStats(); // Live Board가 열려 있으면 실시간 현황도 함께 갱신 (닫혀있으면 내부에서 즉시 return)
 }
 
 // ════════════════════════════════════════════════════════════
-//  📹 Live Board (실시간 현황보기) — 신규 기능
-//  기존 currentViewSide / _liveHoTab / logs / fmt / se 등
-//  기존 함수·변수를 그대로 재사용하며, 기존 로직은 전혀 수정하지 않음
+//  📹 Live Board (다시보기 전용) — 신규 기능
+//  기존 currentViewSide / _liveHoTab / logs / fmt / se 등은 읽기 전용으로만 재사용
+//  renderStats() 등 기존 집계 로직/화면에는 전혀 영향을 주지 않는 완전히 분리된 집계 함수 사용
 // ════════════════════════════════════════════════════════════
 // 현재 표시할 측 결정: 개별 토큰 접속이면 그 측, 양측 접속이면
 // 좌측 운영정보 탭(_liveHoTab, 신랑측/신부측 탭)의 현재 선택값을 기준으로 판단
@@ -612,35 +626,218 @@ function getLiveBoardSide(){
   return _liveHoTab==='bride' ? 'bride' : 'groom';
 }
 
-function setLiveBoardCam(prefix,url){
-  const iframe=document.getElementById('lb-cam-'+prefix+'-iframe');
-  const empty=document.getElementById('lb-cam-'+prefix+'-empty');
-  if(!iframe||!empty) return;
-  if(url){
-    if(iframe.getAttribute('src')!==url) iframe.src=url;
-    iframe.style.display='block';
-    empty.style.display='none';
-  } else {
-    iframe.style.display='none';
-    empty.style.display='flex';
+// ── YouTube IFrame Player API 로드 ──
+var _lbYTApiReady=false, _lbYTApiLoading=false;
+function onYouTubeIframeAPIReady(){ _lbYTApiReady=true; }
+function lbEnsureYTApi(cb){
+  if(_lbYTApiReady){ cb(); return; }
+  if(!_lbYTApiLoading){
+    _lbYTApiLoading=true;
+    var tag=document.createElement('script');
+    tag.src='https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  }
+  var iv=setInterval(function(){
+    if(_lbYTApiReady){ clearInterval(iv); cb(); }
+  },150);
+}
+
+// 유튜브 URL(watch/youtu.be/embed/live 형식)에서 영상 ID만 추출
+function lbExtractYouTubeId(url){
+  if(!url) return '';
+  var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|live\/))([A-Za-z0-9_-]{6,})/);
+  return m?m[1]:'';
+}
+
+// ── LIVE BOARD 상태 (기존 실시간 장부 상태와 완전히 분리된 전용 변수) ──
+var lbPlayerFront=null, lbPlayerBack=null;
+var lbLogsSorted=[];               // 해당 측 로그, created_at 오름차순 + 상대 재생초(relSec)
+var lbFinalTotal=0, lbFinalCount=0;// 해당 측 최종 누적값(분모) — 다시보기가 끝나면 도달해야 하는 값
+var lbRevealedIndex=-1;            // 지금까지 반영된 로그 인덱스
+var lbDisplayedAmount=0, lbDisplayedCount=0, lbDisplayedTickets=0; // 현재 화면에 확정 반영된 값
+var lbQueue=[], lbQueueBusy=false; // 순차 애니메이션 큐
+var lbPollTimer=null;
+var lbLastKnownTime=0;
+var lbAmtBadgeTimer=null;
+
+function lbResetState(){
+  clearInterval(lbPollTimer); lbPollTimer=null;
+  lbQueue=[]; lbQueueBusy=false;
+  // lbLogsSorted/lbFinalTotal/lbFinalCount는 openLiveBoard()에서 이 함수 호출 '전'에 새로 계산되므로
+  // 여기서 초기화하면 방금 계산한 최종값(분모)이 지워져 진행률이 항상 0%로 고정되는 버그가 생김 — 초기화 대상에서 제외
+  lbRevealedIndex=-1; lbDisplayedAmount=0; lbDisplayedCount=0; lbDisplayedTickets=0;
+  lbLastKnownTime=0;
+  se('lb-total-amount','0원');
+  se('lb-count','0건');
+  se('lb-tickets','0장');
+  var badge=document.getElementById('lb-amt-badge');
+  if(badge){ badge.classList.remove('show'); badge.textContent='+0원'; }
+  lbSetGauge(0,0,lbFinalCount);
+}
+
+function lbSetGauge(pct,revealedCnt,finalCnt){
+  var fill=document.getElementById('lb-gauge-fill');
+  var txt=document.getElementById('lb-gauge-txt');
+  var p=Math.max(0,Math.min(100,Math.round(pct)));
+  if(fill) fill.style.width=p+'%';
+  if(txt) txt.textContent='진행률 '+p+'% · 총 '+finalCnt+'건 중 '+revealedCnt+'건';
+}
+
+// 새 접수 1건을 애니메이션 큐에 추가
+function lbEnqueueReveal(log){
+  lbQueue.push(log);
+  lbProcessQueue();
+}
+
+function lbShowAmountBadge(amount){
+  var badge=document.getElementById('lb-amt-badge');
+  if(!badge) return;
+  badge.textContent='+'+(amount||0).toLocaleString()+'원';
+  badge.classList.add('show');
+  clearTimeout(lbAmtBadgeTimer);
+  lbAmtBadgeTimer=setTimeout(function(){ badge.classList.remove('show'); },1000);
+}
+
+// 0~1 이징 함수 기반 숫자 tween (약 650ms)
+function lbAnimateAmount(from,to,onFrame,onDone){
+  var duration=650, start=null;
+  function step(ts){
+    if(start===null) start=ts;
+    var p=Math.min(1,(ts-start)/duration);
+    var eased=1-Math.pow(1-p,3);
+    var val=from+(to-from)*eased;
+    onFrame(val);
+    if(p<1) requestAnimationFrame(step);
+    else onDone();
+  }
+  requestAnimationFrame(step);
+}
+
+// 큐에 쌓인 접수 건을 하나씩 순서대로 반영 (금액은 부드럽게 tween, 건수/식권은 반영 시작 시 즉시 표시)
+function lbProcessQueue(){
+  if(lbQueueBusy || !lbQueue.length) return;
+  lbQueueBusy=true;
+  var log=lbQueue.shift();
+  var fromAmt=lbDisplayedAmount;
+  var toAmt=lbDisplayedAmount+(log.amount||0);
+  var toCount=lbDisplayedCount+1;
+  var toTickets=lbDisplayedTickets+(log.adult_ticket||0)+(log.child_ticket||0);
+  lbShowAmountBadge(log.amount||0);
+  se('lb-count',toCount+'건');
+  se('lb-tickets',toTickets+'장');
+  lbAnimateAmount(fromAmt,toAmt,function(v){
+    se('lb-total-amount',fmt(Math.round(v)));
+    var pct=lbFinalTotal>0?(v/lbFinalTotal*100):0;
+    lbSetGauge(pct,toCount,lbFinalCount);
+  },function(){
+    lbDisplayedAmount=toAmt; lbDisplayedCount=toCount; lbDisplayedTickets=toTickets;
+    lbQueueBusy=false;
+    lbProcessQueue();
+  });
+}
+
+// 탐색(seek)/처음 진입 시 — 애니메이션 없이 해당 시점까지의 누적값으로 즉시 재계산
+function lbRecalcInstant(t){
+  lbQueue=[]; lbQueueBusy=false;
+  var idx=-1, amt=0, cnt=0, tkt=0;
+  for(var i=0;i<lbLogsSorted.length;i++){
+    if(lbLogsSorted[i].relSec<=t){ idx=i; amt+=lbLogsSorted[i].amount||0; cnt++; tkt+=(lbLogsSorted[i].adult_ticket||0)+(lbLogsSorted[i].child_ticket||0); }
+    else break;
+  }
+  lbRevealedIndex=idx;
+  lbDisplayedAmount=amt; lbDisplayedCount=cnt; lbDisplayedTickets=tkt;
+  se('lb-total-amount',fmt(amt));
+  se('lb-count',cnt+'건');
+  se('lb-tickets',tkt+'장');
+  var pct=lbFinalTotal>0?(amt/lbFinalTotal*100):0;
+  lbSetGauge(pct,cnt,lbFinalCount);
+}
+
+// FRONT CAM 재생시간을 기준으로 폴링하며 접수 반영 시점 판단 (BACK CAM은 FRONT를 따라가도록 보정)
+function lbPollTick(){
+  if(!lbPlayerFront||typeof lbPlayerFront.getCurrentTime!=='function') return;
+  var t=lbPlayerFront.getCurrentTime();
+  if(lbPlayerBack&&typeof lbPlayerBack.getCurrentTime==='function'){
+    var bt=lbPlayerBack.getCurrentTime();
+    if(Math.abs(bt-t)>1.0 && typeof lbPlayerBack.seekTo==='function') lbPlayerBack.seekTo(t,true);
+  }
+  var delta=t-lbLastKnownTime;
+  if(delta<-1||delta>3){
+    // 탐색(되감기/빨리감기) 감지 → 즉시 재계산
+    lbRecalcInstant(t);
+  } else if(delta>0){
+    // 정상 재생 진행 → 재생시간을 지난 로그를 순서대로 큐에 반영
+    while(lbRevealedIndex+1<lbLogsSorted.length && lbLogsSorted[lbRevealedIndex+1].relSec<=t){
+      lbRevealedIndex++;
+      lbEnqueueReveal(lbLogsSorted[lbRevealedIndex]);
+    }
+  }
+  lbLastKnownTime=t;
+}
+
+function lbStartPolling(){
+  clearInterval(lbPollTimer);
+  lbPollTimer=setInterval(lbPollTick,300);
+}
+function lbStopPolling(){
+  clearInterval(lbPollTimer); lbPollTimer=null;
+}
+
+// 영상 종료 시 — 남은 로그를 전부 즉시 반영해 반드시 최종 총액/100%로 마무리
+function lbHandleEnded(){
+  lbStopPolling();
+  lbRecalcInstant(Infinity);
+}
+
+function lbHandleFrontReady(e){
+  // 재생/일시정지 여부와 무관하게 계속 폴링 → 일시정지 상태에서 탐색바를 움직여도 즉시 재계산 가능
+  lbStartPolling();
+}
+
+function lbHandleFrontStateChange(e){
+  if(typeof YT==='undefined') return;
+  if(e.data===YT.PlayerState.PLAYING){
+    if(lbPlayerBack&&typeof lbPlayerBack.playVideo==='function') lbPlayerBack.playVideo();
+  } else if(e.data===YT.PlayerState.PAUSED){
+    if(lbPlayerBack&&typeof lbPlayerBack.pauseVideo==='function') lbPlayerBack.pauseVideo();
+  } else if(e.data===YT.PlayerState.ENDED){
+    if(lbPlayerBack&&typeof lbPlayerBack.pauseVideo==='function') lbPlayerBack.pauseVideo();
+    lbHandleEnded();
   }
 }
 
-// Live Board가 열려 있을 때만 현황(총액/건수/식권)을 다시 계산해서 반영
-// 집계 기준은 요청하신 대로 logs.filter(l=>l.side===...) 그대로 사용
-// 식권 수는 renderStats()와 동일하게 adult_ticket + child_ticket 합계만 사용
-function updateLiveBoardStats(){
-  const overlay=document.getElementById('live-board-overlay');
-  if(!overlay||!overlay.classList.contains('open')) return;
-  const side=getLiveBoardSide();
-  const sideName=side==='groom'?'신랑측':'신부측';
-  const sLogs=logs.filter(l=>l.side===sideName);
-  const total=sLogs.reduce((s,l)=>s+(l.amount||0),0);
-  const adultT=sLogs.reduce((s,l)=>s+(l.adult_ticket||0),0);
-  const childT=sLogs.reduce((s,l)=>s+(l.child_ticket||0),0);
-  se('lb-total-amount',fmt(total));
-  se('lb-count',sLogs.length+'건');
-  se('lb-tickets',(adultT+childT)+'장');
+// FRONT/BACK 카메라 표시 — 유튜브 링크면 IFrame Player API로 생성, 없으면 안내 문구 표시
+function lbSetupCam(prefix,url,isFront){
+  var wrap=document.getElementById('lb-cam-'+prefix+'-wrap');
+  var empty=document.getElementById('lb-cam-'+prefix+'-empty');
+  var videoId=lbExtractYouTubeId(url);
+  if(!videoId){
+    if(wrap) wrap.style.display='none';
+    if(empty){ empty.style.display='flex'; empty.textContent='등록된 다시보기 영상이 없습니다.'; }
+    return;
+  }
+  if(empty) empty.style.display='none';
+  if(wrap){
+    wrap.style.display='block';
+    // YT.Player가 이 div를 iframe으로 교체·제거하므로, 재오픈 시를 대비해 매번 새로 생성
+    wrap.innerHTML='<div id="lb-cam-'+prefix+'-player" style="width:100%;height:100%"></div>';
+  }
+  var player=new YT.Player('lb-cam-'+prefix+'-player',{
+    videoId:videoId,
+    playerVars:{ rel:0, modestbranding:1, playsinline:1 },
+    events:{
+      onReady:isFront?lbHandleFrontReady:undefined,
+      onStateChange:isFront?lbHandleFrontStateChange:undefined
+    }
+  });
+  if(isFront) lbPlayerFront=player; else lbPlayerBack=player;
+}
+
+function lbDestroyPlayers(){
+  lbStopPolling();
+  if(lbPlayerFront&&typeof lbPlayerFront.destroy==='function'){ try{lbPlayerFront.destroy();}catch(e){} }
+  if(lbPlayerBack&&typeof lbPlayerBack.destroy==='function'){ try{lbPlayerBack.destroy();}catch(e){} }
+  lbPlayerFront=null; lbPlayerBack=null;
 }
 
 function openLiveBoard(){
@@ -650,15 +847,36 @@ function openLiveBoard(){
   const namesEl=document.getElementById('hdr-names');
   se('lb-names', namesEl?namesEl.textContent:'—');
   se('lb-side-badge', side==='groom'?'신랑측':'신부측');
-  setLiveBoardCam('front', side==='groom'?schedule.groom_live1:schedule.bride_live1);
-  setLiveBoardCam('back',  side==='groom'?schedule.groom_live2:schedule.bride_live2);
+
+  // 다시보기 재생시간 매칭용 데이터 준비: 해당 측 로그를 created_at 오름차순 정렬
+  // (영상 시작 기준 시각 컬럼이 없으므로 해당 측 첫 로그 시각을 0초 기준으로 사용 — DB 컬럼 추가 없음)
+  const sideName=side==='groom'?'신랑측':'신부측';
+  const sideLogs=logs.filter(l=>l.side===sideName&&l.created_at).slice()
+    .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  const t0=sideLogs.length?new Date(sideLogs[0].created_at).getTime():0;
+  lbLogsSorted=sideLogs.map(l=>({
+    amount:l.amount||0, adult_ticket:l.adult_ticket||0, child_ticket:l.child_ticket||0,
+    relSec:(new Date(l.created_at).getTime()-t0)/1000
+  }));
+  lbFinalTotal=lbLogsSorted.reduce((s,l)=>s+l.amount,0);
+  lbFinalCount=lbLogsSorted.length;
+
+  lbDestroyPlayers();
+  lbResetState();
   overlay.classList.add('open');
-  updateLiveBoardStats();
+
+  lbEnsureYTApi(function(){
+    lbSetupCam('front', side==='groom'?schedule.groom_live1:schedule.bride_live1, true);
+    lbSetupCam('back',  side==='groom'?schedule.groom_live2:schedule.bride_live2, false);
+  });
 }
 
 function closeLiveBoard(){
   const overlay=document.getElementById('live-board-overlay');
   if(overlay) overlay.classList.remove('open');
+  lbDestroyPlayers();
+  lbLogsSorted=[]; lbFinalTotal=0; lbFinalCount=0;
+  lbResetState();
 }
 
 var _groomSideSort='num_desc';
