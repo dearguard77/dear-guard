@@ -643,11 +643,18 @@ function lbEnsureYTApi(cb){
   },150);
 }
 
-// 유튜브 URL(watch/youtu.be/embed/live 형식)에서 영상 ID만 추출
+// 유튜브 URL(watch/youtu.be/embed/live/shorts 형식)에서 영상 ID(정확히 11자리)만 추출
+// 기존 정규식은 {6,}(6자리 이상 무제한)이라 shorts 형식이 아예 지원되지 않았고,
+// 상한이 없어 구분자가 애매한 URL에서 videoId가 잘못 잘릴 위험이 있었음 → 11자리로 고정 + shorts 추가
 function lbExtractYouTubeId(url){
   if(!url) return '';
-  var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|live\/))([A-Za-z0-9_-]{6,})/);
-  return m?m[1]:'';
+  var m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/))([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+
+// 진단용: videoId로 통일된 embed URL 문자열 생성 (콘솔 확인용, 실제 재생은 YT.Player가 내부적으로 처리)
+function lbBuildEmbedUrl(videoId){
+  return 'https://www.youtube.com/embed/' + videoId + '?enablejsapi=1&playsinline=1';
 }
 
 // ── LIVE BOARD 상태 (기존 실시간 장부 상태와 완전히 분리된 전용 변수) ──
@@ -807,11 +814,35 @@ function lbHandleFrontStateChange(e){
   }
 }
 
+// 유튜브 오류 코드 → 사용자 안내 문구 매핑
+function lbErrorMessage(code){
+  if(code===2)   return '오류 2: 영상 링크 형식을 확인해주세요.';
+  if(code===5)   return '오류 5: 플레이어 재생 오류가 발생했습니다.';
+  if(code===100) return '오류 100: 비공개 또는 삭제된 영상인지 확인해주세요.';
+  if(code===101||code===150) return '오류 101/150: YouTube에서 외부 재생이 제한된 영상입니다.';
+  if(code===153) return '오류 153: 사이트 식별 정보 문제로 재생할 수 없습니다.';
+  return '동영상을 재생할 수 없습니다. (오류 코드: ' + code + ')';
+}
+
+function lbHandlePlayerError(prefix, side, url, videoId, e){
+  const code = e && e.data;
+  console.log('[LIVE BOARD]\nside: ' + side + '\ncamera: ' + prefix + '\noriginalUrl: ' + url + '\nvideoId: ' + videoId + '\nerrorCode: ' + code);
+  const empty = document.getElementById('lb-cam-' + prefix + '-empty');
+  const wrap = document.getElementById('lb-cam-' + prefix + '-wrap');
+  if(wrap) wrap.style.display = 'none';
+  if(empty){ empty.style.display = 'flex'; empty.textContent = lbErrorMessage(code); }
+}
+
 // FRONT/BACK 카메라 표시 — 유튜브 링크면 IFrame Player API로 생성, 없으면 안내 문구 표시
-function lbSetupCam(prefix,url,isFront){
+function lbSetupCam(prefix,url,isFront,side){
   var wrap=document.getElementById('lb-cam-'+prefix+'-wrap');
   var empty=document.getElementById('lb-cam-'+prefix+'-empty');
   var videoId=lbExtractYouTubeId(url);
+  // 진단용 콘솔 출력: 원본 URL / 추출 videoId / 최종 embed URL / FRONT-BACK / groom-bride 구분 (개인정보·토큰 없음)
+  console.log('[LIVE BOARD]\nside: ' + side + '\ncamera: ' + (isFront?'front':'back') +
+    '\noriginalUrl: ' + (url||'(없음)') +
+    '\nvideoId: ' + (videoId||'(추출 실패)') +
+    '\nembedUrl: ' + (videoId ? lbBuildEmbedUrl(videoId) : '(없음)'));
   if(!videoId){
     if(wrap) wrap.style.display='none';
     if(empty){ empty.style.display='flex'; empty.textContent='등록된 다시보기 영상이 없습니다.'; }
@@ -825,10 +856,11 @@ function lbSetupCam(prefix,url,isFront){
   }
   var player=new YT.Player('lb-cam-'+prefix+'-player',{
     videoId:videoId,
-    playerVars:{ rel:0, modestbranding:1, playsinline:1 },
+    playerVars:{ rel:0, modestbranding:1, playsinline:1, origin:location.origin },
     events:{
       onReady:isFront?lbHandleFrontReady:undefined,
-      onStateChange:isFront?lbHandleFrontStateChange:undefined
+      onStateChange:isFront?lbHandleFrontStateChange:undefined,
+      onError:function(e){ lbHandlePlayerError(prefix, side, url, videoId, e); }
     }
   });
   if(isFront) lbPlayerFront=player; else lbPlayerBack=player;
@@ -867,8 +899,8 @@ function openLiveBoard(){
   overlay.classList.add('open');
 
   lbEnsureYTApi(function(){
-    lbSetupCam('front', side==='groom'?schedule.groom_live1:schedule.bride_live1, true);
-    lbSetupCam('back',  side==='groom'?schedule.groom_live2:schedule.bride_live2, false);
+    lbSetupCam('front', side==='groom'?schedule.groom_live1:schedule.bride_live1, true, side);
+    lbSetupCam('back',  side==='groom'?schedule.groom_live2:schedule.bride_live2, false, side);
   });
 }
 
