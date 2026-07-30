@@ -156,6 +156,21 @@
   .modal-footer{padding:14px 24px;border-top:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center;background:#FAFAF8;flex-shrink:0;flex-wrap:wrap;gap:8px}
   .x-btn{position:absolute;top:14px;right:14px;background:#E5E7EB;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;display:flex;align-items:center;justify-content:center;color:#6B7280;line-height:1}
 
+  /* GUIDE POPUP (openContractModal / openPrecheckModal 전용 공통 클래스) */
+  /* 기존 modal-box/modal-header/modal-footer는 다른 모달과 공유되므로 그대로 두고, 이 클래스들만 추가로 덧붙여 사용 */
+  .guide-modal-box{border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+  .guide-modal-header{background:#fff;border-bottom:1px solid #E5E7EB}
+  .guide-modal-footer{background:#FAFAFA;border-top:1px solid #E5E7EB}
+  .guide-link-box{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;font-size:11px;color:#374151;word-break:break-all;overflow-wrap:anywhere}
+  .guide-action-grid{display:flex;flex-wrap:wrap;gap:8px}
+  .guide-btn{flex:1;min-width:110px;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+  .guide-btn:hover{background:#F8FAFC}
+  .guide-btn-primary{border-color:#E8DFD0;color:#A8893A}
+  .guide-btn-danger{background:#FEF2F2;border-color:#FCA5A5;color:#DC2626}
+  .guide-btn-warn{background:#FFF7ED;border-color:#FED7AA;color:#C2410C}
+  .guide-btn-success{background:#ECFDF5;border-color:#A7F3D0;color:#059669}
+  .guide-status-badge{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;border:1px solid}
+
   /* FORM */
   .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .form-field{display:flex;flex-direction:column;gap:5px}
@@ -2895,8 +2910,8 @@ async function openPrecheckModal(id){
   modal.onclick = function(e){ if(e.target===modal) closePrecheckModal(); };
 
   modal.innerHTML = `
-    <div class="modal-box sm" style="max-width:400px">
-      <div class="modal-header">
+    <div class="modal-box sm guide-modal-box" style="max-width:400px">
+      <div class="modal-header guide-modal-header">
         <button class="x-btn" onclick="closePrecheckModal()">✕</button>
         <div class="modal-brand">Dear Guard · 본식 준비 체크</div>
         <div class="modal-title">📋체크 링크</div>
@@ -2904,48 +2919,42 @@ async function openPrecheckModal(id){
       <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
         <div>
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">🤝 통합 체크 링크</div>
-          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${precheckUrl}</div>
-          <div style="display:flex;gap:8px">
-            <button onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 체크 링크 복사됨'))"
-              style="flex:1;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+          <div class="guide-link-box" style="margin-bottom:10px">${precheckUrl}</div>
+          <div class="guide-action-grid">
+            <button class="guide-btn" onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 체크 링크 복사됨'))">
               📋 링크 복사
             </button>
-            <button onclick="copyPrecheckGuide('${precheckUrl}')"
-              style="flex:1;background:#374151;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            <button class="guide-btn" onclick="copyPrecheckGuide('${precheckUrl}')">
               💬 안내문 복사
             </button>
           </div>
-          <button onclick="copyBalanceGuide(${id})"
-            style="width:100%;background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px">
+          <button class="guide-btn guide-btn-primary" onclick="copyBalanceGuide(${id})" style="width:100%;margin-top:8px">
             💰 잔금 안내
           </button>
         </div>
         <div style="border-top:1px solid #E5E7EB;padding-top:12px">
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">🔒 사전체크 잠금 관리</div>
-          <div id="precheck-lock-status" style="font-size:12px;margin-bottom:8px;font-weight:600;color:${
-            s.precheckForceUnlock ? '#059669' : s.precheckLocked ? '#DC2626' : '#6B7280'
+          <div id="precheck-lock-status" class="guide-status-badge" style="margin-bottom:8px;${
+            s.precheckForceUnlock ? 'color:#059669;border-color:#A7F3D0;background:#ECFDF5' : s.precheckLocked ? 'color:#DC2626;border-color:#FCA5A5;background:#FEF2F2' : 'color:#6B7280;border-color:#E5E7EB;background:#F9FAFB'
           }">${
             s.precheckForceUnlock ? '🛡 강제 열기 중 (자동잠금 무시)' :
             s.precheckLocked ? '🔴 수동 잠금 중' : '🟢 열려 있음'
           }</div>
-          <div style="display:flex;gap:6px">
-            <button onclick="setPrecheckLock(${id}, true, false)"
-              style="flex:1;background:#DC2626;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
+          <div class="guide-action-grid">
+            <button class="guide-btn guide-btn-danger" onclick="setPrecheckLock(${id}, true, false)">
               🔒 수동 잠금
             </button>
-            <button onclick="setPrecheckLock(${id}, false, false)"
-              style="flex:1;background:#6B7280;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
+            <button class="guide-btn" onclick="setPrecheckLock(${id}, false, false)">
               🔓 잠금 해제
             </button>
-            <button onclick="setPrecheckLock(${id}, false, true)"
-              style="flex:1;background:#059669;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">
+            <button class="guide-btn guide-btn-success" onclick="setPrecheckLock(${id}, false, true)">
               🛡 강제 열기
             </button>
           </div>
           <div style="font-size:10px;color:#9CA3AF;margin-top:6px">강제 열기: 자동잠금일이 지나도 임시로 수정 허용</div>
         </div>
       </div>
-      <div class="modal-footer" style="justify-content:flex-end">
+      <div class="modal-footer guide-modal-footer" style="justify-content:flex-end">
         <button class="btn btn-ghost" onclick="closePrecheckModal()">닫기</button>
       </div>
     </div>`;
@@ -2971,7 +2980,9 @@ async function setPrecheckLock(id, locked, forceUnlock){
     const statusEl = document.getElementById('precheck-lock-status');
     if(statusEl){
       statusEl.textContent = forceUnlock ? '🛡 강제 열기 중 (자동잠금 무시)' : locked ? '🔴 수동 잠금 중' : '🟢 열려 있음';
-      statusEl.style.color  = forceUnlock ? '#059669' : locked ? '#DC2626' : '#6B7280';
+      if(forceUnlock){ statusEl.style.color='#059669'; statusEl.style.borderColor='#A7F3D0'; statusEl.style.background='#ECFDF5'; }
+      else if(locked){ statusEl.style.color='#DC2626'; statusEl.style.borderColor='#FCA5A5'; statusEl.style.background='#FEF2F2'; }
+      else { statusEl.style.color='#6B7280'; statusEl.style.borderColor='#E5E7EB'; statusEl.style.background='#F9FAFB'; }
     }
     showToast(forceUnlock ? '🛡 강제 열기 완료' : locked ? '🔒 수동 잠금 완료' : '🔓 잠금 해제 완료');
   }catch(e){
@@ -3092,25 +3103,25 @@ async function openContractModal(id){
 
   const isContractDone = s.contractSigned || s.contractStatus === 'completed' || !!s.contractSignedAt;
   const signedBadge = isContractDone
-    ? `<div style="margin-top:8px;padding:8px 12px;background:#ECFDF5;border-radius:8px;font-size:12px;color:#065F46;font-weight:700;display:flex;align-items:center;gap:8px">
+    ? `<div class="guide-status-badge" style="margin-top:8px;color:#065F46;border-color:#A7F3D0;background:#ECFDF5;width:100%;box-sizing:border-box">
         ✅ 계약 완료
         ${s.contractSigned && s.contractSigner ? `· ${s.contractSigner} · ${s.contractSignedAt ? new Date(s.contractSignedAt).toLocaleString('ko-KR') : ''}` : '· 수동 처리'}
       </div>`
-    : `<div style="margin-top:8px;padding:8px 12px;background:#FEF3C7;border-radius:8px;font-size:12px;color:#92400E;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px">
+    : `<div class="guide-status-badge" style="margin-top:8px;color:#92400E;border-color:#FED7AA;background:#FFF7ED;width:100%;box-sizing:border-box;justify-content:space-between">
         <span>⏳ 계약 대기 중</span>
-        <button onclick="manualCompleteContract(${id})"
-          style="background:#C7A96B;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">
+        <button class="guide-btn guide-btn-warn" onclick="manualCompleteContract(${id})"
+          style="flex:none;padding:4px 12px;font-size:11px;border-radius:6px">
           완료 처리
         </button>
       </div>`;
 
   const pdfBtn = s.contractSigned && s.contractPdfUrl
-    ? `<a href="${s.contractPdfUrl}" target="_blank" style="display:block;width:100%;background:#059669;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;margin-top:8px">📄 서명된 PDF 보기</a>`
+    ? `<a class="guide-btn guide-btn-primary" href="${s.contractPdfUrl}" target="_blank" style="width:100%;margin-top:8px;box-sizing:border-box">📄 서명된 PDF 보기</a>`
     : '';
 
   modal.innerHTML = `
-    <div class="modal-box sm" style="max-width:400px">
-      <div class="modal-header">
+    <div class="modal-box sm guide-modal-box" style="max-width:400px">
+      <div class="modal-header guide-modal-header">
         <button class="x-btn" onclick="closeContractModal()">✕</button>
         <div class="modal-brand">Dear Guard · 전자계약서</div>
         <div class="modal-title">📝 계약 링크</div>
@@ -3119,21 +3130,19 @@ async function openContractModal(id){
         ${signedBadge}
         <div>
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">📝 전자계약 링크</div>
-          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px">${contractUrl}</div>
-          <div style="display:flex;gap:8px">
-            <button onclick="navigator.clipboard.writeText('${contractUrl}').then(()=>showToast('📝 계약 링크 복사됨'))"
-              style="flex:1;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+          <div class="guide-link-box" style="margin-bottom:10px">${contractUrl}</div>
+          <div class="guide-action-grid">
+            <button class="guide-btn" onclick="navigator.clipboard.writeText('${contractUrl}').then(()=>showToast('📝 계약 링크 복사됨'))">
               📝 계약 링크 복사
             </button>
-            <button onclick="copyContractGuide('${contractUrl}', ${id})"
-              style="flex:1;background:#111827;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">
+            <button class="guide-btn" onclick="copyContractGuide('${contractUrl}', ${id})">
               💬 계약 안내문
             </button>
           </div>
           ${pdfBtn}
         </div>
       </div>
-      <div class="modal-footer" style="justify-content:flex-end">
+      <div class="modal-footer guide-modal-footer" style="justify-content:flex-end">
         <button class="btn btn-ghost" onclick="closeContractModal()">닫기</button>
       </div>
     </div>`;
