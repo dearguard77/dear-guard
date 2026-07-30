@@ -693,7 +693,7 @@
           <input type="radio" name="rt-target" value="신랑님" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신랑님
         </label>
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
-          <input type="radio" name="rt-target" value="신랑신부님" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 신랑신부님
+          <input type="radio" name="rt-target" value="양측 진행" onchange="rtSetTarget(this.value)" style="accent-color:#C7A96B"> 양측 진행
         </label>
       </div>
       <!-- 예식 선택 (2차 자동연동용) -->
@@ -6277,6 +6277,11 @@ function rtSetTarget(val){
   }
 }
 
+// 보고대상별 인사말 — 신랑님/신부님은 기존과 동일한 호칭, 양측 진행은 호칭 없이 자연스럽게 시작
+function rtGreetingWord(){
+  return (rtTarget === '신랑님' || rtTarget === '신부님') ? rtTarget : '안녕하세요';
+}
+
 function rtGetLink(){
   if(!rtSchedule) return '(장부 링크)';
   let token = '';
@@ -6510,7 +6515,7 @@ function rtCopy(id){
 
 function rtGenStep0(){
   const t = rtTarget;
-  const txt = `${t} 😊 디어가드입니다!
+  const txt = `${rtGreetingWord()} 😊 디어가드입니다!
 
 오늘 소중한 결혼식 진심으로 축하드립니다 🤍
 
@@ -6527,7 +6532,7 @@ function rtGenStep0(){
 function rtGenStep1(){
   const t    = rtTarget;
   const link = rtGetLink();
-  const txt = `${t} 😊
+  const txt = `${rtGreetingWord()} 😊
 
 디어가드 현장 도착 및 축의대 세팅 완료되어 안내드립니다!
 
@@ -6596,7 +6601,7 @@ function rtGenStep2(){
     : '';
   // 특이사항 섹션: 입력된 내용이 있을 때만 출력
   const notesBlock = notes ? `\n\n📝 특이사항\n${notes}` : '';
-  const txt = `${t} 😊
+  const txt = `${rtGreetingWord()} 😊
 
 오늘 소중한 결혼식 진심으로 축하드립니다 🤍
 디어가드 결과 보고 드립니다.
@@ -7171,7 +7176,27 @@ async function rtSaveHandoverCertImage(viewOnly){
 function rtGenStep4(){
   const t    = rtTarget;
   const link = rtGetLink();
-  const txt = `${t} 😊
+  // 양측 진행일 때만 통합 링크 아래에 신랑측/신부측 전용 링크 안내 추가 (신랑님/신부님 선택 시에는 기존과 동일)
+  let sideLinksBlock = '';
+  if(t !== '신랑님' && t !== '신부님' && rtSchedule){
+    const groomToken = rtSchedule.groomToken || rtSchedule.dashboardToken;
+    const brideToken = rtSchedule.brideToken || rtSchedule.dashboardToken;
+    const groomLink = groomToken ? `${location.origin}/live.html?t=${groomToken}` : '(예식 선택 시 자동 생성됩니다)';
+    const brideLink = brideToken ? `${location.origin}/live.html?t=${brideToken}` : '(예식 선택 시 자동 생성됩니다)';
+    sideLinksBlock = `
+
+━━━━━━━━━━━━━━━━━━
+혹시 필요하실까 하여
+신랑측 / 신부측 전용 장부 링크도 함께 전달드립니다.
+
+👤 신랑측 전용
+${groomLink}
+
+👰 신부측 전용
+${brideLink}
+━━━━━━━━━━━━━━━━━━`;
+  }
+  const txt = `${rtGreetingWord()} 😊
 
 또한 금일 전달드렸던 실시간 장부는
 본식 이후에도 일정 기간 동안 다시 확인 가능하시며,
@@ -7194,7 +7219,7 @@ Safari / Chrome 등 외부 브라우저 혹은 PC 버전 이용 바랍니다.
 
 링크는 다시 한번 전달드립니다 :)
 
-👉 ${link}
+👉 ${link}${sideLinksBlock}
 
 오늘 소중한 하루를 디어가드에 맡겨주셔서 진심으로 감사드리며,
 앞으로의 결혼생활에도 행복한 일만 가득하시길 바라겠습니다 🤍
