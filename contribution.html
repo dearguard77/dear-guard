@@ -253,6 +253,30 @@ input,select,textarea{font-family:inherit;outline:none}
 .pw-mini-title{font-size:10px;font-weight:700;color:#9CA3AF;text-align:center;margin-bottom:6px}
 .pw-mini-inp{width:100%;text-align:center;font-size:18px;font-weight:800;letter-spacing:4px;padding:6px 4px;border:1.5px solid #E0E0E0;border-radius:6px;background:#fff;color:#111}
 .pw-mini-inp:focus{border-color:#C7A96B;outline:none}
+
+/* ── 현금 계산기 모달 ── */
+#cash-calc-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;display:none;align-items:center;justify-content:center;padding:16px}
+.cash-calc-box{background:#fff;border-radius:14px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden}
+.cash-calc-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #F0EDE8;background:#F9F8F6}
+.cash-calc-title{font-size:14px;font-weight:800;color:#111}
+.cash-calc-body{padding:0}
+.cash-denom-row{display:grid;grid-template-columns:80px 1fr 90px;align-items:center;gap:0;padding:9px 14px;border-bottom:1px solid #F5F3F0}
+.cash-denom-row:last-child{border-bottom:none}
+.cash-denom-lbl{font-size:13px;font-weight:700;color:#374151}
+.cash-denom-ctrl{display:flex;align-items:center;justify-content:center;gap:6px}
+.cash-cnt-btn{width:32px;height:32px;border-radius:7px;background:#F3F4F6;border:1.5px solid #E0E0E0;font-size:18px;font-weight:700;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0}
+.cash-cnt-btn:active{background:#E5E7EB}
+.cash-cnt-val{font-size:16px;font-weight:800;color:#111;width:52px;text-align:center;border:1.5px solid #E0E0E0;border-radius:7px;padding:4px 2px;background:#fff}
+.cash-cnt-val:focus{border-color:#C7A96B;outline:none}
+.cash-denom-amt{font-size:13px;font-weight:700;color:#C7A96B;text-align:right}
+.cash-calc-footer{padding:10px 14px;background:#F9F8F6;border-top:1px solid #F0EDE8}
+.cash-summary-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px}
+.cash-summary-row.total{font-weight:800;color:#111;font-size:14px}
+.cash-match-ok{color:#10B981;font-weight:800;font-size:13px}
+.cash-match-err{color:#EF4444;font-weight:800;font-size:13px}
+.cash-calc-btns{display:flex;gap:8px;margin-top:10px}
+.cash-reset-btn{flex:1;background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer}
+.cash-close-btn{flex:1;background:#111;color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer}
 </style>
 </head>
 <body style="overflow: hidden;">
@@ -583,7 +607,10 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <div class="card" style="padding:5px 8px">
-        <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름 / 메모</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="card-title" style="margin-bottom:0">1️⃣ 하객 이름 / 메모</div>
+          <button onclick="openCashCalc()" style="background:#F9F8F6;border:1.5px solid #E0E0E0;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;color:#374151;cursor:pointer;flex-shrink:0;line-height:1.4">🧮 계산기</button>
+        </div>
         <div style="display:flex;align-items:center;gap:6px">
           <input class="form-input" id="guest-name" placeholder="예) 강성주, 전수연" style="flex:13;min-width:0;font-size:13px;padding:7px 8px">
           <input class="form-input" id="memo-input" placeholder="예) 선양소주" style="flex:7;min-width:0;font-size:12px;padding:7px 7px" onkeydown="if(event.key==='Enter')submitEntry()">
@@ -765,6 +792,72 @@ input,select,textarea{font-family:inherit;outline:none}
   </div><!-- /main-body -->
   </div><!-- /main-body-outer -->
 </div><!-- /main-screen -->
+
+<!-- 현금 계산기 모달 -->
+<div id="cash-calc-modal" onclick="if(event.target===this)closeCashCalc()">
+  <div class="cash-calc-box">
+    <div class="cash-calc-hdr">
+      <span class="cash-calc-title">🧮 현금 계수 계산기</span>
+      <span style="font-size:10px;color:#9CA3AF">현장 확인용 · 저장 안 됨</span>
+    </div>
+    <div class="cash-calc-body">
+      <div class="cash-denom-row">
+        <div class="cash-denom-lbl">5만원권</div>
+        <div class="cash-denom-ctrl">
+          <button class="cash-cnt-btn" onclick="cashStep(0,-1)">−</button>
+          <input class="cash-cnt-val" id="cash-qty-0" type="text" inputmode="numeric" value="0" onchange="cashQtyChange(0)" oninput="cashQtyInput(0)">
+          <button class="cash-cnt-btn" onclick="cashStep(0,1)">＋</button>
+        </div>
+        <div class="cash-denom-amt" id="cash-amt-0">0원</div>
+      </div>
+      <div class="cash-denom-row">
+        <div class="cash-denom-lbl">1만원권</div>
+        <div class="cash-denom-ctrl">
+          <button class="cash-cnt-btn" onclick="cashStep(1,-1)">−</button>
+          <input class="cash-cnt-val" id="cash-qty-1" type="text" inputmode="numeric" value="0" onchange="cashQtyChange(1)" oninput="cashQtyInput(1)">
+          <button class="cash-cnt-btn" onclick="cashStep(1,1)">＋</button>
+        </div>
+        <div class="cash-denom-amt" id="cash-amt-1">0원</div>
+      </div>
+      <div class="cash-denom-row">
+        <div class="cash-denom-lbl">5천원권</div>
+        <div class="cash-denom-ctrl">
+          <button class="cash-cnt-btn" onclick="cashStep(2,-1)">−</button>
+          <input class="cash-cnt-val" id="cash-qty-2" type="text" inputmode="numeric" value="0" onchange="cashQtyChange(2)" oninput="cashQtyInput(2)">
+          <button class="cash-cnt-btn" onclick="cashStep(2,1)">＋</button>
+        </div>
+        <div class="cash-denom-amt" id="cash-amt-2">0원</div>
+      </div>
+      <div class="cash-denom-row">
+        <div class="cash-denom-lbl">1천원권</div>
+        <div class="cash-denom-ctrl">
+          <button class="cash-cnt-btn" onclick="cashStep(3,-1)">−</button>
+          <input class="cash-cnt-val" id="cash-qty-3" type="text" inputmode="numeric" value="0" onchange="cashQtyChange(3)" oninput="cashQtyInput(3)">
+          <button class="cash-cnt-btn" onclick="cashStep(3,1)">＋</button>
+        </div>
+        <div class="cash-denom-amt" id="cash-amt-3">0원</div>
+      </div>
+    </div>
+    <div class="cash-calc-footer">
+      <div class="cash-summary-row total">
+        <span>계수 합계</span>
+        <span id="cash-sum-total">0원</span>
+      </div>
+      <div class="cash-summary-row" style="color:#6B7280">
+        <span>접수 총액</span>
+        <span id="cash-recv-total">0원</span>
+      </div>
+      <div class="cash-summary-row">
+        <span style="color:#6B7280">대조 결과</span>
+        <span id="cash-match-result">—</span>
+      </div>
+      <div class="cash-calc-btns">
+        <button class="cash-reset-btn" onclick="cashReset()">초기화</button>
+        <button class="cash-close-btn" onclick="closeCashCalc()">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
@@ -1982,6 +2075,93 @@ function showToast(msg){
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEditModal();});
+
+// ── 현금 계수 계산기 ─────────────────────────────────────────────────────
+const CASH_DENOMS = [50000, 10000, 5000, 1000];
+
+function openCashCalc(){
+  // 수량 초기화
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('cash-qty-'+i);
+    if(el) el.value='0';
+  }
+  cashUpdate();
+  document.getElementById('cash-calc-modal').style.display='flex';
+}
+
+function closeCashCalc(){
+  document.getElementById('cash-calc-modal').style.display='none';
+}
+
+function cashStep(idx, delta){
+  const el=document.getElementById('cash-qty-'+idx);
+  if(!el) return;
+  let v=parseInt(el.value)||0;
+  v=Math.max(0,v+delta);
+  el.value=v;
+  cashUpdate();
+}
+
+function cashQtyInput(idx){
+  // 실시간 갱신 (입력 중 업데이트)
+  cashUpdate();
+}
+
+function cashQtyChange(idx){
+  const el=document.getElementById('cash-qty-'+idx);
+  if(!el) return;
+  let v=parseInt(el.value);
+  if(isNaN(v)||v<0) v=0;
+  el.value=v;
+  cashUpdate();
+}
+
+function cashReset(){
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('cash-qty-'+i);
+    if(el) el.value='0';
+    const amtEl=document.getElementById('cash-amt-'+i);
+    if(amtEl) amtEl.textContent='0원';
+  }
+  cashUpdate();
+}
+
+function cashUpdate(){
+  let sum=0;
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('cash-qty-'+i);
+    const v=Math.max(0,parseInt(el?.value)||0);
+    const denom=CASH_DENOMS[i];
+    const amt=v*denom;
+    sum+=amt;
+    const amtEl=document.getElementById('cash-amt-'+i);
+    if(amtEl) amtEl.textContent=amt.toLocaleString()+'원';
+  }
+  // 계수 합계
+  const sumEl=document.getElementById('cash-sum-total');
+  if(sumEl) sumEl.textContent=sum.toLocaleString()+'원';
+
+  // 접수 총액 (logs 배열 기준 — renderStats와 동일)
+  const recvTotal=(typeof logs!=='undefined')
+    ? logs.reduce((s,l)=>s+(l.amount||0),0)
+    : 0;
+  const recvEl=document.getElementById('cash-recv-total');
+  if(recvEl) recvEl.textContent=recvTotal.toLocaleString()+'원';
+
+  // 대조 결과
+  const matchEl=document.getElementById('cash-match-result');
+  if(matchEl){
+    const diff=sum-recvTotal;
+    if(diff===0){
+      matchEl.innerHTML='<span class="cash-match-ok">✓ 접수 총액과 일치</span>';
+    } else if(diff<0){
+      matchEl.innerHTML='<span class="cash-match-err">△ '+Math.abs(diff).toLocaleString()+'원 부족</span>';
+    } else {
+      matchEl.innerHTML='<span class="cash-match-err">▲ '+diff.toLocaleString()+'원 초과</span>';
+    }
+  }
+}
+// ────────────────────────────────────────────────────────────────────────────
 
 // [수정5: init() - localStorage 없을때 login-screen 명시적으로 보여주기]
 (function init(){
