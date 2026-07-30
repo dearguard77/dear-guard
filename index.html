@@ -2869,6 +2869,28 @@ function openDetail(id){
 }
 
 // ── PRECHECK 링크 모달 ──
+// 체크리스트 자동 잠금 판정 — 실제 체크 페이지(api/precheck, calcIsLocked())와 동일한 규칙
+// 예식일 기준 D-2 00:00부터 자동 잠금, 수동 잠금/강제 열기가 없을 때만 적용
+function calcPrecheckAutoLocked(s){
+  const lockDate = new Date(s.date + 'T00:00:00');
+  lockDate.setDate(lockDate.getDate() - 2);
+  return new Date() >= lockDate;
+}
+
+// 체크리스트 잠금 상태 표시(텍스트/색상) 계산 — 모달 최초 표시와 잠금상태 변경 시 공용으로 사용
+function getPrecheckLockDisplay(s){
+  if(s.precheckForceUnlock){
+    return { text: '🛡 강제 열기 중 (자동잠금 무시)', color:'#059669', borderColor:'#A7F3D0', bg:'#ECFDF5' };
+  }
+  if(s.precheckLocked){
+    return { text: '🔴 수동 잠금 중', color:'#DC2626', borderColor:'#FCA5A5', bg:'#FEF2F2' };
+  }
+  if(calcPrecheckAutoLocked(s)){
+    return { text: '🔴 자동 잠금 중 (D-2 경과)', color:'#DC2626', borderColor:'#FCA5A5', bg:'#FEF2F2' };
+  }
+  return { text: '🟢 열려 있음', color:'#6B7280', borderColor:'#E5E7EB', bg:'#F9FAFB' };
+}
+
 async function openPrecheckModal(id){
   if(!ADMIN_NAMES.includes(currentUser.name)){
     showToast('⚠️ 체크 링크는 관리자만 확인할 수 있습니다');
@@ -2909,6 +2931,8 @@ async function openPrecheckModal(id){
   modal.style.display = 'flex';
   modal.onclick = function(e){ if(e.target===modal) closePrecheckModal(); };
 
+  const _lockDisp = getPrecheckLockDisplay(s);
+
   modal.innerHTML = `
     <div class="modal-box sm guide-modal-box" style="max-width:400px">
       <div class="modal-header guide-modal-header">
@@ -2934,12 +2958,7 @@ async function openPrecheckModal(id){
         </div>
         <div style="border-top:1px solid #E5E7EB;padding-top:12px">
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">🔒 사전체크 잠금 관리</div>
-          <div id="precheck-lock-status" class="guide-status-badge" style="margin-bottom:8px;${
-            s.precheckForceUnlock ? 'color:#059669;border-color:#A7F3D0;background:#ECFDF5' : s.precheckLocked ? 'color:#DC2626;border-color:#FCA5A5;background:#FEF2F2' : 'color:#6B7280;border-color:#E5E7EB;background:#F9FAFB'
-          }">${
-            s.precheckForceUnlock ? '🛡 강제 열기 중 (자동잠금 무시)' :
-            s.precheckLocked ? '🔴 수동 잠금 중' : '🟢 열려 있음'
-          }</div>
+          <div id="precheck-lock-status" class="guide-status-badge" style="margin-bottom:8px;color:${_lockDisp.color};border-color:${_lockDisp.borderColor};background:${_lockDisp.bg}">${_lockDisp.text}</div>
           <div class="guide-action-grid">
             <button class="guide-btn guide-btn-danger" onclick="setPrecheckLock(${id}, true, false)">
               🔒 수동 잠금
@@ -2978,11 +2997,12 @@ async function setPrecheckLock(id, locked, forceUnlock){
     const s = schedules.find(x => x.id === id);
     if(s){ s.precheckLocked = locked; s.precheckForceUnlock = forceUnlock; }
     const statusEl = document.getElementById('precheck-lock-status');
-    if(statusEl){
-      statusEl.textContent = forceUnlock ? '🛡 강제 열기 중 (자동잠금 무시)' : locked ? '🔴 수동 잠금 중' : '🟢 열려 있음';
-      if(forceUnlock){ statusEl.style.color='#059669'; statusEl.style.borderColor='#A7F3D0'; statusEl.style.background='#ECFDF5'; }
-      else if(locked){ statusEl.style.color='#DC2626'; statusEl.style.borderColor='#FCA5A5'; statusEl.style.background='#FEF2F2'; }
-      else { statusEl.style.color='#6B7280'; statusEl.style.borderColor='#E5E7EB'; statusEl.style.background='#F9FAFB'; }
+    if(statusEl && s){
+      const lockDisp = getPrecheckLockDisplay(s);
+      statusEl.textContent = lockDisp.text;
+      statusEl.style.color = lockDisp.color;
+      statusEl.style.borderColor = lockDisp.borderColor;
+      statusEl.style.background = lockDisp.bg;
     }
     showToast(forceUnlock ? '🛡 강제 열기 완료' : locked ? '🔒 수동 잠금 완료' : '🔓 잠금 해제 완료');
   }catch(e){
