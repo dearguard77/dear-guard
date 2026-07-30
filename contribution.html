@@ -312,6 +312,12 @@ input,select,textarea{font-family:inherit;outline:none}
 .tm-stat-val{font-weight:600;color:var(--text)}
 .tm-stat-remain-g{font-weight:700;color:var(--blue)}
 .tm-stat-remain-b{font-weight:700;color:var(--pink)}
+/* 현황 압축 1줄 요약 */
+.tm-stat-compact-row{display:flex;align-items:center;gap:4px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap}
+.tm-stat-compact-row:last-child{border-bottom:none}
+.tm-stat-compact-lbl{font-size:11px;font-weight:700;color:var(--text);width:28px;flex-shrink:0}
+.tm-stat-compact-item{color:var(--text2);white-space:nowrap}
+.tm-stat-compact-sep{color:var(--text3);flex-shrink:0}
 .tm-init-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
 .tm-init-lbl{font-size:12px;color:var(--text2);width:32px;flex-shrink:0;font-weight:400}
 .tm-init-inp{border:1px solid var(--border);border-radius:var(--r-sm);padding:4px 8px;font-size:13px;font-weight:600;color:var(--text);width:68px;text-align:center;background:var(--bg2);height:28px}
@@ -883,16 +889,26 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
 
         <div class="tm-sec">③ 현재 식권 현황</div>
-        <div style="font-size:10px;font-weight:700;color:#6B7280;margin-bottom:3px">대인</div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-g-init-adult">미설정</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가</span><span class="tm-stat-val" style="color:#059669" id="tp-g-extra-adult">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-g-used-adult">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-g" id="tp-g-remain-adult">—</span></div>
-        <div style="font-size:10px;font-weight:700;color:#6B7280;margin:6px 0 3px">소인</div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-g-init-child">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가</span><span class="tm-stat-val" style="color:#059669" id="tp-g-extra-child">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-g-used-child">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-g" id="tp-g-remain-child">0장</span></div>
+        <div class="tm-stat-compact-row">
+          <span class="tm-stat-compact-lbl">대인</span>
+          <span class="tm-stat-compact-item">초기 <span id="tp-g-init-adult" class="tm-stat-val">미설정</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">추가 <span id="tp-g-extra-adult" class="tm-stat-val" style="color:#059669">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">사용 <span id="tp-g-used-adult" class="tm-stat-val">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">잔여 <span id="tp-g-remain-adult" class="tm-stat-remain-g">—</span></span>
+        </div>
+        <div class="tm-stat-compact-row">
+          <span class="tm-stat-compact-lbl">소인</span>
+          <span class="tm-stat-compact-item">초기 <span id="tp-g-init-child" class="tm-stat-val">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">추가 <span id="tp-g-extra-child" class="tm-stat-val" style="color:#059669">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">사용 <span id="tp-g-used-child" class="tm-stat-val">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">잔여 <span id="tp-g-remain-child" class="tm-stat-remain-g">0장</span></span>
+        </div>
       </div>
 
       <!-- ══ 신부측 ══ -->
@@ -929,16 +945,26 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
 
         <div class="tm-sec">③ 현재 식권 현황</div>
-        <div style="font-size:10px;font-weight:700;color:#6B7280;margin-bottom:3px">대인</div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-b-init-adult">미설정</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가</span><span class="tm-stat-val" style="color:#059669" id="tp-b-extra-adult">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-b-used-adult">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-b" id="tp-b-remain-adult">—</span></div>
-        <div style="font-size:10px;font-weight:700;color:#6B7280;margin:6px 0 3px">소인</div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">초기</span><span class="tm-stat-val" id="tp-b-init-child">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl" style="color:#059669">추가</span><span class="tm-stat-val" style="color:#059669" id="tp-b-extra-child">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">사용</span><span class="tm-stat-val" id="tp-b-used-child">0장</span></div>
-        <div class="tm-stat-row"><span class="tm-stat-lbl">잔여</span><span class="tm-stat-remain-b" id="tp-b-remain-child">0장</span></div>
+        <div class="tm-stat-compact-row">
+          <span class="tm-stat-compact-lbl">대인</span>
+          <span class="tm-stat-compact-item">초기 <span id="tp-b-init-adult" class="tm-stat-val">미설정</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">추가 <span id="tp-b-extra-adult" class="tm-stat-val" style="color:#059669">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">사용 <span id="tp-b-used-adult" class="tm-stat-val">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">잔여 <span id="tp-b-remain-adult" class="tm-stat-remain-b">—</span></span>
+        </div>
+        <div class="tm-stat-compact-row">
+          <span class="tm-stat-compact-lbl">소인</span>
+          <span class="tm-stat-compact-item">초기 <span id="tp-b-init-child" class="tm-stat-val">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">추가 <span id="tp-b-extra-child" class="tm-stat-val" style="color:#059669">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">사용 <span id="tp-b-used-child" class="tm-stat-val">0장</span></span>
+          <span class="tm-stat-compact-sep">·</span>
+          <span class="tm-stat-compact-item">잔여 <span id="tp-b-remain-child" class="tm-stat-remain-b">0장</span></span>
+        </div>
       </div>
     </div>
     <!-- 호환용 hidden IDs -->
