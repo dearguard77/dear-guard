@@ -184,39 +184,44 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 }
 
 /* ── Live Board (📹 실시간 확인하기 클릭 시 표시되는 신규 오버레이) ── */
-#live-board-overlay{display:none;position:fixed;inset:0;background:rgba(20,16,12,.75);z-index:5000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 16px}
+#live-board-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.65);z-index:5000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 16px}
 #live-board-overlay.open{display:flex}
-.lb-card{background:#F7F3EC;border-radius:28px;width:100%;max-width:420px;padding:22px 20px 26px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.35)}
-.lb-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.08);border:none;color:#57534E;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.lb-brand{text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;letter-spacing:4px;color:#3A342C}
-.lb-sub{text-align:center;font-size:10px;letter-spacing:4px;color:#C9A876;margin-top:2px;margin-bottom:14px;font-weight:600}
-.lb-names{text-align:center;font-size:19px;font-weight:800;color:#2B2620;margin-bottom:10px}
-.lb-side-badge{display:block;margin:0 auto 16px;width:fit-content;background:#E8735F;color:#fff;font-size:12px;font-weight:700;padding:6px 18px;border-radius:20px}
+.lb-card{background:#FFFFFF;border:1px solid #E5E7EB;border-radius:16px;width:100%;max-width:420px;padding:22px 20px 26px;position:relative;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.lb-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:#F3F4F6;border:none;color:#6B7280;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.lb-close:hover{background:#E5E7EB}
+.lb-brand{text-align:center;font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;color:#6B7280}
+.lb-sub{text-align:center;font-size:10px;letter-spacing:2px;color:#9CA3AF;margin-top:2px;margin-bottom:14px;font-weight:600}
+.lb-names{text-align:center;font-size:19px;font-weight:800;color:#111827;margin-bottom:10px}
+.lb-side-badge{display:block;margin:0 auto 16px;width:fit-content;font-size:12px;font-weight:700;padding:6px 18px;border-radius:20px}
+.lb-side-badge.groom{background:#EFF6FF;border:1px solid #BFDBFE;color:#2563EB}
+.lb-side-badge.bride{background:#FDF2F8;border:1px solid #FBCFE8;color:#DB2777}
 .lb-cam-wrap{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 @media(min-width:901px){
   .lb-card{max-width:640px}
   .lb-cam-wrap{flex-direction:row}
   .lb-cam-box{flex:1;min-width:0}
 }
-.lb-cam-box{position:relative;background:#241F1B;border-radius:16px;overflow:hidden;aspect-ratio:16/10}
-.lb-cam-label{position:absolute;top:8px;left:10px;z-index:2;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:6px}
-.lb-cam-live{position:absolute;top:8px;right:10px;z-index:2;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
-.lb-cam-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8A8378;font-size:12px;text-align:center;padding:0 12px}
+.lb-cam-box{position:relative;background:#1F2937;border-radius:16px;overflow:hidden;aspect-ratio:16/10}
+.lb-cam-label{position:absolute;top:8px;left:10px;z-index:2;background:rgba(17,24,39,.85);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px}
+.lb-cam-live{position:absolute;top:8px;right:10px;z-index:2;background:rgba(17,24,39,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px}
+.lb-cam-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#D1D5DB;font-size:13px;text-align:center;padding:0 12px}
+.lb-yt-link{background:#FFFFFF;border:1px solid #D1D5DB;color:#374151;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;text-decoration:none;transition:background .15s}
+.lb-yt-link:hover{background:#F9FAFB}
 #lb-cam-front-wrap,#lb-cam-back-wrap{position:absolute;inset:0;width:100%;height:100%}
 #lb-cam-front-player,#lb-cam-back-player{width:100%;height:100%;border:none}
-.lb-stats-card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.lb-stats-lbl{text-align:center;font-size:12px;color:#9C958A;margin-bottom:4px}
-.lb-stats-amt{text-align:center;font-size:30px;font-weight:800;color:#E8735F;letter-spacing:-.5px}
-.lb-amt-badge{position:absolute;top:-4px;right:6px;background:#DC2626;color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap}
+.lb-stats-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px;box-shadow:none}
+.lb-stats-lbl{text-align:center;font-size:12px;color:#9CA3AF;margin-bottom:4px}
+.lb-stats-amt{text-align:center;font-size:30px;font-weight:800;color:#111827;letter-spacing:-.5px}
+.lb-amt-badge{position:absolute;top:-4px;right:6px;background:#111827;color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap}
 .lb-amt-badge.show{opacity:1;transform:translateY(0)}
 .lb-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.lb-stats-item{background:#F7F3EC;border-radius:10px;padding:8px;text-align:center}
-.lb-stats-item-lbl{font-size:10px;color:#9C958A;margin-bottom:2px}
-.lb-stats-item-val{font-size:15px;font-weight:800;color:#2B2620}
+.lb-stats-item{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:8px;text-align:center}
+.lb-stats-item-lbl{font-size:10px;color:#9CA3AF;margin-bottom:2px}
+.lb-stats-item-val{font-size:15px;font-weight:800;color:#111827}
 .lb-gauge-wrap{margin-top:16px}
-.lb-gauge-bg{height:8px;background:#F0EBE3;border-radius:99px;overflow:hidden}
-.lb-gauge-fill{height:100%;background:#E8735F;border-radius:99px;transition:width .4s ease;width:0%}
-.lb-gauge-txt{text-align:center;font-size:11px;color:#9C958A;margin-top:6px}
+.lb-gauge-bg{height:8px;background:#E5E7EB;border-radius:99px;overflow:hidden}
+.lb-gauge-fill{height:100%;background:#374151;border-radius:99px;transition:width .4s ease;width:0%}
+.lb-gauge-txt{text-align:center;font-size:11px;color:#9CA3AF;margin-top:6px}
 /* 기존 LIVE1/LIVE2 버튼은 삭제하지 않고 항상 숨김 처리만 (데이터/onclick·setLiveBtn 로직은 그대로 유지) */
 #groom-live-btn-1,#groom-live-btn-2,#bride-live-btn-1,#bride-live-btn-2{display:none !important}
 </style>
@@ -830,7 +835,12 @@ function lbHandlePlayerError(prefix, side, url, videoId, e){
   const empty = document.getElementById('lb-cam-' + prefix + '-empty');
   const wrap = document.getElementById('lb-cam-' + prefix + '-wrap');
   if(wrap) wrap.style.display = 'none';
-  if(empty){ empty.style.display = 'flex'; empty.textContent = lbErrorMessage(code); }
+  if(empty){
+    empty.style.display = 'flex';
+    const msg = esc(lbErrorMessage(code));
+    const linkHtml = url ? '<a class="lb-yt-link" href="'+esc(url)+'" target="_blank" rel="noopener">YouTube에서 보기</a>' : '';
+    empty.innerHTML = '<div>'+msg+'</div>'+linkHtml;
+  }
 }
 
 // FRONT/BACK 카메라 표시 — 유튜브 링크면 IFrame Player API로 생성, 없으면 안내 문구 표시
@@ -880,6 +890,8 @@ function openLiveBoard(){
   const namesEl=document.getElementById('hdr-names');
   se('lb-names', namesEl?namesEl.textContent:'—');
   se('lb-side-badge', side==='groom'?'신랑측':'신부측');
+  const sideBadgeEl=document.getElementById('lb-side-badge');
+  if(sideBadgeEl) sideBadgeEl.className='lb-side-badge '+(side==='groom'?'groom':'bride');
 
   // 다시보기 재생시간 매칭용 데이터 준비: 해당 측 로그를 created_at 오름차순 정렬
   // (영상 시작 기준 시각 컬럼이 없으므로 해당 측 첫 로그 시각을 0초 기준으로 사용 — DB 컬럼 추가 없음)
