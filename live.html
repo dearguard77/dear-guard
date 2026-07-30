@@ -601,12 +601,13 @@ function renderStats(){
   const groomWrap=document.getElementById('ticket-groom-wrap');
   const brideWrap=document.getElementById('ticket-bride-wrap');
   if(ticketDetail&&ticketSingle){
-    if(mode==='단측'){
+    const hasG=vLogs.some(l=>l.side==='신랑측');
+    const hasB=vLogs.some(l=>l.side==='신부측');
+    // wedding_mode가 '단측'으로 저장되어 있어도, 실제 로그에 양측이 모두 존재하면 측별 상세 표시를 우선함
+    if(mode==='단측' && !(hasG&&hasB)){
       ticketDetail.style.display='none';ticketSingle.style.display='flex';
     } else {
       ticketDetail.style.display='grid';ticketSingle.style.display='none';
-      const hasG=vLogs.some(l=>l.side==='신랑측');
-      const hasB=vLogs.some(l=>l.side==='신부측');
       if(groomWrap) groomWrap.style.display=(hasG||(!hasG&&!hasB))?'':'none';
       if(brideWrap) brideWrap.style.display=hasB?'':'none';
     }
@@ -1163,8 +1164,14 @@ function applyWeddingMode(){
       if(groomWrap) groomWrap.style.display=(currentViewSide!=='bride'&&(hasG||(!hasG&&!hasB)))?'':'none';
       if(brideWrap) brideWrap.style.display=(currentViewSide!=='groom'&&hasB)?'':'none';
     }
-    if(ticketDetail) ticketDetail.style.display='none';
-    if(ticketSingle) ticketSingle.style.display='flex';
+    // 신랑측/신부측 로그가 모두 존재하면 wedding_mode가 '단측'이어도 식권은 측별 상세로 표시 (renderStats()와 동일 기준)
+    if(hasG && hasB){
+      if(ticketDetail) ticketDetail.style.display='grid';
+      if(ticketSingle) ticketSingle.style.display='none';
+    } else {
+      if(ticketDetail) ticketDetail.style.display='none';
+      if(ticketSingle) ticketSingle.style.display='flex';
+    }
   } else {
     // ★ 개별 토큰 접속이면 single-mode 적용 (1줄 3칸 레이아웃)
     const isSingleView = currentViewSide==='groom' || currentViewSide==='bride';
