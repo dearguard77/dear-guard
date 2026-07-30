@@ -182,6 +182,33 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
   #tbl-filter-row span[style*="flex:1"]{display:none}
   #tbl-filter-row #tbl-cnt{white-space:nowrap}
 }
+
+/* ── Live Board (📹 실시간 확인하기 클릭 시 표시되는 신규 오버레이) ── */
+#live-board-overlay{display:none;position:fixed;inset:0;background:rgba(20,16,12,.75);z-index:5000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 16px}
+#live-board-overlay.open{display:flex}
+.lb-card{background:#F7F3EC;border-radius:28px;width:100%;max-width:420px;padding:22px 20px 26px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.lb-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.08);border:none;color:#57534E;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-brand{text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;letter-spacing:4px;color:#3A342C}
+.lb-sub{text-align:center;font-size:10px;letter-spacing:4px;color:#C9A876;margin-top:2px;margin-bottom:14px;font-weight:600}
+.lb-names{text-align:center;font-size:19px;font-weight:800;color:#2B2620;margin-bottom:10px}
+.lb-side-badge{display:block;margin:0 auto 16px;width:fit-content;background:#E8735F;color:#fff;font-size:12px;font-weight:700;padding:6px 18px;border-radius:20px}
+.lb-cam-wrap{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.lb-cam-box{position:relative;background:#241F1B;border-radius:16px;overflow:hidden;aspect-ratio:16/10}
+.lb-cam-label{position:absolute;top:8px;left:10px;z-index:2;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:6px}
+.lb-cam-live{position:absolute;top:8px;right:10px;z-index:2;display:flex;align-items:center;gap:4px;background:#DC2626;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
+.lb-cam-live .dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:pulse 1.5s ease-in-out infinite}
+.lb-cam-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8A8378;font-size:12px;text-align:center;padding:0 12px}
+.lb-cam-box iframe{width:100%;height:100%;border:none;display:block}
+.lb-stats-card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.lb-stats-lbl{text-align:center;font-size:12px;color:#9C958A;margin-bottom:4px}
+.lb-stats-amt{text-align:center;font-size:30px;font-weight:800;color:#E8735F;letter-spacing:-.5px}
+.lb-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.lb-stats-item{background:#F7F3EC;border-radius:10px;padding:8px;text-align:center}
+.lb-stats-item-lbl{font-size:10px;color:#9C958A;margin-bottom:2px}
+.lb-stats-item-val{font-size:15px;font-weight:800;color:#2B2620}
+.lb-live-indicator{display:flex;justify-content:center;margin-top:14px}
+/* 기존 LIVE1/LIVE2 버튼은 삭제하지 않고 항상 숨김 처리만 (데이터/onclick·setLiveBtn 로직은 그대로 유지) */
+#groom-live-btn-1,#groom-live-btn-2,#bride-live-btn-1,#bride-live-btn-2{display:none !important}
 </style>
 </head>
 <body>
@@ -208,6 +235,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
         <a id="groom-live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none;visibility:hidden;width:0;padding:0;margin:0;overflow:hidden"></a>
         <a id="bride-live-btn-1" href="#" target="_blank" class="live-stream-btn" style="display:none;visibility:hidden;width:0;padding:0;margin:0;overflow:hidden"></a>
         <a id="bride-live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none;visibility:hidden;width:0;padding:0;margin:0;overflow:hidden"></a>
+        <button class="live-stream-btn" onclick="openLiveBoard()">📹 실시간 확인하기</button>
         <button class="excel-btn" onclick="downloadExcel()">📥 엑셀 다운로드</button>
         <span id="last-upd"></span>
       </div>
@@ -349,6 +377,41 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 </div>
 
 <div id="upd">✓ 업데이트</div>
+
+<!-- Live Board — 📹 실시간 확인하기 클릭 시 표시되는 신규 오버레이 (기존 화면과 별개) -->
+<div id="live-board-overlay" onclick="if(event.target===this) closeLiveBoard()">
+  <div class="lb-card">
+    <button class="lb-close" onclick="closeLiveBoard()">✕</button>
+    <div class="lb-brand">LIVE BOARD</div>
+    <div class="lb-sub">DEAR GUARD</div>
+    <div class="lb-names" id="lb-names">—</div>
+    <div class="lb-side-badge" id="lb-side-badge">—</div>
+    <div class="lb-cam-wrap">
+      <div class="lb-cam-box" id="lb-cam-front-box">
+        <div class="lb-cam-label">FRONT CAM</div>
+        <div class="lb-cam-live"><span class="dot"></span>LIVE</div>
+        <div class="lb-cam-empty" id="lb-cam-front-empty">영상이 등록되지 않았습니다</div>
+        <iframe id="lb-cam-front-iframe" style="display:none" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <div class="lb-cam-box" id="lb-cam-back-box">
+        <div class="lb-cam-label">BACK CAM</div>
+        <div class="lb-cam-live"><span class="dot"></span>LIVE</div>
+        <div class="lb-cam-empty" id="lb-cam-back-empty">영상이 등록되지 않았습니다</div>
+        <iframe id="lb-cam-back-iframe" style="display:none" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+    <div class="lb-stats-card">
+      <div class="lb-stats-lbl">지금까지 모인 축의금</div>
+      <div class="lb-stats-amt" id="lb-total-amount">0원</div>
+      <div class="lb-stats-grid">
+        <div class="lb-stats-item"><div class="lb-stats-item-lbl">접수 건수</div><div class="lb-stats-item-val" id="lb-count">0건</div></div>
+        <div class="lb-stats-item"><div class="lb-stats-item-lbl">사용 식권</div><div class="lb-stats-item-val" id="lb-tickets">0장</div></div>
+        <div class="lb-stats-item" style="grid-column:span 2"><div class="lb-stats-item-lbl">접수 인원</div><div class="lb-stats-item-val" id="lb-guests">0명</div></div>
+      </div>
+    </div>
+    <div class="lb-live-indicator"><span class="live-pill"><span class="live-dot"></span>실시간</span></div>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL='https://fmvomfjmkbklhaaapkbk.supabase.co';
@@ -530,6 +593,71 @@ function renderStats(){
       if(brideWrap) brideWrap.style.display=hasB?'':'none';
     }
   }
+  updateLiveBoardStats(); // Live Board가 열려 있으면 실시간 현황도 함께 갱신 (닫혀있으면 내부에서 즉시 return)
+}
+
+// ════════════════════════════════════════════════════════════
+//  📹 Live Board (실시간 확인하기) — 신규 기능
+//  기존 currentViewSide / _activeTab / getVisibleLogs / getVisiblePreShares /
+//  fmt / se 등 기존 함수·변수를 그대로 재사용하며, 기존 로직은 전혀 수정하지 않음
+// ════════════════════════════════════════════════════════════
+// 현재 표시할 측 결정: 개별 토큰 접속이면 그 측, 양측 접속이면 현재 선택된 탭 기준
+// (탭이 '전체'인 경우는 특정 측 카메라가 없으므로 신랑측을 기본으로 표시)
+function getLiveBoardSide(){
+  if(currentViewSide==='groom') return 'groom';
+  if(currentViewSide==='bride') return 'bride';
+  return _activeTab==='bride' ? 'bride' : 'groom';
+}
+
+function setLiveBoardCam(prefix,url){
+  const iframe=document.getElementById('lb-cam-'+prefix+'-iframe');
+  const empty=document.getElementById('lb-cam-'+prefix+'-empty');
+  if(!iframe||!empty) return;
+  if(url){
+    if(iframe.getAttribute('src')!==url) iframe.src=url;
+    iframe.style.display='block';
+    empty.style.display='none';
+  } else {
+    iframe.style.display='none';
+    empty.style.display='flex';
+  }
+}
+
+// Live Board가 열려 있을 때만 현황(총액/건수/식권/인원)을 다시 계산해서 반영
+// getVisibleLogs()/getVisiblePreShares()는 renderStats()와 동일한 기존 함수를 그대로 재사용
+function updateLiveBoardStats(){
+  const overlay=document.getElementById('live-board-overlay');
+  if(!overlay||!overlay.classList.contains('open')) return;
+  const side=getLiveBoardSide();
+  const sideName=side==='groom'?'신랑측':'신부측';
+  const vLogs=getVisibleLogs().filter(l=>l.side===sideName);
+  const vShares=getVisiblePreShares().filter(t=>t.side===sideName&&t.received);
+  const total=vLogs.reduce((s,l)=>s+(l.amount||0),0);
+  const adultT=vLogs.reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const childT=vLogs.reduce((s,l)=>s+(l.child_ticket||0),0);
+  const preShareAmt=vShares.reduce((s,t)=>s+(t.amount||0),0);
+  se('lb-total-amount',fmt(total));
+  se('lb-count',vLogs.length+'건');
+  se('lb-guests',vLogs.length+'명');
+  se('lb-tickets',(adultT+childT+preShareAmt)+'장');
+}
+
+function openLiveBoard(){
+  const overlay=document.getElementById('live-board-overlay');
+  if(!overlay||!schedule) return;
+  const side=getLiveBoardSide();
+  const namesEl=document.getElementById('hdr-names');
+  se('lb-names', namesEl?namesEl.textContent:'—');
+  se('lb-side-badge', side==='groom'?'신랑측':'신부측');
+  setLiveBoardCam('front', side==='groom'?schedule.groom_live1:schedule.bride_live1);
+  setLiveBoardCam('back',  side==='groom'?schedule.groom_live2:schedule.bride_live2);
+  overlay.classList.add('open');
+  updateLiveBoardStats();
+}
+
+function closeLiveBoard(){
+  const overlay=document.getElementById('live-board-overlay');
+  if(overlay) overlay.classList.remove('open');
 }
 
 var _groomSideSort='num_desc';
