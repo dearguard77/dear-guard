@@ -334,14 +334,14 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="section-body" id="sec-3-body">
       <div class="field">
-        <label class="field-label">전체 보증인원</label>
+        <label class="field-label">전체 보증인원 <span class="req">*</span></label>
         <input class="field-input" id="ticket_guarantee" type="number" placeholder="예: 200" oninput="updateProgress();autoSaveDraft()">
       </div>
 
       <!-- 신랑측 식권 -->
       <div style="margin-bottom:12px">
         <div class="field">
-          <label class="field-label" style="color:#2563EB">🤵 신랑측 식권 수량</label>
+          <label class="field-label" style="color:#2563EB">🤵 신랑측 식권 수량 <span class="req">*</span></label>
           <input class="field-input" id="ticket_total_groom" type="number" placeholder="예: 110" oninput="updateProgress();autoSaveDraft()">
         </div>
         <!-- [수정2] 신랑측 소인 식권 여부 -->
@@ -369,7 +369,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <!-- 신부측 식권 -->
       <div style="margin-bottom:12px">
         <div class="field">
-          <label class="field-label" style="color:#DB2777">👰 신부측 식권 수량</label>
+          <label class="field-label" style="color:#DB2777">👰 신부측 식권 수량 <span class="req">*</span></label>
           <input class="field-input" id="ticket_total_bride" type="number" placeholder="예: 90" oninput="updateProgress();autoSaveDraft()">
         </div>
         <!-- [수정2] 신부측 소인 식권 여부 -->
@@ -1388,8 +1388,8 @@ function updateProgress(){
     },
     // STEP 2: 담당자 연락처
     () => !!(gv('groom_contact_name') || gv('bride_contact_name')),
-    // STEP 3: 식권 정보
-    () => !!(gv('ticket_total_groom') || gv('ticket_total_bride')) && !!getRadioVal('stamp-group'),
+    // STEP 3: 식권 정보 (전체 보증인원, 신랑측, 신부측 수량 필수 + 도장 여부)
+    () => !!(gv('ticket_guarantee') && gv('ticket_total_groom') && gv('ticket_total_bride')) && !!getRadioVal('stamp-group'),
     // STEP 4: 사전 전달 식권 (선택)
     () => true,
     // STEP 5: 축의금 보관 방식
@@ -1470,6 +1470,19 @@ async function saveAll(){
     return;
   }
 
+  // 식권 필수 3개 검증
+  if(!gv('ticket_guarantee') || !gv('ticket_total_groom') || !gv('ticket_total_bride')){
+    const sec3body = document.getElementById('sec-3-body');
+    if(sec3body && !sec3body.classList.contains('open')) toggleSection('sec-3');
+    const missingId = !gv('ticket_guarantee') ? 'ticket_guarantee'
+                    : !gv('ticket_total_groom') ? 'ticket_total_groom'
+                    : 'ticket_total_bride';
+    const missingEl = document.getElementById(missingId);
+    if(missingEl){ missingEl.scrollIntoView({behavior:'smooth',block:'center'}); missingEl.focus(); }
+    showToast('⚠️ STEP 3 식권 정보를 모두 입력해주세요 (전체 보증인원·신랑측·신부측 수량)');
+    return;
+  }
+
   const btn = document.getElementById('save-btn');
   btn.disabled = true;
   btn.textContent = '저장 중...';
@@ -1481,6 +1494,7 @@ async function saveAll(){
     groom_contact_phone:  gv('groom_contact_phone'),
     bride_contact_name:   gv('bride_contact_name'),
     bride_contact_phone:  gv('bride_contact_phone'),
+    ticket_guarantee:     parseInt(gv('ticket_guarantee'))||null,
     ticket_total_groom:   parseInt(gv('ticket_total_groom'))||null,
     ticket_total_bride:   parseInt(gv('ticket_total_bride'))||null,
     ticket_child_groom:   getRadioVal('child-groom-yn-group')==='true' ? (parseInt(gv('ticket_child_groom'))||0) : 0,
