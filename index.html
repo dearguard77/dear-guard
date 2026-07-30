@@ -881,8 +881,8 @@
 
 <!-- DELETE CONFIRM MODAL -->
 <div class="modal-overlay" id="delete-modal" style="display:none" onclick="if(event.target===this)closeDeleteModal()">
-  <div class="modal-box sm" style="max-width:360px">
-    <div class="modal-header">
+  <div class="modal-box sm guide-modal-box" style="max-width:360px">
+    <div class="modal-header guide-modal-header">
       <div class="modal-brand">Dear Guard · 예식 삭제</div>
       <div class="modal-title" style="color:#DC2626">⚠️ 삭제 확인</div>
     </div>
@@ -890,11 +890,11 @@
       <div style="font-size:40px;margin-bottom:16px">🗑️</div>
       <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:8px">정말 이 예식을 삭제하시겠습니까?</div>
       <div style="font-size:13px;color:#6B7280;line-height:1.6">삭제 후 복구할 수 없습니다.</div>
-      <div id="delete-target-name" style="margin-top:12px;background:#FEF2F2;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:#DC2626"></div>
+      <div id="delete-target-name" style="margin-top:12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:#DC2626"></div>
     </div>
-    <div class="modal-footer" style="justify-content:center;gap:12px">
+    <div class="modal-footer guide-modal-footer" style="justify-content:center;gap:12px">
       <button class="btn btn-ghost" onclick="closeDeleteModal()">취소</button>
-      <button onclick="executeDelete()" style="background:#DC2626;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer">
+      <button class="guide-btn guide-btn-danger" onclick="executeDelete()" style="flex:none;padding:10px 20px">
         🗑️ 삭제
       </button>
     </div>
@@ -904,8 +904,8 @@
  <!-- TOAST -->
 <!-- 불가일정 탭: 날짜별 매니저 현황 팝업 -->
 <div id="uvDay-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px">
-  <div style="background:#fff;border-radius:16px;max-width:460px;width:100%;margin:40px auto">
-    <div style="background:linear-gradient(135deg,#F9F5EF,#FDF8F3);padding:16px 20px;border-radius:16px 16px 0 0;border-bottom:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center">
+  <div style="background:#fff;border-radius:10px;max-width:460px;width:100%;margin:40px auto;border:1px solid #E5E7EB">
+    <div style="background:#fff;padding:16px 20px;border-radius:10px 10px 0 0;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:10px;font-weight:700;color:#C7A96B;letter-spacing:2px">DEAR GUARD · 매니저 현황</div>
         <div id="uvDay-title" style="font-size:16px;font-weight:800;color:#111827;margin-top:2px"></div>
@@ -913,16 +913,16 @@
       <button onclick="closeUvDayModal()" style="background:#E5E7EB;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;color:#6B7280">✕</button>
     </div>
     <div id="uvDay-body" style="padding:16px 20px;max-height:60vh;overflow-y:auto"></div>
-    <div style="padding:12px 20px;border-top:1px solid #F0EBE1;display:flex;justify-content:space-between;align-items:center">
+    <div style="padding:12px 20px;border-top:1px solid #E5E7EB;background:#FAFAFA;border-radius:0 0 10px 10px;display:flex;justify-content:space-between;align-items:center">
       <span id="uvDay-avail-badge" style="font-size:12px;font-weight:700"></span>
-      <button onclick="closeUvDayModal()" style="background:#F3F4F6;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#374151">닫기</button>
+      <button onclick="closeUvDayModal()" style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#374151">닫기</button>
     </div>
   </div>
 </div>
 
 <!-- 짝꿍코드 조회 모달 (관리자 전용) -->
 <div id="referralModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px">
-  <div style="background:#fff;border-radius:16px;padding:20px;max-width:520px;width:100%;margin:40px auto">
+  <div style="background:#fff;border-radius:10px;padding:20px;max-width:520px;width:100%;margin:40px auto;border:1px solid #E5E7EB">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div style="font-size:16px;font-weight:800;color:#1F2937">🤝 짝꿍코드 조회</div>
       <button onclick="closeReferralModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9CA3AF">✕</button>
@@ -935,11 +935,11 @@
     <div style="display:flex;gap:0;border-bottom:2px solid #E5E7EB;margin-bottom:14px">
       <button id="referral-tab-avail" onclick="switchReferralTab('avail')"
         style="flex:1;background:none;border:none;border-bottom:2px solid #C7A96B;margin-bottom:-2px;padding:8px 0;font-size:13px;font-weight:700;color:#C7A96B;cursor:pointer">
-        사용 가능 <span id="referral-cnt-avail" style="font-size:11px;background:#FEF3C7;color:#92400E;border-radius:10px;padding:1px 6px;margin-left:4px"></span>
+        사용 가능 <span id="referral-cnt-avail" style="font-size:11px;background:#FEF3C7;color:#92400E;border-radius:8px;padding:1px 6px;margin-left:4px"></span>
       </button>
       <button id="referral-tab-used" onclick="switchReferralTab('used')"
         style="flex:1;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:8px 0;font-size:13px;font-weight:600;color:#9CA3AF;cursor:pointer">
-        사용 완료 <span id="referral-cnt-used" style="font-size:11px;background:#F3F4F6;color:#6B7280;border-radius:10px;padding:1px 6px;margin-left:4px"></span>
+        사용 완료 <span id="referral-cnt-used" style="font-size:11px;background:#F3F4F6;color:#6B7280;border-radius:8px;padding:1px 6px;margin-left:4px"></span>
       </button>
     </div>
     <div id="referral-list" style="max-height:440px;overflow-y:auto"></div>
@@ -1322,51 +1322,51 @@
 </div>
 
 <div class="modal-overlay" id="hv-modal" style="display:none" onclick="if(event.target===this) rtCloseHandoverCert()">
-  <div class="modal-box sm" style="max-width:480px">
-    <div class="modal-header" style="background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%)">
-      <button class="x-btn" onclick="rtCloseHandoverCert()" style="color:#fff">✕</button>
-      <div class="modal-brand" style="color:rgba(255,255,255,.85)">Dear Guard · 인계 확인서</div>
-      <div class="modal-title" style="color:#fff">수령인 체크 및 서명</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.9);margin-top:6px;line-height:1.6">아래 내용을 하나씩 확인 후 체크해주세요.<br>모든 항목을 체크하고 서명해야 인계가 완료됩니다.</div>
+  <div class="modal-box sm guide-modal-box" style="max-width:480px">
+    <div class="modal-header guide-modal-header">
+      <button class="x-btn" onclick="rtCloseHandoverCert()">✕</button>
+      <div class="modal-brand">Dear Guard · 인계 확인서</div>
+      <div class="modal-title">수령인 체크 및 서명</div>
+      <div style="font-size:11px;color:#6B7280;margin-top:6px;line-height:1.6">아래 내용을 하나씩 확인 후 체크해주세요.<br>모든 항목을 체크하고 서명해야 인계가 완료됩니다.</div>
     </div>
     <div class="modal-body">
 
       <!-- 1. 수령인 정보 -->
-      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:10px;padding:16px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:10px">① 수령인 정보</div>
         <div class="form-field" style="margin-bottom:10px"><label class="form-label">관계 / 성함</label><input class="form-input" id="hv-name" placeholder="예) 친동생 신민지, 고모 김희애" oninput="rtValidateHandover()"></div>
         <div class="form-field"><label class="form-label">연락처</label><input class="form-input" id="hv-phone" type="tel" placeholder="010-0000-0000" oninput="rtValidateHandover()"></div>
       </div>
 
       <!-- 2. 인계 물품 확인 -->
-      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:10px;padding:16px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:2px">② 인계 물품 확인</div>
         <div style="font-size:11px;color:#9CA3AF;margin-bottom:12px">설명을 들으신 후 하나씩 체크해주세요</div>
         <div id="hv-items-checklist"></div>
       </div>
 
       <!-- 3. 수령인 서명 -->
-      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="background:#fff;border:1px solid #E8DFD0;border-radius:10px;padding:16px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:10px">③ 수령인 서명</div>
         <div style="border:1.5px dashed #D4C7AE;border-radius:12px;background:#FAFAF9;overflow:hidden;position:relative">
           <canvas id="hv-sign-canvas" style="width:100%;height:160px;display:block;touch-action:none;background:#fff"></canvas>
           <div id="hv-sign-placeholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#C4C4C4;font-size:13px;pointer-events:none">여기에 서명해주세요</div>
         </div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button onclick="rtClearSignature()" style="flex:1;background:#fff;border:1.5px solid #E5E7EB;border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:#6B7280">다시 쓰기</button>
-          <button id="hv-sign-confirm-btn" onclick="rtConfirmSignature()" style="flex:1;background:#fff;border:1.5px solid #E5E7EB;border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:#6B7280">서명 완료</button>
+          <button onclick="rtClearSignature()" style="flex:1;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:#6B7280">다시 쓰기</button>
+          <button id="hv-sign-confirm-btn" onclick="rtConfirmSignature()" style="flex:1;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:#6B7280">서명 완료</button>
         </div>
       </div>
 
-      <button id="hv-complete-btn" disabled onclick="rtCompleteHandover()" style="width:100%;background:#E5E7EB;color:#9CA3AF;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:800;cursor:not-allowed">✅ 인계 완료하기</button>
+      <button id="hv-complete-btn" disabled onclick="rtCompleteHandover()" style="width:100%;background:#F9FAFB;color:#9CA3AF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;font-size:14px;font-weight:800;cursor:not-allowed">✅ 인계 완료하기</button>
       <div id="hv-helper-text" style="text-align:center;font-size:11px;color:#9CA3AF;margin-top:8px">모든 항목 확인 및 서명 완료 후 인계가 가능합니다.</div>
     </div>
   </div>
 </div>
 <!-- UNAVAILABLE FORM MODAL -->
 <div class="modal-overlay" id="unavail-modal" style="display:none" onclick="if(event.target===this)closeUnavailForm()">
-  <div class="modal-box sm">
-    <div class="modal-header">
+  <div class="modal-box sm guide-modal-box">
+    <div class="modal-header guide-modal-header">
       <button class="x-btn" onclick="closeUnavailForm()">✕</button>
       <div class="modal-brand">Dear Guard · 불가일정</div>
       <div class="modal-title" id="uvm-title">🚫 불가일정 등록</div>
@@ -1426,7 +1426,7 @@
       </div>
 
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer guide-modal-footer">
       <button class="btn btn-ghost" id="uv-del-btn" style="display:none;color:#DC2626;border-color:#FCA5A5" onclick="deleteUnavail()">🗑️ 삭제</button>
       <div style="display:flex;gap:8px;margin-left:auto">
         <button class="btn btn-ghost" onclick="closeUnavailForm()">취소</button>
@@ -6813,8 +6813,9 @@ function rtValidateHandover(){
   const helper = document.getElementById('hv-helper-text');
   if(btn){
     btn.disabled = !allValid;
-    btn.style.background = allValid ? '#C7A96B' : '#E5E7EB';
-    btn.style.color = allValid ? '#fff' : '#9CA3AF';
+    btn.style.background = allValid ? '#fff' : '#F9FAFB';
+    btn.style.borderColor = allValid ? '#E8DFD0' : '#E5E7EB';
+    btn.style.color = allValid ? '#A8893A' : '#9CA3AF';
     btn.style.cursor = allValid ? 'pointer' : 'not-allowed';
   }
   if(helper){
