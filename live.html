@@ -195,11 +195,12 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 .lb-side-badge{display:block;margin:0 auto 16px;width:fit-content;font-size:12px;font-weight:700;padding:6px 18px;border-radius:20px}
 .lb-side-badge.groom{background:#EFF6FF;border:1px solid #BFDBFE;color:#2563EB}
 .lb-side-badge.bride{background:#FDF2F8;border:1px solid #FBCFE8;color:#DB2777}
+.lb-link-row{display:flex;gap:8px;margin-bottom:14px}
+.lb-link-btn{flex:1;text-align:center;background:#FFFFFF;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:9px 10px;font-size:12px;font-weight:700;text-decoration:none;transition:background .15s}
+.lb-link-btn:hover{background:#F9FAFB}
 .lb-cam-wrap{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 @media(min-width:901px){
-  .lb-card{max-width:640px}
-  .lb-cam-wrap{flex-direction:row}
-  .lb-cam-box{flex:1;min-width:0}
+  .lb-card{max-width:520px}
 }
 .lb-cam-box{position:relative;background:#1F2937;border-radius:16px;overflow:hidden;aspect-ratio:16/10}
 .lb-cam-label{position:absolute;top:8px;left:10px;z-index:2;background:rgba(17,24,39,.85);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px}
@@ -207,8 +208,8 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 .lb-cam-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#D1D5DB;font-size:13px;text-align:center;padding:0 12px}
 .lb-yt-link{background:#FFFFFF;border:1px solid #D1D5DB;color:#374151;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;text-decoration:none;transition:background .15s}
 .lb-yt-link:hover{background:#F9FAFB}
-#lb-cam-front-wrap,#lb-cam-back-wrap{position:absolute;inset:0;width:100%;height:100%}
-#lb-cam-front-player,#lb-cam-back-player{width:100%;height:100%;border:none}
+#lb-cam-front-wrap{position:absolute;inset:0;width:100%;height:100%}
+#lb-cam-front-player{width:100%;height:100%;border:none}
 .lb-stats-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px;box-shadow:none}
 .lb-stats-lbl{text-align:center;font-size:12px;color:#9CA3AF;margin-bottom:4px}
 .lb-stats-amt{text-align:center;font-size:30px;font-weight:800;color:#111827;letter-spacing:-.5px}
@@ -400,21 +401,17 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
     <div class="lb-sub">LIVE BOARD</div>
     <div class="lb-names" id="lb-names">—</div>
     <div class="lb-side-badge" id="lb-side-badge">—</div>
+    <div class="lb-link-row">
+      <a class="lb-link-btn" id="lb-link-live1" href="#" target="_blank" rel="noopener">접수측 다시보기</a>
+      <a class="lb-link-btn" id="lb-link-live2" href="#" target="_blank" rel="noopener">기록측 다시보기</a>
+    </div>
     <div class="lb-cam-wrap">
       <div class="lb-cam-box" id="lb-cam-front-box">
-        <div class="lb-cam-label">FRONT CAM</div>
+        <div class="lb-cam-label">접수측 영상</div>
         <div class="lb-cam-live">다시보기</div>
         <div class="lb-cam-empty" id="lb-cam-front-empty">등록된 다시보기 영상이 없습니다.</div>
         <div id="lb-cam-front-wrap" style="display:none;width:100%;height:100%">
           <div id="lb-cam-front-player" style="width:100%;height:100%"></div>
-        </div>
-      </div>
-      <div class="lb-cam-box" id="lb-cam-back-box">
-        <div class="lb-cam-label">BACK CAM</div>
-        <div class="lb-cam-live">다시보기</div>
-        <div class="lb-cam-empty" id="lb-cam-back-empty">등록된 다시보기 영상이 없습니다.</div>
-        <div id="lb-cam-back-wrap" style="display:none;width:100%;height:100%">
-          <div id="lb-cam-back-player" style="width:100%;height:100%"></div>
         </div>
       </div>
     </div>
@@ -663,7 +660,7 @@ function lbBuildEmbedUrl(videoId){
 }
 
 // ── LIVE BOARD 상태 (기존 실시간 장부 상태와 완전히 분리된 전용 변수) ──
-var lbPlayerFront=null, lbPlayerBack=null;
+var lbPlayerFront=null;
 var lbLogsSorted=[];               // 해당 측 로그, created_at 오름차순 + 상대 재생초(relSec)
 var lbFinalTotal=0, lbFinalCount=0;// 해당 측 최종 누적값(분모) — 다시보기가 끝나면 도달해야 하는 값
 var lbRevealedIndex=-1;            // 지금까지 반영된 로그 인덱스
@@ -766,14 +763,10 @@ function lbRecalcInstant(t){
   lbSetGauge(pct,cnt,lbFinalCount);
 }
 
-// FRONT CAM 재생시간을 기준으로 폴링하며 접수 반영 시점 판단 (BACK CAM은 FRONT를 따라가도록 보정)
+// 영상(접수측) 재생시간을 기준으로 폴링하며 접수 반영 시점 판단
 function lbPollTick(){
   if(!lbPlayerFront||typeof lbPlayerFront.getCurrentTime!=='function') return;
   var t=lbPlayerFront.getCurrentTime();
-  if(lbPlayerBack&&typeof lbPlayerBack.getCurrentTime==='function'){
-    var bt=lbPlayerBack.getCurrentTime();
-    if(Math.abs(bt-t)>1.0 && typeof lbPlayerBack.seekTo==='function') lbPlayerBack.seekTo(t,true);
-  }
   var delta=t-lbLastKnownTime;
   if(delta<-1||delta>3){
     // 탐색(되감기/빨리감기) 감지 → 즉시 재계산
@@ -809,12 +802,7 @@ function lbHandleFrontReady(e){
 
 function lbHandleFrontStateChange(e){
   if(typeof YT==='undefined') return;
-  if(e.data===YT.PlayerState.PLAYING){
-    if(lbPlayerBack&&typeof lbPlayerBack.playVideo==='function') lbPlayerBack.playVideo();
-  } else if(e.data===YT.PlayerState.PAUSED){
-    if(lbPlayerBack&&typeof lbPlayerBack.pauseVideo==='function') lbPlayerBack.pauseVideo();
-  } else if(e.data===YT.PlayerState.ENDED){
-    if(lbPlayerBack&&typeof lbPlayerBack.pauseVideo==='function') lbPlayerBack.pauseVideo();
+  if(e.data===YT.PlayerState.ENDED){
     lbHandleEnded();
   }
 }
@@ -873,14 +861,13 @@ function lbSetupCam(prefix,url,isFront,side){
       onError:function(e){ lbHandlePlayerError(prefix, side, url, videoId, e); }
     }
   });
-  if(isFront) lbPlayerFront=player; else lbPlayerBack=player;
+  if(isFront) lbPlayerFront=player;
 }
 
 function lbDestroyPlayers(){
   lbStopPolling();
   if(lbPlayerFront&&typeof lbPlayerFront.destroy==='function'){ try{lbPlayerFront.destroy();}catch(e){} }
-  if(lbPlayerBack&&typeof lbPlayerBack.destroy==='function'){ try{lbPlayerBack.destroy();}catch(e){} }
-  lbPlayerFront=null; lbPlayerBack=null;
+  lbPlayerFront=null;
 }
 
 function openLiveBoard(){
@@ -910,9 +897,17 @@ function openLiveBoard(){
   lbResetState();
   overlay.classList.add('open');
 
+  // 상단 "접수측 다시보기(live1)" / "기록측 다시보기(live2)" 버튼 — 계약상 다시보기 링크 제공은 새 탭으로 그대로 유지
+  const live1Url = side==='groom'?schedule.groom_live1:schedule.bride_live1;
+  const live2Url = side==='groom'?schedule.groom_live2:schedule.bride_live2;
+  const link1El = document.getElementById('lb-link-live1');
+  const link2El = document.getElementById('lb-link-live2');
+  if(link1El){ link1El.href = live1Url || '#'; link1El.style.display = live1Url ? 'block' : 'none'; }
+  if(link2El){ link2El.href = live2Url || '#'; link2El.style.display = live2Url ? 'block' : 'none'; }
+
+  // 중앙 영상 플레이어는 1개만 표시 (LIVE1 · 접수측 영상). BACK CAM은 임베드하지 않음
   lbEnsureYTApi(function(){
-    lbSetupCam('front', side==='groom'?schedule.groom_live1:schedule.bride_live1, true, side);
-    lbSetupCam('back',  side==='groom'?schedule.groom_live2:schedule.bride_live2, false, side);
+    lbSetupCam('front', live1Url, true, side);
   });
 }
 
