@@ -25,157 +25,179 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#F5F3F0;--bg2:#fff;--bg3:#F9F7F4;
-  --border:#E8E2D9;--border2:#EDE8E0;
+  --bg:#F7F6F4;--bg2:#fff;--bg3:#F9F8F6;
+  --border:#E8E4DE;--border2:#EDE9E2;
   --gold:#C7A96B;--gold2:#A8893A;--gold-bg:#FDF8F0;
   --text:#111827;--text2:#6B7280;--text3:#9CA3AF;
   --green:#059669;--red:#DC2626;
-  --radius:14px;--radius-sm:8px;
+  --radius:10px;--radius-sm:6px;
 }
-html,body{min-height:100%;background:var(--bg);font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;color:var(--text);font-size:14px}
+html,body{min-height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased}
 button{cursor:pointer;font-family:inherit;border:none;outline:none}
 input,select,textarea{font-family:inherit;outline:none}
 
-/* 로딩/에러 */
-#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:14px}
-.loading-logo{font-family:Georgia,serif;font-size:20px;font-weight:700;color:var(--gold);letter-spacing:2px}
-.spinner{width:28px;height:28px;border:2.5px solid rgba(199,169,107,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+/* ── 로딩/에러 ── */
+#loading{position:fixed;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:16px}
+.loading-logo{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
+.spinner{width:26px;height:26px;border:2px solid rgba(199,169,107,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#error-screen{display:none;position:fixed;inset:0;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px}
+#error-screen{display:none;position:fixed;inset:0;background:var(--bg2);align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px}
 
-/* 앱 */
-#app{display:none;max-width:480px;margin:0 auto;padding:0 0 80px}
+/* ── 앱 레이아웃 ── */
+#app{display:none;max-width:480px;margin:0 auto;padding:0 0 90px}
 
-/* 헤더 */
-#hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:20px 16px 18px;text-align:center;position:sticky;top:0;z-index:50}
-.hdr-brand{font-family:Georgia,serif;font-size:11px;color:var(--gold);letter-spacing:2.5px;font-weight:700;margin-bottom:10px;opacity:.8}
-.hdr-couple{font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;line-height:1.2;margin-bottom:6px}
-.hdr-info{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px}
-.hdr-sub{font-size:12px;color:var(--gold2);font-weight:600;margin-bottom:14px}
+/* ── 헤더 ── */
+#hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:24px 20px 0;text-align:center;position:sticky;top:0;z-index:50}
+.hdr-brand{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;opacity:.9}
+.hdr-couple{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px;line-height:1.2;margin-bottom:6px}
+.hdr-info{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:6px;font-weight:400}
+.hdr-sub{font-size:12px;color:var(--gold2);font-weight:500;margin-bottom:16px}
 
-/* 진행 바 */
-.progress-wrap{background:var(--bg3);border-top:1px solid var(--border);padding:12px 16px;margin:0 -16px -18px}
-.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.progress-label{font-size:11px;font-weight:700;color:var(--text2)}
-.progress-pct{font-size:11px;font-weight:800;color:var(--gold)}
-.progress-bar{height:3px;background:#E8E2D9;border-radius:2px;overflow:hidden}
+/* ── 진행 바 ── */
+.progress-wrap{border-top:1px solid var(--border);padding:14px 20px;margin:0 -20px 0}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.progress-label{font-size:11px;font-weight:600;color:var(--text2)}
+.progress-pct{font-size:11px;font-weight:700;color:var(--gold)}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),#E8C98A);border-radius:2px;transition:width .4s ease}
 
-/* 이미 완료 배너 */
-#signed-banner{display:none;margin:12px;padding:14px 16px;background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:var(--radius);text-align:center}
-.signed-title{font-size:15px;font-weight:800;color:var(--green);margin-bottom:4px}
-.signed-sub{font-size:12px;color:#065F46;line-height:1.6}
-/* ▼ [수정6] signed-banner 버튼 그룹 */
-.signed-btn-group{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-.signed-btn{width:100%;background:var(--gold);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer}
-.signed-btn.outline{background:#fff;color:var(--gold2);border:1.5px solid var(--gold)}
-.signed-inapp-notice{margin-top:8px;font-size:11px;color:#065F46;line-height:1.6;background:#D1FAE5;border-radius:6px;padding:8px 10px}
+/* ── 완료 배너 ── */
+#signed-banner{display:none;margin:16px;padding:18px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:var(--radius);text-align:center}
+.signed-title{font-size:15px;font-weight:700;color:var(--green);margin-bottom:4px}
+.signed-sub{font-size:12px;color:#065F46;line-height:1.7}
+.signed-btn-group{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.signed-btn{width:100%;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer}
+.signed-btn.outline{background:var(--bg2);color:var(--gold2);border:1px solid var(--gold)}
+.signed-inapp-notice{margin-top:10px;font-size:11px;color:#065F46;line-height:1.7;background:#D1FAE5;border-radius:var(--radius-sm);padding:10px 12px}
 
-/* 섹션 카드 */
-.section{margin:10px 12px 0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.section-hdr{padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
-.section-icon{font-size:18px;flex-shrink:0}
+/* ── 섹션 카드 ── */
+.section{margin:12px 14px 0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.section-hdr{padding:16px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+.section-icon{font-size:16px;flex-shrink:0;opacity:.85}
 .section-meta{flex:1;min-width:0}
-.section-num{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
-.section-title{font-size:14px;font-weight:800;color:var(--text)}
-.section-toggle{font-size:12px;color:var(--text3);flex-shrink:0;transition:transform .2s}
+.section-num{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.section-title{font-size:14px;font-weight:700;color:var(--text)}
+.section-toggle{font-size:11px;color:var(--text3);flex-shrink:0;transition:transform .2s}
 .section-toggle.open{transform:rotate(180deg)}
-.section-body{padding:0 16px 16px;border-top:1px solid var(--border2);display:none}
-.section-body.open{display:block;padding-top:14px}
+.section-body{padding:0 18px 18px;border-top:1px solid var(--border2);display:none}
+.section-body.open{display:block;padding-top:16px}
 
-/* 정보 박스 */
-.info-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid #F5F3F0;font-size:13px}
+/* ── 예약 정보 rows ── */
+.info-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px}
 .info-row:last-child{border-bottom:none}
-.info-lbl{color:var(--text2)}
-.info-val{font-weight:700;color:var(--text);text-align:right}
+.info-lbl{color:var(--text3);font-weight:400}
+.info-val{font-weight:600;color:var(--text);text-align:right}
 .info-val.gold{color:var(--gold2)}
 
-/* 조항 accordion */
-.clause{margin-bottom:8px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
-.clause-hdr{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--bg3);user-select:none}
-.clause-title{font-size:13px;font-weight:700;color:var(--text)}
-.clause-arrow{font-size:11px;color:var(--text3);transition:transform .2s;flex-shrink:0}
-.clause-body{display:none;padding:12px 14px;border-top:1px solid var(--border2);background:var(--bg2)}
-.clause-body.open{display:block}
-.clause-body p{font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:6px}
-.clause-body p:last-child{margin-bottom:0}
-.clause-body .item{font-size:12px;color:var(--text2);line-height:1.8;padding-left:12px;position:relative;margin-bottom:4px}
-.clause-body .item::before{content:'·';position:absolute;left:0;color:var(--gold)}
-.refund-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}
-.refund-table th{background:var(--bg3);padding:6px 8px;font-weight:700;color:var(--text2);border:1px solid var(--border)}
-.refund-table td{padding:6px 8px;border:1px solid var(--border);color:var(--text);line-height:1.5}
+/* ── 결제 정보 ── */
+.payment-total-box{background:var(--gold-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.payment-total-lbl{font-size:11px;font-weight:600;color:var(--gold2);letter-spacing:.3px;text-transform:uppercase}
+.payment-total-val{font-size:22px;font-weight:800;color:var(--gold2)}
+.payment-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px}
+.payment-row:last-child{border-bottom:none}
+.payment-lbl{color:var(--text2);font-weight:400}
+.payment-val{font-weight:700;color:var(--text)}
+.payment-val.discount{color:var(--green)}
+.payment-final-box{margin-top:12px;background:var(--text);border-radius:var(--radius-sm);padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.payment-final-lbl{font-size:12px;font-weight:600;color:rgba(255,255,255,.7)}
+.payment-final-val{font-size:20px;font-weight:800;color:#fff}
 
-/* 동의 체크 */
-.agree-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;background:var(--bg2);margin-bottom:7px}
+/* ── 짝꿍 할인 영역 ── */
+.couple-code-box{margin-top:14px;padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.couple-code-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px}
+.couple-code-desc{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px}
+
+/* ── 조항 accordion ── */
+.clause{margin-bottom:6px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.clause-hdr{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--bg3);user-select:none}
+.clause-title{font-size:13px;font-weight:600;color:var(--text)}
+.clause-arrow{font-size:11px;color:var(--text3);transition:transform .2s;flex-shrink:0}
+.clause-body{display:none;padding:14px 16px;border-top:1px solid var(--border2);background:var(--bg2)}
+.clause-body.open{display:block}
+.clause-body p{font-size:12px;color:var(--text2);line-height:1.9;margin-bottom:6px;font-weight:400}
+.clause-body p:last-child{margin-bottom:0}
+.clause-body .item{font-size:12px;color:var(--text2);line-height:1.9;padding-left:14px;position:relative;margin-bottom:4px;font-weight:400}
+.clause-body .item::before{content:'·';position:absolute;left:3px;color:var(--gold)}
+.refund-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}
+.refund-table th{background:var(--bg3);padding:7px 8px;font-weight:600;color:var(--text2);border:1px solid var(--border)}
+.refund-table td{padding:7px 8px;border:1px solid var(--border);color:var(--text);line-height:1.5}
+
+/* ── 동의 체크 ── */
+.agree-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;background:var(--bg2);margin-bottom:6px}
 .agree-item.checked{border-color:var(--gold);background:var(--gold-bg)}
 .agree-item input[type=checkbox]{display:none}
 .agree-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .15s;position:relative;display:flex;align-items:center;justify-content:center}
 .agree-item.checked .agree-dot{border-color:var(--gold);background:var(--gold)}
-.agree-item.checked .agree-dot::after{content:'✓';color:#fff;font-size:11px;font-weight:800}
-.agree-text{font-size:13px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
-.agree-all{margin-bottom:12px;padding:12px 14px;background:#FDF8F0;border:1.5px solid var(--gold);border-radius:var(--radius-sm);display:flex;align-items:center;gap:10px;cursor:pointer}
-.agree-all-text{font-size:13px;font-weight:800;color:var(--gold2)}
+.agree-item.checked .agree-dot::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
+.agree-text{font-size:13px;font-weight:500;color:var(--text);flex:1;line-height:1.4}
+.agree-all{margin-bottom:10px;padding:13px 14px;background:var(--gold-bg);border:1px solid var(--gold);border-radius:var(--radius-sm);display:flex;align-items:center;gap:10px;cursor:pointer}
+.agree-all-text{font-size:13px;font-weight:700;color:var(--gold2)}
 
-/* ▼ [수정1] 약관 확인 문구 입력창 */
-.agree-confirm-wrap{margin-top:14px;padding:14px;background:#FFF9EC;border:1.5px solid var(--gold);border-radius:var(--radius-sm)}
-.agree-confirm-label{font-size:12px;color:var(--gold2);font-weight:700;line-height:1.7;margin-bottom:8px}
-.agree-confirm-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-weight:700;color:var(--text);background:#fff;transition:border-color .15s;text-align:center}
+/* ── 약관 확인 입력창 ── */
+.agree-confirm-wrap{margin-top:14px;padding:16px;background:#FFF9EC;border:1px solid var(--gold);border-radius:var(--radius-sm)}
+.agree-confirm-label{font-size:12px;color:var(--gold2);font-weight:500;line-height:1.8;margin-bottom:10px}
+.agree-confirm-input{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;font-weight:600;color:var(--text);background:#fff;transition:border-color .15s;text-align:center}
 .agree-confirm-input:focus{border-color:var(--gold)}
 .agree-confirm-input.valid{border-color:var(--green);background:#F0FDF4;color:var(--green)}
 
-/* 서명 패드 */
-.sig-wrap{border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:#fff;position:relative}
+/* ── 서명 패드 ── */
+.sig-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:#fff;position:relative}
 .sig-wrap canvas{display:block;width:100%;touch-action:none}
-.sig-label{position:absolute;top:10px;left:12px;font-size:11px;color:var(--text3);font-weight:600;pointer-events:none}
-.sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#D1D5DB;font-weight:600;pointer-events:none;text-align:center;line-height:1.6}
+.sig-label{position:absolute;top:10px;left:14px;font-size:11px;color:var(--text3);font-weight:500;pointer-events:none}
+.sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#D1D5DB;font-weight:500;pointer-events:none;text-align:center;line-height:1.7}
 .sig-hint.hidden{display:none}
-.sig-clear-btn{width:100%;background:#F3F4F6;color:var(--text2);border:none;border-radius:0;padding:8px;font-size:12px;font-weight:700;cursor:pointer;border-top:1px solid var(--border)}
-.sig-clear-btn:active{background:#E5E7EB}
+.sig-clear-btn{width:100%;background:var(--bg3);color:var(--text2);border:none;border-radius:0;padding:9px;font-size:12px;font-weight:600;cursor:pointer;border-top:1px solid var(--border)}
+.sig-clear-btn:active{background:var(--border)}
 
-/* 제출 버튼 */
+/* ── 제출 버튼 ── */
 #submit-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px;z-index:50}
 #submit-bar-inner{max-width:480px;margin:0 auto}
 @media(min-width:481px){
   #submit-bar{border-left:1px solid var(--border);border-right:1px solid var(--border);left:50%;right:auto;width:480px;transform:translateX(-50%)}
 }
-.submit-btn{width:100%;background:linear-gradient(135deg,var(--gold),#E8C98A);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(199,169,107,.3);letter-spacing:.3px}
-.submit-btn:disabled{background:#E5E7EB;color:#9CA3AF;box-shadow:none;cursor:not-allowed}
-.submit-btn:active:not(:disabled){transform:scale(.98)}
+.submit-btn{width:100%;background:#1F2937;color:#fff;border:none;border-radius:var(--radius-sm);padding:15px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.2px;transition:background .15s}
+.submit-btn:disabled{background:#E5E7EB;color:#9CA3AF;cursor:not-allowed}
+.submit-btn:active:not(:disabled){background:#111827;transform:scale(.99)}
 
-/* ▼ [수정2,3,4] 완료 화면 */
-#complete-screen{display:none;max-width:480px;margin:0 auto;padding:48px 20px 60px;text-align:center}
-.complete-icon{font-size:56px;margin-bottom:16px}
-.complete-title{font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px}
-.complete-sub{font-size:14px;color:var(--text2);line-height:1.8}
-/* 완료화면 버튼 그룹 */
-.complete-btn-group{display:flex;flex-direction:column;gap:10px;margin-top:24px}
-.pdf-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--gold);color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%}
-.pdf-btn.outline{background:#fff;color:var(--gold2);border:1.5px solid var(--gold)}
-.pdf-btn.gray{background:#F3F4F6;color:var(--text2);border:1px solid var(--border)}
-/* 인앱 안내 박스 */
-.inapp-notice{margin-top:16px;background:#FFF9EC;border:1.5px solid var(--gold);border-radius:var(--radius-sm);padding:14px;text-align:left}
-.inapp-notice-title{font-size:12px;font-weight:800;color:var(--gold2);margin-bottom:6px}
-.inapp-notice-body{font-size:12px;color:var(--text2);line-height:1.8}
+/* ── 완료 화면 ── */
+#complete-screen{display:none;max-width:480px;margin:0 auto;padding:56px 20px 72px;text-align:center}
+.complete-icon{font-size:52px;margin-bottom:20px}
+.complete-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px}
+.complete-sub{font-size:13px;color:var(--text2);line-height:1.9;font-weight:400}
+.complete-btn-group{display:flex;flex-direction:column;gap:8px;margin-top:28px}
+.pdf-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:13px 24px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+.pdf-btn.outline{background:var(--bg2);color:var(--gold2);border:1px solid var(--gold)}
+.pdf-btn.gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.inapp-notice{margin-top:18px;background:#FFF9EC;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:left}
+.inapp-notice-title{font-size:12px;font-weight:700;color:var(--gold2);margin-bottom:6px}
+.inapp-notice-body{font-size:12px;color:var(--text2);line-height:1.9;font-weight:400}
 
-/* ★ 이미지 미리보기 모달 */
+/* ── 이미지 미리보기 모달 ── */
 #img-preview-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px;overflow-y:auto}
 #img-preview-modal.open{display:flex}
-.img-preview-box{background:#fff;border-radius:14px;padding:16px;max-width:480px;width:100%;margin:auto}
-.img-preview-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:6px;text-align:center}
-.img-preview-guide{font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;text-align:center;background:#FFF9EC;border:1px solid var(--gold);border-radius:8px;padding:10px 12px}
+.img-preview-box{background:#fff;border-radius:var(--radius);padding:16px;max-width:480px;width:100%;margin:auto}
+.img-preview-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;text-align:center}
+.img-preview-guide{font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;text-align:center;background:#FFF9EC;border:1px solid var(--gold);border-radius:var(--radius-sm);padding:10px 12px}
 .img-preview-guide strong{color:var(--gold2)}
-#img-preview-el{width:100%;border-radius:8px;display:block;border:1px solid var(--border)}
-.img-preview-close{width:100%;margin-top:12px;background:var(--gold);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer}
+#img-preview-el{width:100%;border-radius:var(--radius-sm);display:block;border:1px solid var(--border)}
+.img-preview-close{width:100%;margin-top:12px;background:#1F2937;color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:14px;font-weight:700;cursor:pointer}
 
-/* 토스트 */
-#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+/* ── 토스트 ── */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border-radius:var(--radius-sm);padding:9px 20px;font-size:13px;font-weight:600;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2)}
 
-.field-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block}
-.field-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;color:var(--text);background:#fff;transition:border-color .15s}
+/* ── 필드 ── */
+.field-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block}
+.field-input{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;color:var(--text);background:#fff;transition:border-color .15s;font-family:inherit}
 .field-input:focus{border-color:var(--gold)}
+
+/* ── form-input (짝꿍코드) ── */
+.form-input{border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text);background:#fff;transition:border-color .15s;font-family:inherit}
+.form-input:focus{border-color:var(--gold)}
 
 @media(min-width:481px){
   #app,#complete-screen{border-left:1px solid var(--border);border-right:1px solid var(--border);min-height:100vh}
@@ -195,13 +217,13 @@ input,select,textarea{font-family:inherit;outline:none}
 <div id="app">
   <!-- 헤더 -->
   <div id="hdr">
-    <div class="hdr-brand">DEAR GUARD · 전자계약서</div>
+    <div class="hdr-brand">DEAR GUARD · 전자계약</div>
     <div class="hdr-couple" id="hdr-couple">—</div>
     <div class="hdr-info" id="hdr-info">—</div>
-    <div class="hdr-sub">계약 내용을 확인하신 후 서명 부탁드립니다 😊</div>
+    <div class="hdr-sub">계약 내용을 확인하신 후 서명 부탁드립니다</div>
     <div class="progress-wrap">
       <div class="progress-top">
-        <span class="progress-label">📝 계약 진행률</span>
+        <span class="progress-label">계약 진행률</span>
         <span class="progress-pct" id="progress-pct">0%</span>
       </div>
       <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
@@ -250,27 +272,27 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="section-body" id="sec-payment-body">
       <div id="payment-rows"></div>
-      <div id="couple-discount-row" style="display:none;padding:8px 0;border-bottom:1px solid #F5F3F0;font-size:13px;display:flex;justify-content:space-between;align-items:baseline">
-        <span style="color:#C7A96B;font-weight:700">짝꿍 할인</span>
-        <span style="color:#C7A96B;font-weight:700">-10,000원</span>
+      <div id="couple-discount-row" style="display:none;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;display:flex;justify-content:space-between;align-items:baseline">
+        <span style="color:var(--gold2);font-weight:600">짝꿍 할인</span>
+        <span style="color:var(--gold2);font-weight:600">-10,000원</span>
       </div>
       <!-- 짝꿍 할인코드 입력 영역 -->
-      <div style="margin-top:14px;padding:14px;background:#F9F7F4;border:1px solid #E8E3DC;border-radius:10px">
-        <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">🤝 짝꿍 할인코드</div>
-        <div style="font-size:12px;color:#6B7280;line-height:1.7;margin-bottom:10px">
+      <div class="couple-code-box">
+        <div class="couple-code-title">짝꿍 할인코드</div>
+        <div class="couple-code-desc">
           추천받으신 분의 짝꿍코드를 입력해주세요.<br>
-          <span style="color:#9CA3AF">• 계약일로부터 1주일 이내 입력 가능&nbsp;&nbsp;• 계약당 1회 적용</span>
+          <span style="color:var(--text3)">• 계약일로부터 1주일 이내 입력 가능&nbsp;&nbsp;• 계약당 1회 적용</span>
         </div>
         <div style="display:flex;gap:8px">
-          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px">
-          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:#C7A96B;color:#fff;border:none;border-radius:8px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">코드 적용</button>
+          <input id="couple-code-input" class="form-input" placeholder="예: 홍길동1234" style="flex:1;font-size:13px;width:auto">
+          <button id="couple-code-btn" onclick="applyCoupleCode()" style="background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:0 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;height:40px">코드 적용</button>
         </div>
         <div id="couple-code-msg" style="margin-top:8px;font-size:12px;display:none"></div>
       </div>
-      <div style="margin-top:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:6px">
+      <div style="margin-top:12px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;color:var(--text2);line-height:1.7">
         ※ 본 계약서는 배상 범위 및 책임 기준을 명확히 하기 위해 정가 기준으로 작성됩니다.
       </div>
-      <div style="margin-top:0;padding:9px 12px;background:var(--gold-bg);border-radius:var(--radius-sm);font-size:11px;color:var(--gold2);line-height:1.6">
+      <div style="margin-top:6px;padding:10px 12px;background:var(--gold-bg);border-radius:var(--radius-sm);font-size:11px;color:var(--gold2);line-height:1.7">
         ※ 계약 후기 할인, 짝꿍 할인 등 프로모션 혜택은 조건 충족 시 잔금 결제 금액에서 차감 적용됩니다.
       </div>
     </div>
@@ -460,18 +482,18 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="section-toggle" id="sec-sign-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-sign-body">
-      <div style="margin-bottom:10px">
+      <div style="margin-bottom:12px">
         <label class="field-label">서명자 성함 <span style="color:#EF4444">*</span></label>
         <input class="field-input" id="signer-name" placeholder="예: 홍길동" oninput="updateProgress()">
       </div>
-      <div style="margin-bottom:6px;font-size:12px;font-weight:700;color:var(--text2)">✍️ 아래 칸에 손가락으로 서명해주세요</div>
+      <div style="margin-bottom:8px;font-size:12px;font-weight:600;color:var(--text2)">아래 칸에 손가락으로 서명해주세요</div>
       <div class="sig-wrap">
         <div class="sig-hint" id="sig-hint">손가락으로<br>서명해주세요</div>
-        <canvas id="sig-canvas" height="160"></canvas>
-        <button class="sig-clear-btn" onclick="clearSignature()">↺ 초기화</button>
+        <canvas id="sig-canvas" height="180"></canvas>
+        <button class="sig-clear-btn" onclick="clearSignature()">↺ 다시 서명</button>
       </div>
-      <div style="margin-top:8px;font-size:11px;color:var(--text3);line-height:1.6">
-        💡 서명은 전자서명법에 따라 직접 자필 서명과 동일한 법적 효력을 가집니다.
+      <div style="margin-top:10px;font-size:11px;color:var(--text3);line-height:1.7">
+        전자서명법에 따라 직접 자필 서명과 동일한 법적 효력을 가집니다.
       </div>
     </div>
   </div>
@@ -479,34 +501,23 @@ input,select,textarea{font-family:inherit;outline:none}
   <div style="height:10px"></div>
 </div>
 
-<!-- ▼ [수정2,3,4] 완료 화면 -->
+<!-- 완료 화면 -->
 <div id="complete-screen">
   <div class="complete-icon">✅</div>
-  <div class="complete-title">전자계약 완료!</div>
+  <div class="complete-title">계약이 완료되었습니다</div>
   <div class="complete-sub">
-    전자서명이 정상적으로 완료되었습니다 😊<br><br>
-    아래 버튼을 통해 계약서를 PDF 또는 이미지로 저장하실 수 있습니다.<br><br>
-    <span style="font-size:13px;color:var(--text3)">
-    모바일에서는 기기 및 브라우저 환경에 따라<br>
-    자동 다운로드가 제한될 수 있습니다.<br><br>
-    저장이 되지 않는 경우<br>
-    공유창을 통해 파일 앱에 저장하거나,<br>
-    이미지를 <strong>길게 눌러 저장</strong>해주세요.<br><br>
-    카카오톡 안에서 저장이 안 될 경우<br>
-    우측 상단 메뉴에서 Safari/Chrome으로 열어주세요.
-    </span>
+    전자서명이 정상적으로 완료되었습니다.<br>
+    소중한 날을 함께하게 되어 기쁩니다.
   </div>
 
-  <!-- ▼ 버튼 그룹 -->
   <div class="complete-btn-group">
-    <button class="pdf-btn" onclick="downloadPDF()">📄 PDF 열기/저장</button>
-    <button class="pdf-btn outline" onclick="downloadContractImage()">🖼 이미지 보기/저장</button>
-    <button class="pdf-btn gray" onclick="openExternalBrowser()">🌐 외부 브라우저로 열기</button>
+    <button class="pdf-btn" onclick="downloadPDF()">PDF 열기 · 저장</button>
+    <button class="pdf-btn outline" onclick="downloadContractImage()">이미지 보기 · 저장</button>
+    <button class="pdf-btn gray" onclick="openExternalBrowser()">외부 브라우저로 열기</button>
   </div>
 
-  <!-- ▼ 인앱 안내 박스 -->
   <div class="inapp-notice">
-    <div class="inapp-notice-title">📱 카카오톡에서 저장이 안 될 때</div>
+    <div class="inapp-notice-title">카카오톡에서 저장이 안 될 때</div>
     <div class="inapp-notice-body">
       우측 상단 메뉴(···)를 눌러<br>
       <strong>Safari 또는 Chrome으로 열기</strong>를 선택하신 후<br>
