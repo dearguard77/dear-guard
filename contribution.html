@@ -1338,11 +1338,6 @@ async function selectSchedule(id){
     await loadPreShares();
     loadOpsLogs();
     loadHandover();
-    _hoAutoCollapsed = false;
-    ['ho-acc-g-owner','ho-acc-g-items','ho-acc-g-live','ho-acc-b-owner','ho-acc-b-items','ho-acc-b-live'].forEach(function(accId){
-      const accEl = document.getElementById(accId);
-      if(accEl) accEl.classList.add('open');
-    });
     subscribeRealtime();
   } catch(e){ console.error('[DG] 예식 로드 실패:',e); showToast('⚠️ 예식 로드 실패: '+e.message); }
 }
