@@ -2329,21 +2329,28 @@ function renderTicketModal(){
     if(color) el.style.color=color;
   };
 
+  // 초기 식권: DOM 입력칸에서 직접 읽기 (입력칸과 동일한 값 보장)
+  // '' or undefined → 미설정(null), 숫자(0 포함) → 해당 값
+  const _readInit = id => {
+    const v = document.getElementById(id)?.value;
+    return (v === '' || v == null) ? null : Number(v);
+  };
+
   // ── 신랑측 ──
-  const gAdultInit = totalTickets.groomAdult || 0;
-  const gChildInit = totalTickets.groomChild || 0;
+  const gAdultInit = _readInit('groom-adult-ticket');
+  const gChildInit = _readInit('groom-child-ticket') ?? 0;
   const gExtras    = ticketExtras.filter(t=>t.side==='신랑측');
   const gExtraAdult= gExtras.filter(t=>t.memo!=='소인').reduce((s,t)=>s+(t.amount||0),0);
   const gExtraChild= gExtras.filter(t=>t.memo==='소인').reduce((s,t)=>s+(t.amount||0),0);
   const gUsedAdult = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const gUsedChild = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.child_ticket||0),0);
   const gPreS      = preShares.filter(t=>t.side==='신랑측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
-  const gRemainAdult = gAdultInit > 0 ? gAdultInit + gExtraAdult - gUsedAdult - gPreS : null;
+  const gRemainAdult = gAdultInit !== null ? gAdultInit + gExtraAdult - gUsedAdult - gPreS : null;
   const gRemainChild = gChildInit + gExtraChild - gUsedChild;
   const gRemainColor = gRemainAdult===null?'#9CA3AF':gRemainAdult<=10?'#DC2626':gRemainAdult<=20?'#D97706':'#2563EB';
 
-  // 신랑측 현황 - 대인
-  se2('tp-g-init-adult',  gAdultInit > 0 ? gAdultInit+'장' : '미설정');
+  // 신랑측 현황 - 대인 (null=미설정, 0 포함 숫자='N장')
+  se2('tp-g-init-adult',  gAdultInit !== null ? gAdultInit+'장' : '미설정');
   se2('tp-g-extra-adult', gExtraAdult+'장', '#059669');
   se2('tp-g-used-adult',  gUsedAdult+'장');
   se2('tp-g-remain-adult', gRemainAdult!==null ? gRemainAdult+'장' : '—', gRemainColor);
@@ -2374,20 +2381,20 @@ function renderTicketModal(){
   }
 
   // ── 신부측 ──
-  const bAdultInit = totalTickets.brideAdult || 0;
-  const bChildInit = totalTickets.brideChild || 0;
+  const bAdultInit = _readInit('bride-adult-ticket');
+  const bChildInit = _readInit('bride-child-ticket') ?? 0;
   const bExtras    = ticketExtras.filter(t=>t.side==='신부측');
   const bExtraAdult= bExtras.filter(t=>t.memo!=='소인').reduce((s,t)=>s+(t.amount||0),0);
   const bExtraChild= bExtras.filter(t=>t.memo==='소인').reduce((s,t)=>s+(t.amount||0),0);
   const bUsedAdult = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const bUsedChild = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
   const bPreS      = preShares.filter(t=>t.side==='신부측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
-  const bRemainAdult = bAdultInit > 0 ? bAdultInit + bExtraAdult - bUsedAdult - bPreS : null;
+  const bRemainAdult = bAdultInit !== null ? bAdultInit + bExtraAdult - bUsedAdult - bPreS : null;
   const bRemainChild = bChildInit + bExtraChild - bUsedChild;
   const bRemainColor = bRemainAdult===null?'#9CA3AF':bRemainAdult<=10?'#DC2626':bRemainAdult<=20?'#D97706':'#DB2777';
 
-  // 신부측 현황 - 대인
-  se2('tp-b-init-adult',  bAdultInit > 0 ? bAdultInit+'장' : '미설정');
+  // 신부측 현황 - 대인 (null=미설정, 0 포함 숫자='N장')
+  se2('tp-b-init-adult',  bAdultInit !== null ? bAdultInit+'장' : '미설정');
   se2('tp-b-extra-adult', bExtraAdult+'장', '#059669');
   se2('tp-b-used-adult',  bUsedAdult+'장');
   se2('tp-b-remain-adult', bRemainAdult!==null ? bRemainAdult+'장' : '—', bRemainColor);
