@@ -107,18 +107,12 @@
   .cal-jump-wrap{display:flex;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap}
   .cal-jump-select{height:30px;border:1px solid #E5E7EB;border-radius:8px;padding:0 8px;font-size:12px;background:#fff;color:#374151;cursor:pointer;font-family:inherit}
   .cal-jump-select:focus{outline:none;border-color:#C7A96B}
-  .rt-step-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
-  .rt-step-active{background:#C7A96B;color:#fff;border-color:#C7A96B}
-  .result-step-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+  .rt-step-btn{flex-shrink:0;padding:8px 14px;border-radius:8px;border:1px solid #E5E7EB;background:#fff;color:#6B7280;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+  .rt-step-btn:hover{background:#F8FAFC}
+  .result-step-tabs{display:flex;flex-wrap:wrap;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
   .rt-step-label-mo{display:none}
-  /* 단계가 앞으로 진행되는 느낌의 은은한 그라데이션 (PC/모바일 공통, 비활성 상태) */
-  #rt-tab-0{background:#F7F7F5;border-color:#E8E8E4;color:#6B6B66}
-  #rt-tab-1{background:#ECE8E2;border-color:#D9D2C6;color:#6B6053}
-  #rt-tab-2{background:#DCC8B7;border-color:#C7AD97;color:#5C4A3A}
-  #rt-tab-3{background:#C6A28C;border-color:#B08A72;color:#3F2E22}
-  #rt-tab-4{background:#8F7768;border-color:#7A6356;color:#FFFFFF}
-  /* active 상태는 기존 골드 색상으로 통일 */
-  .rt-step-btn.rt-step-active{background:#C7A96B !important;border-color:#C7A96B !important;color:#fff !important}
+  /* 활성 상태 — 공용 라이트 골드 칩 스타일로 통일 (기존 단계별 그라데이션/솔드 골드 제거) */
+  .rt-step-btn.rt-step-active{background:#FDF8F3 !important;border-color:#E8DFD0 !important;color:#A8893A !important}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#E5E7EB;border-radius:12px;overflow:hidden}
   .cal-head{background:#F9FAFB;text-align:center;padding:8px 0;font-size:11px;font-weight:700}
   .cal-cell{background:#fff;min-height:70px;padding:6px 4px;cursor:default;transition:background .15s}
@@ -368,22 +362,21 @@
     .assign-form-grid{grid-template-columns:1fr !important}
     .assign-form-grid .form-field.span{grid-column:unset}
 
-    /* 결과 탭 단계 버튼 — 모바일: 5개 한 줄 그리드 + 짧은 라벨 (그라데이션은 PC 공통 규칙 사용) */
+    /* 결과 탭 단계 버튼 — 모바일: 자연스럽게 줄바꿈 + 짧은 라벨 */
     .result-step-tabs{
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:6px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
       overflow-x:visible;
     }
     .rt-step-label-pc{display:none}
     .rt-step-label-mo{display:inline}
     .rt-step-btn{
-      min-width:0;
-      padding:10px 0;
+      padding:8px 14px;
       font-size:13px;
       white-space:nowrap;
       text-align:center;
-      border-radius:10px;
+      border-radius:8px;
     }
 
   }
@@ -690,7 +683,7 @@
     <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:14px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div style="font-size:12px;font-weight:700;color:#6B7280">보고 대상</div>
-        <div id="rt-target-indicator" style="font-size:11px;font-weight:700;color:#C7A96B;background:#FDF8F3;border-radius:6px;padding:2px 8px">현재: 신부님</div>
+        <div id="rt-target-indicator" style="font-size:11px;font-weight:700;color:#A8893A;background:#FDF8F3;border:1px solid #E8DFD0;border-radius:8px;padding:2px 8px">현재: 신부님</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:600">
