@@ -307,6 +307,11 @@ input,select,textarea{font-family:inherit;outline:none}
 .cash-calc-box{background:#fff;border-radius:14px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden}
 .cash-calc-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #F0EDE8;background:#F9F8F6}
 .cash-calc-title{font-size:14px;font-weight:800;color:#111}
+/* 측 탭 */
+.cash-side-tabs{display:flex;border-bottom:2px solid #E5E7EB;background:#F9F8F6}
+.cash-side-tab{flex:1;padding:8px 0;font-size:13px;font-weight:700;border:none;background:none;color:#9CA3AF;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.cash-side-tab.on-g{color:#2563EB;border-bottom-color:#2563EB}
+.cash-side-tab.on-b{color:#DB2777;border-bottom-color:#DB2777}
 .cash-calc-body{padding:0}
 .cash-denom-row{display:grid;grid-template-columns:80px 1fr 90px;align-items:center;gap:0;padding:9px 14px;border-bottom:1px solid #F5F3F0}
 .cash-denom-row:last-child{border-bottom:none}
@@ -392,6 +397,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <span id="tks-b-used" style="display:none"></span>
       <span id="tks-b-remain" style="display:none"></span>
       <button class="topbtn topbtn-ghost" onclick="openTicketModal()" style="flex-shrink:0">🎫 식권정보</button>
+      <button class="topbtn topbtn-ghost" onclick="openCashCalc()" style="flex-shrink:0">🧮 계산기</button>
     </div>
     <div class="top-right">
       <button class="topbtn topbtn-ghost" onclick="goSelectSchedule()">예식 변경</button>
@@ -639,10 +645,7 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
 
       <div class="card" style="padding:5px 8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <div class="card-title" style="margin-bottom:0">1️⃣ 하객 이름 / 메모</div>
-          <button onclick="openCashCalc()" style="background:#F9F8F6;border:1.5px solid #E0E0E0;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;color:#374151;cursor:pointer;flex-shrink:0;line-height:1.4">🧮 계산기</button>
-        </div>
+        <div class="card-title" style="margin-bottom:4px">1️⃣ 하객 이름 / 메모</div>
         <div style="display:flex;align-items:center;gap:6px">
           <input class="form-input" id="guest-name" placeholder="예) 강성주, 전수연" style="flex:13;min-width:0;font-size:13px;padding:7px 8px">
           <input class="form-input" id="memo-input" placeholder="예) 선양소주" style="flex:7;min-width:0;font-size:12px;padding:7px 7px" onkeydown="if(event.key==='Enter')submitEntry()">
@@ -907,6 +910,11 @@ input,select,textarea{font-family:inherit;outline:none}
       <span class="cash-calc-title">🧮 현금 계수 계산기</span>
       <span style="font-size:10px;color:#9CA3AF">현장 확인용 · 저장 안 됨</span>
     </div>
+    <!-- 신랑/신부 탭 -->
+    <div class="cash-side-tabs" id="cash-side-tabs">
+      <button class="cash-side-tab on-g" id="cash-tab-g" onclick="setCashSide('g')">🤵 신랑측</button>
+      <button class="cash-side-tab" id="cash-tab-b" onclick="setCashSide('b')">👰 신부측</button>
+    </div>
     <div class="cash-calc-body">
       <div class="cash-denom-row">
         <div class="cash-denom-lbl">5만원권</div>
@@ -951,7 +959,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <span id="cash-sum-total">0원</span>
       </div>
       <div class="cash-summary-row" style="color:#6B7280">
-        <span>접수 총액</span>
+        <span id="cash-recv-label">접수 총액</span>
         <span id="cash-recv-total">0원</span>
       </div>
       <div class="cash-summary-row">
@@ -2309,19 +2317,47 @@ async function addTicketExtraFromPopup(side, typeElId, amountElId){
 
 // ── 현금 계수 계산기 ─────────────────────────────────────────────────────
 const CASH_DENOMS = [50000, 10000, 5000, 1000];
+// 측별 수량 상태 (팝업 닫을 때까지 유지, 다시 열면 초기화)
+const _cashQty = { g: [0,0,0,0], b: [0,0,0,0] };
+let _cashSide = 'g'; // 현재 선택 측
 
 function openCashCalc(){
+  // 현재 접수 측 기준으로 기본 탭 설정
+  const activeSide = document.getElementById('side-groom')?.classList.contains('tog-blue') ? 'g' : 'b';
   // 수량 초기화
-  for(let i=0;i<4;i++){
-    const el=document.getElementById('cash-qty-'+i);
-    if(el) el.value='0';
-  }
-  cashUpdate();
+  _cashQty.g = [0,0,0,0];
+  _cashQty.b = [0,0,0,0];
+  // 탭 설정 및 입력창 복원
+  _setCashSideInternal(activeSide);
   document.getElementById('cash-calc-modal').style.display='flex';
 }
 
 function closeCashCalc(){
   document.getElementById('cash-calc-modal').style.display='none';
+}
+
+function setCashSide(side){
+  // 현재 측 수량 저장
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('cash-qty-'+i);
+    _cashQty[_cashSide][i]=parseInt(el?.value)||0;
+  }
+  _setCashSideInternal(side);
+}
+
+function _setCashSideInternal(side){
+  _cashSide = side;
+  // 탭 버튼 활성화
+  const tg=document.getElementById('cash-tab-g');
+  const tb=document.getElementById('cash-tab-b');
+  if(tg) tg.className='cash-side-tab'+(side==='g'?' on-g':'');
+  if(tb) tb.className='cash-side-tab'+(side==='b'?' on-b':'');
+  // 해당 측 수량 복원
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('cash-qty-'+i);
+    if(el) el.value=_cashQty[side][i]||0;
+  }
+  cashUpdate();
 }
 
 function cashStep(idx, delta){
@@ -2330,11 +2366,13 @@ function cashStep(idx, delta){
   let v=parseInt(el.value)||0;
   v=Math.max(0,v+delta);
   el.value=v;
+  _cashQty[_cashSide][idx]=v;
   cashUpdate();
 }
 
 function cashQtyInput(idx){
-  // 실시간 갱신 (입력 중 업데이트)
+  const el=document.getElementById('cash-qty-'+idx);
+  _cashQty[_cashSide][idx]=Math.max(0,parseInt(el?.value)||0);
   cashUpdate();
 }
 
@@ -2344,10 +2382,12 @@ function cashQtyChange(idx){
   let v=parseInt(el.value);
   if(isNaN(v)||v<0) v=0;
   el.value=v;
+  _cashQty[_cashSide][idx]=v;
   cashUpdate();
 }
 
 function cashReset(){
+  _cashQty[_cashSide]=[0,0,0,0];
   for(let i=0;i<4;i++){
     const el=document.getElementById('cash-qty-'+i);
     if(el) el.value='0';
@@ -2362,20 +2402,23 @@ function cashUpdate(){
   for(let i=0;i<4;i++){
     const el=document.getElementById('cash-qty-'+i);
     const v=Math.max(0,parseInt(el?.value)||0);
-    const denom=CASH_DENOMS[i];
-    const amt=v*denom;
-    sum+=amt;
+    sum+=v*CASH_DENOMS[i];
     const amtEl=document.getElementById('cash-amt-'+i);
-    if(amtEl) amtEl.textContent=amt.toLocaleString()+'원';
+    if(amtEl) amtEl.textContent=(v*CASH_DENOMS[i]).toLocaleString()+'원';
   }
   // 계수 합계
   const sumEl=document.getElementById('cash-sum-total');
   if(sumEl) sumEl.textContent=sum.toLocaleString()+'원';
 
-  // 접수 총액 (logs 배열 기준 — renderStats와 동일)
-  const recvTotal=(typeof logs!=='undefined')
-    ? logs.reduce((s,l)=>s+(l.amount||0),0)
+  // 현재 측의 접수 총액 (logs.side 기준)
+  const sideName = _cashSide==='g' ? '신랑측' : '신부측';
+  const recvTotal = (typeof logs!=='undefined')
+    ? logs.filter(l=>l.side===sideName).reduce((s,l)=>s+(l.amount||0),0)
     : 0;
+
+  // 라벨 + 총액 표시
+  const labelEl=document.getElementById('cash-recv-label');
+  if(labelEl) labelEl.textContent = (_cashSide==='g'?'🤵 신랑측':'👰 신부측')+' 접수 총액';
   const recvEl=document.getElementById('cash-recv-total');
   if(recvEl) recvEl.textContent=recvTotal.toLocaleString()+'원';
 
@@ -2383,8 +2426,9 @@ function cashUpdate(){
   const matchEl=document.getElementById('cash-match-result');
   if(matchEl){
     const diff=sum-recvTotal;
+    const label=_cashSide==='g'?'신랑측':'신부측';
     if(diff===0){
-      matchEl.innerHTML='<span class="cash-match-ok">✓ 접수 총액과 일치</span>';
+      matchEl.innerHTML='<span class="cash-match-ok">✓ '+label+' 접수 총액과 일치</span>';
     } else if(diff<0){
       matchEl.innerHTML='<span class="cash-match-err">△ '+Math.abs(diff).toLocaleString()+'원 부족</span>';
     } else {
