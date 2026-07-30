@@ -7176,6 +7176,7 @@ async function rtSaveHandoverCertImage(viewOnly){
 function rtGenStep4(){
   const t    = rtTarget;
   const link = rtGetLink();
+  // 5. 장부 메시지는 신랑님/신부님/양측 진행 관계없이 호칭·인사말 없이 바로 본문으로 시작
   // 양측 진행일 때만 통합 링크 아래에 신랑측/신부측 전용 링크 안내 추가 (신랑님/신부님 선택 시에는 기존과 동일)
   let sideLinksBlock = '';
   if(t !== '신랑님' && t !== '신부님' && rtSchedule){
@@ -7196,9 +7197,7 @@ ${groomLink}
 ${brideLink}
 ━━━━━━━━━━━━━━━━━━`;
   }
-  const txt = `${rtGreetingWord()} 😊
-
-또한 금일 전달드렸던 실시간 장부는
+  const txt = `금일 전달드렸던 실시간 장부는
 본식 이후에도 일정 기간 동안 다시 확인 가능하시며,
 
 ✔️ 접수 내역 확인
