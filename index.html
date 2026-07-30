@@ -56,21 +56,21 @@
   .bnav-icon{font-size:20px}
 
   /* BANNER */
-  .banner{background:linear-gradient(135deg,#C7A96B 0%,#E8C98A 100%);border-radius:16px;padding:20px 24px;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-  .banner-emoji{font-size:48px;opacity:.3}
+  .banner{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;color:#111827;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .banner-emoji{font-size:28px;opacity:.15}
 
   /* STATS */
-  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-  .stat-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:10px 8px;text-align:center}
-  .stat-icon{font-size:20px;margin-bottom:2px}
-  .stat-value{font-size:20px;font-weight:800;line-height:1}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .stat-card{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 8px;text-align:center}
+  .stat-icon{font-size:18px;margin-bottom:2px}
+  .stat-value{font-size:19px;font-weight:800;line-height:1}
   .stat-label{font-size:10px;color:#9CA3AF;margin-top:2px}
 
   /* SECTION HEADER */
   .sec-header{margin-bottom:14px}
   .sec-header h2{font-size:18px;font-weight:800;color:#111827;display:inline}
   .sec-header span{font-size:12px;color:#9CA3AF;margin-left:8px}
-  .shortcuts-grid{display:grid !important;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .shortcuts-grid{display:grid !important;grid-template-columns:1fr 1fr 1fr;gap:8px}
 
   /* TODAY CARD */
   .today-card{background:#fff;border:1px solid #E5E7EB;border-radius:16px;padding:20px 22px;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.05);position:relative;overflow:hidden;margin-bottom:12px}
@@ -85,9 +85,9 @@
   .info-row .val{font-weight:600;color:#374151}
 
   /* UPCOMING CARD */
-  .upcoming-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;margin-bottom:8px}
-  .upcoming-card:hover{border-color:#C7B89A;background:#FAFAF8}
-  .dday-box{min-width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+  .upcoming-card{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .upcoming-card:hover{border-color:#C7A96B;background:#FAFAF8}
+  .dday-box{min-width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
 
   /* BADGE */
   .badge{border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap;display:inline-block}
@@ -473,12 +473,12 @@
   <div id="tab-home" class="tab-panel active">
     <!-- 배너 + 오늘 예식 통합 -->
     <div class="banner" style="flex-direction:column;align-items:stretch;gap:0">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
         <div>
-          <div id="banner-greet" style="font-size:13px;opacity:.85;margin-bottom:4px"></div>
-          <div id="banner-date" style="font-size:12px;opacity:.8"></div>
+          <div id="banner-greet" style="font-size:14px;font-weight:700;color:#111827;margin-bottom:3px"></div>
+          <div id="banner-date" style="font-size:12px;color:#6B7280"></div>
         </div>
-        <div class="banner-emoji" style="font-size:36px;opacity:.25;margin-top:-4px">💍</div>
+        <div class="banner-emoji" style="font-size:28px;margin-top:-2px">💍</div>
       </div>
       <!-- 오늘 예식 인라인 -->
       <div id="today-list"></div>
@@ -486,24 +486,24 @@
     <div class="stats-grid" id="stats-grid"></div>
 
     <!-- 운영 바로가기 (관리자 전용) -->
-    <div id="home-admin-shortcuts" style="display:none;margin-bottom:16px">
+    <div id="home-admin-shortcuts" style="display:none;margin-bottom:14px">
       <div class="sec-header" style="margin-bottom:0;cursor:pointer" onclick="toggleShortcutContent('admin')">
-        <h2>운영 바로가기 <span id="shortcut-admin-icon" style="font-size:11px;color:#C7A96B">▸</span></h2>
+        <h2>운영 바로가기 <span id="shortcut-admin-icon" style="font-size:11px;color:#A8893A">▸</span></h2>
       </div>
       <div id="shortcut-admin-content" style="display:none;margin-top:8px">
         <div class="shortcuts-grid">
-          <button onclick="switchTab('settle',document.getElementById('nav-settle-btn'))" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:22px">💰</div>
+          <button onclick="switchTab('settle',document.getElementById('nav-settle-btn'))" style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:20px">💰</div>
             <div style="font-size:14px;font-weight:800;color:#111827">정산관리</div>
             <div style="font-size:11px;color:#9CA3AF">계약금 · 잔금 · 매니저 정산</div>
           </button>
-          <button onclick="window.open('assign-review.html','_blank','noopener,noreferrer')" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:22px">🤖</div>
+          <button onclick="window.open('assign-review.html','_blank','noopener,noreferrer')" style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:20px">🤖</div>
             <div style="font-size:14px;font-weight:800;color:#111827">배정관리</div>
             <div style="font-size:11px;color:#9CA3AF">예식별 인원 배정</div>
           </button>
-          <button onclick="openReferralModal()" style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:22px">🤝</div>
+          <button onclick="openReferralModal()" style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:20px">🤝</div>
             <div style="font-size:14px;font-weight:800;color:#111827">짝꿍코드</div>
             <div style="font-size:11px;color:#9CA3AF">코드 발급 · 사용 현황</div>
           </button>
@@ -512,13 +512,13 @@
     </div>
 
     <!-- 매뉴얼 바로가기 (매니저 전용) -->
-    <div id="home-manager-shortcuts" style="display:none;margin-bottom:16px">
+    <div id="home-manager-shortcuts" style="display:none;margin-bottom:14px">
       <div class="sec-header" style="margin-bottom:0;cursor:pointer" onclick="toggleShortcutContent('manager')">
-        <h2>운영 바로가기 <span id="shortcut-manager-icon" style="font-size:11px;color:#C7A96B">▸</span></h2>
+        <h2>운영 바로가기 <span id="shortcut-manager-icon" style="font-size:11px;color:#A8893A">▸</span></h2>
       </div>
       <div id="shortcut-manager-content" style="display:none;margin-top:8px">
-        <button onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px">
-          <div style="font-size:26px">📖</div>
+        <button onclick="window.open('https://www.notion.so/353a50dd911f80a8b080d3b47a25d6b9','_blank')" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px">
+          <div style="font-size:24px">📖</div>
           <div>
             <div style="font-size:14px;font-weight:800;color:#111827">매뉴얼</div>
             <div style="font-size:11px;color:#9CA3AF">현장 운영 가이드</div>
@@ -527,7 +527,7 @@
       </div>
     </div>
 
-    <div class="sec-header" id="upcoming-header" style="margin-top:8px">
+    <div class="sec-header" id="upcoming-header" style="margin-top:20px">
       <h2>다가오는 일정</h2>
       <span>D-7 이내</span>
     </div>
@@ -535,7 +535,7 @@
 
     <!-- 본식 준비 체크 & 잔금 확인 알림 카드 -->
     <div class="sec-header" id="precheck-header" style="margin-top:20px">
-      <h2>💰 본식 준비 체크 &amp; 잔금 확인</h2>
+      <h2>본식 준비 체크 &amp; 잔금 확인</h2>
       <span>D-8 ~ D-10</span>
     </div>
     <div id="precheck-reminder-list"></div>
@@ -2003,11 +2003,11 @@ function renderAll(){
 }
 
 function renderBanner(){
-  document.getElementById('banner-greet').textContent = `안녕하세요, ${currentUser.name} (${currentUser.role}) 👋`;
+  document.getElementById('banner-greet').textContent = `안녕하세요, ${currentUser.name} (${currentUser.role})`;
   const d   = new Date();
   const day = d.getDay();
   const dayLabel = DAY_NAMES[day];
-  const dayColor = day === 0 ? '#ffcccc' : day === 6 ? '#cce0ff' : 'rgba(255,255,255,.8)';
+  const dayColor = day === 0 ? '#DC2626' : day === 6 ? '#2563EB' : '#6B7280';
   const bannerDateEl = document.getElementById('banner-date');
   bannerDateEl.innerHTML =
     `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 <span style="color:${dayColor};font-weight:700">(${dayLabel})</span>`;
@@ -2021,9 +2021,9 @@ function renderStats(){
   const urgent    = vs.filter(s=>s.status==='긴급확인').length;
 
   const statItems = [
-    {label:'이번달 예식',value:monthCnt, icon:'🗓', color:'#C7A96B', click:'switchTab(\'calendar\',null,document.querySelectorAll(\'.bnav-btn\')[1])'},
-    {label:'잔금 미완',  value:noBalance,icon:'💰', color:'#F59E0B', click:''},
-    {label:'긴급 확인',  value:urgent,   icon:'🚨', color:'#EF4444', click:'openUrgentFilter()'},
+    {label:'이번달 예식',value:monthCnt, icon:'🗓', color:'#A8893A', click:'switchTab(\'calendar\',null,document.querySelectorAll(\'.bnav-btn\')[1])'},
+    {label:'잔금 미완',  value:noBalance,icon:'💰', color:'#D97706', click:''},
+    {label:'긴급 확인',  value:urgent,   icon:'🚨', color:'#DC2626', click:'openUrgentFilter()'},
   ];
   document.getElementById('stats-grid').innerHTML = statItems.map(s=>`
     <div class="stat-card" ${s.click ? `onclick="${s.click}" style="cursor:pointer"` : ''}>
@@ -2040,46 +2040,44 @@ function renderToday(){
   if(!list.length){
     // 오늘 예식 없음 — 배너 안에 안내 문구
     el.innerHTML = `
-      <div style="margin-top:14px;background:rgba(255,255,255,.18);border-radius:10px;
-        padding:12px 16px;font-size:13px;color:rgba(255,255,255,.9);text-align:center">
+      <div style="margin-top:12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;
+        padding:12px 16px;font-size:13px;color:#9CA3AF;text-align:center">
         오늘 예식이 없습니다
       </div>`;
     return;
   }
 
   // 오늘 예식 있음 — 배너 안에 카드 목록
-  el.innerHTML = `<div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">` +
+  el.innerHTML = `<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">` +
     list.map(s => `
       <div onclick="openDetail(${s.id})"
-        style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
-          border-radius:12px;padding:14px 16px;cursor:pointer;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px;
-          background:rgba(255,255,255,.6)"></div>
+        style="background:#F9FAFB;border:1px solid #E5E7EB;
+          border-radius:8px;padding:14px 16px;cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
           <div>
-            <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:2px">
-              💍 ${esc(coupleName(s))}
+            <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:2px">
+              ${esc(coupleName(s))}
             </div>
-            <div style="font-size:12px;color:rgba(255,255,255,.8)">🏛 ${esc(s.hall)}</div>
+            <div style="font-size:12px;color:#6B7280">${esc(s.hall)}</div>
           </div>
-          <span style="background:rgba(255,255,255,.2);color:#fff;border-radius:20px;
-            padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap">
+          <span style="background:#FDF8F3;color:#A8893A;border-radius:6px;
+            padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">
             ${esc(s.status)}
           </span>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:8px">
-          <div style="font-size:11px;color:rgba(255,255,255,.8)">🕐 ${esc(s.time)}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.8)">🚗 ${esc(s.arrivalTime)||'-'}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.8)">👤 ${esc(s.frontManager)||'-'}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.8)">🎬 ${esc(s.backManager)||'-'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:8px;font-size:11px;color:#6B7280">
+          <div>${esc(s.time)}</div>
+          <div>${esc(s.arrivalTime)||'-'}</div>
+          <div>Front · ${esc(s.frontManager)||'-'}</div>
+          <div>Back · ${esc(s.backManager)||'-'}</div>
         </div>
-        ${s.handoverPerson ? `<div style="background:rgba(220,38,38,.3);border-radius:6px;padding:5px 10px;font-size:11px;color:#fff;margin-bottom:8px;font-weight:700">⚠ 인계자: ${esc(s.handoverPerson)}</div>` : ''}
+        ${s.handoverPerson ? `<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:5px 10px;font-size:11px;color:#DC2626;margin-bottom:8px;font-weight:700">인계자: ${esc(s.handoverPerson)}</div>` : ''}
         <div style="display:flex;align-items:center;gap:6px">
-          <div style="flex:1;height:4px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden">
-            <div style="height:100%;border-radius:99px;background:rgba(255,255,255,.8);
+          <div style="flex:1;height:4px;background:#E5E7EB;border-radius:99px;overflow:hidden">
+            <div style="height:100%;border-radius:99px;background:#C7A96B;
               width:${Math.round(Object.values(s.checklist).filter(Boolean).length/Object.keys(s.checklist).length*100)}%"></div>
           </div>
-          <span style="font-size:10px;color:rgba(255,255,255,.7)">
+          <span style="font-size:10px;color:#9CA3AF">
             ${Object.values(s.checklist).filter(Boolean).length}/${Object.keys(s.checklist).length}
           </span>
         </div>
@@ -2107,12 +2105,12 @@ function renderUpcoming(){
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:2px">${esc(coupleName(s))}</div>
         <div style="font-size:11px;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${getDateWithDay(s.date)} · ${esc(s.time)} · ${esc(s.hall)}</div>
-        ${s.fieldMemo?.urgent ? `<div style="font-size:11px;color:#D97706;margin-top:3px;font-weight:700;background:#FEF3C7;border-radius:6px;padding:2px 8px;display:inline-block">⚠ 현장 확인 필요</div>` : ''}
+        ${s.fieldMemo?.urgent ? `<div style="font-size:11px;color:#D97706;margin-top:3px;font-weight:700;background:#FEF3C7;border-radius:6px;padding:2px 8px;display:inline-block">현장 확인 필요</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         ${badge(s.status)}
-        ${!s.checklist.balance?'<span style="font-size:10px;color:#F59E0B;font-weight:600">💰 잔금미완</span>':''}
-        ${!s.checklist.interview?'<span style="font-size:10px;color:#8B5CF6;font-weight:600">🎙️ 인터뷰필요</span>':''}
+        ${!s.checklist.balance?'<span style="font-size:10px;color:#D97706;font-weight:600">잔금미완</span>':''}
+        ${!s.checklist.interview?'<span style="font-size:10px;color:#8B5CF6;font-weight:600">인터뷰필요</span>':''}
       </div>
     </div>`;
   }).join('');
@@ -2142,24 +2140,24 @@ function renderPrecheckReminder(){
     const balanceDone  = !!s.checklist.balance;
 
     const precheckBadge = precheckDone
-      ? `<span style="font-size:10px;font-weight:700;color:#059669;background:#ECFDF5;border-radius:6px;padding:2px 7px">✅ 체크완료</span>`
-      : `<span style="font-size:10px;font-weight:700;color:#D97706;background:#FFFBEB;border-radius:6px;padding:2px 7px">📋 체크 전</span>`;
+      ? `<span style="font-size:10px;font-weight:700;color:#059669;background:#ECFDF5;border-radius:6px;padding:2px 7px">체크완료</span>`
+      : `<span style="font-size:10px;font-weight:700;color:#D97706;background:#FFFBEB;border-radius:6px;padding:2px 7px">체크 전</span>`;
 
     const balanceBadge = balanceDone
-      ? `<span style="font-size:10px;font-weight:700;color:#059669;background:#ECFDF5;border-radius:6px;padding:2px 7px">✅ 잔금완료</span>`
-      : `<span style="font-size:10px;font-weight:700;color:#F59E0B;background:#FEF3C7;border-radius:6px;padding:2px 7px">💰 잔금확인</span>`;
+      ? `<span style="font-size:10px;font-weight:700;color:#059669;background:#ECFDF5;border-radius:6px;padding:2px 7px">잔금완료</span>`
+      : `<span style="font-size:10px;font-weight:700;color:#D97706;background:#FEF3C7;border-radius:6px;padding:2px 7px">잔금확인</span>`;
 
     return `
       <div onclick="openDetail(${s.id})" style="
-        background:#FFFDF5;border:1px solid #FDE68A;border-radius:12px;
+        background:#fff;border:1px solid #E5E7EB;border-radius:8px;
         padding:12px 16px;margin-bottom:8px;cursor:pointer;
         display:flex;align-items:center;gap:12px;
         transition:background .15s"
-        onmouseover="this.style.background='#FEF9E7'"
-        onmouseout="this.style.background='#FFFDF5'">
-        <div style="min-width:40px;text-align:center;flex-shrink:0">
-          <div style="font-size:15px;line-height:1;margin-bottom:2px">${sideIcon(s)}</div>
-          <div style="font-size:11px;font-weight:800;color:#D97706">${dday}</div>
+        onmouseover="this.style.background='#F9FAFB'"
+        onmouseout="this.style.background='#fff'">
+        <div style="min-width:36px;text-align:center;flex-shrink:0">
+          <div style="font-size:14px;line-height:1;margin-bottom:2px">${sideIcon(s)}</div>
+          <div style="font-size:11px;font-weight:800;color:#A8893A">${dday}</div>
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
