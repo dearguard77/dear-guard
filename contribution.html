@@ -69,6 +69,25 @@ input,select,textarea{font-family:inherit;outline:none}
 .topbtn-ghost{background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
 .topbtn-gold{background:var(--text);color:#fff;border:none}
 
+/* 라이브 기준시각 저장 버튼 */
+.live-start-btn{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #E5E7EB;border-radius:var(--r-lg);padding:5px 12px;height:28px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:background .15s}
+.live-start-btn:hover{background:#F9FAFB}
+.live-start-btn .live-start-text{display:flex;flex-direction:column;justify-content:center;line-height:1.2;text-align:left}
+#live-start-icon{font-size:11px;color:#DC2626;flex-shrink:0}
+#live-start-label{font-size:12px;font-weight:700;color:#111827;white-space:nowrap}
+#live-start-time{font-size:10px;color:#9CA3AF;white-space:nowrap;display:none}
+.live-start-btn.saved{background:#F9FAFB;border-color:#E5E7EB}
+.live-start-btn.saved:hover{background:#F3F4F6}
+.live-start-btn.saved #live-start-icon{color:#9CA3AF}
+.live-start-btn.saved #live-start-label{color:#6B7280;font-weight:600}
+.live-start-btn.saved #live-start-time{display:block}
+.live-start-btn.saving{opacity:.6;pointer-events:none}
+@media(max-width:768px){
+  #top-bar-inner{flex-wrap:wrap;row-gap:6px}
+  #ticket-panel-top{order:3;flex-basis:100%;margin:0}
+  .live-start-btn{width:100%;justify-content:center}
+}
+
 /* ── 바디 레이아웃 ── */
 #main-body-outer{flex:1;overflow:hidden;background:var(--bg)}
 #main-body{display:grid;grid-template-columns:minmax(180px,22%) 1fr 1fr;height:100%;width:100%}
@@ -414,6 +433,13 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
     </div>
     <div id="ticket-panel-top" style="display:flex;align-items:center;gap:6px;flex:1;margin:0 12px;min-width:0">
+      <button id="live-start-btn" onclick="handleLiveStartClick()" class="live-start-btn">
+        <span id="live-start-icon">🔴</span>
+        <span class="live-start-text">
+          <span id="live-start-label">라이브 시작</span>
+          <span id="live-start-time"></span>
+        </span>
+      </button>
       <!-- 상단 식권 요약: JS 계산용 hidden IDs 유지 -->
       <span id="tks-g-total" style="display:none"></span>
       <span id="tks-g-used" style="display:none"></span>
@@ -971,6 +997,18 @@ input,select,textarea{font-family:inherit;outline:none}
 </div>
 
 <!-- 현금 계산기 모달 -->
+<!-- 라이브 기준시각 재기록 확인 팝업 -->
+<div id="live-start-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9500;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeLiveStartConfirm()">
+  <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;max-width:340px;width:100%;padding:20px">
+    <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:10px;line-height:1.6">라이브 기준시각이 이미 저장되어 있습니다.</div>
+    <div style="font-size:13px;color:#6B7280;line-height:1.7;margin-bottom:18px">현재 시각으로 다시 기록하시겠습니까?<br>기존 기준시각은 삭제되고 새 시각으로 변경됩니다.</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeLiveStartConfirm()" style="flex:1;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">취소</button>
+      <button id="live-start-reconfirm-btn" onclick="confirmLiveStartReset()" style="flex:1;background:#1F2937;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">다시 기록</button>
+    </div>
+  </div>
+</div>
+
 <div id="cash-calc-modal" onclick="if(event.target===this)closeCashCalc()">
   <div class="cash-calc-box">
     <div class="cash-calc-hdr">
@@ -1328,6 +1366,7 @@ async function selectSchedule(id){
     totalTickets.groom = currentSchedule.ticket_total_groom || 0;
     totalTickets.bride = currentSchedule.ticket_total_bride || 0;
     applyCashCountsFromSchedule();
+    renderLiveStartButton();
     sv('groom-total-ticket',totalTickets.groom||'');
     sv('bride-total-ticket',totalTickets.bride||'');
     document.getElementById('schedule-select-screen').style.display='none';
@@ -1819,6 +1858,7 @@ function subscribeRealtime(){
           // 다른 기기의 현금 계수 수정값 즉시 반영 (계산기 창이 열려있으면 화면도 갱신)
           applyCashCountsFromSchedule();
           refreshCashCalcIfOpen();
+          renderLiveStartButton();
           loadHandover();
           renderStats();
         }
@@ -2448,6 +2488,80 @@ const _cashQty = { g: [0,0,0,0], b: [0,0,0,0] };
 let _cashSide = 'g'; // 현재 선택 측
 let _cashSaveTimers = { g: null, b: null };
 let _cashStatusRevertTimer = null;
+
+// ── 라이브 기준시각 저장 (schedule_id당 1개, 신랑/신부 구분 없음) ──
+let _liveStartSaving = false;
+
+// currentSchedule.live_started_at 값을 버튼 표시에 반영 (새로고침·실시간 갱신 시 공용으로 재사용)
+function renderLiveStartButton(){
+  const btn = document.getElementById('live-start-btn');
+  if(!btn || !currentSchedule) return;
+  const iconEl = document.getElementById('live-start-icon');
+  const labelEl = document.getElementById('live-start-label');
+  const timeEl = document.getElementById('live-start-time');
+  if(currentSchedule.live_started_at){
+    btn.classList.add('saved');
+    if(iconEl) iconEl.textContent = '●';
+    if(labelEl) labelEl.textContent = '라이브 시작 완료';
+    if(timeEl){
+      const d = new Date(currentSchedule.live_started_at);
+      timeEl.textContent = isNaN(d.getTime()) ? '' : d.toLocaleTimeString('ko-KR',{hour12:false});
+    }
+  } else {
+    btn.classList.remove('saved');
+    if(iconEl) iconEl.textContent = '🔴';
+    if(labelEl) labelEl.textContent = '라이브 시작';
+    if(timeEl) timeEl.textContent = '';
+  }
+}
+
+// 버튼 클릭 — 최초 클릭은 바로 저장, 이미 저장된 상태면 확인 팝업만 띄우고 이 클릭 자체는 시간에 반영하지 않음
+function handleLiveStartClick(){
+  if(_liveStartSaving || !currentSchedule) return;
+  if(currentSchedule.live_started_at){
+    openLiveStartConfirm();
+  } else {
+    saveLiveStartedAt();
+  }
+}
+
+function openLiveStartConfirm(){
+  const m = document.getElementById('live-start-confirm-modal');
+  if(m) m.style.display = 'flex';
+}
+function closeLiveStartConfirm(){
+  const m = document.getElementById('live-start-confirm-modal');
+  if(m) m.style.display = 'none';
+}
+// 팝업의 "다시 기록" 클릭 시점 기준으로만 새 시각을 저장
+function confirmLiveStartReset(){
+  closeLiveStartConfirm();
+  saveLiveStartedAt();
+}
+
+async function saveLiveStartedAt(){
+  if(!currentSchedule || _liveStartSaving) return;
+  _liveStartSaving = true;
+  const btn = document.getElementById('live-start-btn');
+  if(btn) btn.classList.add('saving');
+  const scheduleId = currentSchedule.id; // 저장 완료 시 현재 열려있는 예식이 바뀌어 있어도 섞이지 않도록 고정
+  try{
+    const nowIso = new Date().toISOString();
+    await sb.patch('schedules', scheduleId, { live_started_at: nowIso });
+    if(currentSchedule && currentSchedule.id === scheduleId){
+      currentSchedule.live_started_at = nowIso;
+      renderLiveStartButton();
+    }
+    showToast('✅ 라이브 기준시각이 저장되었습니다');
+  }catch(e){
+    console.error('[DG] 라이브 기준시각 저장 실패:', e);
+    showToast('⚠️ 저장 실패: 잠시 후 다시 시도해주세요');
+    // 저장 실패 시 기존 기준시각 유지 (currentSchedule.live_started_at 변경 없음)
+  } finally {
+    _liveStartSaving = false;
+    if(btn) btn.classList.remove('saving');
+  }
+}
 
 // currentSchedule.cash_count_groom/bride → _cashQty로 반영 (배열 형식 아니면 [0,0,0,0])
 function applyCashCountsFromSchedule(){

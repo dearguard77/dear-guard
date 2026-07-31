@@ -921,11 +921,14 @@ function openLiveBoard(){
   if(sideBadgeEl) sideBadgeEl.className='lb-side-badge '+(side==='groom'?'groom':'bride');
 
   // 다시보기 재생시간 매칭용 데이터 준비: 해당 측 로그를 created_at 오름차순 정렬
-  // (영상 시작 기준 시각 컬럼이 없으므로 해당 측 첫 로그 시각을 0초 기준으로 사용 — DB 컬럼 추가 없음)
+  // 기준 시각(0초)은 schedules.live_started_at을 우선 사용하고, 저장되어 있지 않은 예식은
+  // 기존과 동일하게 해당 측 첫 로그 시각을 기준으로 사용 (하위 호환, DB 컬럼 추가 없이 동작하던 기존 로직 유지)
   const sideName=side==='groom'?'신랑측':'신부측';
   const sideLogs=logs.filter(l=>l.side===sideName&&l.created_at).slice()
     .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-  const t0=sideLogs.length?new Date(sideLogs[0].created_at).getTime():0;
+  const t0 = schedule.live_started_at
+    ? new Date(schedule.live_started_at).getTime()
+    : (sideLogs.length ? new Date(sideLogs[0].created_at).getTime() : 0);
   lbLogsSorted=sideLogs.map(l=>({
     amount:l.amount||0, adult_ticket:l.adult_ticket||0, child_ticket:l.child_ticket||0,
     relSec:(new Date(l.created_at).getTime()-t0)/1000
