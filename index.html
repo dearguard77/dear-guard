@@ -5320,6 +5320,8 @@ function getManagerDayStatus(managerName, ds){
   // 배정 예식별 점유 시간대 계산
   let busyLunch  = lunchUv;
   let busyDinner = dinnerUv;
+  let assignLunch  = false; // 표시용: 이 시간대 점유가 "실제 배정"에서 비롯됐는지 (가능여부 판정 로직과는 무관)
+  let assignDinner = false;
   const assignedLabels = [];
 
   assigned.forEach(s => {
@@ -5328,9 +5330,9 @@ function getManagerDayStatus(managerName, ds){
     const oStart = cMin - OCCUPY_BEFORE;
     const oEnd   = cMin + OCCUPY_AFTER;
     // 점심 구간 겹침
-    if(oStart < LUNCH_ZONE_END && oEnd > LUNCH_ZONE_START)  busyLunch  = true;
+    if(oStart < LUNCH_ZONE_END && oEnd > LUNCH_ZONE_START){  busyLunch  = true; assignLunch  = true; }
     // 저녁 구간 겹침
-    if(oStart < DINNER_ZONE_END && oEnd > DINNER_ZONE_START) busyDinner = true;
+    if(oStart < DINNER_ZONE_END && oEnd > DINNER_ZONE_START){ busyDinner = true; assignDinner = true; }
     assignedLabels.push(`${s.time} ${coupleName(s)}`);
   });
 
@@ -5338,7 +5340,7 @@ function getManagerDayStatus(managerName, ds){
   const hasCustom = customUv.length > 0;
 
   if(busyLunch && busyDinner)
-    return { status:'full_busy', assignedLabels, lunchBusy:true, dinnerBusy:true, hasCustom };
+    return { status:'full_busy', assignedLabels, lunchBusy:true, dinnerBusy:true, hasCustom, assignLunch, assignDinner };
   if(busyLunch)
     return { status:'lunch_busy', assignedLabels, lunchBusy:true, dinnerBusy:false, hasCustom };
   if(busyDinner)
@@ -5367,6 +5369,11 @@ function openUvDayModal(ds){
   const fullBusy   = statuses.filter(s => s.status === 'full_busy');
   const partialUv  = statuses.filter(s => s.status === 'partial');
   const allUnavail = statuses.filter(s => s.status === 'all_unavail');
+
+  // fullBusy(종일 점유) 내에서 "실제 종일 배정"과 "한쪽만 실제 배정 + 반대쪽은 불가일정" 구분 (표시 전용, 분류 기준 자체는 변경 없음)
+  const fullBusyBoth      = fullBusy.filter(s => (s.assignLunch && s.assignDinner) || (!s.assignLunch && !s.assignDinner));
+  const fullBusyMorningOnly   = fullBusy.filter(s => s.assignLunch && !s.assignDinner);  // 오전 배정 + 저녁 불가
+  const fullBusyAfternoonOnly = fullBusy.filter(s => s.assignDinner && !s.assignLunch);  // 오후 배정 + 오전 불가
 
   const totalAvail = freeAll.length + lunchAvail.length + dinnerAvail.length;
   document.getElementById('uvDay-avail-badge').innerHTML =
@@ -5409,8 +5416,12 @@ function openUvDayModal(ds){
       st => `점심 배정: ${st.assignedLabels?.join(', ')||'불가 등록됨'}`),
     section('🌙','점심 예식 가능 (저녁 배정/불가)','#6366F1', lunchAvail,
       st => `저녁 배정: ${st.assignedLabels?.join(', ')||'불가 등록됨'}`),
-    section('🔵','배정 완료 (종일)','#2563EB', fullBusy,
+    section('🔵','배정 완료 (종일)','#2563EB', fullBusyBoth,
       st => `배정: ${st.assignedLabels?.join(', ')||''}`),
+    section('🔵','배정 완료 (저녁 불가)','#2563EB', fullBusyMorningOnly,
+      st => `배정: ${st.assignedLabels?.join(', ')||''} · 저녁 예식 불가`),
+    section('🔵','배정 완료 (오전 불가)','#2563EB', fullBusyAfternoonOnly,
+      st => `배정: ${st.assignedLabels?.join(', ')||''} · 오전 예식 불가`),
     section('🕒','일부 시간 불가','#D97706', partialUv,
       st => `${st.uvReason || '시간대 불가'}`),
     section('🔴','종일 불가','#DC2626', allUnavail, null),
