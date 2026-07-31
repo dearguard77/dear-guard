@@ -12,7 +12,7 @@
   :root{
     --bg:#F4F4F3;--bg2:#fff;--bg3:#F8F8F7;
     --border:#E5E5E3;--border2:#EAEAE8;
-    --gold:#C7A96B;--gold2:#A8893A;
+    --gold:#9CA3AF;--gold2:#6B7280;
     --text:#111827;--text2:#6B7280;--text3:#9CA3AF;
     --blue:#2563EB;--green:#059669;--red:#DC2626;
     --r:8px;
@@ -134,7 +134,7 @@
 
   .chip-group{display:flex;flex-wrap:wrap;gap:6px}
   .chip{border:1px solid var(--border);border-radius:20px;padding:7px 13px;font-size:12.5px;font-weight:500;background:var(--bg2);color:var(--text2);transition:all .15s;cursor:pointer}
-  .chip:hover{border-color:var(--gold)}
+  .chip:hover{border-color:#9CA3AF}
   .chip.active{background:var(--text);color:#fff;border-color:var(--text)}
   .chip-sub-input{margin-top:8px}
 
@@ -149,7 +149,7 @@
 
   .submit-bar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(244,244,243,0),var(--bg) 30%);padding:16px 0 0;margin-top:4px}
   .autosave-status{font-size:11px;text-align:right;padding:0 2px 7px;min-height:16px;color:var(--text3);transition:color .15s;font-weight:400}
-  .autosave-status.saving{color:var(--gold)}
+  .autosave-status.saving{color:#9CA3AF}
   .autosave-status.saved{color:var(--green)}
   .autosave-status.error{color:var(--red)}
   .draft-prompt{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:10px}
@@ -179,7 +179,7 @@
 
   /* ── LOADING ── */
   #loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:12px}
-  .spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+  .spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:#9CA3AF;border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
   /* ── LOGIN ── */

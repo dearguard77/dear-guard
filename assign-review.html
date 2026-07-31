@@ -13,12 +13,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* 헤더 */
 .hdr{background:#fff;border-bottom:1px solid #E5E7EB;padding:14px 20px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:200}
-.hdr-back{background:none;border:none;font-size:22px;cursor:pointer;color:#C7A96B;line-height:1;padding:0 4px}
+.hdr-back{background:none;border:none;font-size:22px;cursor:pointer;color:#374151;line-height:1;padding:0 4px}
 .hdr-title{font-size:17px;font-weight:800;color:#1F2937;letter-spacing:-.3px}
 .hdr-badge{margin-left:auto;background:#FEF3C7;color:#92400E;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px}
 
 /* 문의 검토 */
-.inq-section{margin:12px 16px;background:#fff;border-radius:14px;border:2px solid #C7A96B;overflow:hidden}
+.inq-section{margin:12px 16px;background:#fff;border-radius:8px;border:1px solid #E5E7EB;overflow:hidden}
 .inq-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
 .inq-header-title{font-size:15px;font-weight:800;color:#1F2937}
 .inq-header-sub{font-size:11px;color:#9CA3AF;margin-top:1px}
@@ -28,37 +28,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(max-width:360px){.inq-row-bottom{grid-template-columns:1fr}}
 .inq-field label{font-size:11px;font-weight:700;color:#6B7280;display:block;margin-bottom:5px}
 .inq-input{width:100%;border:1.5px solid #E5E7EB;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600;color:#1F2937;background:#F9FAFB}
-.inq-input:focus{outline:none;border-color:#C7A96B}
+.inq-input:focus{outline:none;border-color:#374151}
 .inq-time-wrap{display:flex;align-items:center;gap:4px}
 .inq-time-wrap .inq-input{text-align:center}
 .inq-colon{font-size:16px;font-weight:800;color:#374151}
-.inq-btn{width:100%;margin-top:12px;background:linear-gradient(135deg,#C7A96B,#B8945A);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s}
+.inq-btn{width:100%;margin-top:12px;background:#1F2937;color:#fff;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s}
 .inq-btn:hover{opacity:.88}
 .inq-result{margin-top:14px}
 
 /* 문의 결과 */
-.inq-res-hdr{border-radius:12px 12px 0 0;padding:13px 16px}
+.inq-res-hdr{border-radius:8px 8px 0 0;padding:13px 16px}
 .inq-res-hdr.ok{background:#059669;color:#fff}
 .inq-res-hdr.warn{background:#D97706;color:#fff}
 .inq-res-hdr.fail{background:#DC2626;color:#fff}
 .inq-res-hdr-title{font-size:14px;font-weight:800}
 .inq-res-hdr-sub{font-size:11px;opacity:.85;margin-top:3px}
-.inq-res-body{border:2px solid transparent;border-top:none;border-radius:0 0 12px 12px;padding:14px}
+.inq-res-body{border:1px solid transparent;border-top:none;border-radius:0 0 8px 8px;padding:14px}
 .inq-res-body.ok{background:#F0FDF4;border-color:#86EFAC}
 .inq-res-body.warn{background:#FFFBEB;border-color:#FCD34D}
 .inq-res-body.fail{background:#FEF2F2;border-color:#FCA5A5}
 
 /* 현재 배정 현황 박스 */
-.cur-assign-box{background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1px solid #E5E7EB}
+.cur-assign-box{background:#fff;border-radius:8px;padding:12px 14px;margin-bottom:14px;border:1px solid #E5E7EB}
 .cur-assign-title{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.4px;margin-bottom:8px}
 .cur-assign-row{display:flex;align-items:baseline;gap:8px;padding:4px 0;border-bottom:1px solid #F3F4F6;font-size:12px}
 .cur-assign-row:last-child{border-bottom:none}
 .cur-assign-time{font-weight:800;color:#1F2937;min-width:36px}
 .cur-assign-hall{color:#374151;flex:1}
-.cur-assign-mgr{color:#C7A96B;font-weight:700;text-align:right;font-size:11px}
+.cur-assign-mgr{color:#374151;font-weight:700;text-align:right;font-size:11px}
 
 /* 추천안 카드 */
-.rec-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;border-left:4px solid #E5E7EB}
+.rec-card{background:#fff;border-radius:8px;padding:14px;margin-bottom:10px;border:1px solid #E5E7EB;border-left:4px solid #E5E7EB}
 .rec-card:last-child{margin-bottom:0}
 .rec-card.ok{border-left-color:#059669}
 .rec-card.warn{border-left-color:#D97706}
@@ -90,54 +90,54 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rec-btn:hover{opacity:.8}
 .btn-keep{background:#F3F4F6;color:#6B7280}
 .btn-apply{background:#059669;color:#fff}
-.btn-manual{background:#1F2937;color:#C7A96B}
+.btn-manual{background:#1F2937;color:#fff}
 
 .inq-sec-label{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.4px;margin:10px 0 6px}
 
 /* 날짜 바 */
 .date-bar{background:#fff;padding:13px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #E5E7EB}
 .date-lbl{font-size:13px;color:#6B7280;font-weight:600;white-space:nowrap}
-.date-inp{border:1.5px solid #E5E7EB;border-radius:8px;padding:7px 12px;font-size:14px;font-weight:700;color:#1F2937;cursor:pointer;background:#F9FAFB;flex:1;max-width:180px}
-.date-day{font-size:13px;color:#C7A96B;font-weight:700;white-space:nowrap}
+.date-inp{border:1px solid #E5E7EB;border-radius:8px;padding:7px 12px;font-size:14px;font-weight:700;color:#1F2937;cursor:pointer;background:#F9FAFB;flex:1;max-width:180px}
+.date-day{font-size:13px;color:#6B7280;font-weight:700;white-space:nowrap}
 .date-count{margin-left:auto;font-size:12px;color:#6B7280}
 
 /* 예식 목록 */
 .section{padding:12px 16px 0}
 .section-title{font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin-bottom:8px}
 .sched-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-.sched-card{background:#fff;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.sched-card{background:#fff;border-radius:8px;border:1px solid #E5E7EB;padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:none}
 .sched-time{font-size:15px;font-weight:900;color:#1F2937;min-width:42px}
 .sched-info{flex:1;min-width:0}
 .sched-couple{font-size:13px;font-weight:700;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sched-hall{font-size:11px;color:#6B7280;margin-top:1px}
 .sched-mgrs{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.sched-mgr{background:#FDF4E3;border:1px solid #F0D9A0;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;color:#92400E;white-space:nowrap}
+.sched-mgr{background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;color:#374151;white-space:nowrap}
 .sched-mgr.back{background:#F0F9FF;border-color:#BAE6FD;color:#0369A1}
-.empty-box{background:#fff;border-radius:12px;padding:32px;text-align:center;margin:8px 0}
+.empty-box{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:32px;text-align:center;margin:8px 0}
 .empty-box p{font-size:14px;color:#6B7280}
 
 /* AI 리뷰 버튼 */
 .ai-btn-wrap{padding:8px 16px 16px}
-.ai-btn{width:100%;background:linear-gradient(135deg,#1F2937 0%,#374151 100%);color:#C7A96B;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+.ai-btn{width:100%;background:#1F2937;color:#fff;border:none;border-radius:8px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
 .ai-btn:disabled{opacity:.5;cursor:not-allowed}
 .ai-btn:not(:disabled):hover{opacity:.9}
-.pulse{display:inline-block;width:8px;height:8px;background:#C7A96B;border-radius:50%;animation:pulse 1.4s infinite}
+.pulse{display:inline-block;width:8px;height:8px;background:#fff;border-radius:50%;animation:pulse 1.4s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
 
 /* 분석 중 */
 .analyzing{display:none;padding:28px 16px;text-align:center}
-.analyzing .spinner{width:36px;height:36px;border:3px solid #E5E7EB;border-top-color:#C7A96B;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+.analyzing .spinner{width:36px;height:36px;border:3px solid #E5E7EB;border-top-color:#9CA3AF;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .analyzing-msg{font-size:13px;color:#6B7280;font-weight:600}
 
 /* AI 리뷰 결과 */
 .result-wrap{display:none;padding:0 16px}
-.result-summary{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:12px}
+.result-summary{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px;box-shadow:none;margin-bottom:12px}
 .result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .result-header h3{font-size:15px;font-weight:800}
 .result-header span{font-size:12px;color:#6B7280}
 .result-counts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.cnt-card{border-radius:10px;padding:10px 4px;text-align:center}
+.cnt-card{border-radius:8px;padding:10px 4px;text-align:center}
 .cnt-card .num{font-size:22px;font-weight:900;line-height:1}
 .cnt-card .lbl{font-size:10px;font-weight:700;margin-top:3px}
 .cnt-total{background:#F3F4F6}.cnt-total .num{color:#374151}.cnt-total .lbl{color:#6B7280}
@@ -149,7 +149,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* 위험/주의 카드 */
 .detail-section{margin-bottom:12px}
 .detail-title{font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin-bottom:8px}
-.risk-card{border-radius:14px;padding:14px;margin-bottom:8px;border:2px solid transparent}
+.risk-card{border-radius:8px;padding:14px;margin-bottom:8px;border:1px solid transparent}
 .risk-card.danger{background:#FFF5F5;border-color:#FECACA}
 .risk-card.warning{background:#FFFDF0;border-color:#FDE68A}
 .risk-card.safe{background:#F0FDF4;border-color:#BBF7D0}
@@ -174,12 +174,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .metric-val.warning{color:#D97706}
 .metric-val.safe{color:#059669}
 .metric-src{font-size:9px;color:#9CA3AF;margin-top:1px}
-.alt-btn{width:100%;margin-top:10px;background:#1F2937;color:#C7A96B;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
+.alt-btn{width:100%;margin-top:10px;background:#1F2937;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer}
 .alt-btn:hover{opacity:.85}
-.alt-panel{display:none;margin-top:10px;background:#fff;border-radius:12px;padding:14px;border:2px solid #C7A96B}
-.alt-panel-title{font-size:13px;font-weight:800;color:#C7A96B;margin-bottom:12px}
+.alt-panel{display:none;margin-top:10px;background:#fff;border-radius:8px;padding:14px;border:1px solid #E5E7EB}
+.alt-panel-title{font-size:13px;font-weight:800;color:#1F2937;margin-bottom:12px}
 .alt-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.alt-side{border-radius:10px;padding:10px}
+.alt-side{border-radius:8px;padding:10px}
 .alt-side.current{background:#FEF2F2;border:1px solid #FECACA}
 .alt-side.suggest{background:#F0FDF4;border:1px solid #BBF7D0}
 .alt-side-lbl{font-size:10px;font-weight:700;margin-bottom:5px}
@@ -198,13 +198,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-alt-apply{background:#059669;color:#fff;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer}
 
 .safe-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-.safe-item{background:#fff;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.safe-item{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px;box-shadow:none}
 .safe-dot{width:8px;height:8px;border-radius:50%;background:#059669;flex-shrink:0}
 .safe-info{flex:1;min-width:0}
 .safe-mgr{font-size:12px;font-weight:700;color:#374151}
 .safe-route{font-size:11px;color:#6B7280;margin-top:1px}
 .safe-buf{font-size:13px;font-weight:800;color:#059669;white-space:nowrap}
-.notice{margin:0 0 24px;background:#EFF6FF;border-radius:10px;padding:12px 14px;border:1px solid #BFDBFE}
+.notice{margin:0 0 24px;background:#EFF6FF;border-radius:8px;padding:12px 14px;border:1px solid #BFDBFE}
 .notice p{font-size:12px;color:#1E40AF;line-height:1.7}
 
 /* 이동시간 검증 패널 */
@@ -253,7 +253,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- 신규 문의 검토 -->
 <!-- 예식장 좌표 자동 등록 -->
-<div style="margin:8px 16px 0;background:#EFF6FF;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid #BFDBFE">
+<div style="margin:8px 16px 0;background:#EFF6FF;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid #BFDBFE">
   <div style="flex:1;font-size:12px;color:#1E40AF;line-height:1.5"><b>📍 예식장 좌표 자동 등록</b><br>예식장 이름으로 Kakao 검색 → 좌표 자동 저장 (최초 1회)</div>
   <button onclick="bulkRegisterVenues()" id="bulkRegBtn" style="background:#2563EB;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">자동 등록</button>
 </div>
@@ -318,7 +318,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="inq-result" id="inqResult"></div>
 
     <!-- 백업 매니저 수동 배정 (관리자 전용) -->
-    <div id="backup-mgr-wrap" style="display:none;margin-top:14px;border:1.5px solid #DDD6FE;border-radius:12px;overflow:hidden">
+    <div id="backup-mgr-wrap" style="display:none;margin-top:14px;border:1px solid #DDD6FE;border-radius:8px;overflow:hidden">
       <button onclick="toggleBackupSection()" style="width:100%;background:#F5F3FF;border:none;padding:10px 14px;text-align:left;cursor:pointer;font-size:13px;font-weight:700;color:#7C3AED;display:flex;justify-content:space-between;align-items:center">
         <span>🟣 백업 매니저 수동 배정</span>
         <span id="backup-toggle-icon">▼</span>
@@ -326,12 +326,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div id="backup-section" style="display:none;padding:14px;background:#FAF8FF">
         <div style="font-size:11px;color:#6D28D9;margin-bottom:10px">강미송·노지훈은 자동 추천 대상이 아닙니다. 긴급 상황에서만 관리자가 직접 선택해주세요.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <div style="background:#EDE9FE;border:1px solid #C4B5FD;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#4C1D95;display:flex;align-items:center;gap:10px">
+          <div style="background:#EDE9FE;border:1px solid #C4B5FD;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:#4C1D95;display:flex;align-items:center;gap:10px">
             🟣 강미송
             <button onclick="showToast('✅ 강미송 수동 배정 — index.html 예식 수정에서 담당자로 직접 지정해주세요')"
               style="background:#7C3AED;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">선택</button>
           </div>
-          <div style="background:#EDE9FE;border:1px solid #C4B5FD;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#4C1D95;display:flex;align-items:center;gap:10px">
+          <div style="background:#EDE9FE;border:1px solid #C4B5FD;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:#4C1D95;display:flex;align-items:center;gap:10px">
             🟣 노지훈
             <button onclick="showToast('✅ 노지훈 수동 배정 — index.html 예식 수정에서 담당자로 직접 지정해주세요')"
               style="background:#7C3AED;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">선택</button>
@@ -391,7 +391,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div><!-- page-wrap -->
 <!-- 직접 배정 변경 모달 -->
 <div id="manualAssignModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:4000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px">
-  <div style="background:#fff;border-radius:16px;padding:20px;max-width:460px;width:100%;margin:40px auto">
+  <div style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:20px;max-width:460px;width:100%;margin:40px auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div style="font-size:16px;font-weight:800;color:#1F2937">✏️ 직접 배정 변경</div>
       <button onclick="closeManualModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9CA3AF">✕</button>
@@ -412,8 +412,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button onclick="closeManualModal()" style="background:#F3F4F6;color:#6B7280;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">취소</button>
-      <button onclick="saveManualAssignment()" style="background:#059669;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">저장</button>
+      <button onclick="closeManualModal()" style="background:#F3F4F6;color:#6B7280;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">취소</button>
+      <button onclick="saveManualAssignment()" style="background:#059669;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">저장</button>
     </div>
   </div>
 </div>
@@ -662,7 +662,7 @@ function renderResult(pairs,dateStr){
   let riskHtml='';
   if(dangers.length)riskHtml+=`<div class="detail-section"><div class="detail-title">🔴 불가 — ${dangers.length}건</div>${dangers.map(riskCardHtml).join('')}</div>`;
   if(warnings.length)riskHtml+=`<div class="detail-section"><div class="detail-title">🟡 주의 — ${warnings.length}건</div>${warnings.map(riskCardHtml).join('')}</div>`;
-  if(!dangers.length&&!warnings.length)riskHtml=`<div class="detail-section"><div style="background:#ECFDF5;border-radius:12px;padding:20px;text-align:center;margin-bottom:12px"><div style="font-size:28px;margin-bottom:6px">🎉</div><div style="font-size:14px;font-weight:700;color:#059669">모든 일정이 안정적입니다!</div></div></div>`;
+  if(!dangers.length&&!warnings.length)riskHtml=`<div class="detail-section"><div style="background:#ECFDF5;border-radius:8px;padding:20px;text-align:center;margin-bottom:12px"><div style="font-size:28px;margin-bottom:6px">🎉</div><div style="font-size:14px;font-weight:700;color:#059669">모든 일정이 안정적입니다!</div></div></div>`;
   riskEl.innerHTML=riskHtml;
   const safeEl=document.getElementById('safeSection');
   safeEl.innerHTML=safes.length?`<div class="detail-section"><div class="detail-title">🟢 가능 — ${safes.length}건</div><div class="safe-list">${safes.map(p=>`<div class="safe-item"><div class="safe-dot"></div><div class="safe-info"><div class="safe-mgr">${p.mgr} <span style="font-size:10px;color:#9CA3AF">(${p.role})</span></div><div class="safe-route">${p.prev.hall||p.prev.time} → ${p.next.hall||p.next.time}</div></div><div class="safe-buf">여유 +${p.buffer}분</div></div>`).join('')}</div></div>`:'';
