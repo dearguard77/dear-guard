@@ -2655,8 +2655,8 @@ function openDetail(id){
     <div class="detail-sec">
       <div class="detail-sec-title">👥 담당자</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="manager-card"><div class="manager-avatar">🎤</div><div><div style="font-size:10px;color:#9CA3AF">Front 담당자</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(s.frontManager)||'-'}</div></div></div>
-        <div class="manager-card"><div class="manager-avatar">🎬</div><div><div style="font-size:10px;color:#9CA3AF">Back 담당자</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(s.backManager)||'-'}</div></div></div>
+        <div class="manager-card"><div class="manager-avatar">📋</div><div><div style="font-size:10px;color:#9CA3AF">Front 담당자</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(s.frontManager)||'-'}</div></div></div>
+        <div class="manager-card"><div class="manager-avatar">💰</div><div><div style="font-size:10px;color:#9CA3AF">Back 담당자</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(s.backManager)||'-'}</div></div></div>
       </div>
     </div>
     
@@ -4545,10 +4545,10 @@ function renderManagerPreview(){
   if(!previewEl) return;
 
   const cards = [];
-  if(f1) cards.push(`<div class="manager-card"><div class="manager-avatar">🎤</div><div><div style="font-size:10px;color:#9CA3AF">Front 1</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(f1)}</div></div></div>`);
-  if(f2) cards.push(`<div class="manager-card"><div class="manager-avatar">🎤</div><div><div style="font-size:10px;color:#9CA3AF">Front 2</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(f2)}</div></div></div>`);
-  if(b1) cards.push(`<div class="manager-card"><div class="manager-avatar">🎬</div><div><div style="font-size:10px;color:#9CA3AF">Back 1</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(b1)}</div></div></div>`);
-  if(b2) cards.push(`<div class="manager-card"><div class="manager-avatar">🎬</div><div><div style="font-size:10px;color:#9CA3AF">Back 2</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(b2)}</div></div></div>`);
+  if(f1) cards.push(`<div class="manager-card"><div class="manager-avatar">📋</div><div><div style="font-size:10px;color:#9CA3AF">Front 1</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(f1)}</div></div></div>`);
+  if(f2) cards.push(`<div class="manager-card"><div class="manager-avatar">📋</div><div><div style="font-size:10px;color:#9CA3AF">Front 2</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(f2)}</div></div></div>`);
+  if(b1) cards.push(`<div class="manager-card"><div class="manager-avatar">💰</div><div><div style="font-size:10px;color:#9CA3AF">Back 1</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(b1)}</div></div></div>`);
+  if(b2) cards.push(`<div class="manager-card"><div class="manager-avatar">💰</div><div><div style="font-size:10px;color:#9CA3AF">Back 2</div><div style="font-size:14px;font-weight:700;color:#111827">${esc(b2)}</div></div></div>`);
 
   previewEl.innerHTML = cards.length
     ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${cards.join('')}</div>`
@@ -7191,7 +7191,7 @@ function rtGenStep4(){
 혹시 필요하실까 하여
 신랑측 / 신부측 전용 장부 링크도 함께 전달드립니다.
 
-👤 신랑측 전용
+🤵 신랑측 전용
 ${groomLink}
 
 👰 신부측 전용
