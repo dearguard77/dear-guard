@@ -69,27 +69,14 @@ input,select,textarea{font-family:inherit;outline:none}
 .topbtn-ghost{background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
 .topbtn-gold{background:var(--text);color:#fff;border:none}
 
-/* 라이브 기준시각 저장 버튼 */
-.live-start-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #E5E7EB;border-radius:var(--r-sm);padding:5px 10px;min-height:28px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:background .15s}
-.live-start-btn:hover{background:#F9FAFB}
-.live-start-btn .live-start-text{display:flex;flex-direction:column;justify-content:center;line-height:1.15;text-align:left}
-#live-start-icon{font-size:11px;color:#DC2626;flex-shrink:0}
-#live-start-label{font-size:12px;font-weight:700;color:#111827;white-space:nowrap}
+/* 라이브 기준시각 저장 버튼 — 독립 스타일 없이 상단 다른 버튼과 동일한 .topbtn.topbtn-ghost를 그대로 사용, 상태 색상만 최소 지정 */
+.live-start-text{display:flex;flex-direction:column;justify-content:center;line-height:1.15;text-align:left}
+#live-start-icon{color:#DC2626;flex-shrink:0}
 #live-start-time{font-size:10px;color:#9CA3AF;white-space:nowrap;display:none}
-.live-start-btn.saved{background:#F9FAFB;border-color:#E5E7EB}
-.live-start-btn.saved:hover{background:#F3F4F6}
-.live-start-btn.saved #live-start-icon{color:#9CA3AF}
-.live-start-btn.saved #live-start-label{color:#6B7280;font-weight:600}
-.live-start-btn.saved #live-start-time{display:block}
-.live-start-btn.saving{opacity:.6;pointer-events:none}
-@media(min-width:769px){
-  .live-start-btn{margin-left:auto}
-}
-@media(max-width:768px){
-  #top-bar-inner{flex-wrap:wrap;row-gap:6px}
-  #ticket-panel-top{order:3;flex-basis:100%;margin:0}
-  .live-start-btn{width:100%;justify-content:center}
-}
+#live-start-btn.saved #live-start-icon{color:#9CA3AF}
+#live-start-btn.saved #live-start-label{color:#6B7280}
+#live-start-btn.saved #live-start-time{display:block}
+#live-start-btn.saving{opacity:.6;pointer-events:none}
 
 /* ── 바디 레이아웃 ── */
 #main-body-outer{flex:1;overflow:hidden;background:var(--bg)}
@@ -436,13 +423,6 @@ input,select,textarea{font-family:inherit;outline:none}
       </div>
     </div>
     <div id="ticket-panel-top" style="display:flex;align-items:center;gap:4px;flex:1;margin:0 12px;min-width:0">
-      <button id="live-start-btn" onclick="handleLiveStartClick()" class="live-start-btn">
-        <span id="live-start-icon">🔴</span>
-        <span class="live-start-text">
-          <span id="live-start-label">라이브 시작</span>
-          <span id="live-start-time"></span>
-        </span>
-      </button>
       <!-- 상단 식권 요약: JS 계산용 hidden IDs 유지 -->
       <span id="tks-g-total" style="display:none"></span>
       <span id="tks-g-used" style="display:none"></span>
@@ -452,6 +432,13 @@ input,select,textarea{font-family:inherit;outline:none}
       <span id="tks-b-remain" style="display:none"></span>
     </div>
     <div class="top-right">
+      <button id="live-start-btn" onclick="handleLiveStartClick()" class="topbtn topbtn-ghost">
+        <span id="live-start-icon">🔴</span>
+        <span class="live-start-text">
+          <span id="live-start-label">라이브 시작</span>
+          <span id="live-start-time"></span>
+        </span>
+      </button>
       <button class="topbtn topbtn-ghost" onclick="openTicketModal()">🎫 식권정보</button>
       <button class="topbtn topbtn-ghost" onclick="openCashCalc()">🧮 계산기</button>
       <button class="topbtn topbtn-ghost" onclick="goSelectSchedule()">예식 변경</button>
