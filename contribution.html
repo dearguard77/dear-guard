@@ -70,9 +70,9 @@ input,select,textarea{font-family:inherit;outline:none}
 .topbtn-gold{background:var(--text);color:#fff;border:none}
 
 /* 라이브 기준시각 저장 버튼 */
-.live-start-btn{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #E5E7EB;border-radius:var(--r-lg);padding:5px 12px;height:28px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:background .15s}
+.live-start-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #E5E7EB;border-radius:var(--r-sm);padding:5px 10px;min-height:28px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:background .15s}
 .live-start-btn:hover{background:#F9FAFB}
-.live-start-btn .live-start-text{display:flex;flex-direction:column;justify-content:center;line-height:1.2;text-align:left}
+.live-start-btn .live-start-text{display:flex;flex-direction:column;justify-content:center;line-height:1.15;text-align:left}
 #live-start-icon{font-size:11px;color:#DC2626;flex-shrink:0}
 #live-start-label{font-size:12px;font-weight:700;color:#111827;white-space:nowrap}
 #live-start-time{font-size:10px;color:#9CA3AF;white-space:nowrap;display:none}
@@ -435,7 +435,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <span id="top-schedule-info" style="font-size:11px;color:#9CA3AF;line-height:1.2"></span>
       </div>
     </div>
-    <div id="ticket-panel-top" style="display:flex;align-items:center;gap:6px;flex:1;margin:0 12px;min-width:0">
+    <div id="ticket-panel-top" style="display:flex;align-items:center;gap:4px;flex:1;margin:0 12px;min-width:0">
       <button id="live-start-btn" onclick="handleLiveStartClick()" class="live-start-btn">
         <span id="live-start-icon">🔴</span>
         <span class="live-start-text">
@@ -1000,13 +1000,42 @@ input,select,textarea{font-family:inherit;outline:none}
 </div>
 
 <!-- 현금 계산기 모달 -->
-<!-- 라이브 기준시각 재기록 확인 팝업 -->
-<div id="live-start-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9500;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeLiveStartConfirm()">
+<!-- 라이브 기준시각 관리 팝업 -->
+<div id="live-start-manage-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9500;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeLiveStartManageModal()">
   <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;max-width:340px;width:100%;padding:20px">
-    <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:10px;line-height:1.6">라이브 기준시각이 이미 저장되어 있습니다.</div>
-    <div style="font-size:13px;color:#6B7280;line-height:1.7;margin-bottom:18px">현재 시각으로 다시 기록하시겠습니까?<br>기존 기준시각은 삭제되고 새 시각으로 변경됩니다.</div>
+    <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:14px">라이브 기준시각 관리</div>
+    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px;margin-bottom:14px;text-align:center">
+      <div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">현재 저장된 기준시각</div>
+      <div id="live-start-manage-time" style="font-size:16px;font-weight:800;color:#111827"></div>
+    </div>
+    <div style="font-size:12px;color:#6B7280;line-height:1.7;margin-bottom:18px">기준시각을 삭제하거나 현재 시각으로 다시 기록할 수 있습니다.</div>
     <div style="display:flex;gap:8px">
-      <button onclick="closeLiveStartConfirm()" style="flex:1;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">취소</button>
+      <button onclick="closeLiveStartManageModal()" style="flex:1;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">취소</button>
+      <button onclick="openLiveStartDeleteConfirm()" style="flex:1;background:#fff;border:1px solid #FCA5A5;color:#DC2626;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">삭제</button>
+      <button onclick="openLiveStartResetConfirm()" style="flex:1;background:#1F2937;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">다시 기록</button>
+    </div>
+  </div>
+</div>
+
+<!-- 라이브 기준시각 삭제 최종 확인 팝업 -->
+<div id="live-start-delete-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9600;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeLiveStartDeleteConfirm()">
+  <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;max-width:340px;width:100%;padding:20px">
+    <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:10px;line-height:1.6">저장된 라이브 기준시각을 삭제하시겠습니까?</div>
+    <div style="font-size:13px;color:#6B7280;line-height:1.7;margin-bottom:18px">삭제 후에는 영상과 장부의 자동 시간 동기화가 적용되지 않습니다.</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeLiveStartDeleteConfirm()" style="flex:1;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">취소</button>
+      <button id="live-start-delete-final-btn" onclick="confirmLiveStartDelete()" style="flex:1;background:#DC2626;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- 라이브 기준시각 재기록 최종 확인 팝업 -->
+<div id="live-start-reset-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9600;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeLiveStartResetConfirm()">
+  <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;max-width:340px;width:100%;padding:20px">
+    <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:10px;line-height:1.6">라이브 기준시각을 현재 시각으로 다시 기록하시겠습니까?</div>
+    <div style="font-size:13px;color:#6B7280;line-height:1.7;margin-bottom:18px">기존 시간은 새 시간으로 변경됩니다.</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeLiveStartResetConfirm()" style="flex:1;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">취소</button>
       <button id="live-start-reconfirm-btn" onclick="confirmLiveStartReset()" style="flex:1;background:#1F2937;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">다시 기록</button>
     </div>
   </div>
@@ -2495,6 +2524,14 @@ let _cashStatusRevertTimer = null;
 // ── 라이브 기준시각 저장 (schedule_id당 1개, 신랑/신부 구분 없음) ──
 let _liveStartSaving = false;
 
+// "12시 19분 26초" 형태로 포맷 (버튼 2번째 줄 / 관리 팝업 공용)
+function formatLiveStartTime(isoStr){
+  const d = new Date(isoStr);
+  if(isNaN(d.getTime())) return '';
+  const hh = d.getHours(), mm = String(d.getMinutes()).padStart(2,'0'), ss = String(d.getSeconds()).padStart(2,'0');
+  return hh+'시 '+mm+'분 '+ss+'초';
+}
+
 // currentSchedule.live_started_at 값을 버튼 표시에 반영 (새로고침·실시간 갱신 시 공용으로 재사용)
 function renderLiveStartButton(){
   const btn = document.getElementById('live-start-btn');
@@ -2506,10 +2543,7 @@ function renderLiveStartButton(){
     btn.classList.add('saved');
     if(iconEl) iconEl.textContent = '●';
     if(labelEl) labelEl.textContent = '라이브 시작 완료';
-    if(timeEl){
-      const d = new Date(currentSchedule.live_started_at);
-      timeEl.textContent = isNaN(d.getTime()) ? '' : d.toLocaleTimeString('ko-KR',{hour12:false});
-    }
+    if(timeEl) timeEl.textContent = formatLiveStartTime(currentSchedule.live_started_at);
   } else {
     btn.classList.remove('saved');
     if(iconEl) iconEl.textContent = '🔴';
@@ -2518,27 +2552,58 @@ function renderLiveStartButton(){
   }
 }
 
-// 버튼 클릭 — 최초 클릭은 바로 저장, 이미 저장된 상태면 확인 팝업만 띄우고 이 클릭 자체는 시간에 반영하지 않음
+// 버튼 클릭 — 최초 클릭은 바로 저장, 이미 저장된 상태면 관리 팝업(삭제/다시 기록)을 띄우고 이 클릭 자체는 시간에 반영하지 않음
 function handleLiveStartClick(){
   if(_liveStartSaving || !currentSchedule) return;
   if(currentSchedule.live_started_at){
-    openLiveStartConfirm();
+    openLiveStartManageModal();
   } else {
     saveLiveStartedAt();
   }
 }
 
-function openLiveStartConfirm(){
-  const m = document.getElementById('live-start-confirm-modal');
+// 1단계: 관리 팝업 (현재 저장된 기준시각 표시 + 취소/삭제/다시 기록)
+function openLiveStartManageModal(){
+  if(!currentSchedule || !currentSchedule.live_started_at) return;
+  const timeEl = document.getElementById('live-start-manage-time');
+  if(timeEl) timeEl.textContent = formatLiveStartTime(currentSchedule.live_started_at);
+  const m = document.getElementById('live-start-manage-modal');
   if(m) m.style.display = 'flex';
 }
-function closeLiveStartConfirm(){
-  const m = document.getElementById('live-start-confirm-modal');
+function closeLiveStartManageModal(){
+  const m = document.getElementById('live-start-manage-modal');
   if(m) m.style.display = 'none';
 }
-// 팝업의 "다시 기록" 클릭 시점 기준으로만 새 시각을 저장
+
+// 2단계-A: 삭제 최종 확인
+function openLiveStartDeleteConfirm(){
+  closeLiveStartManageModal();
+  const m = document.getElementById('live-start-delete-confirm-modal');
+  if(m) m.style.display = 'flex';
+}
+function closeLiveStartDeleteConfirm(){
+  const m = document.getElementById('live-start-delete-confirm-modal');
+  if(m) m.style.display = 'none';
+}
+// 삭제 팝업의 "삭제" 클릭 시점에만 실제 삭제 수행
+function confirmLiveStartDelete(){
+  closeLiveStartDeleteConfirm();
+  deleteLiveStartedAt();
+}
+
+// 2단계-B: 다시 기록 최종 확인
+function openLiveStartResetConfirm(){
+  closeLiveStartManageModal();
+  const m = document.getElementById('live-start-reset-confirm-modal');
+  if(m) m.style.display = 'flex';
+}
+function closeLiveStartResetConfirm(){
+  const m = document.getElementById('live-start-reset-confirm-modal');
+  if(m) m.style.display = 'none';
+}
+// 팝업의 "다시 기록" 클릭 시점 기준으로만 새 시각을 저장 (팝업을 연 시각은 저장하지 않음)
 function confirmLiveStartReset(){
-  closeLiveStartConfirm();
+  closeLiveStartResetConfirm();
   saveLiveStartedAt();
 }
 
@@ -2560,6 +2625,30 @@ async function saveLiveStartedAt(){
     console.error('[DG] 라이브 기준시각 저장 실패:', e);
     showToast('⚠️ 저장 실패: 잠시 후 다시 시도해주세요');
     // 저장 실패 시 기존 기준시각 유지 (currentSchedule.live_started_at 변경 없음)
+  } finally {
+    _liveStartSaving = false;
+    if(btn) btn.classList.remove('saving');
+  }
+}
+
+// 라이브 기준시각 삭제 → live_started_at = null 저장, 버튼을 최초(🔴) 상태로 복원
+async function deleteLiveStartedAt(){
+  if(!currentSchedule || _liveStartSaving) return;
+  _liveStartSaving = true;
+  const btn = document.getElementById('live-start-btn');
+  if(btn) btn.classList.add('saving');
+  const scheduleId = currentSchedule.id; // 삭제 완료 시 현재 열려있는 예식이 바뀌어 있어도 섞이지 않도록 고정
+  try{
+    await sb.patch('schedules', scheduleId, { live_started_at: null });
+    if(currentSchedule && currentSchedule.id === scheduleId){
+      currentSchedule.live_started_at = null;
+      renderLiveStartButton();
+    }
+    showToast('✅ 라이브 기준시각이 삭제되었습니다');
+  }catch(e){
+    console.error('[DG] 라이브 기준시각 삭제 실패:', e);
+    showToast('⚠️ 삭제 실패: 잠시 후 다시 시도해주세요');
+    // 삭제 실패 시 기존 기준시각 유지 (currentSchedule.live_started_at 변경 없음)
   } finally {
     _liveStartSaving = false;
     if(btn) btn.classList.remove('saving');
