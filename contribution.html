@@ -1289,7 +1289,13 @@ async function goSelectSchedule(){
   try {
     let rows=await sb.get('schedules','?order=date.asc,time.asc');
     const isAdmin=ADMIN_NAMES.includes(currentUser.name);
-    if(!isAdmin) rows=rows.filter(s=>(s.front_manager||'').includes(currentUser.name)||(s.back_manager||'').includes(currentUser.name));
+    if(!isAdmin){
+      // 부분 문자열(.includes) 매칭은 다른 담당자 이름과 겹쳐 오검출될 수 있어
+      // 콤마로 나눈 뒤 본인 이름과 정확히 일치하는 항목이 있는지 확인
+      const myName=currentUser.name;
+      const nameMatch=(field)=>(field||'').split(',').map(m=>m.trim()).filter(Boolean).includes(myName);
+      rows=rows.filter(s=>nameMatch(s.front_manager)||nameMatch(s.back_manager));
+    }
     _allSchRows=rows;
     if(!rows.length){wrap.innerHTML='<div class="empty-state">담당 예식이 없습니다</div>';return;}
     renderSchList();
