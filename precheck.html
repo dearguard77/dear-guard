@@ -1628,7 +1628,8 @@ async function saveAll(){
       document.getElementById('complete-screen').style.display='block';
     }, 1200);
   } catch(e){
-    showToast('⚠️ 저장 실패: '+e.message);
+    console.error('[DG] 사전체크 저장 실패:', e);
+    showToast('⚠️ 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     btn.disabled = false;
     btn.textContent = '💾 저장하기';
   }
