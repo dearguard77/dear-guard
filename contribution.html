@@ -816,6 +816,7 @@ input,select,textarea{font-family:inherit;outline:none}
         <div style="display:flex;flex-direction:column;gap:1px;padding-right:8px;border-right:1px solid #E0E0E0">
           <div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap">
             <span style="font-size:12px;color:#2563EB;font-weight:800;white-space:nowrap">🤵 식권</span>
+            <span style="font-size:10px;color:#9CA3AF;font-weight:700;white-space:nowrap">대인</span>
             <span style="font-size:12px;color:#6B7280;white-space:nowrap">초기 <span style="font-weight:700;color:#374151" id="g-init-tkt">미설정</span></span>
             <span style="font-size:12px;color:#059669;font-weight:700;white-space:nowrap" id="g-extra-tkt"></span>
             <span style="font-size:12px;color:#6B7280;white-space:nowrap" id="g-total-tkt-wrap" style="display:none">총 <span style="font-weight:700;color:#374151" id="g-total-tkt"></span></span>
@@ -824,11 +825,22 @@ input,select,textarea{font-family:inherit;outline:none}
             <span style="font-size:12px;color:#6B7280;white-space:nowrap">사용 <span style="font-weight:700" id="g-used-tkt">0장</span></span>
             <span style="font-size:12px;color:#6B7280;white-space:nowrap">잔여 <span style="font-weight:800;color:#059669" id="g-remain-tkt">—</span></span>
           </div>
+          <div id="g-child-row1" style="display:none;align-items:center;gap:4px;flex-wrap:nowrap">
+            <span style="font-size:10px;color:#7C3AED;font-weight:700;white-space:nowrap">소인</span>
+            <span style="font-size:12px;color:#6B7280;white-space:nowrap">초기 <span style="font-weight:700;color:#374151" id="g-init-tkt-c">0장</span></span>
+            <span style="font-size:12px;color:#059669;font-weight:700;white-space:nowrap" id="g-extra-tkt-c"></span>
+            <span style="font-size:12px;color:#6B7280;white-space:nowrap">총 <span style="font-weight:700;color:#374151" id="g-total-tkt-c">0장</span></span>
+          </div>
+          <div id="g-child-row2" style="display:none;align-items:center;gap:6px;flex-wrap:nowrap">
+            <span style="font-size:12px;color:#6B7280;white-space:nowrap">사용 <span style="font-weight:700" id="g-used-tkt-c">0장</span></span>
+            <span style="font-size:12px;color:#6B7280;white-space:nowrap">잔여 <span style="font-weight:800;color:#059669" id="g-remain-tkt-c">—</span></span>
+          </div>
         </div>
         <!-- 신부측 식권 -->
         <div style="display:flex;flex-direction:column;gap:1px;padding-left:8px">
           <div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap">
             <span style="font-size:12px;color:#DB2777;font-weight:800;white-space:nowrap">👰 식권</span>
+            <span style="font-size:10px;color:#9CA3AF;font-weight:700;white-space:nowrap">대인</span>
             <span style="font-size:12px;color:#6B7280;white-space:nowrap">초기 <span style="font-weight:700;color:#374151" id="b-init-tkt">미설정</span></span>
             <span style="font-size:12px;color:#059669;font-weight:700;white-space:nowrap" id="b-extra-tkt"></span>
             <span style="font-size:12px;color:#6B7280;white-space:nowrap" id="b-total-tkt-wrap" style="display:none">총 <span style="font-weight:700;color:#374151" id="b-total-tkt"></span></span>
@@ -836,6 +848,16 @@ input,select,textarea{font-family:inherit;outline:none}
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
             <span style="font-size:12px;color:#6B7280;white-space:nowrap">사용 <span style="font-weight:700" id="b-used-tkt">0장</span></span>
             <span style="font-size:12px;color:#6B7280;white-space:nowrap">잔여 <span style="font-weight:800;color:#059669" id="b-remain-tkt">—</span></span>
+          </div>
+          <div id="b-child-row1" style="display:none;align-items:center;gap:4px;flex-wrap:nowrap">
+            <span style="font-size:10px;color:#7C3AED;font-weight:700;white-space:nowrap">소인</span>
+            <span style="font-size:12px;color:#6B7280;white-space:nowrap">초기 <span style="font-weight:700;color:#374151" id="b-init-tkt-c">0장</span></span>
+            <span style="font-size:12px;color:#059669;font-weight:700;white-space:nowrap" id="b-extra-tkt-c"></span>
+            <span style="font-size:12px;color:#6B7280;white-space:nowrap">총 <span style="font-weight:700;color:#374151" id="b-total-tkt-c">0장</span></span>
+          </div>
+          <div id="b-child-row2" style="display:none;align-items:center;gap:6px;flex-wrap:nowrap">
+            <span style="font-size:12px;color:#6B7280;white-space:nowrap">사용 <span style="font-weight:700" id="b-used-tkt-c">0장</span></span>
+            <span style="font-size:12px;color:#6B7280;white-space:nowrap">잔여 <span style="font-weight:800;color:#059669" id="b-remain-tkt-c">—</span></span>
           </div>
         </div>
       </div>
@@ -2259,11 +2281,6 @@ function renderStats(){
   const transCnt=logs.filter(l=>l.payment_type==='계좌이체').length;
   const gStat=computeTicketStats('신랑측');
   const bStat=computeTicketStats('신부측');
-  const gExtra=gStat.extraAdult+gStat.extraChild;
-  const bExtra=bStat.extraAdult+bStat.extraChild;
-  const gTotal=gStat.totalAll, bTotal=bStat.totalAll;
-  const gUsedAll=gStat.usedAll, bUsedAll=bStat.usedAll;
-  const gRemain=gStat.remainAll, bRemain=bStat.remainAll;
   const se=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   se('stat-total-amount',fmtFull(total));
   se('stat-total-count','총 '+logs.length+'건');
@@ -2273,47 +2290,79 @@ function renderStats(){
   se('stat-bride-count',bL.length+'건');
   se('stat-cash',cashCnt+'건');
   se('stat-transfer',transCnt+'건');
-  // ── 신랑측 식권 요약 ──────────────────────────────────────────
-  se('g-init-tkt', totalTickets.groom>0 ? totalTickets.groom+'장' : '미설정');
+  // ── 신랑측 식권 요약 (대인) ──────────────────────────────────────
+  se('g-init-tkt', gStat.initAdult>0 ? gStat.initAdult+'장' : '미설정');
   // 추가 식권 (0장이면 숨김)
-  se('g-extra-tkt', gExtra>0 ? '+추가 '+gExtra+'장' : '');
+  se('g-extra-tkt', gStat.extraAdult>0 ? '+추가 '+gStat.extraAdult+'장' : '');
   // 총 식권 (초기 설정 시 항상 표시 — 추가 0장이어도 표시)
   const gTotalWrap=document.getElementById('g-total-tkt-wrap');
-  if(gTotalWrap) gTotalWrap.style.display = totalTickets.groom>0 ? '' : 'none';
-  se('g-total-tkt', gTotal!==null ? gTotal+'장' : '');
-  se('g-used-tkt', gUsedAll+'장');
-  se('g-used-tkt2', gUsedAll);
+  if(gTotalWrap) gTotalWrap.style.display = gStat.initAdult>0 ? '' : 'none';
+  se('g-total-tkt', gStat.initAdult>0 ? (gStat.initAdult+gStat.extraAdult)+'장' : '');
+  se('g-used-tkt', gStat.usedAdult+'장');
+  se('g-used-tkt2', gStat.usedAdult);
   const gREl=document.getElementById('g-remain-tkt');
   const gR2El=document.getElementById('g-remain-tkt2');
-  const gRColor=gRemain===null?'#9CA3AF':gRemain<=10?'#DC2626':gRemain<=20?'#D97706':'#059669';
-  if(gREl){gREl.textContent=gRemain===null?'—':gRemain+'장';gREl.style.color=gRColor;}
-  if(gR2El){gR2El.textContent=gRemain===null?'—':String(gRemain);gR2El.style.color=gRColor;}
-  // ── 신부측 식권 요약 ──────────────────────────────────────────
-  se('b-init-tkt', totalTickets.bride>0 ? totalTickets.bride+'장' : '미설정');
-  se('b-extra-tkt', bExtra>0 ? '+추가 '+bExtra+'장' : '');
+  const gRColor=gStat.remainAdult===null?'#9CA3AF':gStat.remainAdult<=10?'#DC2626':gStat.remainAdult<=20?'#D97706':'#059669';
+  if(gREl){gREl.textContent=gStat.remainAdult===null?'—':gStat.remainAdult+'장';gREl.style.color=gRColor;}
+  if(gR2El){gR2El.textContent=gStat.remainAdult===null?'—':String(gStat.remainAdult);gR2El.style.color=gRColor;}
+  // 신랑측 소인 — 초기/추가/사용 중 하나라도 0보다 클 때만 노출 (잔여가 음수여도 숨기지 않음)
+  const gShowChild = gStat.initChild>0 || gStat.extraChild>0 || gStat.usedChild>0;
+  const gChildRow1=document.getElementById('g-child-row1');
+  const gChildRow2=document.getElementById('g-child-row2');
+  if(gChildRow1) gChildRow1.style.display = gShowChild ? 'flex' : 'none';
+  if(gChildRow2) gChildRow2.style.display = gShowChild ? 'flex' : 'none';
+  if(gShowChild){
+    se('g-init-tkt-c', gStat.initChild+'장');
+    se('g-extra-tkt-c', gStat.extraChild>0 ? '+추가 '+gStat.extraChild+'장' : '');
+    se('g-total-tkt-c', (gStat.initChild+gStat.extraChild)+'장');
+    se('g-used-tkt-c', gStat.usedChild+'장');
+    const gRCEl=document.getElementById('g-remain-tkt-c');
+    const gCColor=gStat.remainChild===null?'#9CA3AF':gStat.remainChild<=10?'#DC2626':gStat.remainChild<=20?'#D97706':'#059669';
+    if(gRCEl){gRCEl.textContent=gStat.remainChild===null?'—':gStat.remainChild+'장';gRCEl.style.color=gCColor;}
+  }
+  // ── 신부측 식권 요약 (대인) ──────────────────────────────────────
+  se('b-init-tkt', bStat.initAdult>0 ? bStat.initAdult+'장' : '미설정');
+  se('b-extra-tkt', bStat.extraAdult>0 ? '+추가 '+bStat.extraAdult+'장' : '');
   const bTotalWrap=document.getElementById('b-total-tkt-wrap');
-  if(bTotalWrap) bTotalWrap.style.display = totalTickets.bride>0 ? '' : 'none';
-  se('b-total-tkt', bTotal!==null ? bTotal+'장' : '');
-  se('b-used-tkt', bUsedAll+'장');
-  se('b-used-tkt2', bUsedAll);
+  if(bTotalWrap) bTotalWrap.style.display = bStat.initAdult>0 ? '' : 'none';
+  se('b-total-tkt', bStat.initAdult>0 ? (bStat.initAdult+bStat.extraAdult)+'장' : '');
+  se('b-used-tkt', bStat.usedAdult+'장');
+  se('b-used-tkt2', bStat.usedAdult);
   const bREl=document.getElementById('b-remain-tkt');
   const bR2El=document.getElementById('b-remain-tkt2');
-  const bRColor=bRemain===null?'#9CA3AF':bRemain<=10?'#DC2626':bRemain<=20?'#D97706':'#059669';
-  if(bREl){bREl.textContent=bRemain===null?'—':bRemain+'장';bREl.style.color=bRColor;}
-  if(bR2El){bR2El.textContent=bRemain===null?'—':String(bRemain);bR2El.style.color=bRColor;}
-  se('tks-g-total',gTotal!==null?gTotal+'장':'미설정');
-  se('tks-g-used',gUsedAll+'장');
+  const bRColor=bStat.remainAdult===null?'#9CA3AF':bStat.remainAdult<=10?'#DC2626':bStat.remainAdult<=20?'#D97706':'#059669';
+  if(bREl){bREl.textContent=bStat.remainAdult===null?'—':bStat.remainAdult+'장';bREl.style.color=bRColor;}
+  if(bR2El){bR2El.textContent=bStat.remainAdult===null?'—':String(bStat.remainAdult);bR2El.style.color=bRColor;}
+  // 신부측 소인
+  const bShowChild = bStat.initChild>0 || bStat.extraChild>0 || bStat.usedChild>0;
+  const bChildRow1=document.getElementById('b-child-row1');
+  const bChildRow2=document.getElementById('b-child-row2');
+  if(bChildRow1) bChildRow1.style.display = bShowChild ? 'flex' : 'none';
+  if(bChildRow2) bChildRow2.style.display = bShowChild ? 'flex' : 'none';
+  if(bShowChild){
+    se('b-init-tkt-c', bStat.initChild+'장');
+    se('b-extra-tkt-c', bStat.extraChild>0 ? '+추가 '+bStat.extraChild+'장' : '');
+    se('b-total-tkt-c', (bStat.initChild+bStat.extraChild)+'장');
+    se('b-used-tkt-c', bStat.usedChild+'장');
+    const bRCEl=document.getElementById('b-remain-tkt-c');
+    const bCColor=bStat.remainChild===null?'#9CA3AF':bStat.remainChild<=10?'#DC2626':bStat.remainChild<=20?'#D97706':'#059669';
+    if(bRCEl){bRCEl.textContent=bStat.remainChild===null?'—':bStat.remainChild+'장';bRCEl.style.color=bCColor;}
+  }
+  se('tks-g-total',gStat.totalAll!==null?gStat.totalAll+'장':'미설정');
+  se('tks-g-used',gStat.usedAll+'장');
   const tksGR=document.getElementById('tks-g-remain');
   if(tksGR){
-    if(gRemain===null){tksGR.textContent='—';tksGR.style.color='#9CA3AF';tksGR.style.animation='';}
-    else{tksGR.textContent=gRemain+'장';tksGR.style.color=gRColor;tksGR.style.animation=gRemain<=5?'blink 0.7s ease-in-out infinite':'';}
+    const gAllColor=gStat.remainAll===null?'#9CA3AF':gStat.remainAll<=10?'#DC2626':gStat.remainAll<=20?'#D97706':'#059669';
+    if(gStat.remainAll===null){tksGR.textContent='—';tksGR.style.color='#9CA3AF';tksGR.style.animation='';}
+    else{tksGR.textContent=gStat.remainAll+'장';tksGR.style.color=gAllColor;tksGR.style.animation=gStat.remainAll<=5?'blink 0.7s ease-in-out infinite':'';}
   }
-  se('tks-b-total',bTotal!==null?bTotal+'장':'미설정');
-  se('tks-b-used',bUsedAll+'장');
+  se('tks-b-total',bStat.totalAll!==null?bStat.totalAll+'장':'미설정');
+  se('tks-b-used',bStat.usedAll+'장');
   const tksBR=document.getElementById('tks-b-remain');
   if(tksBR){
-    if(bRemain===null){tksBR.textContent='—';tksBR.style.color='#9CA3AF';tksBR.style.animation='';}
-    else{tksBR.textContent=bRemain+'장';tksBR.style.color=bRColor;tksBR.style.animation=bRemain<=5?'blink 0.7s ease-in-out infinite':'';}
+    const bAllColor=bStat.remainAll===null?'#9CA3AF':bStat.remainAll<=10?'#DC2626':bStat.remainAll<=20?'#D97706':'#059669';
+    if(bStat.remainAll===null){tksBR.textContent='—';tksBR.style.color='#9CA3AF';tksBR.style.animation='';}
+    else{tksBR.textContent=bStat.remainAll+'장';tksBR.style.color=bAllColor;tksBR.style.animation=bStat.remainAll<=5?'blink 0.7s ease-in-out infinite':'';}
   }
   renderRightList();
 }
