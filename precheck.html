@@ -1307,14 +1307,15 @@ async function saveDraftToDB(){
     const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
     const prevFieldMemo = (existing[0]?.field_memo) || {};
     const newFieldMemo  = { ...prevFieldMemo, precheck: precheckText };
+    const _isRuntimeConfirmed = schedule.ticket_runtime_confirmed === true;
     await sb.patch('schedules', schedule.id, {
       precheck_draft:   draft,
       draft_updated_at: new Date().toISOString(),
       field_memo:       newFieldMemo,
       ticket_guarantee: parseInt(gv('ticket_guarantee'))||null,
-      ...computeTicketColumnsForSave(),
+      ...(_isRuntimeConfirmed ? {} : computeTicketColumnsForSave()), // contribution에서 이미 현장 확정했으면 표준 식권 컬럼은 절대 덮어쓰지 않음
     });
-    Object.assign(schedule, computeTicketColumnsForSave(), { ticket_guarantee: parseInt(gv('ticket_guarantee'))||null });
+    Object.assign(schedule, (_isRuntimeConfirmed ? {} : computeTicketColumnsForSave()), { ticket_guarantee: parseInt(gv('ticket_guarantee'))||null });
   } catch(e){ console.warn('[DG] draft DB 저장 실패:', e); }
 }
 
@@ -1523,7 +1524,7 @@ async function saveAll(){
     bride_contact_name:   gv('bride_contact_name'),
     bride_contact_phone:  gv('bride_contact_phone'),
     ticket_guarantee:     parseInt(gv('ticket_guarantee'))||null,
-    ...computeTicketColumnsForSave(),
+    ...(schedule.ticket_runtime_confirmed === true ? {} : computeTicketColumnsForSave()), // contribution 확정 이후에는 절대 덮어쓰지 않음
     ticket_extra_limit:   parseInt(gv('ticket_extra_limit'))||null,
     ticket_stamp:         getRadioVal('stamp-group')==='true',
     cash_method:          getRadioVal('cash-group'),

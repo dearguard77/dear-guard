@@ -1438,10 +1438,24 @@ async function selectSchedule(id){
 // - 개별 대인/소인 컬럼이 모두 없는 기존 예식만 기존 합계를 대인 값으로 폴백(소인은 0)
 function applyTicketTotalsFromSchedule(){
   if(!currentSchedule) return;
-  totalTickets.groom = currentSchedule.ticket_total_groom || 0;
-  totalTickets.bride = currentSchedule.ticket_total_bride || 0;
   totalTickets.groomAdult = 0; totalTickets.groomChild = 0;
   totalTickets.brideAdult = 0; totalTickets.brideChild = 0;
+
+  if(currentSchedule.ticket_runtime_confirmed === true){
+    // contribution.html에서 현장 확정 저장한 적이 있으면, 이후 precheck가 뭘 저장하든 이 값만 신뢰한다.
+    // 0도 유효한 확정값이므로 ||(falsy 체크)가 아니라 반드시 null 여부로만 판단한다.
+    totalTickets.groomAdult = currentSchedule.ticket_total_groom_adult != null ? currentSchedule.ticket_total_groom_adult : 0;
+    totalTickets.groomChild = currentSchedule.ticket_total_groom_child != null ? currentSchedule.ticket_total_groom_child : 0;
+    totalTickets.brideAdult = currentSchedule.ticket_total_bride_adult != null ? currentSchedule.ticket_total_bride_adult : 0;
+    totalTickets.brideChild = currentSchedule.ticket_total_bride_child != null ? currentSchedule.ticket_total_bride_child : 0;
+    totalTickets.groom = totalTickets.groomAdult + totalTickets.groomChild;
+    totalTickets.bride = totalTickets.brideAdult + totalTickets.brideChild;
+    return;
+  }
+
+  // 현장 확정 이력이 없는 예식 — 기존처럼 precheck 초기값을 그대로 최초값으로 사용
+  totalTickets.groom = currentSchedule.ticket_total_groom || 0;
+  totalTickets.bride = currentSchedule.ticket_total_bride || 0;
   if(currentSchedule.ticket_total_groom_adult!=null || currentSchedule.ticket_total_groom_child!=null){
     // contribution.html이 직접 저장한 개별 컬럼이 있으면 최우선으로 신뢰
     totalTickets.groomAdult = currentSchedule.ticket_total_groom_adult || 0;
@@ -1912,14 +1926,15 @@ async function saveTotalTickets(){
   if(btEl) btEl.value = totalTickets.bride||'';
   if(currentSchedule){
     const patchBody = {
-      ticket_total_groom: totalTickets.groom || null,
-      ticket_total_bride: totalTickets.bride || null,
-      ticket_total_groom_adult: totalTickets.groomAdult || null,
-      ticket_total_groom_child: totalTickets.groomChild || null,
-      ticket_total_bride_adult: totalTickets.brideAdult || null,
-      ticket_total_bride_child: totalTickets.brideChild || null,
-      ticket_child_groom: totalTickets.groomChild || null, // precheck.html이 읽는 컬럼 — 두 파일 간 정합성 유지
-      ticket_child_bride: totalTickets.brideChild || null,
+      ticket_total_groom: totalTickets.groom,
+      ticket_total_bride: totalTickets.bride,
+      ticket_total_groom_adult: totalTickets.groomAdult,
+      ticket_total_groom_child: totalTickets.groomChild,
+      ticket_total_bride_adult: totalTickets.brideAdult,
+      ticket_total_bride_child: totalTickets.brideChild,
+      ticket_child_groom: totalTickets.groomChild, // precheck.html이 읽는 컬럼 — 두 파일 간 정합성 유지
+      ticket_child_bride: totalTickets.brideChild,
+      ticket_runtime_confirmed: true, // contribution에서 확정 저장했음을 표시 — 이후 precheck 저장이 이 값을 덮어쓰지 않도록 함
     };
     try{
       await sb.patch('schedules', currentSchedule.id, patchBody);
