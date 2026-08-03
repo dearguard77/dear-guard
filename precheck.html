@@ -1161,6 +1161,27 @@ function getDraftKey(){
 }
 
 // [수정5] draft에 신규 필드 반영
+// contribution.html이 표준으로 쓰는 식권 개별 컬럼 8개를 화면 입력값 기준으로 계산 (saveAll/saveDraftToDB 공용)
+// ticket_total_groom/bride는 대인+소인을 포함한 측별 총수량이므로, 대인 수량은 항상 총수량-소인수량으로 역산한다(임의로 총수량 전체를 대인으로 넣지 않음)
+function computeTicketColumnsForSave(){
+  const groomTotal = parseInt(gv('ticket_total_groom')) || 0;
+  const groomChild = getRadioVal('child-groom-yn-group') === 'true' ? (parseInt(gv('ticket_child_groom')) || 0) : 0;
+  const groomAdult = Math.max(0, groomTotal - groomChild);
+  const brideTotal = parseInt(gv('ticket_total_bride')) || 0;
+  const brideChild = getRadioVal('child-bride-yn-group') === 'true' ? (parseInt(gv('ticket_child_bride')) || 0) : 0;
+  const brideAdult = Math.max(0, brideTotal - brideChild);
+  return {
+    ticket_total_groom: groomTotal || null,
+    ticket_total_bride: brideTotal || null,
+    ticket_child_groom: groomChild,
+    ticket_child_bride: brideChild,
+    ticket_total_groom_adult: groomAdult,
+    ticket_total_groom_child: groomChild,
+    ticket_total_bride_adult: brideAdult,
+    ticket_total_bride_child: brideChild,
+  };
+}
+
 function _collectDraft(){
   return {
     live_mode:            getRadioVal('live-mode-group'),
@@ -1290,7 +1311,10 @@ async function saveDraftToDB(){
       precheck_draft:   draft,
       draft_updated_at: new Date().toISOString(),
       field_memo:       newFieldMemo,
+      ticket_guarantee: parseInt(gv('ticket_guarantee'))||null,
+      ...computeTicketColumnsForSave(),
     });
+    Object.assign(schedule, computeTicketColumnsForSave(), { ticket_guarantee: parseInt(gv('ticket_guarantee'))||null });
   } catch(e){ console.warn('[DG] draft DB 저장 실패:', e); }
 }
 
@@ -1499,10 +1523,7 @@ async function saveAll(){
     bride_contact_name:   gv('bride_contact_name'),
     bride_contact_phone:  gv('bride_contact_phone'),
     ticket_guarantee:     parseInt(gv('ticket_guarantee'))||null,
-    ticket_total_groom:   parseInt(gv('ticket_total_groom'))||null,
-    ticket_total_bride:   parseInt(gv('ticket_total_bride'))||null,
-    ticket_child_groom:   getRadioVal('child-groom-yn-group')==='true' ? (parseInt(gv('ticket_child_groom'))||0) : 0,
-    ticket_child_bride:   getRadioVal('child-bride-yn-group')==='true' ? (parseInt(gv('ticket_child_bride'))||0) : 0,
+    ...computeTicketColumnsForSave(),
     ticket_extra_limit:   parseInt(gv('ticket_extra_limit'))||null,
     ticket_stamp:         getRadioVal('stamp-group')==='true',
     cash_method:          getRadioVal('cash-group'),
@@ -1523,6 +1544,7 @@ async function saveAll(){
 
   try {
     await sb.patch('schedules', schedule.id, body);
+    Object.assign(schedule, body);
 
     // ── 현장 메모 자동 등록 ──
     try {
