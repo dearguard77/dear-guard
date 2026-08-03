@@ -438,6 +438,10 @@ input,select,textarea{font-family:inherit;outline:none}
           <option value="신부측">👰 신부</option>
         </select>
         <input class="add-input-sm" id="ps-name" placeholder="사회자, 헬퍼...">
+        <select class="add-select-sm" id="ps-kind">
+          <option value="adult" selected>대인</option>
+          <option value="child">소인</option>
+        </select>
         <input class="add-num-sm" id="ps-amount" type="number" min="1" placeholder="장수">
         <button class="add-btn" onclick="addPreSharePc()">추가</button>
       </div>
@@ -1092,6 +1096,7 @@ function toggleGiftDetail(show){
 async function addPreSharePc(){
   const side = document.getElementById('ps-side').value;
   const name = document.getElementById('ps-name').value.trim();
+  const kind = document.getElementById('ps-kind')?.value || 'adult';
   const amount = parseInt(document.getElementById('ps-amount').value)||0;
   if(!name){ showToast('⚠️ 이름을 입력해주세요'); return; }
   if(amount<1){ showToast('⚠️ 장수를 입력해주세요'); return; }
@@ -1102,7 +1107,7 @@ async function addPreSharePc(){
       headers: {...sb.h, 'Prefer':'return=representation'},
       body: JSON.stringify({
         schedule_id: schedule.id, side, amount,
-        person_name: name, type:'pre_share',
+        person_name: name, type:'pre_share', ticket_kind: kind,
         created_by: 'precheck'
       })
     });
@@ -1134,10 +1139,12 @@ function renderPreShareList(){
   }
   el.innerHTML = preShares.map(p=>{
     const icon = p.side==='신랑측'?'🤵':'👰';
+    const kind = p.ticket_kind || 'adult';
+    const kindBadge = kind==='child' ? '<span style="font-size:10px;color:#7C3AED;font-weight:700;margin-left:2px">소인</span>' : '';
     return `<div class="pre-share-item">
       <span class="ps-icon">${icon}</span>
       <span class="ps-name">${esc(p.person_name||'')}</span>
-      <span class="ps-amt">${p.amount}장</span>
+      <span class="ps-amt">${p.amount}장</span>${kindBadge}
       <button class="ps-del" onclick="deletePreSharePc(${p.id})">✕</button>
     </div>`;
   }).join('');
