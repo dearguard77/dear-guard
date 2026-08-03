@@ -2184,6 +2184,99 @@ async function idbFindEditByTargetId(targetId){
     req.onerror=()=>reject(req.error);
   });
 }
+// 이미 큐에 대기 중인 같은 대상(target_id)의 DELETE가 있는지 확인 — 중복 삭제 큐잉 방지
+async function idbFindDeleteByTargetId(targetId){
+  if(targetId==null) return null;
+  const db=await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const store=db.transaction(ACTION_QUEUE_STORE,'readonly').objectStore(ACTION_QUEUE_STORE);
+    if(!store.indexNames.contains('target_id')){
+      const req=store.getAll();
+      req.onsuccess=()=>{ const list=req.result||[]; resolve(list.find(a=>a.type==='DELETE'&&a.target_id===targetId)||null); };
+      req.onerror=()=>reject(req.error);
+      return;
+    }
+    const idx=store.index('target_id');
+    const req=idx.getAll(IDBKeyRange.only(targetId));
+    req.onsuccess=()=>{
+      const list=req.result||[];
+      resolve(list.find(a=>a.type==='DELETE')||null);
+    };
+    req.onerror=()=>reject(req.error);
+  });
+}
+
+// 같은 측의 대기 중인 ADD action들 중 payload.seq가 deletedSeq보다 큰 것들을 -1 (queue_id·큐 위치는 그대로 유지)
+async function shiftPendingAddSeqs(scheduleId, side, deletedSeq){
+  const queue=await idbGetQueueForSchedule(scheduleId).catch(()=>[]);
+  const toShift=queue.filter(a=>a.type==='ADD' && a.side===side && a.payload && (a.payload.seq||0)>deletedSeq);
+  for(const action of toShift){
+    action.payload.seq=(action.payload.seq||0)-1;
+    await idbPutAction(action);
+  }
+}
+
+// 서버에 이미 존재하는 행(target_id 있음) 삭제 큐잉
+// - 대기 중인 EDIT은 제거(삭제가 최종 의도이므로)
+// - 재정렬 대상(id·최종 seq)을 "지금" 확정해서 payload에 고정 저장 — 동기화 시 재계산하지 않고 이 값 그대로 PATCH (재시도해도 안전)
+// - IndexedDB 저장이 실패하면 아무것도 반환하지 않고 예외를 던져, 호출부(deleteLog)가 화면을 건드리지 않도록 함
+async function queueDeleteForExistingRow(targetLog){
+  const targetId=targetLog.id;
+  const side=targetLog.side;
+  const deletedSeq=targetLog.seq;
+  const scheduleId=currentSchedule.id;
+
+  // 대기 중인 EDIT 제거 (실패해도 치명적이지 않음 — 어차피 이후 삭제로 덮어써질 내용이라 best-effort)
+  try{
+    const existingEdit=await idbFindEditByTargetId(targetId);
+    if(existingEdit) await idbDeleteAction(existingEdit.queue_id);
+  }catch(e){ console.warn('[DG] 대기 중 EDIT 정리 실패(무시하고 진행):', e); }
+
+  // 이미 같은 대상 DELETE가 큐에 있으면 중복 추가하지 않음
+  const existingDelete=await idbFindDeleteByTargetId(targetId).catch(()=>null);
+  if(existingDelete) return;
+
+  // 재정렬 대상 확정 — 서버에 이미 존재하는(id 있는) 같은 측 뒷번호만 대상. 최종 seq를 지금 시점 기준으로 고정.
+  const laterSynced=logs.filter(l=>l.side===side && l.id!=null && l.id!==targetId && (l.seq||0)>deletedSeq)
+                         .sort((a,b)=>(a.seq||0)-(b.seq||0));
+  const reindexTargets=laterSynced.map(l=>({ id:l.id, target_seq:(l.seq||0)-1 }));
+
+  // IndexedDB 저장 — 이 단계가 실패하면 예외가 그대로 호출부로 전파되어 화면은 전혀 바뀌지 않음
+  await idbAddAction({
+    type:'DELETE',
+    target_id:targetId,
+    client_entry_id:null,
+    schedule_id:scheduleId,
+    side,
+    payload:{ deleted_seq:deletedSeq, reindex_targets:reindexTargets },
+    deleted:false,
+    created_at:new Date().toISOString()
+  });
+
+  // ── 여기부터는 큐 저장이 확정된 뒤에만 실행되는 화면/로컬 반영 ──
+  logs=logs.filter(l=>l.id!==targetId);
+  logs.forEach(l=>{ if(l.side===side && (l.seq||0)>deletedSeq) l.seq=(l.seq||0)-1; });
+  await shiftPendingAddSeqs(scheduleId, side, deletedSeq);
+}
+
+// 아직 서버에 없는(오프라인 신규 접수) 행 삭제 = ADD 자체를 취소
+async function cancelPendingAdd(targetLog){
+  const clientEntryId=targetLog.client_entry_id;
+  const side=targetLog.side;
+  const deletedSeq=targetLog.seq;
+  const scheduleId=currentSchedule.id;
+
+  const addAction=await idbFindAddByClientEntryId(clientEntryId);
+  if(!addAction) throw new Error('대기 중인 접수 항목을 찾을 수 없습니다');
+
+  // IndexedDB에서 ADD 액션 제거 — 실패하면 예외가 전파되어 화면은 바뀌지 않음
+  await idbDeleteAction(addAction.queue_id);
+
+  // ── 여기부터는 큐 제거가 확정된 뒤에만 실행되는 화면/로컬 반영 ──
+  logs=logs.filter(l=>l.client_entry_id!==clientEntryId);
+  logs.forEach(l=>{ if(l.side===side && (l.seq||0)>deletedSeq) l.seq=(l.seq||0)-1; });
+  await shiftPendingAddSeqs(scheduleId, side, deletedSeq);
+}
 
 function genClientEntryId(){
   if(window.crypto && typeof crypto.randomUUID==='function') return crypto.randomUUID();
@@ -2269,6 +2362,19 @@ async function flushOfflineQueue(){
         await sb.patch('contribution_logs', action.target_id, action.payload);
         const idx=logs.findIndex(l=>l.id===action.target_id);
         if(idx>-1) Object.assign(logs[idx], action.payload);
+      } else if(action.type==='DELETE'){
+        // 1단계: 서버 삭제 (이미 삭제됐음을 뜻하는 404는 성공으로 간주 — 재시도 시 중복 오류 방지)
+        if(!action.deleted){
+          const r=await fetch(sb.url('contribution_logs','?id=eq.'+action.target_id),{method:'DELETE',headers:sb.h});
+          if(!r.ok && r.status!==404) throw new Error('HTTP '+r.status);
+          action.deleted=true;
+          await idbPutAction(action); // 서버 삭제 완료 상태를 큐에 저장 (아직 큐에서 제거하지 않음)
+        }
+        // 2단계: 재정렬 — DELETE 큐잉 당시 고정해둔 target_seq로만 PATCH (현재값 재계산 금지, 그래서 재시도해도 안전)
+        const targets=(action.payload && action.payload.reindex_targets)||[];
+        for(const t of targets){
+          await sb.patch('contribution_logs', t.id, { seq: t.target_seq });
+        }
       }
       await idbDeleteAction(action.queue_id);
       successCount++;
@@ -2483,7 +2589,7 @@ function renderLedgerCol(elId,sideLogs,isAdmin){
     const memo=l.memo?'<div class="ledger-memo">'+esc(l.memo)+'</div>':'';
     const canEdit=isAdmin||l.created_by===currentUser.name;
     const editRef=(l.id!=null)?l.id:("'"+l.client_entry_id+"'");
-    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+editRef+')">수정</button><button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button><button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>':'';
+    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+editRef+')">수정</button><button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button><button class="ledger-btn ledger-del" onclick="deleteLog('+editRef+')">삭제</button>':'';
     return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:10px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:12px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
   }).join('');
 }
@@ -2571,21 +2677,50 @@ async function saveEdit(){
     }
   }
 }
-async function deleteLog(id){
+async function deleteLog(ref){
   if(!confirm('해당 접수 내역을 삭제하시겠습니까?')) return;
-  try {
-    const target = logs.find(x=>x.id===id);
-    const r=await fetch(sb.url('contribution_logs','?id=eq.'+id),{method:'DELETE',headers:sb.h});
-    if(!r.ok){showToast('⚠️ 삭제 실패 ('+r.status+')');return;}
-    logs=logs.filter(x=>x.id!==id);
-    if(target && target.seq){
-      const toShift = logs.filter(l=>l.side===target.side && (l.seq||0)>target.seq);
-      await Promise.all(toShift.map(l=>sb.patch('contribution_logs',l.id,{seq:(l.seq||0)-1}).then(()=>{l.seq=(l.seq||0)-1;})));
-      _logReindex(target.side, `${target.seq}번 삭제 → 이후 번호 -1 당김`);
+  // ref가 숫자면 서버 id, 문자열이면(오프라인 신규 접수 행) client_entry_id 기준으로 찾음
+  const target=(typeof ref==='number') ? logs.find(x=>x.id===ref) : logs.find(x=>x.client_entry_id===ref);
+  if(!target) return;
+
+  if(target.id!=null){
+    // ── 서버에 이미 존재하는 행 ──
+    try {
+      // 온라인 삭제 시도 — 기존 동작 그대로 유지
+      const r=await fetch(sb.url('contribution_logs','?id=eq.'+target.id),{method:'DELETE',headers:sb.h});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      logs=logs.filter(x=>x.id!==target.id);
+      if(target.seq){
+        const toShift = logs.filter(l=>l.side===target.side && (l.seq||0)>target.seq);
+        await Promise.all(toShift.map(l=>sb.patch('contribution_logs',l.id,{seq:(l.seq||0)-1}).then(()=>{l.seq=(l.seq||0)-1;})));
+        _logReindex(target.side, `${target.seq}번 삭제 → 이후 번호 -1 당김`);
+      }
+      renderStats();renderFullList();renderQuickSearch();
+      showToast('🗑️ 삭제되었습니다');
+    } catch(e){
+      // 온라인 삭제 실패 → 오프라인 DELETE 큐잉 (IndexedDB 저장이 실패하면 화면은 전혀 바뀌지 않음)
+      try{
+        await queueDeleteForExistingRow(target);
+        renderStats();renderFullList();renderQuickSearch();
+        showToast('📴 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+        const q=await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+        setSyncStatus('offline', q.length);
+      }catch(e2){
+        console.error('[DG] 오프라인 DELETE 큐잉 실패:', e2);
+        showToast('⚠️ 삭제 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+      }
     }
-    renderStats();renderFullList();renderQuickSearch();
-    showToast('🗑️ 삭제되었습니다');
-  } catch(e){ showToast('⚠️ 삭제 실패: '+e.message); }
+  } else {
+    // ── 아직 서버에 없는 오프라인 신규 행 → ADD 자체를 취소 ──
+    try{
+      await cancelPendingAdd(target);
+      renderStats();renderFullList();renderQuickSearch();
+      showToast('🗑️ 삭제되었습니다');
+    }catch(e){
+      console.error('[DG] 오프라인 신규 접수 취소 실패:', e);
+      showToast('⚠️ 삭제 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+    }
+  }
 }
 
 function showDashboardLink(){
@@ -2656,7 +2791,7 @@ function renderRightCol(elId, sideLogs, isAdmin){
     var btns = canEdit
       ? '<button class="ledger-btn ledger-edit" onclick="openEditModal('+editRef+')">수정</button>'+
         '<button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button>'+
-        '<button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>'
+        '<button class="ledger-btn ledger-del" onclick="deleteLog('+editRef+')">삭제</button>'
       : '';
     return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt" style="color:'+amtColor+'">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:10px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:12px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
   }).join('');
