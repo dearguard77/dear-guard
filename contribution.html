@@ -441,6 +441,7 @@ input,select,textarea{font-family:inherit;outline:none}
       </button>
       <button class="topbtn topbtn-ghost" onclick="openTicketModal()">🎫 식권정보</button>
       <button class="topbtn topbtn-ghost" onclick="openCashCalc()">🧮 계산기</button>
+      <button id="sync-nav-btn" class="topbtn topbtn-ghost" onclick="openSyncStatusModal()">☁️ 동기화 <span id="sync-nav-badge"></span></button>
       <button class="topbtn topbtn-ghost" onclick="goSelectSchedule()">예식 변경</button>
       <button class="topbtn topbtn-gold" onclick="showDashboardLink()">대시보드</button>
       <button class="topbtn topbtn-ghost" onclick="doLogout()">로그아웃</button>
@@ -1029,6 +1030,29 @@ input,select,textarea{font-family:inherit;outline:none}
   </div>
 </div>
 
+<!-- 동기화 상태 확인 모달 -->
+<div id="sync-status-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9500;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeSyncStatusModal()">
+  <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;max-width:340px;width:100%;padding:20px">
+    <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:14px">☁️ 동기화</div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">현재 상태</div>
+      <div id="sync-modal-status" style="font-size:14px;font-weight:700;color:#111827"></div>
+    </div>
+    <div style="border-top:1px solid #E5E7EB;padding-top:12px;margin-bottom:14px">
+      <div style="font-size:11px;color:#9CA3AF;margin-bottom:6px">대기 중인 작업</div>
+      <div id="sync-modal-pending" style="font-size:13px;color:#374151;line-height:1.9"></div>
+    </div>
+    <div style="border-top:1px solid #E5E7EB;padding-top:12px;margin-bottom:16px">
+      <div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">최근 동기화</div>
+      <div id="sync-modal-lastsync" style="font-size:13px;color:#374151;font-weight:600"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeSyncStatusModal()" style="flex:1;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">닫기</button>
+      <button id="sync-modal-now-btn" onclick="manualSyncNow()" style="flex:1;background:#1F2937;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">지금 동기화</button>
+    </div>
+  </div>
+</div>
+
 <div id="cash-calc-modal" onclick="if(event.target===this)closeCashCalc()">
   <div class="cash-calc-box">
     <div class="cash-calc-hdr">
@@ -1389,8 +1413,7 @@ async function selectSchedule(id){
     if(dateStr){ const d=new Date(dateStr+'T00:00:00'); infoStr=dateStr+' ('+DAYS[d.getDay()]+')'; if(timeStr) infoStr+=' '+timeStr; if(hall) infoStr+=' · '+hall; }
     document.getElementById('top-schedule-info').textContent=infoStr;
     // 초기 식권: DB값만 신뢰 (localStorage는 기기별로 달라져 불일치 원인)
-    totalTickets.groom = currentSchedule.ticket_total_groom || 0;
-    totalTickets.bride = currentSchedule.ticket_total_bride || 0;
+    applyTicketTotalsFromSchedule();
     applyCashCountsFromSchedule();
     renderLiveStartButton();
     sv('groom-total-ticket',totalTickets.groom||'');
@@ -1406,7 +1429,31 @@ async function selectSchedule(id){
     loadHandover();
     subscribeRealtime();
     flushOfflineQueue(); // 진입 시 미전송(오프라인 보관) 데이터가 있으면 자동으로 이어서 동기화
+    refreshSyncNavBadge(); // 동기화 버튼 배지 초기 상태 표시
   } catch(e){ console.error('[DG] 예식 로드 실패:',e); showToast('⚠️ 예식 로드 실패: '+e.message); }
+}
+
+// 초기 식권 대인/소인 값을 currentSchedule에서 totalTickets로 복원 (예식 진입/전환 시 공용 사용)
+// - 매번 먼저 0으로 초기화하여 이전 예식의 값이 남지 않도록 함
+// - 개별 대인/소인 컬럼이 모두 없는 기존 예식만 기존 합계를 대인 값으로 폴백(소인은 0)
+function applyTicketTotalsFromSchedule(){
+  if(!currentSchedule) return;
+  totalTickets.groom = currentSchedule.ticket_total_groom || 0;
+  totalTickets.bride = currentSchedule.ticket_total_bride || 0;
+  totalTickets.groomAdult = 0; totalTickets.groomChild = 0;
+  totalTickets.brideAdult = 0; totalTickets.brideChild = 0;
+  if(currentSchedule.ticket_total_groom_adult!=null || currentSchedule.ticket_total_groom_child!=null){
+    totalTickets.groomAdult = currentSchedule.ticket_total_groom_adult || 0;
+    totalTickets.groomChild = currentSchedule.ticket_total_groom_child || 0;
+  } else if(totalTickets.groom>0){
+    totalTickets.groomAdult = totalTickets.groom;
+  }
+  if(currentSchedule.ticket_total_bride_adult!=null || currentSchedule.ticket_total_bride_child!=null){
+    totalTickets.brideAdult = currentSchedule.ticket_total_bride_adult || 0;
+    totalTickets.brideChild = currentSchedule.ticket_total_bride_child || 0;
+  } else if(totalTickets.bride>0){
+    totalTickets.brideAdult = totalTickets.bride;
+  }
 }
 
 async function loadTicketExtras(){
@@ -1422,27 +1469,184 @@ async function addTicketExtra(){
   if(!amount||amount<1){showToast('⚠️ 추가 수량을 입력해주세요');return;}
   if(!currentSchedule) return;
   const memoVal = document.getElementById('add-ticket-memo')?.value || null;
-  const row={schedule_id:currentSchedule.id,side:document.getElementById('add-ticket-side').value,amount,memo:memoVal,type:'extra',created_by:currentUser.name};
-  try {
-    const created=await sb.post('ticket_additions',row);
-    ticketExtras.push(Array.isArray(created)?created[0]:created);
+  const side = document.getElementById('add-ticket-side').value;
+  const kind = memoVal==='소인' ? 'child' : 'adult';
+  const clientEntryId = genClientEntryId();
+  const row={schedule_id:currentSchedule.id,side,amount,memo:memoVal,ticket_kind:kind,type:'extra',created_by:currentUser.name,client_entry_id:clientEntryId};
+
+  // 1) IndexedDB 우선 저장 (접수 ADD와 동일한 안전장치: 실패하면 온라인 저장 방식으로 폴백)
+  let idbOk=true, queueId=null;
+  try{
+    queueId=await idbAddAction({ type:'TICKET_EXTRA_ADD', target_id:null, client_entry_id:clientEntryId, schedule_id:currentSchedule.id, side, payload:row, created_at:new Date().toISOString() });
+  }catch(e){
+    idbOk=false;
+    console.warn('[DG] 추가 식권 IndexedDB 저장 실패 — 온라인 저장 방식으로 진행:', e);
+  }
+
+  const _resetInputs=()=>{
     document.getElementById('add-ticket-amount').value='';
     if(document.getElementById('add-ticket-memo')) document.getElementById('add-ticket-memo').value='';
+  };
+  const _refreshUi=()=>{
     renderTicketExtraList(); renderStats();
-    // 팝업이 열려 있으면 즉시 갱신
     if(document.getElementById('ticket-modal')?.style.display!=='none') renderTicketModal();
-    showToast('✅ 추가 식권 '+amount+'장 등록됨');
-  } catch(e){ console.error('[DG] addTicketExtra 오류:', e); showToast('⚠️ 저장 실패: '+e.message); }
+  };
+
+  if(idbOk){
+    // 화면 즉시 반영
+    ticketExtras.push(row);
+    _resetInputs(); _refreshUi();
+    try {
+      const created=await postWithDedup('ticket_additions', row);
+      const idx=ticketExtras.findIndex(t=>t.client_entry_id===clientEntryId);
+      if(idx>-1 && created) ticketExtras[idx]=created;
+      idbDeleteAction(queueId).catch(()=>{});
+      _refreshUi();
+      showToast('✅ 추가 식권 '+amount+'장 등록됨');
+      setSyncStatus('synced');
+    } catch(e){
+      showToast('📴 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+      const q=await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+      setSyncStatus('offline', q.length);
+    }
+  } else {
+    try {
+      const created=await postWithDedup('ticket_additions', row);
+      ticketExtras.push(created||row);
+      _resetInputs(); _refreshUi();
+      showToast('✅ 추가 식권 '+amount+'장 등록됨');
+      setSyncStatus('synced');
+    } catch(e){
+      console.error('[DG] addTicketExtra 오류:', e);
+      showToast('⚠️ 저장 실패: '+e.message);
+    }
+  }
 }
-async function deleteTicketExtra(id){
+// 오프라인 대응 공용 POST — client_entry_id 중복(재전송)은 서버가 무시하도록 요청 (postOfflineEntry와 동일 패턴, 테이블명만 매개변수화)
+async function postWithDedup(table, row){
+  const r=await fetch(sb.url(table),{
+    method:'POST',
+    headers:{...sb.h,'Prefer':'return=representation,resolution=ignore-duplicates'},
+    body:JSON.stringify(row)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  const data=await r.json();
+  return Array.isArray(data) ? (data[0]||null) : data;
+}
+async function deleteTicketExtra(ref){
   if(!confirm('이 추가 발급 내역을 삭제하시겠습니까?')) return;
-  try {
-    await fetch(sb.url('ticket_additions','?id=eq.'+id),{method:'DELETE',headers:sb.h});
-    ticketExtras=ticketExtras.filter(x=>x.id!==id);
+  const target=(typeof ref==='number') ? ticketExtras.find(x=>x.id===ref) : ticketExtras.find(x=>x.client_entry_id===ref);
+  if(!target) return;
+
+  const _refreshUi=()=>{
     renderTicketExtraList(); renderStats();
     if(document.getElementById('ticket-modal')?.style.display!=='none') renderTicketModal();
-    showToast('✅ 삭제 완료');
-  } catch(e){ showToast('⚠️ 삭제 실패'); }
+  };
+
+  if(target.id!=null){
+    // 서버에 이미 존재하는 행 — 온라인 우선 시도
+    try {
+      const r=await fetch(sb.url('ticket_additions','?id=eq.'+target.id),{method:'DELETE',headers:sb.h});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      ticketExtras=ticketExtras.filter(x=>x.id!==target.id);
+      _refreshUi();
+      showToast('✅ 삭제 완료');
+    } catch(e){
+      // 온라인 삭제 실패 → 오프라인 큐잉
+      try{
+        await queueTicketExtraDelete(target);
+        ticketExtras=ticketExtras.filter(x=>x.id!==target.id);
+        _refreshUi();
+        showToast('📴 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+        const q=await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+        setSyncStatus('offline', q.length);
+      }catch(e2){
+        console.error('[DG] 오프라인 삭제 큐잉 실패:', e2);
+        showToast('⚠️ 삭제 실패: 다시 시도해주세요');
+      }
+    }
+  } else {
+    // 아직 서버에 없는(오프라인 신규 추가 발급) 행 → ADD 자체를 취소
+    try{
+      const addAction=await idbFindActionByClientEntryIdAndType(target.client_entry_id, 'TICKET_EXTRA_ADD');
+      if(!addAction) throw new Error('대기 중인 항목을 찾을 수 없습니다');
+      await idbDeleteAction(addAction.queue_id);
+      ticketExtras=ticketExtras.filter(x=>x.client_entry_id!==target.client_entry_id);
+      _refreshUi();
+      showToast('✅ 삭제 완료');
+    }catch(e){
+      console.error('[DG] 오프라인 추가발급 취소 실패:', e);
+      showToast('⚠️ 삭제 실패: 다시 시도해주세요');
+    }
+  }
+}
+// 서버에 이미 존재하는 추가 발급 삭제 큐잉 (같은 대상 DELETE 중복 방지)
+async function queueTicketExtraDelete(target){
+  const existing=await idbFindActionByTargetIdAndType(target.id, 'TICKET_EXTRA_DELETE');
+  if(existing) return;
+  await idbAddAction({ type:'TICKET_EXTRA_DELETE', target_id:target.id, client_entry_id:null, schedule_id:currentSchedule.id, side:target.side, payload:{}, created_at:new Date().toISOString() });
+}
+async function editTicketExtra(ref){
+  const target=(typeof ref==='number') ? ticketExtras.find(x=>x.id===ref) : ticketExtras.find(x=>x.client_entry_id===ref);
+  if(!target) return;
+  const newAmountStr=prompt('수정할 수량을 입력하세요', target.amount||'');
+  if(newAmountStr===null) return; // 취소
+  const newAmount=parseInt(newAmountStr);
+  if(!newAmount||newAmount<1){ showToast('⚠️ 올바른 수량을 입력해주세요'); return; }
+
+  const _refreshUi=()=>{
+    renderTicketExtraList(); renderStats();
+    if(document.getElementById('ticket-modal')?.style.display!=='none') renderTicketModal();
+  };
+
+  if(target.id!=null){
+    // 서버에 이미 존재하는 행 — 온라인 우선 시도 (기존 접수 saveEdit()과 동일한 순서)
+    try{
+      await sb.patch('ticket_additions', target.id, { amount:newAmount });
+      target.amount=newAmount;
+      _refreshUi();
+      showToast('✅ 수정되었습니다');
+    }catch(e){
+      // 온라인 수정 실패 → 오프라인 EDIT 큐잉 (같은 대상 EDIT이 이미 있으면 payload+created_at만 갱신)
+      try{
+        await queueTicketExtraEdit(target.id, currentSchedule.id, target.side, { amount:newAmount });
+        target.amount=newAmount; // 화면 즉시 반영
+        _refreshUi();
+        showToast('📴 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+        const q=await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+        setSyncStatus('offline', q.length);
+      }catch(e2){
+        console.error('[DG] 추가발급 오프라인 EDIT 큐잉 실패:', e2);
+        showToast('⚠️ 수정 실패: 다시 시도해주세요');
+      }
+    }
+  } else {
+    // 아직 서버에 없는(오프라인 신규 발급) 행 → 새 EDIT을 만들지 않고 대기 중 ADD의 payload만 직접 수정 (접수 ADD 수정과 동일 방식)
+    try{
+      const addAction=await idbFindActionByClientEntryIdAndType(target.client_entry_id, 'TICKET_EXTRA_ADD');
+      if(!addAction) throw new Error('대기 중인 항목을 찾을 수 없습니다');
+      addAction.payload.amount=newAmount;
+      await idbPutAction(addAction); // queue_id·created_at 그대로 유지 (ADD가 EDIT보다 먼저 실행되어야 하므로)
+      target.amount=newAmount;
+      _refreshUi();
+      showToast('✅ 수정되었습니다 (동기화 대기 중)');
+    }catch(e){
+      console.error('[DG] 추가발급 대기중 ADD 수정 실패:', e);
+      showToast('⚠️ 수정 실패: 다시 시도해주세요');
+    }
+  }
+}
+// 서버에 이미 존재하는 추가 발급 수정 큐잉 — 같은 대상 EDIT은 1개만 유지, payload/created_at을 최신으로 갱신(큐 순서도 최신 작업 시점으로 이동)
+async function queueTicketExtraEdit(targetId, scheduleId, side, payload){
+  const existing=await idbFindActionByTargetIdAndType(targetId, 'TICKET_EXTRA_EDIT');
+  const now=new Date().toISOString();
+  if(existing){
+    existing.payload=payload;
+    existing.created_at=now;
+    await idbPutAction(existing); // queue_id 유지
+  } else {
+    await idbAddAction({ type:'TICKET_EXTRA_EDIT', target_id:targetId, client_entry_id:null, schedule_id:scheduleId, side, payload, created_at:now });
+  }
 }
 function renderTicketExtraList(){
   const el=document.getElementById('ticket-extra-list');
@@ -1451,7 +1655,8 @@ function renderTicketExtraList(){
   el.innerHTML=ticketExtras.map(t=>{
     const icon=t.side==='신랑측'?'🤵':'👰';
     const time=t.created_at?fmtTime(t.created_at):'';
-    return '<div class="tkt-extra-item"><span>'+icon+'</span><span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span><span style="flex:1"></span><span style="color:#9CA3AF;flex-shrink:0;font-size:10px">'+time+'</span><button onclick="deleteTicketExtra('+t.id+')" title="삭제" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1;margin-left:3px">✕</button></div>';
+    const delRef=(t.id!=null)?t.id:("'"+t.client_entry_id+"'");
+    return '<div class="tkt-extra-item"><span>'+icon+'</span><span style="font-weight:700;color:#374151;flex-shrink:0">+'+t.amount+'장</span><span style="flex:1"></span><span style="color:#9CA3AF;flex-shrink:0;font-size:10px">'+time+'</span><button onclick="editTicketExtra('+delRef+')" title="수정" style="background:none;border:none;color:#9CA3AF;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1;margin-left:3px">✎</button><button onclick="deleteTicketExtra('+delRef+')" title="삭제" style="background:none;border:none;color:#D1D5DB;cursor:pointer;font-size:11px;padding:0 2px;flex-shrink:0;line-height:1;margin-left:1px">✕</button></div>';
   }).join('');
 }
 
@@ -1619,7 +1824,7 @@ function renderPreShareList(){
 }
 
 async function saveTotalTickets(){
-  // 대인/소인 세션 상태 갱신 (DB에는 총합만 저장)
+  // 대인/소인 세션 상태 갱신 + 개별 컬럼도 함께 저장(합계 컬럼은 호환을 위해 계속 함께 갱신)
   totalTickets.groomAdult = Number(document.getElementById('groom-adult-ticket')?.value)||0;
   totalTickets.groomChild = Number(document.getElementById('groom-child-ticket')?.value)||0;
   totalTickets.brideAdult = Number(document.getElementById('bride-adult-ticket')?.value)||0;
@@ -1632,19 +1837,44 @@ async function saveTotalTickets(){
   if(gtEl) gtEl.value = totalTickets.groom||'';
   if(btEl) btEl.value = totalTickets.bride||'';
   if(currentSchedule){
+    const patchBody = {
+      ticket_total_groom: totalTickets.groom || null,
+      ticket_total_bride: totalTickets.bride || null,
+      ticket_total_groom_adult: totalTickets.groomAdult || null,
+      ticket_total_groom_child: totalTickets.groomChild || null,
+      ticket_total_bride_adult: totalTickets.brideAdult || null,
+      ticket_total_bride_child: totalTickets.brideChild || null,
+    };
     try{
-      await sb.patch('schedules', currentSchedule.id, {
-        ticket_total_groom: totalTickets.groom || null,
-        ticket_total_bride: totalTickets.bride || null,
-      });
-      currentSchedule.ticket_total_groom = totalTickets.groom || null;
-      currentSchedule.ticket_total_bride = totalTickets.bride || null;
+      await sb.patch('schedules', currentSchedule.id, patchBody);
+      Object.assign(currentSchedule, patchBody);
     } catch(e){
-      showToast('⚠️ 식권 수량 저장 실패: '+e.message);
-      console.warn('식권 저장 실패:', e);
+      // 온라인 저장 실패 → 오프라인 큐잉 (같은 예식의 TICKET_INIT_SET은 항상 1개만 유지)
+      try{
+        await queueTicketInitSet(currentSchedule.id, patchBody);
+        Object.assign(currentSchedule, patchBody); // 화면에는 즉시 반영 (oninput마다 호출되는 특성상 토스트는 생략)
+        const q = await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+        setSyncStatus('offline', q.length);
+      }catch(e2){
+        console.error('[DG] 초기 식권 오프라인 큐잉 실패:', e2);
+        showToast('⚠️ 식권 수량 저장 실패: '+e2.message);
+      }
     }
   }
   renderStats();
+}
+
+// 초기 식권 변경 큐잉 — 같은 예식에 TICKET_INIT_SET은 항상 1개만 유지, 덮어쓸 때 created_at도 갱신(큐 순서를 최신 작업 시점으로 이동)
+async function queueTicketInitSet(scheduleId, payload){
+  const existing = await idbFindActionByScheduleAndType(scheduleId, 'TICKET_INIT_SET');
+  const now = new Date().toISOString();
+  if(existing){
+    existing.payload = payload;
+    existing.created_at = now;
+    await idbPutAction(existing); // queue_id 유지
+  } else {
+    await idbAddAction({ type:'TICKET_INIT_SET', target_id:null, client_entry_id:null, schedule_id:scheduleId, side:null, payload, created_at:now });
+  }
 }
 
 var _hoSaveTimer=null;
@@ -1877,8 +2107,7 @@ function subscribeRealtime(){
         if(freshRows&&freshRows.length){
           Object.assign(currentSchedule,freshRows[0]);
           // 다른 기기의 식권 수정값 즉시 반영
-          totalTickets.groom = currentSchedule.ticket_total_groom || 0;
-          totalTickets.bride = currentSchedule.ticket_total_bride || 0;
+          applyTicketTotalsFromSchedule();
           const sv=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
           sv('groom-total-ticket', totalTickets.groom||'');
           sv('bride-total-ticket', totalTickets.bride||'');
@@ -1898,6 +2127,36 @@ function subscribeRealtime(){
   ws.onclose=()=>setTimeout(subscribeRealtime,3000);
 }
 
+// ticket_additions 행의 대인/소인 구분 — ticket_kind 우선, 없으면 기존 memo==='소인' 관례로 폴백 (읽기 전용 폴백, 기존 데이터 일괄 변경 안 함)
+function ticketKindOf(t){
+  return t.ticket_kind || (t.memo==='소인' ? 'child' : 'adult');
+}
+
+// 대인/소인 식권 통계 공통 계산 — renderStats()와 renderTicketModal()이 동일 기준을 쓰도록 하나로 통일
+// 3차-A 범위: 사전·현장 식권(preShares)은 아직 ticket_kind가 없어 기존 관례 그대로 전량 대인으로 집계 (3차-B/C에서 확장 예정)
+function computeTicketStats(side){
+  const initAdult = side==='신랑측' ? (totalTickets.groomAdult||0) : (totalTickets.brideAdult||0);
+  const initChild = side==='신랑측' ? (totalTickets.groomChild||0) : (totalTickets.brideChild||0);
+  const sideExtras = ticketExtras.filter(t=>t.side===side);
+  const extraAdult = sideExtras.filter(t=>ticketKindOf(t)==='adult').reduce((s,t)=>s+(t.amount||0),0);
+  const extraChild = sideExtras.filter(t=>ticketKindOf(t)==='child').reduce((s,t)=>s+(t.amount||0),0);
+  const sideLogs = logs.filter(l=>l.side===side);
+  const usedAdultLedger = sideLogs.reduce((s,l)=>s+(l.adult_ticket||0),0);
+  const usedChildLedger = sideLogs.reduce((s,l)=>s+(l.child_ticket||0),0);
+  const sidePreShareReceived = preShares.filter(t=>t.side===side && t.received).reduce((s,t)=>s+(t.amount||0),0);
+  const usedAdult = usedAdultLedger + sidePreShareReceived; // 기존 관례 유지: 사전·현장 수령분은 대인에서 차감
+  const usedChild = usedChildLedger;
+  const hasInit = initAdult>0 || initChild>0;
+  const totalAdult = hasInit ? initAdult+extraAdult : null;
+  const totalChild = hasInit ? initChild+extraChild : null;
+  const remainAdult = totalAdult!==null ? totalAdult-usedAdult : null;
+  const remainChild = totalChild!==null ? totalChild-usedChild : null;
+  const totalAll = hasInit ? (initAdult+initChild+extraAdult+extraChild) : null;
+  const usedAll = usedAdult+usedChild;
+  const remainAll = totalAll!==null ? totalAll-usedAll : null;
+  return { initAdult, initChild, extraAdult, extraChild, usedAdultLedger, usedChildLedger, usedAdult, usedChild, totalAdult, totalChild, remainAdult, remainChild, totalAll, usedAll, remainAll };
+}
+
 function renderStats(){
   const total=logs.reduce((s,l)=>s+(l.amount||0),0);
   const gL=logs.filter(l=>l.side==='신랑측');
@@ -1906,16 +2165,13 @@ function renderStats(){
   const bAmt=bL.reduce((s,l)=>s+(l.amount||0),0);
   const cashCnt=logs.filter(l=>l.payment_type==='현금').length;
   const transCnt=logs.filter(l=>l.payment_type==='계좌이체').length;
-  const gUsed=gL.reduce((s,l)=>s+(l.adult_ticket||0),0);
-  const bUsed=bL.reduce((s,l)=>s+(l.adult_ticket||0),0);
-  const gExtra=ticketExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
-  const bExtra=ticketExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
-  const gPreShare=preShares.filter(t=>t.side==='신랑측' && t.received).reduce((s,t)=>s+(t.amount||0),0);
-  const bPreShare=preShares.filter(t=>t.side==='신부측' && t.received).reduce((s,t)=>s+(t.amount||0),0);
-  const gTotal=totalTickets.groom>0?totalTickets.groom+gExtra:null;
-  const bTotal=totalTickets.bride>0?totalTickets.bride+bExtra:null;
-  const gRemain=gTotal!==null?gTotal-gUsed-gPreShare:null;
-  const bRemain=bTotal!==null?bTotal-bUsed-bPreShare:null;
+  const gStat=computeTicketStats('신랑측');
+  const bStat=computeTicketStats('신부측');
+  const gExtra=gStat.extraAdult+gStat.extraChild;
+  const bExtra=bStat.extraAdult+bStat.extraChild;
+  const gTotal=gStat.totalAll, bTotal=bStat.totalAll;
+  const gUsedAll=gStat.usedAll, bUsedAll=bStat.usedAll;
+  const gRemain=gStat.remainAll, bRemain=bStat.remainAll;
   const se=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
   se('stat-total-amount',fmtFull(total));
   se('stat-total-count','총 '+logs.length+'건');
@@ -1933,8 +2189,8 @@ function renderStats(){
   const gTotalWrap=document.getElementById('g-total-tkt-wrap');
   if(gTotalWrap) gTotalWrap.style.display = totalTickets.groom>0 ? '' : 'none';
   se('g-total-tkt', gTotal!==null ? gTotal+'장' : '');
-  se('g-used-tkt', (gUsed+gPreShare)+'장');
-  se('g-used-tkt2', (gUsed+gPreShare));
+  se('g-used-tkt', gUsedAll+'장');
+  se('g-used-tkt2', gUsedAll);
   const gREl=document.getElementById('g-remain-tkt');
   const gR2El=document.getElementById('g-remain-tkt2');
   const gRColor=gRemain===null?'#9CA3AF':gRemain<=10?'#DC2626':gRemain<=20?'#D97706':'#059669';
@@ -1946,8 +2202,8 @@ function renderStats(){
   const bTotalWrap=document.getElementById('b-total-tkt-wrap');
   if(bTotalWrap) bTotalWrap.style.display = totalTickets.bride>0 ? '' : 'none';
   se('b-total-tkt', bTotal!==null ? bTotal+'장' : '');
-  se('b-used-tkt', (bUsed+bPreShare)+'장');
-  se('b-used-tkt2', (bUsed+bPreShare));
+  se('b-used-tkt', bUsedAll+'장');
+  se('b-used-tkt2', bUsedAll);
   const bREl=document.getElementById('b-remain-tkt');
   const bR2El=document.getElementById('b-remain-tkt2');
   const bRColor=bRemain===null?'#9CA3AF':bRemain<=10?'#DC2626':bRemain<=20?'#D97706':'#059669';
@@ -2038,6 +2294,7 @@ const OFFLINE_DB_NAME='dg_contribution_offline', OFFLINE_DB_VERSION=3;
 const ACTION_QUEUE_STORE='action_queue', LEGACY_PENDING_STORE='pending_entries';
 let _offlineDbPromise=null;
 let _offlineFlushing=false; // 순차 동기화 중복 실행 방지 (동시에 두 번 돌지 않도록)
+let _lastSyncTime=null; // 마지막 성공 동기화 시각 (동기화 버튼 모달 표시용)
 
 function idbOpen(){
   if(_offlineDbPromise) return _offlineDbPromise;
@@ -2206,6 +2463,49 @@ async function idbFindDeleteByTargetId(targetId){
   });
 }
 
+// ── 범용 조회 헬퍼 (식권 등 향후 여러 type에 재사용 — 접수 ADD/EDIT/DELETE 전용 idbFind*는 그대로 두고 별도로 추가) ──
+// 특정 예식에 type당 액션이 1개만 존재해야 하는 경우 조회 (예: TICKET_INIT_SET)
+async function idbFindActionByScheduleAndType(scheduleId, type){
+  const queue=await idbGetQueueForSchedule(scheduleId).catch(()=>[]);
+  return queue.find(a=>a.type===type) || null;
+}
+// client_entry_id + type 조합으로 조회 (예: TICKET_EXTRA_ADD 취소/중복확인)
+async function idbFindActionByClientEntryIdAndType(clientEntryId, type){
+  if(!clientEntryId) return null;
+  const db=await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const store=db.transaction(ACTION_QUEUE_STORE,'readonly').objectStore(ACTION_QUEUE_STORE);
+    if(!store.indexNames.contains('client_entry_id')){
+      const req=store.getAll();
+      req.onsuccess=()=>{ const list=req.result||[]; resolve(list.find(a=>a.type===type&&a.client_entry_id===clientEntryId)||null); };
+      req.onerror=()=>reject(req.error);
+      return;
+    }
+    const idx=store.index('client_entry_id');
+    const req=idx.getAll(IDBKeyRange.only(clientEntryId));
+    req.onsuccess=()=>{ const list=req.result||[]; resolve(list.find(a=>a.type===type)||null); };
+    req.onerror=()=>reject(req.error);
+  });
+}
+// target_id + type 조합으로 조회 (예: TICKET_EXTRA_DELETE 중복확인)
+async function idbFindActionByTargetIdAndType(targetId, type){
+  if(targetId==null) return null;
+  const db=await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const store=db.transaction(ACTION_QUEUE_STORE,'readonly').objectStore(ACTION_QUEUE_STORE);
+    if(!store.indexNames.contains('target_id')){
+      const req=store.getAll();
+      req.onsuccess=()=>{ const list=req.result||[]; resolve(list.find(a=>a.type===type&&a.target_id===targetId)||null); };
+      req.onerror=()=>reject(req.error);
+      return;
+    }
+    const idx=store.index('target_id');
+    const req=idx.getAll(IDBKeyRange.only(targetId));
+    req.onsuccess=()=>{ const list=req.result||[]; resolve(list.find(a=>a.type===type)||null); };
+    req.onerror=()=>reject(req.error);
+  });
+}
+
 // 같은 측의 대기 중인 ADD action들 중 payload.seq가 deletedSeq보다 큰 것들을 -1 (queue_id·큐 위치는 그대로 유지)
 async function shiftPendingAddSeqs(scheduleId, side, deletedSeq){
   const queue=await idbGetQueueForSchedule(scheduleId).catch(()=>[]);
@@ -2319,22 +2619,86 @@ async function queueEditForExistingRow(targetId, scheduleId, side, payload){
 // 하단 요약바의 동기화 상태 배지 갱신 (기존 UI 영역 재사용 — 새 패널 없음)
 function setSyncStatus(state, extra){
   const el=document.getElementById('sync-status-badge');
-  if(!el) return;
-  el.style.display='inline';
-  if(state==='synced'){
-    const t=new Date();
-    const hh=String(t.getHours()).padStart(2,'0'), mm=String(t.getMinutes()).padStart(2,'0'), ss=String(t.getSeconds()).padStart(2,'0');
-    el.textContent='🟢 동기화 완료 · '+hh+':'+mm+':'+ss;
-    el.style.color='#059669';
-  } else if(state==='offline'){
-    el.textContent='🟠 오프라인 · '+(extra||0)+'건 보관 중';
-    el.style.color='#D97706';
-  } else if(state==='syncing'){
-    el.textContent='🔄 동기화 중 · '+(extra||'');
-    el.style.color='#2563EB';
-  } else if(state==='sync_failed'){
-    el.textContent='🟠 동기화 대기 · '+(extra||0)+'건 (인터넷 연결 시 자동 재시도)';
-    el.style.color='#D97706';
+  if(el){
+    el.style.display='inline';
+    if(state==='synced'){
+      const t=new Date();
+      const hh=String(t.getHours()).padStart(2,'0'), mm=String(t.getMinutes()).padStart(2,'0'), ss=String(t.getSeconds()).padStart(2,'0');
+      el.textContent='🟢 동기화 완료 · '+hh+':'+mm+':'+ss;
+      el.style.color='#059669';
+      _lastSyncTime=hh+':'+mm+':'+ss; // 동기화 버튼 모달의 "최근 동기화" 표시용
+    } else if(state==='offline'){
+      el.textContent='🟠 오프라인 · '+(extra||0)+'건 보관 중';
+      el.style.color='#D97706';
+    } else if(state==='syncing'){
+      el.textContent='🔄 동기화 중 · '+(extra||'');
+      el.style.color='#2563EB';
+    } else if(state==='sync_failed'){
+      el.textContent='🟠 동기화 대기 · '+(extra||0)+'건 (인터넷 연결 시 자동 재시도)';
+      el.style.color='#D97706';
+    }
+  }
+  refreshSyncNavBadge(); // 동기화 버튼 배지도 함께 갱신
+}
+
+// ── 동기화 버튼/모달 (UI 전용 — action_queue 조회와 기존 flushOfflineQueue()만 그대로 사용) ──
+async function refreshSyncNavBadge(){
+  const badge=document.getElementById('sync-nav-badge');
+  if(!badge || !currentSchedule) return;
+  const queue=await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+  const total=queue.length;
+  if(total>0){ badge.textContent='🟠 '+total; badge.style.color='#D97706'; }
+  else{ badge.textContent='🟢'; badge.style.color='#059669'; }
+}
+
+async function refreshSyncStatusModal(){
+  if(!currentSchedule) return;
+  const queue=await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+  const addCount=queue.filter(a=>a.type==='ADD').length;
+  const editCount=queue.filter(a=>a.type==='EDIT').length;
+  const deleteCount=queue.filter(a=>a.type==='DELETE').length;
+  const total=queue.length;
+
+  const statusEl=document.getElementById('sync-modal-status');
+  if(statusEl) statusEl.textContent = total===0 ? '🟢 서버와 동기화 완료' : '🟠 미동기화 '+total+'건';
+
+  const pendingEl=document.getElementById('sync-modal-pending');
+  if(pendingEl){
+    if(total===0){
+      pendingEl.textContent='대기 중인 작업이 없습니다.';
+    } else {
+      const lines=[];
+      if(addCount>0) lines.push('➕ 신규 접수 '+addCount+'건');
+      if(editCount>0) lines.push('✏️ 수정 '+editCount+'건');
+      if(deleteCount>0) lines.push('🗑️ 삭제 '+deleteCount+'건');
+      pendingEl.innerHTML=lines.join('<br>');
+    }
+  }
+
+  const lastSyncEl=document.getElementById('sync-modal-lastsync');
+  if(lastSyncEl) lastSyncEl.textContent=_lastSyncTime||'—';
+
+  refreshSyncNavBadge();
+}
+
+async function openSyncStatusModal(){
+  await refreshSyncStatusModal();
+  const m=document.getElementById('sync-status-modal');
+  if(m) m.style.display='flex';
+}
+function closeSyncStatusModal(){
+  const m=document.getElementById('sync-status-modal');
+  if(m) m.style.display='none';
+}
+// "지금 동기화" 버튼 — 기존 flushOfflineQueue()를 그대로 호출 (새 동기화 로직 없음)
+async function manualSyncNow(){
+  const btn=document.getElementById('sync-modal-now-btn');
+  if(btn){ btn.disabled=true; btn.style.opacity='.6'; }
+  try{
+    await flushOfflineQueue();
+  } finally {
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
+    await refreshSyncStatusModal();
   }
 }
 
@@ -2350,6 +2714,7 @@ async function flushOfflineQueue(){
   _offlineFlushing=true;
   const total=queueItems.length;
   let successCount=0;
+  let ticketUiTouched=false; // 식권 관련 action이 처리됐으면 식권 UI도 함께 갱신
   for(let i=0;i<queueItems.length;i++){
     setSyncStatus('syncing', i+' / '+total);
     const action=queueItems[i];
@@ -2375,6 +2740,31 @@ async function flushOfflineQueue(){
         for(const t of targets){
           await sb.patch('contribution_logs', t.id, { seq: t.target_seq });
         }
+      } else if(action.type==='TICKET_INIT_SET'){
+        await sb.patch('schedules', currentSchedule.id, action.payload);
+        Object.assign(currentSchedule, action.payload);
+        totalTickets.groom=action.payload.ticket_total_groom||0;
+        totalTickets.bride=action.payload.ticket_total_bride||0;
+        totalTickets.groomAdult=action.payload.ticket_total_groom_adult||0;
+        totalTickets.groomChild=action.payload.ticket_total_groom_child||0;
+        totalTickets.brideAdult=action.payload.ticket_total_bride_adult||0;
+        totalTickets.brideChild=action.payload.ticket_total_bride_child||0;
+        ticketUiTouched=true;
+      } else if(action.type==='TICKET_EXTRA_ADD'){
+        const createdRow=await postWithDedup('ticket_additions', action.payload);
+        const idx=ticketExtras.findIndex(t=>t.client_entry_id===action.client_entry_id);
+        if(idx>-1 && createdRow) ticketExtras[idx]=createdRow;
+        ticketUiTouched=true;
+      } else if(action.type==='TICKET_EXTRA_EDIT'){
+        await sb.patch('ticket_additions', action.target_id, action.payload);
+        const idx=ticketExtras.findIndex(t=>t.id===action.target_id);
+        if(idx>-1) Object.assign(ticketExtras[idx], action.payload);
+        ticketUiTouched=true;
+      } else if(action.type==='TICKET_EXTRA_DELETE'){
+        const r=await fetch(sb.url('ticket_additions','?id=eq.'+action.target_id),{method:'DELETE',headers:sb.h});
+        if(!r.ok && r.status!==404) throw new Error('HTTP '+r.status);
+        ticketExtras=ticketExtras.filter(t=>t.id!==action.target_id);
+        ticketUiTouched=true;
       }
       await idbDeleteAction(action.queue_id);
       successCount++;
@@ -2387,6 +2777,10 @@ async function flushOfflineQueue(){
 
   if(successCount>0){
     renderStats(); renderFullList(); renderQuickSearch();
+    if(ticketUiTouched){
+      renderTicketExtraList();
+      if(document.getElementById('ticket-modal')?.style.display!=='none') renderTicketModal();
+    }
   }
   if(successCount===total){
     showToast('✅ 오프라인 저장된 '+total+'건이 모두 동기화되었습니다.');
@@ -2906,8 +3300,8 @@ function renderTicketModal(){
   const gAdultInit = _readInit('groom-adult-ticket');
   const gChildInit = _readInit('groom-child-ticket') ?? 0;
   const gExtras    = ticketExtras.filter(t=>t.side==='신랑측');
-  const gExtraAdult= gExtras.filter(t=>t.memo!=='소인').reduce((s,t)=>s+(t.amount||0),0);
-  const gExtraChild= gExtras.filter(t=>t.memo==='소인').reduce((s,t)=>s+(t.amount||0),0);
+  const gExtraAdult= gExtras.filter(t=>ticketKindOf(t)==='adult').reduce((s,t)=>s+(t.amount||0),0);
+  const gExtraChild= gExtras.filter(t=>ticketKindOf(t)==='child').reduce((s,t)=>s+(t.amount||0),0);
   const gUsedAdult = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const gUsedChild = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.child_ticket||0),0);
   const gPreS      = preShares.filter(t=>t.side==='신랑측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
@@ -2935,11 +3329,14 @@ function renderTicketModal(){
       hg.innerHTML = gExtras.map(t=>{
         const timeStr = t.created_at ? fmtTime(t.created_at) : '';
         const ttype = t.memo || '대인';
+        const delRef = (t.id!=null) ? t.id : ("'"+t.client_entry_id+"'");
         return `<div class="tm-history-item">
           <span style="color:#9CA3AF;flex-shrink:0;min-width:32px">${timeStr}</span>
           <span style="color:#374151;flex-shrink:0;min-width:28px">${ttype}</span>
           <span style="font-weight:700;color:#059669;flex:1">+${t.amount||0}장</span>
-          <button onclick="deleteTicketExtra(${t.id})" title="삭제"
+          <button onclick="editTicketExtra(${delRef})" title="수정"
+            style="background:none;border:1px solid #E5E7EB;border-radius:4px;color:#374151;cursor:pointer;font-size:10px;padding:1px 6px;flex-shrink:0;line-height:1.4;margin-right:4px">수정</button>
+          <button onclick="deleteTicketExtra(${delRef})" title="삭제"
             style="background:none;border:1px solid #FCA5A5;border-radius:4px;color:#EF4444;cursor:pointer;font-size:10px;padding:1px 6px;flex-shrink:0;line-height:1.4">삭제</button>
         </div>`;
       }).join('');
@@ -2950,8 +3347,8 @@ function renderTicketModal(){
   const bAdultInit = _readInit('bride-adult-ticket');
   const bChildInit = _readInit('bride-child-ticket') ?? 0;
   const bExtras    = ticketExtras.filter(t=>t.side==='신부측');
-  const bExtraAdult= bExtras.filter(t=>t.memo!=='소인').reduce((s,t)=>s+(t.amount||0),0);
-  const bExtraChild= bExtras.filter(t=>t.memo==='소인').reduce((s,t)=>s+(t.amount||0),0);
+  const bExtraAdult= bExtras.filter(t=>ticketKindOf(t)==='adult').reduce((s,t)=>s+(t.amount||0),0);
+  const bExtraChild= bExtras.filter(t=>ticketKindOf(t)==='child').reduce((s,t)=>s+(t.amount||0),0);
   const bUsedAdult = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const bUsedChild = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
   const bPreS      = preShares.filter(t=>t.side==='신부측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
@@ -2979,11 +3376,14 @@ function renderTicketModal(){
       hb.innerHTML = bExtras.map(t=>{
         const timeStr = t.created_at ? fmtTime(t.created_at) : '';
         const ttype = t.memo || '대인';
+        const delRef = (t.id!=null) ? t.id : ("'"+t.client_entry_id+"'");
         return `<div class="tm-history-item">
           <span style="color:#9CA3AF;flex-shrink:0;min-width:32px">${timeStr}</span>
           <span style="color:#374151;flex-shrink:0;min-width:28px">${ttype}</span>
           <span style="font-weight:700;color:#059669;flex:1">+${t.amount||0}장</span>
-          <button onclick="deleteTicketExtra(${t.id})" title="삭제"
+          <button onclick="editTicketExtra(${delRef})" title="수정"
+            style="background:none;border:1px solid #E5E7EB;border-radius:4px;color:#374151;cursor:pointer;font-size:10px;padding:1px 6px;flex-shrink:0;line-height:1.4;margin-right:4px">수정</button>
+          <button onclick="deleteTicketExtra(${delRef})" title="삭제"
             style="background:none;border:1px solid #FCA5A5;border-radius:4px;color:#EF4444;cursor:pointer;font-size:10px;padding:1px 6px;flex-shrink:0;line-height:1.4">삭제</button>
         </div>`;
       }).join('');
