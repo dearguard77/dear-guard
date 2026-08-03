@@ -2029,12 +2029,13 @@ function resetForm(){
 }
 
 // ════════════════════════════════════════════════════════════
-//  오프라인 자동 저장 · 자동 동기화 (1차 범위: 신규 접수 전용)
-//  - 기존 submitEntry()의 성공/실패 렌더링 흐름은 그대로 재사용하고,
-//    앞뒤로만 로컬 저장(IndexedDB) → 순차 재전송 로직을 추가함
-//  - 수정/삭제/계산기/식권정보/운영메모/결과보고 등은 이번 범위에서 다루지 않음
+//  오프라인 자동 저장 · 자동 동기화 (2차-A: 신규 접수 ADD + 수정 EDIT)
+//  - 기존 submitEntry()/saveEdit()의 성공 렌더링 흐름은 그대로 재사용하고,
+//    앞뒤로만 로컬 저장(IndexedDB action_queue) → 순차 재전송 로직을 추가함
+//  - 삭제/계산기/식권정보/운영메모/결과보고 등은 2차-A 범위에서 다루지 않음
 // ════════════════════════════════════════════════════════════
-const OFFLINE_DB_NAME='dg_contribution_offline', OFFLINE_DB_VERSION=1, OFFLINE_STORE='pending_entries';
+const OFFLINE_DB_NAME='dg_contribution_offline', OFFLINE_DB_VERSION=3;
+const ACTION_QUEUE_STORE='action_queue', LEGACY_PENDING_STORE='pending_entries';
 let _offlineDbPromise=null;
 let _offlineFlushing=false; // 순차 동기화 중복 실행 방지 (동시에 두 번 돌지 않도록)
 
@@ -2043,12 +2044,52 @@ function idbOpen(){
   _offlineDbPromise=new Promise((resolve,reject)=>{
     try{
       const req=indexedDB.open(OFFLINE_DB_NAME,OFFLINE_DB_VERSION);
-      req.onupgradeneeded=()=>{
+
+      // 다른 탭이 구버전 DB를 붙잡고 있어 업그레이드가 지연되는 경우 — 데이터를 지우거나 강제 진행하지 않고 대기만 함
+      // (다른 탭이 닫히면 브라우저가 알아서 이어서 진행하며 onsuccess가 호출됨)
+      req.onblocked=()=>{ console.warn('[DG] IndexedDB 업그레이드가 다른 탭 때문에 대기 중입니다. 다른 탭을 닫으면 자동으로 진행됩니다.'); };
+
+      req.onupgradeneeded=(event)=>{
         const db=req.result;
-        if(!db.objectStoreNames.contains(OFFLINE_STORE)){
-          const store=db.createObjectStore(OFFLINE_STORE,{keyPath:'client_entry_id'});
-          store.createIndex('schedule_id','schedule_id',{unique:false});
-          store.createIndex('created_at','created_at',{unique:false});
+        const tx=req.transaction;
+
+        let queueStore;
+        if(!db.objectStoreNames.contains(ACTION_QUEUE_STORE)){
+          queueStore=db.createObjectStore(ACTION_QUEUE_STORE,{keyPath:'queue_id',autoIncrement:true});
+        } else {
+          queueStore=tx.objectStore(ACTION_QUEUE_STORE);
+        }
+        // 스토어가 이전 버전에서 이미 만들어져 있었더라도(= 일부 인덱스가 누락된 상태일 수 있음),
+        // 필요한 인덱스가 없으면 여기서 보정 생성 — "이미 존재하는 스토어라 인덱스 생성을 건너뛰는" 버그 방지
+        if(!queueStore.indexNames.contains('schedule_id'))    queueStore.createIndex('schedule_id','schedule_id',{unique:false});
+        if(!queueStore.indexNames.contains('created_at'))     queueStore.createIndex('created_at','created_at',{unique:false});
+        if(!queueStore.indexNames.contains('client_entry_id'))queueStore.createIndex('client_entry_id','client_entry_id',{unique:false});
+        if(!queueStore.indexNames.contains('target_id'))      queueStore.createIndex('target_id','target_id',{unique:false});
+
+        // 1차(v1) 사용자의 기존 pending_entries → action_queue(type:'ADD')로 이전
+        // 커서 순회가 전부 끝난 뒤에만 옛 스토어를 삭제 (중간에 실패하면 트랜잭션 전체가 롤백되어 원본 보존됨)
+        if(event.oldVersion===1 && db.objectStoreNames.contains(LEGACY_PENDING_STORE)){
+          const oldStore=tx.objectStore(LEGACY_PENDING_STORE);
+          const cursorReq=oldStore.openCursor();
+          cursorReq.onsuccess=(e)=>{
+            const cursor=e.target.result;
+            if(cursor){
+              const old=cursor.value;
+              queueStore.add({
+                type:'ADD',
+                client_entry_id:old.client_entry_id,
+                target_id:null,
+                schedule_id:old.schedule_id,
+                side:old.side,
+                payload:old.payload,
+                created_at:old.created_at
+              });
+              cursor.continue();
+            } else {
+              // 마이그레이션 완료 확인 후에만 옛 스토어 삭제
+              db.deleteObjectStore(LEGACY_PENDING_STORE);
+            }
+          };
         }
       };
       req.onsuccess=()=>resolve(req.result);
@@ -2057,33 +2098,88 @@ function idbOpen(){
   });
   return _offlineDbPromise;
 }
-async function idbPutEntry(entry){
+
+async function idbAddAction(action){
   const db=await idbOpen();
   return new Promise((resolve,reject)=>{
-    const tx=db.transaction(OFFLINE_STORE,'readwrite');
-    tx.objectStore(OFFLINE_STORE).put(entry);
+    const tx=db.transaction(ACTION_QUEUE_STORE,'readwrite');
+    const req=tx.objectStore(ACTION_QUEUE_STORE).add(action);
+    req.onsuccess=()=>resolve(req.result); // 새로 생성된 queue_id 반환
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+// queue_id를 포함한 기존 레코드를 그대로 갱신 (같은 queue_id 유지 — 새 레코드로 쌓이지 않음)
+async function idbPutAction(action){
+  const db=await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(ACTION_QUEUE_STORE,'readwrite');
+    tx.objectStore(ACTION_QUEUE_STORE).put(action);
     tx.oncomplete=()=>resolve();
     tx.onerror=()=>reject(tx.error);
   });
 }
-async function idbDeleteEntry(clientEntryId){
+async function idbDeleteAction(queueId){
   const db=await idbOpen();
   return new Promise((resolve,reject)=>{
-    const tx=db.transaction(OFFLINE_STORE,'readwrite');
-    tx.objectStore(OFFLINE_STORE).delete(clientEntryId);
+    const tx=db.transaction(ACTION_QUEUE_STORE,'readwrite');
+    tx.objectStore(ACTION_QUEUE_STORE).delete(queueId);
     tx.oncomplete=()=>resolve();
     tx.onerror=()=>reject(tx.error);
   });
 }
-async function idbGetPendingForSchedule(scheduleId){
+async function idbGetQueueForSchedule(scheduleId){
   const db=await idbOpen();
   return new Promise((resolve,reject)=>{
-    const tx=db.transaction(OFFLINE_STORE,'readonly');
-    const idx=tx.objectStore(OFFLINE_STORE).index('schedule_id');
+    const tx=db.transaction(ACTION_QUEUE_STORE,'readonly');
+    const idx=tx.objectStore(ACTION_QUEUE_STORE).index('schedule_id');
     const req=idx.getAll(IDBKeyRange.only(scheduleId));
     req.onsuccess=()=>{
       const list=(req.result||[]).slice().sort((a,b)=> a.created_at<b.created_at?-1:(a.created_at>b.created_at?1:0));
       resolve(list);
+    };
+    req.onerror=()=>reject(req.error);
+  });
+}
+// 아직 서버에 없는(client_entry_id만 있는) 행인지 실제로 큐를 조회해 확인 — client_entry_id 존재만으로 판단하지 않음
+async function idbFindAddByClientEntryId(clientEntryId){
+  if(!clientEntryId) return null;
+  const db=await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const store=db.transaction(ACTION_QUEUE_STORE,'readonly').objectStore(ACTION_QUEUE_STORE);
+    if(!store.indexNames.contains('client_entry_id')){
+      // 안전장치: 인덱스가 없는 예외 상황이면 전체 스캔으로 대체 (평소엔 발생하지 않아야 함)
+      const req=store.getAll();
+      req.onsuccess=()=>{ const list=req.result||[]; resolve(list.find(a=>a.type==='ADD'&&a.client_entry_id===clientEntryId)||null); };
+      req.onerror=()=>reject(req.error);
+      return;
+    }
+    const idx=store.index('client_entry_id');
+    const req=idx.getAll(IDBKeyRange.only(clientEntryId));
+    req.onsuccess=()=>{
+      const list=req.result||[];
+      resolve(list.find(a=>a.type==='ADD')||null);
+    };
+    req.onerror=()=>reject(req.error);
+  });
+}
+// 이미 큐에 대기 중인 같은 대상(target_id)의 EDIT이 있는지 확인 — 있으면 새로 쌓지 않고 그 레코드를 재사용
+async function idbFindEditByTargetId(targetId){
+  if(targetId==null) return null;
+  const db=await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const store=db.transaction(ACTION_QUEUE_STORE,'readonly').objectStore(ACTION_QUEUE_STORE);
+    if(!store.indexNames.contains('target_id')){
+      // 안전장치: 인덱스가 없는 예외 상황이면 전체 스캔으로 대체 (평소엔 발생하지 않아야 함)
+      const req=store.getAll();
+      req.onsuccess=()=>{ const list=req.result||[]; resolve(list.find(a=>a.type==='EDIT'&&a.target_id===targetId)||null); };
+      req.onerror=()=>reject(req.error);
+      return;
+    }
+    const idx=store.index('target_id');
+    const req=idx.getAll(IDBKeyRange.only(targetId));
+    req.onsuccess=()=>{
+      const list=req.result||[];
+      resolve(list.find(a=>a.type==='EDIT')||null);
     };
     req.onerror=()=>reject(req.error);
   });
@@ -2112,6 +2208,21 @@ async function postOfflineEntry(row){
   return Array.isArray(data) ? (data[0]||null) : data;
 }
 
+// 오프라인 상태에서 접수를 수정할 때 큐에 반영 — 대상에 따라 ADD payload 직접 갱신 또는 EDIT 레코드 upsert
+// (saveEdit()에서 대상이 아직 서버 id가 없는 것으로 판별됐을 때 / 서버 id는 있지만 온라인 저장이 실패했을 때 각각 호출)
+async function queueEditForExistingRow(targetId, scheduleId, side, payload){
+  const existing=await idbFindEditByTargetId(targetId).catch(()=>null);
+  const now=new Date().toISOString();
+  if(existing){
+    // 같은 대상에 대한 EDIT은 1개만 유지 — payload와 created_at을 최신으로 갱신해 큐 순서도 "마지막 작업 시점"으로 이동
+    existing.payload=payload;
+    existing.created_at=now;
+    await idbPutAction(existing); // queue_id 그대로 유지
+  } else {
+    await idbAddAction({ type:'EDIT', client_entry_id:null, target_id:targetId, schedule_id:scheduleId, side, payload, created_at:now });
+  }
+}
+
 // 하단 요약바의 동기화 상태 배지 갱신 (기존 UI 영역 재사용 — 새 패널 없음)
 function setSyncStatus(state, extra){
   const el=document.getElementById('sync-status-badge');
@@ -2126,8 +2237,11 @@ function setSyncStatus(state, extra){
     el.textContent='🟠 오프라인 · '+(extra||0)+'건 보관 중';
     el.style.color='#D97706';
   } else if(state==='syncing'){
-    el.textContent='🔄 동기화 중... '+(extra||'');
+    el.textContent='🔄 동기화 중 · '+(extra||'');
     el.style.color='#2563EB';
+  } else if(state==='sync_failed'){
+    el.textContent='🟠 동기화 대기 · '+(extra||0)+'건 (인터넷 연결 시 자동 재시도)';
+    el.style.color='#D97706';
   }
 }
 
@@ -2136,21 +2250,27 @@ async function flushOfflineQueue(){
   if(_offlineFlushing) return;
   if(!currentSchedule) return;
   if(!navigator.onLine) return;
-  let pending;
-  try{ pending=await idbGetPendingForSchedule(currentSchedule.id); }catch(e){ return; }
-  if(!pending || !pending.length) return;
+  let queueItems;
+  try{ queueItems=await idbGetQueueForSchedule(currentSchedule.id); }catch(e){ return; }
+  if(!queueItems || !queueItems.length) return;
 
   _offlineFlushing=true;
-  const total=pending.length;
+  const total=queueItems.length;
   let successCount=0;
-  for(let i=0;i<pending.length;i++){
-    setSyncStatus('syncing', i+'/'+total);
+  for(let i=0;i<queueItems.length;i++){
+    setSyncStatus('syncing', i+' / '+total);
+    const action=queueItems[i];
     try{
-      const createdRow=await postOfflineEntry(pending[i].payload);
-      // 현재 화면에 표시 중인 임시(pending) 행을 서버가 확정한 행으로 교체 (같은 schedule을 보고 있을 때만 의미 있음)
-      const idx=logs.findIndex(l=>l.client_entry_id===pending[i].client_entry_id);
-      if(idx>-1 && createdRow) logs[idx]=createdRow;
-      await idbDeleteEntry(pending[i].client_entry_id);
+      if(action.type==='ADD'){
+        const createdRow=await postOfflineEntry(action.payload);
+        const idx=logs.findIndex(l=>l.client_entry_id===action.client_entry_id);
+        if(idx>-1 && createdRow) logs[idx]=createdRow;
+      } else if(action.type==='EDIT'){
+        await sb.patch('contribution_logs', action.target_id, action.payload);
+        const idx=logs.findIndex(l=>l.id===action.target_id);
+        if(idx>-1) Object.assign(logs[idx], action.payload);
+      }
+      await idbDeleteAction(action.queue_id);
       successCount++;
     }catch(e){
       console.warn('[DG] 오프라인 큐 동기화 중단(다음 온라인 시 이어서 재시도):', e);
@@ -2165,9 +2285,9 @@ async function flushOfflineQueue(){
   if(successCount===total){
     showToast('✅ 오프라인 저장된 '+total+'건이 모두 동기화되었습니다.');
     setSyncStatus('synced');
-  } else if(successCount>0){
-    const remain=await idbGetPendingForSchedule(currentSchedule.id).catch(()=>[]);
-    setSyncStatus('offline', remain.length);
+  } else {
+    const remain=await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+    setSyncStatus('sync_failed', remain.length);
   }
 }
 window.addEventListener('online', ()=>{ flushOfflineQueue(); });
@@ -2221,8 +2341,9 @@ async function submitEntry(){
   //    "Supabase 저장 성공 후에만 화면 반영/resetForm" 하는 기존 온라인 저장 방식으로 진행
   try {
     let _idbOk = true;
+    let _queueId = null;
     try{
-      await idbPutEntry({ client_entry_id:_clientEntryId, schedule_id:currentSchedule.id, side:_side, payload:row, created_at:new Date().toISOString() });
+      _queueId = await idbAddAction({ type:'ADD', client_entry_id:_clientEntryId, target_id:null, schedule_id:currentSchedule.id, side:_side, payload:row, created_at:_clientNow });
     }catch(e){
       _idbOk = false;
       console.warn('[DG] IndexedDB 저장 실패 — 안전을 위해 온라인 저장 방식으로 진행:', e);
@@ -2241,13 +2362,13 @@ async function submitEntry(){
         const created=await postOfflineEntry(row);
         const idx=logs.findIndex(l=>l.client_entry_id===_clientEntryId);
         if(idx>-1 && created) logs[idx]=created;
-        idbDeleteEntry(_clientEntryId).catch(()=>{});
+        idbDeleteAction(_queueId).catch(()=>{});
         showToast('✅ 접수 완료되었습니다');
         setSyncStatus('synced');
       } catch(e){
         // 네트워크 실패 → IndexedDB에는 이미 저장되어 있으므로 오프라인 보관 상태로 안내만 표시
         showToast('📴 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
-        const pending = await idbGetPendingForSchedule(currentSchedule.id).catch(()=>[]);
+        const pending = await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
         setSyncStatus('offline', pending.length);
       }
     } else {
@@ -2361,15 +2482,17 @@ function renderLedgerCol(elId,sideLogs,isAdmin){
     const time=(l.created_at_client||l.created_at)?fmtTime(l.created_at_client||l.created_at):'';
     const memo=l.memo?'<div class="ledger-memo">'+esc(l.memo)+'</div>':'';
     const canEdit=isAdmin||l.created_by===currentUser.name;
-    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+l.id+')">수정</button><button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button><button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>':'';
+    const editRef=(l.id!=null)?l.id:("'"+l.client_entry_id+"'");
+    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+editRef+')">수정</button><button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button><button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>':'';
     return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:10px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:12px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
   }).join('');
 }
 
-function openEditModal(id){
-  const l=logs.find(x=>x.id===id);
+function openEditModal(ref){
+  // ref가 숫자면 서버 id, 문자열이면(오프라인 신규 접수 행) client_entry_id 기준으로 찾음
+  const l=(typeof ref==='number') ? logs.find(x=>x.id===ref) : logs.find(x=>x.client_entry_id===ref);
   if(!l) return;
-  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-id').value=ref;
   document.getElementById('edit-side').value=l.side||'신랑측';
   document.getElementById('edit-payment').value=l.payment_type||'현금';
   document.getElementById('edit-name').value=l.guest_name||'';
@@ -2396,9 +2519,57 @@ document.addEventListener('keydown', function(e){
   }
 });
 async function saveEdit(){
-  const id=Number(document.getElementById('edit-id').value);
+  const rawRef=document.getElementById('edit-id').value;
+  // 저장된 값이 순수 숫자 문자열이면 서버 id, 아니면(UUID 형태) client_entry_id로 간주
+  const isNumericId=/^\d+$/.test(rawRef);
   const body={side:document.getElementById('edit-side').value,payment_type:document.getElementById('edit-payment').value,guest_name:document.getElementById('edit-name').value.trim()||null,relation:document.getElementById('edit-relation').value||null,amount:Number(document.getElementById('edit-amount').value)||null,adult_ticket:Number(document.getElementById('edit-adult').value)||0,child_ticket:Number(document.getElementById('edit-child').value)||0,memo:document.getElementById('edit-memo').value.trim()||null};
-  try { await sb.patch('contribution_logs',id,body); const idx=logs.findIndex(x=>x.id===id); if(idx!==-1) Object.assign(logs[idx],body); closeEditModal(); renderStats();renderFullList();renderQuickSearch(); showToast('✅ 수정되었습니다'); } catch(e){ showToast('⚠️ 수정 실패: '+e.message); }
+
+  const targetLog=isNumericId ? logs.find(x=>x.id===Number(rawRef)) : logs.find(x=>x.client_entry_id===rawRef);
+  if(!targetLog){ showToast('⚠️ 대상을 찾을 수 없습니다'); return; }
+
+  // ── 판별 기준: id가 존재하면 무조건 서버에 저장된 기존 행(EDIT 대상). client_entry_id 존재 여부만으로는 판단하지 않음 ──
+  if(targetLog.id!=null){
+    const targetId=targetLog.id;
+    try {
+      // 온라인 저장 시도 — 기존 동작 그대로 유지
+      await sb.patch('contribution_logs',targetId,body);
+      const idx=logs.findIndex(x=>x.id===targetId);
+      if(idx!==-1) Object.assign(logs[idx],body);
+      closeEditModal(); renderStats();renderFullList();renderQuickSearch();
+      showToast('✅ 수정되었습니다');
+    } catch(e){
+      // 온라인 저장 실패 → 오프라인 EDIT 큐잉 (같은 대상 EDIT이 이미 있으면 payload+created_at만 갱신, 새로 쌓지 않음)
+      try{
+        await queueEditForExistingRow(targetId, currentSchedule.id, targetLog.side, body);
+        Object.assign(targetLog,body); // 화면 즉시 반영
+        closeEditModal(); renderStats();renderFullList();renderQuickSearch();
+        showToast('📴 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+        const q=await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+        setSyncStatus('offline', q.length);
+      }catch(e2){
+        console.error('[DG] 오프라인 EDIT 큐잉 실패:', e2);
+        showToast('⚠️ 수정 실패: '+e2.message);
+      }
+    }
+  } else {
+    // ── id가 없는 행: 실제로 큐에 ADD가 존재하는 경우에만 "아직 서버에 없는 오프라인 신규 행"으로 처리 ──
+    const addAction=await idbFindAddByClientEntryId(targetLog.client_entry_id).catch(()=>null);
+    if(addAction){
+      // 새 EDIT을 만들지 않고 ADD의 payload만 갱신 (queue_id·created_at·큐 위치는 그대로 — ADD가 EDIT보다 먼저 실행되어야 하므로)
+      Object.assign(addAction.payload, body);
+      try{
+        await idbPutAction(addAction);
+        Object.assign(targetLog, body); // 화면 즉시 반영
+        closeEditModal(); renderStats();renderFullList();renderQuickSearch();
+        showToast('✅ 수정되었습니다 (동기화 대기 중)');
+      }catch(e){
+        showToast('⚠️ 수정 실패: '+e.message);
+      }
+    } else {
+      // 방어적 처리: id도 없고 큐에서 매칭되는 ADD도 못 찾은 이상 상황 — 데이터 정합성을 위해 저장을 진행하지 않음
+      showToast('⚠️ 아직 저장되지 않은 항목입니다. 잠시 후 다시 시도해주세요.');
+    }
+  }
 }
 async function deleteLog(id){
   if(!confirm('해당 접수 내역을 삭제하시겠습니까?')) return;
@@ -2481,8 +2652,9 @@ function renderRightCol(elId, sideLogs, isAdmin){
     var time = (l.created_at_client||l.created_at) ? fmtTime(l.created_at_client||l.created_at) : '';
     var memo = l.memo ? '<div style="font-size:10px;color:#9CA3AF;margin-left:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(l.memo)+'</div>' : '';
     var canEdit = isAdmin || l.created_by===currentUser.name;
+    var editRef = (l.id!=null) ? l.id : ("'"+l.client_entry_id+"'");
     var btns = canEdit
-      ? '<button class="ledger-btn ledger-edit" onclick="openEditModal('+l.id+')">수정</button>'+
+      ? '<button class="ledger-btn ledger-edit" onclick="openEditModal('+editRef+')">수정</button>'+
         '<button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button>'+
         '<button class="ledger-btn ledger-del" onclick="deleteLog('+l.id+')">삭제</button>'
       : '';
