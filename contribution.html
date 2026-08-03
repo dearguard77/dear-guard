@@ -2210,14 +2210,14 @@ function renderStats(){
   if(bREl){bREl.textContent=bRemain===null?'—':bRemain+'장';bREl.style.color=bRColor;}
   if(bR2El){bR2El.textContent=bRemain===null?'—':String(bRemain);bR2El.style.color=bRColor;}
   se('tks-g-total',gTotal!==null?gTotal+'장':'미설정');
-  se('tks-g-used',(gUsed+gPreShare)+'장');
+  se('tks-g-used',gUsedAll+'장');
   const tksGR=document.getElementById('tks-g-remain');
   if(tksGR){
     if(gRemain===null){tksGR.textContent='—';tksGR.style.color='#9CA3AF';tksGR.style.animation='';}
     else{tksGR.textContent=gRemain+'장';tksGR.style.color=gRColor;tksGR.style.animation=gRemain<=5?'blink 0.7s ease-in-out infinite':'';}
   }
   se('tks-b-total',bTotal!==null?bTotal+'장':'미설정');
-  se('tks-b-used',(bUsed+bPreShare)+'장');
+  se('tks-b-used',bUsedAll+'장');
   const tksBR=document.getElementById('tks-b-remain');
   if(tksBR){
     if(bRemain===null){tksBR.textContent='—';tksBR.style.color='#9CA3AF';tksBR.style.animation='';}
@@ -2740,6 +2740,20 @@ async function flushOfflineQueue(){
         for(const t of targets){
           await sb.patch('contribution_logs', t.id, { seq: t.target_seq });
         }
+      } else if(action.type==='REINDEX'){
+        // 큐잉 당시 고정해둔 target_seq로만 PATCH (현재값 재계산 금지 — 재시도해도 안전)
+        const targets=(action.payload && action.payload.reindex_targets)||[];
+        for(const t of targets){
+          await sb.patch('contribution_logs', t.id, { seq: t.target_seq });
+        }
+        // 번호 PATCH가 전부 성공한 뒤에만 운영메모 생성 (memo_logged로 재시도 시 중복 생성 방지)
+        if(!action.memo_logged){
+          action.memo_logged=true;
+          await idbPutAction(action).catch(()=>{});
+          if(action.payload && action.payload.from_seq!=null && action.payload.to_seq!=null){
+            _logReindex(action.side, `${action.payload.from_seq}번 → ${action.payload.to_seq}번 이동 (영향 ${targets.length}건)`);
+          }
+        }
       } else if(action.type==='TICKET_INIT_SET'){
         await sb.patch('schedules', currentSchedule.id, action.payload);
         Object.assign(currentSchedule, action.payload);
@@ -2983,7 +2997,7 @@ function renderLedgerCol(elId,sideLogs,isAdmin){
     const memo=l.memo?'<div class="ledger-memo">'+esc(l.memo)+'</div>':'';
     const canEdit=isAdmin||l.created_by===currentUser.name;
     const editRef=(l.id!=null)?l.id:("'"+l.client_entry_id+"'");
-    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+editRef+')">수정</button><button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button><button class="ledger-btn ledger-del" onclick="deleteLog('+editRef+')">삭제</button>':'';
+    const btns=canEdit?'<button class="ledger-btn ledger-edit" onclick="openEditModal('+editRef+')">수정</button><button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+editRef+')">번호</button><button class="ledger-btn ledger-del" onclick="deleteLog('+editRef+')">삭제</button>':'';
     return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:10px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:12px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
   }).join('');
 }
@@ -3184,15 +3198,16 @@ function renderRightCol(elId, sideLogs, isAdmin){
     var editRef = (l.id!=null) ? l.id : ("'"+l.client_entry_id+"'");
     var btns = canEdit
       ? '<button class="ledger-btn ledger-edit" onclick="openEditModal('+editRef+')">수정</button>'+
-        '<button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+l.id+')">번호</button>'+
+        '<button class="ledger-btn" style="background:#fff;color:#374151;border:1px solid #E5E7EB;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer;font-weight:600;flex-shrink:0" onclick="openReindexModal('+editRef+')">번호</button>'+
         '<button class="ledger-btn ledger-del" onclick="deleteLog('+editRef+')">삭제</button>'
       : '';
     return '<div class="ledger-item"><div class="ledger-r1"><span class="ledger-num">#'+num+'</span><span class="ledger-name">'+name+rel+'</span><span class="ledger-amt" style="color:'+amtColor+'">'+amt+'</span></div>'+memo+'<div class="ledger-r2"><span style="background:'+payC+'18;color:'+payC+';border-radius:3px;padding:0 4px;font-size:10px;font-weight:700;flex-shrink:0">'+payT+'</span>'+(tkt?'<span style="margin-left:2px;flex-shrink:0">'+tkt+'</span>':'')+'<span style="flex:1"></span><span style="font-size:12px;color:#9CA3AF;flex-shrink:0;margin-right:3px">'+time+'</span>'+btns+'</div></div>';
   }).join('');
 }
 
-function openReindexModal(id){
-  const l = logs.find(x=>x.id===id);
+function openReindexModal(ref){
+  // ref가 숫자면 서버 id, 문자열이면(오프라인 신규 접수 행) client_entry_id 기준으로 찾음
+  const l = (typeof ref==='number') ? logs.find(x=>x.id===ref) : logs.find(x=>x.client_entry_id===ref);
   if(!l) return;
   const sideLogs = logs.filter(x=>x.side===l.side);
   const currentSeq = l.seq || 0;
@@ -3205,26 +3220,87 @@ function openReindexModal(id){
   const affectFrom = Math.min(currentSeq, newSeq);
   const affectTo   = Math.max(currentSeq, newSeq);
   if(!confirm(`[${l.side}] ${currentSeq}번 → ${newSeq}번으로 이동하시겠습니까?\n기존 ${affectFrom}~${affectTo}번 항목이 자동 재정렬됩니다.`)) return;
-  reindexInsert(id, newSeq, l.side, currentSeq);
+  reindexInsert(l, newSeq, l.side, currentSeq);
 }
-async function reindexInsert(id, newSeq, side, oldSeq){
-  try {
-    const sideLogs = logs.filter(l=>l.side===side);
-    const patches = [];
-    if(newSeq < oldSeq){
-      sideLogs.filter(l=>l.id!==id && (l.seq||0)>=newSeq && (l.seq||0)<oldSeq).forEach(l=>patches.push({id:l.id,seq:(l.seq||0)+1}));
-    } else {
-      sideLogs.filter(l=>l.id!==id && (l.seq||0)>oldSeq && (l.seq||0)<=newSeq).forEach(l=>patches.push({id:l.id,seq:(l.seq||0)-1}));
+async function reindexInsert(targetLog, newSeq, side, oldSeq){
+  const sideLogs = logs.filter(l=>l.side===side);
+  const shifts = []; // {row, newSeqForRow} — target 포함, 영향받는 모든 행(서버확정+pending 무관)
+  if(newSeq < oldSeq){
+    sideLogs.filter(l=>l!==targetLog && (l.seq||0)>=newSeq && (l.seq||0)<oldSeq)
+      .forEach(l=>shifts.push({row:l, newSeqForRow:(l.seq||0)+1}));
+  } else {
+    sideLogs.filter(l=>l!==targetLog && (l.seq||0)>oldSeq && (l.seq||0)<=newSeq)
+      .forEach(l=>shifts.push({row:l, newSeqForRow:(l.seq||0)-1}));
+  }
+  shifts.push({row:targetLog, newSeqForRow:newSeq});
+
+  const hasPendingRow = shifts.some(s=>s.row.id==null);
+
+  if(!hasPendingRow){
+    // 전부 서버에 이미 존재하는 행 — 기존처럼 온라인 우선 시도
+    try{
+      const patches = shifts.filter(s=>s.row!==targetLog);
+      await Promise.all(patches.map(s=>sb.patch('contribution_logs', s.row.id, {seq:s.newSeqForRow})));
+      await sb.patch('contribution_logs', targetLog.id, {seq:newSeq});
+      shifts.forEach(s=>{ s.row.seq = s.newSeqForRow; });
+      _logReindex(side, `${oldSeq}번 → ${newSeq}번 이동 (영향 ${patches.length}건)`);
+      renderStats(); renderFullList();
+      showToast(`✅ ${side} ${oldSeq}번 → ${newSeq}번 이동 완료`);
+      return;
+    }catch(e){
+      console.warn('[DG] 번호 변경 온라인 저장 실패 — 오프라인 큐잉으로 진행:', e);
+      // 아래 오프라인 큐잉으로 계속 진행
     }
-    await Promise.all(patches.map(p=>sb.patch('contribution_logs',p.id,{seq:p.seq})));
-    await sb.patch('contribution_logs',id,{seq:newSeq});
-    patches.forEach(p=>{ const t=logs.find(l=>l.id===p.id); if(t) t.seq=p.seq; });
-    const target=logs.find(l=>l.id===id);
-    if(target) target.seq=newSeq;
-    _logReindex(side, `${oldSeq}번 → ${newSeq}번 이동 (영향 ${patches.length}건)`);
+  }
+
+  // 오프라인 큐잉 (온라인 실패 또는 애초에 서버 미확정 행이 섞여 있는 경우)
+  try{
+    await queueReindex(shifts, targetLog, newSeq, side, oldSeq);
     renderStats(); renderFullList();
-    showToast(`✅ ${side} ${oldSeq}번 → ${newSeq}번 이동 완료`);
-  } catch(e){ showToast('⚠️ 번호 수정 실패: '+e.message); }
+    showToast('📴 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+    const q = await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+    setSyncStatus('offline', q.length);
+  }catch(e2){
+    // IndexedDB 저장 자체가 실패한 경우 — 화면 번호는 절대 바꾸지 않고 기존 상태 유지
+    console.error('[DG] 번호 변경 오프라인 큐잉 실패:', e2);
+    showToast('⚠️ 번호 변경 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+  }
+}
+// 번호 변경 큐잉 — 서버에 이미 존재하는 행은 reindex_targets(최종 target_seq 고정)로, 아직 서버에 없는 pending ADD는 그 자리에서 payload.seq만 직접 갱신
+async function queueReindex(shifts, targetLog, newSeq, side, oldSeq){
+  const scheduleId = currentSchedule.id;
+  const reindexTargets = [];   // {id, target_seq} — 서버 PATCH 대상 (동기화 시 재계산 없이 이 값 그대로 사용, 재시도해도 안전)
+  const pendingUpdates = [];   // {client_entry_id, target_seq} — 로컬 ADD action payload 직접 갱신 대상
+  for(const s of shifts){
+    if(s.row.id != null){
+      reindexTargets.push({ id: s.row.id, target_seq: s.newSeqForRow });
+    } else {
+      pendingUpdates.push({ client_entry_id: s.row.client_entry_id, target_seq: s.newSeqForRow });
+    }
+  }
+
+  const targetId = targetLog.id!=null ? targetLog.id : null;
+  const targetClientEntryId = targetLog.id==null ? targetLog.client_entry_id : null;
+
+  // IndexedDB 저장 먼저 — 실패하면 예외가 그대로 전파되어 호출부가 화면을 전혀 건드리지 않음
+  await idbAddAction({
+    type:'REINDEX', target_id:targetId, client_entry_id:targetClientEntryId,
+    schedule_id:scheduleId, side,
+    payload:{ from_seq:oldSeq, to_seq:newSeq, reindex_targets:reindexTargets },
+    memo_logged:false,
+    created_at:new Date().toISOString()
+  });
+
+  // 서버 미확정(pending ADD) 행들의 payload.seq를 그 자리에서 직접 갱신 (새 REINDEX PATCH 대상에는 포함하지 않음, 기존 ADD의 queue_id·순서 유지)
+  for(const p of pendingUpdates){
+    try{
+      const addAction = await idbFindActionByClientEntryIdAndType(p.client_entry_id, 'ADD');
+      if(addAction){ addAction.payload.seq = p.target_seq; await idbPutAction(addAction); }
+    }catch(e){ console.warn('[DG] 대기 중 접수 ADD의 seq 갱신 실패:', e); }
+  }
+
+  // 여기까지 성공한 뒤에만 화면에 반영될 로컬 seq 값 갱신
+  shifts.forEach(s=>{ s.row.seq = s.newSeqForRow; });
 }
 function _logReindex(side, content){
   if(!currentSchedule||!currentUser) return;
