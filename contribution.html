@@ -3488,9 +3488,10 @@ function renderTicketModal(){
   const gExtraChild= gExtras.filter(t=>ticketKindOf(t)==='child').reduce((s,t)=>s+(t.amount||0),0);
   const gUsedAdult = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const gUsedChild = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.child_ticket||0),0);
-  const gPreS      = preShares.filter(t=>t.side==='신랑측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
-  const gRemainAdult = gAdultInit !== null ? gAdultInit + gExtraAdult - gUsedAdult - gPreS : null;
-  const gRemainChild = gChildInit + gExtraChild - gUsedChild;
+  const gPreSAdult = preShares.filter(t=>t.side==='신랑측'&&t.received&&ticketKindOf(t)==='adult').reduce((s,t)=>s+(t.amount||0),0);
+  const gPreSChild = preShares.filter(t=>t.side==='신랑측'&&t.received&&ticketKindOf(t)==='child').reduce((s,t)=>s+(t.amount||0),0);
+  const gRemainAdult = gAdultInit !== null ? gAdultInit + gExtraAdult - gUsedAdult - gPreSAdult : null;
+  const gRemainChild = gChildInit + gExtraChild - gUsedChild - gPreSChild;
   const gRemainColor = gRemainAdult===null?'#9CA3AF':gRemainAdult<=10?'#DC2626':gRemainAdult<=20?'#D97706':'#2563EB';
 
   // 신랑측 현황 - 대인 (null=미설정, 0 포함 숫자='N장')
@@ -3535,9 +3536,10 @@ function renderTicketModal(){
   const bExtraChild= bExtras.filter(t=>ticketKindOf(t)==='child').reduce((s,t)=>s+(t.amount||0),0);
   const bUsedAdult = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.adult_ticket||0),0);
   const bUsedChild = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.child_ticket||0),0);
-  const bPreS      = preShares.filter(t=>t.side==='신부측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
-  const bRemainAdult = bAdultInit !== null ? bAdultInit + bExtraAdult - bUsedAdult - bPreS : null;
-  const bRemainChild = bChildInit + bExtraChild - bUsedChild;
+  const bPreSAdult = preShares.filter(t=>t.side==='신부측'&&t.received&&ticketKindOf(t)==='adult').reduce((s,t)=>s+(t.amount||0),0);
+  const bPreSChild = preShares.filter(t=>t.side==='신부측'&&t.received&&ticketKindOf(t)==='child').reduce((s,t)=>s+(t.amount||0),0);
+  const bRemainAdult = bAdultInit !== null ? bAdultInit + bExtraAdult - bUsedAdult - bPreSAdult : null;
+  const bRemainChild = bChildInit + bExtraChild - bUsedChild - bPreSChild;
   const bRemainColor = bRemainAdult===null?'#9CA3AF':bRemainAdult<=10?'#DC2626':bRemainAdult<=20?'#D97706':'#DB2777';
 
   // 신부측 현황 - 대인 (null=미설정, 0 포함 숫자='N장')
