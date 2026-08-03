@@ -2263,7 +2263,7 @@ async function submitEntry(){
         setSyncStatus('synced');
       } catch(e){
         // IndexedDB 실패 + Supabase 실패 → 화면 반영/resetForm 하지 않고 입력값 그대로 유지
-        showToast('⚠️ 저장에 실패했습니다. 입력 내용을 유지합니다.');
+        showToast('⚠️ 저장에 실패했습니다. 다시 시도해주세요.');
       }
     }
   } finally {
