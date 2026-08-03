@@ -548,6 +548,10 @@ input,select,textarea{font-family:inherit;outline:none}
               <option value="신랑측">🤵 신랑</option>
               <option value="신부측">👰 신부</option>
             </select>
+            <select id="pre-share-kind" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;padding:0 4px;background:#fff;flex-shrink:0;width:56px">
+              <option value="adult" selected>대인</option>
+              <option value="child">소인</option>
+            </select>
             <input id="pre-share-amount" placeholder="장수" type="number" min="1" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0" onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name').focus()">
             <span style="font-size:11px;color:#9CA3AF;flex-shrink:0">장</span>
           </div>
@@ -644,6 +648,10 @@ input,select,textarea{font-family:inherit;outline:none}
             <select id="pre-share-side-b" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;padding:0 4px;background:#fff;flex-shrink:0;width:72px">
               <option value="신랑측">🤵 신랑</option>
               <option value="신부측" selected>👰 신부</option>
+            </select>
+            <select id="pre-share-kind-b" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;padding:0 4px;background:#fff;flex-shrink:0;width:56px">
+              <option value="adult" selected>대인</option>
+              <option value="child">소인</option>
             </select>
             <input id="pre-share-amount-b" placeholder="장수" type="number" min="1" style="height:26px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:12px;text-align:center;font-weight:700;padding:0 3px;width:48px;flex-shrink:0" onkeydown="if(event.key==='Enter')document.getElementById('pre-share-name-b').focus()">
             <span style="font-size:11px;color:#9CA3AF;flex-shrink:0">장</span>
@@ -1715,53 +1723,167 @@ async function loadPreShares(){
     renderStats();
   } catch(e){ console.error('사전 공유 식권 로드 실패:', e); }
 }
-async function editPreShare(id){
-  var p = preShares.find(function(x){ return x.id===id; });
+async function editPreShare(ref){
+  var p = (typeof ref==='number') ? preShares.find(function(x){ return x.id===ref; }) : preShares.find(function(x){ return x.client_entry_id===ref; });
   if(!p) return;
+
+  var newSideStr = prompt('측을 입력하세요 (신랑측/신부측):', p.side||'신랑측');
+  if(newSideStr===null) return;
+  newSideStr = newSideStr.trim();
+  var newSide = newSideStr.indexOf('신랑')!==-1 ? '신랑측' : newSideStr.indexOf('신부')!==-1 ? '신부측' : p.side;
+
   var newName = prompt('이름 수정:', p.person_name||'');
   if(newName===null) return;
   newName = newName.trim();
   if(!newName){ showToast('⚠️ 이름을 입력해주세요'); return; }
+
   var newAmountStr = prompt('장수 수정:', String(p.amount||1));
   if(newAmountStr===null) return;
   var newAmount = parseInt(newAmountStr)||0;
   if(newAmount < 1){ showToast('⚠️ 1장 이상 입력해주세요'); return; }
-  try {
-    var res = await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify({person_name:newName,amount:newAmount})});
-    if(!res.ok) throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
-    var idx = preShares.findIndex(function(x){ return x.id===id; });
-    if(idx!==-1){ preShares[idx].person_name=newName; preShares[idx].amount=newAmount; }
-    renderPreShareList(); renderPreShipChecklist(); renderStats();
-    showToast('✅ 수정되었습니다');
-  } catch(e){ console.error('[DG] editPreShare 오류:', e); showToast('⚠️ 수정 실패: '+e.message); }
+
+  var curKindLabel = ticketKindOf(p)==='child' ? '소인' : '대인';
+  var newKindStr = prompt('대인/소인을 입력하세요 (대인/소인):', curKindLabel);
+  if(newKindStr===null) return;
+  var newKind = newKindStr.indexOf('소인')!==-1 ? 'child' : 'adult';
+
+  var payload = { side:newSide, person_name:newName, amount:newAmount, ticket_kind:newKind };
+  var _refreshUi = function(){ renderPreShareList(); renderPreShipChecklist(); renderStats(); };
+
+  if(p.id!=null){
+    // 서버에 이미 존재하는 행 — 온라인 우선 시도
+    try {
+      var res = await fetch(sb.url('ticket_additions','?id=eq.'+p.id), {method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(payload)});
+      if(!res.ok) throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
+      Object.assign(p, payload);
+      _refreshUi();
+      showToast('✅ 현장 식권이 수정되었습니다.');
+    } catch(e){
+      // 온라인 수정 실패 → 오프라인 큐잉
+      console.warn('[ONSITE EDIT] PATCH 실패, 큐잉 시작', p.id, e);
+      try{
+        await queueOnsiteTicketEdit(p.id, currentSchedule.id, newSide, payload);
+        console.log('[ONSITE EDIT] 큐잉 성공');
+        Object.assign(p, payload);
+        _refreshUi();
+        showToast('📴 현장 식권이 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+        const q = await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+        setSyncStatus('offline', q.length);
+      }catch(e2){
+        console.error('[DG] 현장 식권 오프라인 EDIT 큐잉 실패:', e2);
+        showToast('⚠️ 현장 식권 수정 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+      }
+    }
+  } else {
+    // 아직 서버에 없는(대기 중 ADD) 행 → 새 EDIT을 만들지 않고 ADD payload를 직접 수정 + 연결 메모 문구도 갱신
+    try{
+      const addAction = await idbFindActionByClientEntryIdAndType(p.client_entry_id, 'ONSITE_TICKET_ADD');
+      if(!addAction) throw new Error('대기 중인 항목을 찾을 수 없습니다');
+      Object.assign(addAction.payload, payload);
+      await idbPutAction(addAction); // queue_id·created_at 유지 (ADD가 항상 먼저 실행되어야 하므로)
+
+      const memoAction = await idbFindActionByTargetIdAndType(p.client_entry_id, 'OPS_MEMO_ADD');
+      if(memoAction){
+        const honorificName = newName.endsWith('님') ? newName : (newName+'님');
+        memoAction.payload.content = honorificName+' 식권 '+newAmount+'장 수령';
+        memoAction.payload.side = newSide;
+        await idbPutAction(memoAction);
+      }
+
+      Object.assign(p, payload);
+      _refreshUi();
+      showToast('✅ 현장 식권이 수정되었습니다. (동기화 대기 중)');
+    }catch(e){
+      console.error('[DG] 현장 식권 대기중 ADD 수정 실패:', e);
+      showToast('⚠️ 현장 식권 수정 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+    }
+  }
+}
+// 서버에 이미 존재하는 현장 식권 수정 큐잉 — 같은 대상 EDIT은 1개만 유지, payload/created_at 최신화
+async function queueOnsiteTicketEdit(targetId, scheduleId, side, payload){
+  const existing = await idbFindActionByTargetIdAndType(targetId, 'ONSITE_TICKET_EDIT');
+  const now = new Date().toISOString();
+  if(existing){
+    existing.payload = payload;
+    existing.created_at = now;
+    await idbPutAction(existing); // queue_id 유지
+  } else {
+    await idbAddAction({ type:'ONSITE_TICKET_EDIT', target_id:targetId, client_entry_id:null, schedule_id:scheduleId, side, payload, created_at:now });
+  }
 }
 async function addPreShare(side){
   var suffix = side==='bride' ? '-b' : '';
   var sideEl = document.getElementById('pre-share-side'+suffix);
   var nameEl = document.getElementById('pre-share-name'+suffix);
   var amountEl = document.getElementById('pre-share-amount'+suffix);
+  var kindEl = document.getElementById('pre-share-kind'+suffix);
   if(!sideEl||!nameEl||!amountEl){ showToast('⚠️ 입력칸을 찾을 수 없습니다'); return; }
   var sideVal = sideEl.value;
   var name = nameEl.value.trim();
   var amount = parseInt(amountEl.value)||0;
+  var kind = kindEl ? kindEl.value : 'adult';
   if(!name){ showToast('⚠️ 이름을 입력해주세요'); nameEl.focus(); return; }
   if(amount < 1){ showToast('⚠️ 수량을 입력해주세요'); amountEl.focus(); return; }
   if(!currentSchedule){ showToast('⚠️ 예식을 먼저 선택하세요'); return; }
-  var row = {schedule_id:currentSchedule.id,side:sideVal,amount:amount,person_name:name,type:'pre_share',created_by:currentUser.name,received:true,source:'onsite'};
+
+  const clientEntryId = genClientEntryId();
+  var row = {schedule_id:currentSchedule.id,side:sideVal,amount:amount,person_name:name,type:'pre_share',created_by:currentUser.name,received:true,source:'onsite',ticket_kind:kind,client_entry_id:clientEntryId};
+
+  var _resetInputs = function(){ nameEl.value=''; amountEl.value=''; };
+  var _refreshUi = function(){ renderPreShareList(); renderPreShipChecklist(); renderStats(); };
+
+  // 1) IndexedDB 저장 — 반드시 이 단계가 성공해야만 화면에 반영한다 (네트워크 실패와 완전히 분리된 별개의 실패 조건)
+  console.log('[ONSITE ADD] idb 저장 시작');
+  let queueId;
+  try{
+    queueId = await idbAddAction({ type:'ONSITE_TICKET_ADD', target_id:null, client_entry_id:clientEntryId, schedule_id:currentSchedule.id, side:sideVal, payload:row, created_at:new Date().toISOString() });
+    console.log('[ONSITE ADD] idb 저장 성공', queueId);
+  }catch(idbErr){
+    // IndexedDB 저장 자체가 실패한 경우 — 온라인 폴백을 시도하지 않고 여기서 즉시 종료한다.
+    // (온라인 폴백까지 시도하면 오프라인 상태에서 그 폴백마저 실패해 "Failed to fetch"라는 혼동되는 메시지가 뜬다)
+    console.error('[ONSITE ADD] idb 저장 실패', idbErr);
+    showToast('⚠️ 현장 식권 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+    return; // 입력값 유지, 화면 미반영
+  }
+
+  // 2) 여기 도달했다면 IndexedDB 저장은 확정 성공 — 화면에 즉시 반영
+  preShares.push(row);
+  _resetInputs(); _refreshUi();
+
+  // 3) 운영메모도 함께 큐잉 (식권 ADD 바로 다음 순서 — target_id에 이 ADD의 client_entry_id를 연결키로 저장)
+  //    메모 큐잉 실패는 식권 등록 자체를 막지 않는 best-effort이므로 별도로 흡수한다.
+  try{
+    const memoClientEntryId = genClientEntryId();
+    const honorificName = name.endsWith('님') ? name : (name+'님');
+    const nowD = new Date();
+    const timeStr = String(nowD.getHours()).padStart(2,'0')+':'+String(nowD.getMinutes()).padStart(2,'0');
+    await idbAddAction({
+      type:'OPS_MEMO_ADD', target_id:clientEntryId, client_entry_id:memoClientEntryId,
+      schedule_id:currentSchedule.id, side:sideVal,
+      payload:{ schedule_id:currentSchedule.id, time_str:timeStr, content:honorificName+' 식권 '+amount+'장 수령', side:sideVal, created_by:currentUser.name, client_entry_id:memoClientEntryId },
+      created_at:new Date().toISOString()
+    });
+  }catch(memoErr){ console.warn('[DG] 현장 식권 운영메모 큐잉 실패(무시):', memoErr); }
+
+  // 4) 서버 전송 시도 — 이 단계의 실패는 순수 네트워크 실패이며, 위 IndexedDB 실패와는 완전히 다른 분기다.
+  console.log('[ONSITE ADD] 서버 POST 시작');
   try {
-    var res = await fetch(sb.url('ticket_additions'), {method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(row)});
-    var resText = await res.text();
-    if(!res.ok) throw new Error('HTTP '+res.status+': '+resText.slice(0,200));
-    var created = JSON.parse(resText);
-    var entry = Array.isArray(created) ? created[0] : created;
-    preShares.push(entry);
-    nameEl.value=''; amountEl.value='';
-    renderPreShareList(); renderPreShipChecklist(); renderStats();
+    const created = await postWithDedup('ticket_additions', row);
+    const idx = preShares.findIndex(p=>p.client_entry_id===clientEntryId);
+    if(idx>-1 && created) preShares[idx]=created;
+    idbDeleteAction(queueId).catch(()=>{});
+    _refreshUi();
     showToast('🎫 현장 식권 '+amount+'장 등록됨');
-    logOnsiteTicketMemo(sideVal, name, amount);
-  } catch(e){ console.error('[DG] addPreShare 오류:', e); showToast('⚠️ 저장 실패: '+e.message); }
+    setSyncStatus('synced');
+  } catch(netErr){
+    console.warn('[ONSITE ADD] 서버 실패, pending 유지', netErr);
+    showToast('📴 현장 식권이 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+    const q = await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+    setSyncStatus('offline', q.length);
+  }
 }
 // 현장 식권 수령 등록 시 운영메모 자동 1건 기록 ('님' 중복 방지: 이미 '님'으로 끝나면 추가 안 함)
+// — IndexedDB 자체가 불가능한 극히 예외적인 환경에서만 쓰이는 온라인 전용 폴백 (평소엔 OPS_MEMO_ADD 큐로 처리됨)
 async function logOnsiteTicketMemo(sideKor, name, amount){
   if(!currentSchedule) return;
   var honorificName = name.endsWith('님') ? name : (name + '님');
@@ -1776,14 +1898,62 @@ async function logOnsiteTicketMemo(sideKor, name, amount){
     else{ opsLogsB.unshift(entry); renderOpsLogs('b', opsLogsB); }
   } catch(e){ console.warn('현장 식권 수령 메모 자동기록 실패:', e); }
 }
-async function deletePreShare(id){
+async function deletePreShare(ref){
   if(!confirm('사전 공유 식권을 삭제하시겠습니까?')) return;
-  try {
-    await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'DELETE', headers:sb.h});
-    preShares = preShares.filter(function(x){ return x.id !== id; });
-    renderPreShareList(); renderPreShipChecklist(); renderStats();
-    showToast('🗑️ 삭제되었습니다');
-  } catch(e){ showToast('⚠️ 삭제 실패'); }
+  var p = (typeof ref==='number') ? preShares.find(function(x){ return x.id===ref; }) : preShares.find(function(x){ return x.client_entry_id===ref; });
+  if(!p) return;
+  var _refreshUi = function(){ renderPreShareList(); renderPreShipChecklist(); renderStats(); };
+
+  if(p.id!=null){
+    // 서버에 이미 존재하는 행 — 온라인 우선 시도
+    try {
+      var res = await fetch(sb.url('ticket_additions','?id=eq.'+p.id), {method:'DELETE', headers:sb.h});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      preShares = preShares.filter(function(x){ return x.id !== p.id; });
+      _refreshUi();
+      showToast('✅ 현장 식권이 삭제되었습니다.');
+    } catch(e){
+      // 온라인 삭제 실패 → 오프라인 큐잉
+      console.warn('[ONSITE DELETE] DELETE 실패, 큐잉 시작', p.id, e);
+      try{
+        await queueOnsiteTicketDelete(p);
+        console.log('[ONSITE DELETE] 큐잉 성공');
+        preShares = preShares.filter(function(x){ return x.id !== p.id; });
+        _refreshUi();
+        showToast('📴 현장 식권이 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+        const q = await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+        setSyncStatus('offline', q.length);
+      }catch(e2){
+        console.error('[DG] 현장 식권 오프라인 삭제 큐잉 실패:', e2);
+        showToast('⚠️ 현장 식권 삭제 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+      }
+    }
+  } else {
+    // 아직 서버에 없는(대기 중 ADD) 행 → ADD 자체를 취소 + 연결된 메모도 함께 제거
+    try{
+      const addAction = await idbFindActionByClientEntryIdAndType(p.client_entry_id, 'ONSITE_TICKET_ADD');
+      if(!addAction) throw new Error('대기 중인 항목을 찾을 수 없습니다');
+      await idbDeleteAction(addAction.queue_id);
+      const memoAction = await idbFindActionByTargetIdAndType(p.client_entry_id, 'OPS_MEMO_ADD');
+      if(memoAction) await idbDeleteAction(memoAction.queue_id);
+      preShares = preShares.filter(function(x){ return x.client_entry_id !== p.client_entry_id; });
+      _refreshUi();
+      showToast('✅ 현장 식권이 삭제되었습니다.');
+    }catch(e){
+      console.error('[DG] 현장 식권 오프라인 ADD 취소 실패:', e);
+      showToast('⚠️ 현장 식권 삭제 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+    }
+  }
+}
+// 서버에 이미 존재하는 현장 식권 삭제 큐잉 — 대기 중인 EDIT이 있으면 제거하고 DELETE만 유지
+async function queueOnsiteTicketDelete(target){
+  const existing = await idbFindActionByTargetIdAndType(target.id, 'ONSITE_TICKET_DELETE');
+  if(existing) return;
+  try{
+    const editAction = await idbFindActionByTargetIdAndType(target.id, 'ONSITE_TICKET_EDIT');
+    if(editAction) await idbDeleteAction(editAction.queue_id);
+  }catch(e){ console.warn('[DG] 대기 중 현장식권 EDIT 정리 실패(무시하고 진행):', e); }
+  await idbAddAction({ type:'ONSITE_TICKET_DELETE', target_id:target.id, client_entry_id:null, schedule_id:currentSchedule.id, side:target.side, payload:{}, created_at:new Date().toISOString() });
 }
 
 // 🎫 사전 식권 수령 체크리스트 (Precheck에서 등록된 대상자를 현재 접수측 기준으로 표시)
@@ -1916,12 +2086,15 @@ function renderPreShareList(){
     return list.length ? list.map(function(p){
       var icon = p.side==='신랑측' ? '🤵' : '👰';
       var label = esc(p.person_name||'');
+      var delRef = (p.id!=null) ? p.id : ("'"+p.client_entry_id+"'");
+      var kindBadge = ticketKindOf(p)==='child' ? '<span style="font-size:9px;color:#7C3AED;font-weight:700;flex-shrink:0;margin-right:2px">소인</span>' : '';
       return '<div style="display:flex;align-items:center;gap:3px;padding:3px 0;border-bottom:1px solid #F5F3F0;font-size:10px">'+
         '<span style="flex-shrink:0">'+icon+'</span>'+
         '<span style="flex:1;min-width:0;color:#374151;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</span>'+
+        kindBadge+
         '<span style="font-weight:700;color:#374151;flex-shrink:0;margin-right:2px">'+p.amount+'장</span>'+
-        '<button onclick="editPreShare('+p.id+')" title="수정" style="width:18px;height:18px;background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">✏️</button>'+
-        '<button onclick="deletePreShare('+p.id+')" title="삭제" style="width:18px;height:18px;background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">🗑️</button>'+
+        '<button onclick="editPreShare('+delRef+')" title="수정" style="width:18px;height:18px;background:#EFF6FF;color:#2563EB;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">✏️</button>'+
+        '<button onclick="deletePreShare('+delRef+')" title="삭제" style="width:18px;height:18px;background:#FEF2F2;color:#DC2626;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0">🗑️</button>'+
       '</div>';
     }).join('') : empty;
   }
@@ -2802,6 +2975,9 @@ async function refreshSyncStatusModal(){
   const ticketInitCount=queue.filter(a=>a.type==='TICKET_INIT_SET').length;
   const ticketExtraCount=queue.filter(a=>a.type==='TICKET_EXTRA_ADD'||a.type==='TICKET_EXTRA_EDIT'||a.type==='TICKET_EXTRA_DELETE').length;
   const preShareCount=queue.filter(a=>a.type==='PRE_SHARE_TOGGLE').length;
+  const onsiteAddCount=queue.filter(a=>a.type==='ONSITE_TICKET_ADD').length;
+  const onsiteEditCount=queue.filter(a=>a.type==='ONSITE_TICKET_EDIT').length;
+  const onsiteDeleteCount=queue.filter(a=>a.type==='ONSITE_TICKET_DELETE').length;
   const memoCount=queue.filter(a=>a.type==='OPS_MEMO_ADD').length;
   const total=queue.length;
 
@@ -2821,6 +2997,9 @@ async function refreshSyncStatusModal(){
       if(ticketInitCount>0) lines.push('🎫 초기 식권 변경 '+ticketInitCount+'건');
       if(ticketExtraCount>0) lines.push('➕🎫 추가 식권 '+ticketExtraCount+'건');
       if(preShareCount>0) lines.push('🎟️ 사전 식권 수령 '+preShareCount+'건');
+      if(onsiteAddCount>0) lines.push('🎫 현장 식권 등록 '+onsiteAddCount+'건');
+      if(onsiteEditCount>0) lines.push('🎫 현장 식권 수정 '+onsiteEditCount+'건');
+      if(onsiteDeleteCount>0) lines.push('🎫 현장 식권 삭제 '+onsiteDeleteCount+'건');
       if(memoCount>0) lines.push('📝 운영메모 '+memoCount+'건');
       pendingEl.innerHTML=lines.join('<br>');
     }
@@ -2948,6 +3127,21 @@ async function flushOfflineQueue(){
         await sb.patch('ticket_additions', action.target_id, { received: action.payload.received });
         const idx=preShares.findIndex(p=>p.id===action.target_id);
         if(idx>-1) preShares[idx].received=action.payload.received;
+        ticketUiTouched=true;
+      } else if(action.type==='ONSITE_TICKET_ADD'){
+        const createdRow=await postWithDedup('ticket_additions', action.payload);
+        const idx=preShares.findIndex(p=>p.client_entry_id===action.client_entry_id);
+        if(idx>-1 && createdRow) preShares[idx]=createdRow;
+        ticketUiTouched=true;
+      } else if(action.type==='ONSITE_TICKET_EDIT'){
+        await sb.patch('ticket_additions', action.target_id, action.payload);
+        const idx=preShares.findIndex(p=>p.id===action.target_id);
+        if(idx>-1) Object.assign(preShares[idx], action.payload);
+        ticketUiTouched=true;
+      } else if(action.type==='ONSITE_TICKET_DELETE'){
+        const r=await fetch(sb.url('ticket_additions','?id=eq.'+action.target_id),{method:'DELETE',headers:sb.h});
+        if(!r.ok && r.status!==404) throw new Error('HTTP '+r.status);
+        preShares=preShares.filter(p=>p.id!==action.target_id);
         ticketUiTouched=true;
       }
       await idbDeleteAction(action.queue_id);
