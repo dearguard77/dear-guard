@@ -1445,6 +1445,8 @@ async function selectSchedule(id){
     // 초기 식권: DB값만 신뢰 (localStorage는 기기별로 달라져 불일치 원인)
     applyTicketTotalsFromSchedule();
     applyCashCountsFromSchedule();
+    await applyPendingCashCountIfAny();
+    _cashOfflineToastShown = { g:false, b:false }; // 예식 전환 시 새로 시작 (다른 예식의 오프라인 상태와 섞이지 않도록)
     renderLiveStartButton();
     sv('groom-total-ticket',totalTickets.groom||'');
     sv('bride-total-ticket',totalTickets.bride||'');
@@ -2399,6 +2401,7 @@ function subscribeRealtime(){
           sv('bride-total-ticket', totalTickets.bride||'');
           // 다른 기기의 현금 계수 수정값 즉시 반영 (계산기 창이 열려있으면 화면도 갱신)
           applyCashCountsFromSchedule();
+          await applyPendingCashCountIfAny(); // 로컬에 대기 중인 오프라인 저장값이 있으면 realtime 서버값보다 우선
           refreshCashCalcIfOpen();
           renderLiveStartButton();
           loadHandover();
@@ -2979,6 +2982,7 @@ async function refreshSyncStatusModal(){
   const onsiteEditCount=queue.filter(a=>a.type==='ONSITE_TICKET_EDIT').length;
   const onsiteDeleteCount=queue.filter(a=>a.type==='ONSITE_TICKET_DELETE').length;
   const memoCount=queue.filter(a=>a.type==='OPS_MEMO_ADD').length;
+  const cashCountCount=queue.filter(a=>a.type==='CASH_COUNT_SET').length;
   const total=queue.length;
 
   const statusEl=document.getElementById('sync-modal-status');
@@ -3001,6 +3005,7 @@ async function refreshSyncStatusModal(){
       if(onsiteEditCount>0) lines.push('🎫 현장 식권 수정 '+onsiteEditCount+'건');
       if(onsiteDeleteCount>0) lines.push('🎫 현장 식권 삭제 '+onsiteDeleteCount+'건');
       if(memoCount>0) lines.push('📝 운영메모 '+memoCount+'건');
+      if(cashCountCount>0) lines.push('🧮 계산기 저장 '+cashCountCount+'건');
       pendingEl.innerHTML=lines.join('<br>');
     }
   }
@@ -3143,6 +3148,15 @@ async function flushOfflineQueue(){
         if(!r.ok && r.status!==404) throw new Error('HTTP '+r.status);
         preShares=preShares.filter(p=>p.id!==action.target_id);
         ticketUiTouched=true;
+      } else if(action.type==='CASH_COUNT_SET'){
+        // 반드시 action.schedule_id 사용 — 오프라인 저장 이후 다른 예식으로 이동했을 수 있으므로 currentSchedule.id를 쓰면 안 됨
+        const col = action.side==='g' ? 'cash_count_groom' : 'cash_count_bride';
+        await sb.patch('schedules', action.schedule_id, { [col]: action.payload.denominations });
+        if(currentSchedule && currentSchedule.id===action.schedule_id){
+          currentSchedule[col] = action.payload.denominations.slice();
+          if(action.side===_cashSide) refreshCashCalcIfOpen();
+          if(_cashOfflineToastShown) _cashOfflineToastShown[action.side] = false;
+        }
       }
       await idbDeleteAction(action.queue_id);
       successCount++;
@@ -3856,6 +3870,7 @@ const CASH_DENOMS = [50000, 10000, 5000, 1000];
 const _cashQty = { g: [0,0,0,0], b: [0,0,0,0] };
 let _cashSide = 'g'; // 현재 선택 측
 let _cashSaveTimers = { g: null, b: null };
+let _cashOfflineToastShown = { g: false, b: false }; // 같은 예식·측에서 오프라인 저장이 연속될 때 토스트 반복 방지
 let _cashStatusRevertTimer = null;
 
 // ── 라이브 기준시각 저장 (schedule_id당 1개, 신랑/신부 구분 없음) ──
@@ -4028,6 +4043,7 @@ async function openCashCalc(){
     }catch(e){ console.warn('[DG] 현금 계수 불러오기 실패:',e); }
   }
   applyCashCountsFromSchedule();
+  await applyPendingCashCountIfAny(); // 오프라인 저장 중이던 값이 있으면 방금 불러온 서버값보다 우선
   // 탭 설정 및 입력창 복원
   _setCashSideInternal(activeSide);
   document.getElementById('cash-calc-modal').style.display='flex';
@@ -4071,14 +4087,55 @@ function saveCashCountDebounced(side){
 async function saveCashCountNow(side){
   if(!currentSchedule) return;
   const col = side==='g' ? 'cash_count_groom' : 'cash_count_bride';
+  const scheduleId = currentSchedule.id; // 저장 시점 예식으로 고정 (동기화 시 이 값을 그대로 사용)
+  const denominations = _cashQty[side].slice();
   try{
-    await sb.patch('schedules', currentSchedule.id, { [col]: _cashQty[side] });
-    currentSchedule[col] = _cashQty[side].slice();
+    await sb.patch('schedules', scheduleId, { [col]: denominations });
+    if(currentSchedule && currentSchedule.id===scheduleId) currentSchedule[col] = denominations.slice();
     setCashSaveStatus('saved');
-  }catch(e){
-    console.error('[DG] 현금 계수 저장 실패:', e);
-    setCashSaveStatus('error');
+    _cashOfflineToastShown[side] = false; // 온라인 성공 시 리셋 — 다음에 다시 오프라인이 되면 토스트가 다시 1회 뜨도록
+  }catch(netErr){
+    console.warn('[DG] 현금 계수 온라인 저장 실패 — 오프라인 큐잉 시도:', netErr);
+    try{
+      await queueCashCountSet(scheduleId, side, denominations);
+      setCashSaveStatus('offline');
+      if(!_cashOfflineToastShown[side]){
+        showToast('📴 계산기 내용이 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
+        _cashOfflineToastShown[side] = true; // 같은 예식·측이 오프라인인 동안은 반복 표시하지 않음
+      }
+      const q = await idbGetQueueForSchedule(scheduleId).catch(()=>[]);
+      setSyncStatus('offline', q.length);
+    }catch(idbErr){
+      // IndexedDB 저장 자체가 실패한 경우는 매번 안내 (요구사항)
+      console.error('[DG] 현금 계수 오프라인 큐잉 실패:', idbErr);
+      setCashSaveStatus('error');
+      showToast('⚠️ 계산기 내용을 저장하지 못했습니다. 다시 시도해주세요.');
+    }
   }
+}
+// 계산기 저장 큐잉 — 동일 schedule_id+side의 CASH_COUNT_SET은 1개만 유지, payload/created_at 최신화
+async function queueCashCountSet(scheduleId, side, denominations){
+  const queue = await idbGetQueueForSchedule(scheduleId).catch(()=>[]);
+  const existing = queue.find(a=>a.type==='CASH_COUNT_SET' && a.side===side);
+  const now = new Date().toISOString();
+  if(existing){
+    existing.payload = { denominations };
+    existing.created_at = now; // 마지막 수정 시각으로 갱신
+    await idbPutAction(existing); // queue_id 유지
+  } else {
+    await idbAddAction({ type:'CASH_COUNT_SET', target_id:null, client_entry_id:null, schedule_id:scheduleId, side, payload:{denominations}, created_at:now });
+  }
+}
+// 예식 진입/계산기 오픈 시, 서버값 위에 대기 중인 CASH_COUNT_SET이 있으면 그 값으로 덮어써 화면에 우선 반영
+async function applyPendingCashCountIfAny(){
+  if(!currentSchedule) return;
+  try{
+    const queue = await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+    const gAction = queue.find(a=>a.type==='CASH_COUNT_SET' && a.side==='g');
+    const bAction = queue.find(a=>a.type==='CASH_COUNT_SET' && a.side==='b');
+    if(gAction && gAction.payload && Array.isArray(gAction.payload.denominations)) _cashQty.g = gAction.payload.denominations.slice();
+    if(bAction && bAction.payload && Array.isArray(bAction.payload.denominations)) _cashQty.b = bAction.payload.denominations.slice();
+  }catch(e){ console.warn('[DG] 대기 중인 계산기 값 복원 실패:', e); }
 }
 
 // 상단 저장 상태 문구 (저장 중 / 저장됨 / 저장 실패 → 잠시 후 기본 문구로 복귀)
@@ -4091,6 +4148,8 @@ function setCashSaveStatus(state){
   } else if(state==='saved'){
     el.textContent='저장됨'; el.style.color='#059669';
     _cashStatusRevertTimer=setTimeout(()=>{ el.textContent='실시간 자동 저장'; el.style.color='#9CA3AF'; },1500);
+  } else if(state==='offline'){
+    el.textContent='🟠 오프라인 저장됨'; el.style.color='#D97706';
   } else if(state==='error'){
     el.textContent='저장 실패'; el.style.color='#DC2626';
     _cashStatusRevertTimer=setTimeout(()=>{ el.textContent='실시간 자동 저장'; el.style.color='#9CA3AF'; },2500);
