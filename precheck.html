@@ -175,8 +175,8 @@ input,select,textarea{font-family:inherit;outline:none}
 <div id="loading"><div class="loading-logo">Dear Guard</div><div class="spinner"></div></div>
 <div id="error-screen">
   <div style="font-size:36px;margin-bottom:12px">⚠️</div>
-  <div style="font-size:17px;font-weight:800;margin-bottom:6px">링크를 확인해주세요</div>
-  <div style="font-size:13px;color:var(--text3);line-height:1.6">유효하지 않은 링크입니다.<br>담당 매니저에게 올바른 링크를 요청해주세요.</div>
+  <div style="font-size:17px;font-weight:800;margin-bottom:6px" id="error-title">링크를 확인해주세요</div>
+  <div style="font-size:13px;color:var(--text3);line-height:1.6" id="error-msg">유효하지 않은 링크입니다.<br>담당 매니저에게 올바른 링크를 요청해주세요.</div>
 </div>
 
 <div id="app">
@@ -774,6 +774,31 @@ let schedule = null;
 let sideFilter = null;
 let preShares = [];
 
+// ── 고객 링크 만료 정책 (기준일: 2026-08-04, 모든 계산은 예식일 기준) ──
+const POLICY_CHANGE_DATE = '2026-08-04';
+const CUSTOMER_ACCESS_MONTHS = 1;
+function isCustomerLinkExpired(scheduleDate){
+  if(!scheduleDate) return false;
+  const [y,mo,d] = scheduleDate.split('-').map(Number);
+  // 목표 월의 1일로 이동 후, 그 달의 마지막 날과 원래 일자 중 작은 값을 사용 (월말 보정)
+  const targetFirst = new Date(y, (mo-1)+CUSTOMER_ACCESS_MONTHS, 1);
+  const lastDayOfTargetMonth = new Date(targetFirst.getFullYear(), targetFirst.getMonth()+1, 0).getDate();
+  const accessEndDay = Math.min(d, lastDayOfTargetMonth);
+  // 접근 가능 마지막 날의 "다음 날 00:00"이 실제 만료 시각
+  const expireDate = new Date(targetFirst.getFullYear(), targetFirst.getMonth(), accessEndDay+1);
+  return new Date() >= expireDate;
+}
+function showExpired(){
+  document.getElementById('loading').style.display='none';
+  const el = document.getElementById('error-screen');
+  const titleEl = document.getElementById('error-title');
+  const msgEl = document.getElementById('error-msg');
+  if(titleEl) titleEl.textContent = '조회 기간이 만료되었습니다';
+  if(msgEl){
+    msgEl.innerHTML = '개인정보 보호를 위해 본식 종료 후 1개월 동안만 조회 가능합니다.<br>필요한 자료는 반드시 기간 내 개별 저장 부탁드립니다.';
+  }
+  if(el) el.style.display='flex';
+}
 const getToken = () => new URLSearchParams(location.search).get('t') || '';
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const gv = id => { const el=document.getElementById(id); return el?el.value.trim():null; };
@@ -797,6 +822,7 @@ async function init(){
     if(!rows.length){ showError(); return; }
 
     schedule = rows[0];
+    if(isCustomerLinkExpired(schedule.date)){ showExpired(); return; }
 
     try {
       preShares = await sb.get('ticket_additions',

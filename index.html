@@ -7517,6 +7517,8 @@ async function rtSaveHandoverCertImage(viewOnly){
 function rtGenStep4(){
   const t    = rtTarget;
   const link = rtGetLink();
+  // 고객 링크 만료 정책: 2026-08-04 이전 예식은 기존 3개월 안내 유지, 이후 예식은 1개월로 변경 (다른 문구는 그대로 유지)
+  const _ledgerAccessMonthsText = (rtSchedule && rtSchedule.date && rtSchedule.date < '2026-08-04') ? '3개월' : '1개월';
   // 5. 장부 메시지는 신랑님/신부님/양측 진행 관계없이 호칭·인사말 없이 바로 본문으로 시작
   // 양측 진행일 때만 통합 링크 아래에 신랑측/신부측 전용 링크 안내 추가 (신랑님/신부님 선택 시에는 기존과 동일)
   let sideLinksBlock = '';
@@ -7548,7 +7550,7 @@ ${brideLink}
 등으로 활용 가능하십니다 😊
 
 다만 개인정보 보호를 위해
-장부 링크는 본식 종료 후 약 3개월 뒤 삭제 예정으로,
+장부 링크는 본식 종료 후 약 ${_ledgerAccessMonthsText} 뒤 삭제 예정으로,
 
 필요하신 경우 우측 상단의
 "엑셀 다운로드" 기능을 통해
