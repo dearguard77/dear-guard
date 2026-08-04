@@ -83,26 +83,39 @@ Deno.serve(async (req: Request) => {
   };
 
   try {
-    const osRes = await fetch(ONESIGNAL_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        // OneSignal 최신 REST API 인증 형식: "Key {REST_API_KEY}"
-        "Authorization": `Key ${ONESIGNAL_REST_API_KEY}`,
-      },
-      body: JSON.stringify(oneSignalPayload),
-    });
+    // OneSignal 키 세대(신형 Rich API 키 vs 구형 Legacy 키)에 따라 요구하는 Authorization 형식이 다름
+    // ("Key ..." 신형 / "Basic ..." 구형). Secret에 등록된 키가 어느 쪽인지 코드에서 미리 알 수 없으므로,
+    // "Key"로 먼저 시도하고 401이면 "Basic"으로 1회만 자동 재시도한다.
+    const authFormats = [`Key ${ONESIGNAL_REST_API_KEY}`, `Basic ${ONESIGNAL_REST_API_KEY}`];
+    let osRes: Response | null = null;
+    let osResultText = "";
 
-    const osResultText = await osRes.text();
+    for (let i = 0; i < authFormats.length; i++) {
+      osRes = await fetch(ONESIGNAL_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Authorization": authFormats[i],
+        },
+        body: JSON.stringify(oneSignalPayload),
+      });
+      osResultText = await osRes.text();
 
-    if (!osRes.ok) {
+      if (osRes.status !== 401) break; // 401(인증 형식 문제)이 아니면 재시도하지 않음
+
+      console.error(
+        `[send-admin-push] OneSignal 인증 실패(401, 형식: ${authFormats[i].split(" ")[0]}) — 다음 형식으로 재시도`
+      );
+    }
+
+    if (!osRes!.ok) {
       // OneSignal API 실패 시 상태코드와 오류 내용을 서버 로그에 기록 (기존 디어가드 DB는 건드리지 않음)
       console.error(
-        `[send-admin-push] OneSignal API 실패 (status ${osRes.status}):`,
+        `[send-admin-push] OneSignal API 실패 (status ${osRes!.status}):`,
         osResultText
       );
       return jsonResponse(
-        { error: "푸시 발송에 실패했습니다.", onesignal_status: osRes.status },
+        { error: "푸시 발송에 실패했습니다.", onesignal_status: osRes!.status },
         502
       );
     }
