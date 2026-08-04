@@ -532,6 +532,7 @@
       <!-- 오늘 예식 인라인 -->
       <div id="today-list"></div>
     </div>
+    <div id="today-checklist-card"></div>
     <div class="stats-grid" id="stats-grid"></div>
 
     <!-- 운영 바로가기 (관리자 전용) -->
@@ -2107,6 +2108,7 @@ function renderAll(){
   renderBanner();
   renderStats();
   renderToday();
+  renderTodayChecklist();
   renderUpcoming();
   renderPrecheckReminder();
   renderCalendar();
@@ -2194,6 +2196,91 @@ function renderToday(){
         </div>
       </div>`
     ).join('') + `</div>`;
+}
+
+// ─── 오늘 체크리스트 (기상 확인, 매니저 전용) ──────────────────────────────────
+// 관리자는 카드 자체를 표시하지 않고, 오늘 배정된 예식이 1개 이상인 매니저에게만 노출한다.
+// 기상 확인은 예식별이 아니라 직원+날짜 기준 하루 1회(staff_daily_ops UNIQUE(staff_id, work_date)).
+let _wakeUpSaving = false;
+
+async function renderTodayChecklist(){
+  const el = document.getElementById('today-checklist-card');
+  if(!el) return;
+
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+  const todayCount = visible().filter(s => s.date === TODAY).length;
+
+  if(isAdmin || todayCount === 0){
+    el.innerHTML = '';
+    return;
+  }
+
+  let wakeUpAt = null;
+  try{
+    const rows = await sb.get('staff_daily_ops', `?staff_id=eq.${currentUser.id}&work_date=eq.${TODAY}&select=wake_up_at`);
+    if(rows && rows.length) wakeUpAt = rows[0].wake_up_at;
+  }catch(e){
+    console.error('[DG] 기상 기록 조회 실패:', e);
+  }
+
+  el.innerHTML = `
+    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px">오늘 체크리스트</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="font-size:13px;color:#374151">🌅 기상 확인</div>
+        ${wakeUpAt
+          ? `<span style="font-size:12px;font-weight:700;color:#059669">✅ 기상 완료 · ${formatWakeUpTime(wakeUpAt)}</span>`
+          : `<button id="wake-up-confirm-btn" onclick="confirmWakeUp()" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">기상 확인 완료</button>`
+        }
+      </div>
+    </div>`;
+}
+
+function formatWakeUpTime(isoStr){
+  const d = new Date(isoStr);
+  const h = d.getHours();
+  const ampm = h < 12 ? '오전' : '오후';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${ampm} ${h12}:${mm}`;
+}
+
+async function confirmWakeUp(){
+  if(_wakeUpSaving) return;
+  if(!confirm('기상 확인을 완료 처리하시겠습니까?')) return;
+
+  const btn = document.getElementById('wake-up-confirm-btn');
+  _wakeUpSaving = true;
+  if(btn){ btn.disabled = true; btn.style.opacity = '.6'; }
+
+  try{
+    const now = new Date().toISOString();
+    await sbUpsertStaffDailyOps({
+      staff_id: currentUser.id,
+      work_date: TODAY,
+      wake_up_at: now,
+      updated_at: now,
+    });
+    await renderTodayChecklist();
+  }catch(e){
+    console.error('[DG] 기상 확인 저장 실패:', e);
+    showToast('⚠️ 기상 확인 저장에 실패했습니다. 다시 시도해주세요.');
+  }finally{
+    _wakeUpSaving = false;
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+  }
+}
+
+// 기존 sb 래퍼(get/post/patch/delete/rpc)에는 upsert가 없어, staff_daily_ops 전용으로 최소한의 별도 요청 함수만 추가한다.
+// PostgREST의 upsert 방식(POST + Prefer: resolution=merge-duplicates + on_conflict) 사용, conflict 키는 staff_id,work_date.
+async function sbUpsertStaffDailyOps(body){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/staff_daily_ops?on_conflict=staff_id,work_date`, {
+    method: 'POST',
+    headers: { ...sb.headers, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
 }
 
 function renderUpcoming(){
