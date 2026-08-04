@@ -2263,14 +2263,15 @@ async function renderTodayChecklist(){
 
   // 출발·도착 상태를 한 번의 조회로 함께 가져와 Map으로 분리 (예식별 개별 조회 금지)
   // 실패해도 기상 UI는 그대로 유지하고 출발/도착 구역만 생략
+  // schedule_id(bigint)는 PostgREST가 문자열로 내려줄 수 있어 String()으로 키를 통일해 조회 실패를 방지한다.
   let departedMap = new Map();
   let arrivedMap  = new Map();
   try{
     const ids = todayList.map(s => s.id).join(',');
     const rows = await sb.get('schedule_ops_events', `?schedule_id=in.(${ids})&event_type=in.(departed,arrived)&select=schedule_id,event_type,completed_at`);
     (rows||[]).forEach(r => {
-      if(r.event_type === 'departed') departedMap.set(r.schedule_id, r.completed_at);
-      if(r.event_type === 'arrived')  arrivedMap.set(r.schedule_id, r.completed_at);
+      if(r.event_type === 'departed') departedMap.set(String(r.schedule_id), r.completed_at);
+      if(r.event_type === 'arrived')  arrivedMap.set(String(r.schedule_id), r.completed_at);
     });
   }catch(e){
     console.error('[DG] 출발·도착 기록 조회 실패:', e);
@@ -2282,8 +2283,8 @@ async function renderTodayChecklist(){
 
   let departSectionHtml = '';
   if(wakeUpAt && currentSchedule){
-    const departedAt = departedMap.get(currentSchedule.id);
-    const arrivedAt  = arrivedMap.get(currentSchedule.id);
+    const departedAt = departedMap.get(String(currentSchedule.id));
+    const arrivedAt  = arrivedMap.get(String(currentSchedule.id));
 
     const departRowHtml = `
       <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
