@@ -1869,6 +1869,40 @@ function initLoginScreen(){
   dl.innerHTML = USERS.map(u => `<option value="${u.name} (${u.role})"></option>`).join('');
 }
 
+// ─── OneSignal External ID 연결 (로그인 사용자 ↔ staff_{id}) ──────────────────
+// SDK 준비 여부를 직접 가정하지 않고 기존 OneSignalDeferred 큐에 안전하게 실행을 위임한다.
+// 중복 호출돼도(로그인/자동복구 양쪽에서 호출될 수 있음) OneSignal SDK 자체가 동일 로그인 재호출을 안전하게 처리하므로 별도 방지 로직은 두지 않는다.
+async function identifyOneSignalUser(){
+  try{
+    if(!currentUser || currentUser.id == null) return;
+    const externalId = `staff_${currentUser.id}`;
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async function(OneSignal){
+      try{
+        await OneSignal.login(externalId);
+      }catch(e){
+        console.error('[DG] OneSignal External ID 연결 실패:', e);
+      }
+    });
+  }catch(e){
+    console.error('[DG] OneSignal 연결 준비 중 오류:', e);
+  }
+}
+async function unlinkOneSignalUser(){
+  try{
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async function(OneSignal){
+      try{
+        await OneSignal.logout();
+      }catch(e){
+        console.error('[DG] OneSignal 연결 해제 실패:', e);
+      }
+    });
+  }catch(e){
+    console.error('[DG] OneSignal 로그아웃 준비 중 오류:', e);
+  }
+}
+
 async function doLogin(){
   const nameVal = (document.getElementById('login-name').value || '').trim();
   const pwVal   = document.getElementById('login-pw').value;
@@ -1912,12 +1946,14 @@ async function doLogin(){
   // 로그인 성공 — localStorage에 저장 (기존 자동 재로그인 방식 그대로 유지)
   localStorage.setItem('dg_user_id', user.id);
   currentUser = user;
+  identifyOneSignalUser();
   document.getElementById('login-screen').style.display = 'none';
   startApp();
 }
 
 function doLogout(){
   if(!confirm('로그아웃 하시겠습니까?')) return;
+  unlinkOneSignalUser();
   localStorage.removeItem('dg_user_id');
   location.reload();
 }
@@ -1932,6 +1968,7 @@ async function init(){
     const user = USERS.find(u => u.id === Number(savedId));
     if(user){
       currentUser = user;
+      identifyOneSignalUser();
       document.getElementById('login-screen').style.display = 'none';
       await startApp();
       return;
