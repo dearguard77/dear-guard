@@ -3341,7 +3341,7 @@ function renderReferralList(){
               ⚠️ 대표 측 미지정 ${unassigned.length}건 — 클릭하여 예식으로 이동 후 지정해주세요
             </div>
             ${unassigned.map(s => `
-              <div onclick="document.getElementById('referral-modal').remove();openDetail(${s.id})"
+              <div onclick="closeReferralModal();openForm(${s.id})"
                 style="border:1px solid #FCA5A5;border-radius:8px;padding:8px 12px;margin-bottom:6px;background:#FFF5F5;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
                 <span style="font-size:12px;font-weight:700;color:#1F2937">${esc(s.groomName)} ♥ ${esc(s.brideName)}</span>
                 <span style="font-size:10px;color:#6B7280">${s.date || ''} →</span>
