@@ -411,6 +411,42 @@
   pointer-events:none;
 }
 </style>
+
+<style>
+/* 오늘 운영현황(관리자) / 오늘 체크리스트(매니저) 모바일 전용 — 신규 클래스만 다룸, 전역 .card/.stats-grid 등은 건드리지 않음 */
+@media (max-width: 768px){
+  #today-ops-summary-card .today-ops-row{
+    flex-wrap: wrap;
+  }
+  #today-ops-summary-card .today-ops-time,
+  #today-ops-summary-card .today-ops-main{
+    min-width: 0;
+  }
+  #today-ops-summary-card .today-ops-status{
+    width: 100%;
+    flex: none;
+    text-align: left;
+    margin-top: 2px;
+    padding-left: 52px;
+    box-sizing: border-box;
+  }
+  #today-checklist-card .today-checklist-step-row{
+    flex-wrap: wrap;
+  }
+  #today-checklist-card .today-checklist-schedule-info{
+    white-space: normal;
+    line-height: 1.4;
+  }
+  #today-checklist-card .today-checklist-action-btn{
+    width: 100%;
+    min-height: 44px;
+  }
+  #today-checklist-card .today-checklist-done-label{
+    white-space: normal;
+    text-align: right;
+  }
+}
+</style>
 </head>
 <body>
 <div id="ptr-indicator">↓ 아래로 당겨 새로고침</div>
@@ -2210,9 +2246,9 @@ async function renderTodayChecklist(){
   if(!el) return;
 
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
-  const todayCount = visible().filter(s => s.date === TODAY).length;
+  const todayList = visible().filter(s => s.date === TODAY).slice().sort((a,b) => (a.time||'').localeCompare(b.time||''));
 
-  if(isAdmin || todayCount === 0){
+  if(isAdmin || todayList.length === 0){
     el.innerHTML = '';
     return;
   }
@@ -2225,6 +2261,53 @@ async function renderTodayChecklist(){
     console.error('[DG] 기상 기록 조회 실패:', e);
   }
 
+  // 출발·도착 상태를 한 번의 조회로 함께 가져와 Map으로 분리 (예식별 개별 조회 금지)
+  // 실패해도 기상 UI는 그대로 유지하고 출발/도착 구역만 생략
+  let departedMap = new Map();
+  let arrivedMap  = new Map();
+  try{
+    const ids = todayList.map(s => s.id).join(',');
+    const rows = await sb.get('schedule_ops_events', `?schedule_id=in.(${ids})&event_type=in.(departed,arrived)&select=schedule_id,event_type,completed_at`);
+    (rows||[]).forEach(r => {
+      if(r.event_type === 'departed') departedMap.set(r.schedule_id, r.completed_at);
+      if(r.event_type === 'arrived')  arrivedMap.set(r.schedule_id, r.completed_at);
+    });
+  }catch(e){
+    console.error('[DG] 출발·도착 기록 조회 실패:', e);
+  }
+
+  // 현재 예식: 오늘 가장 빠른 예식으로 고정 — 운영완료(다음 단계)가 구현되기 전까지는
+  // 출발·도착만으로 다음 예식으로 넘어가지 않는다.
+  const currentSchedule = todayList[0] || null;
+
+  let departSectionHtml = '';
+  if(wakeUpAt && currentSchedule){
+    const departedAt = departedMap.get(currentSchedule.id);
+    const arrivedAt  = arrivedMap.get(currentSchedule.id);
+
+    let stepLabel, stepControlHtml;
+    if(!departedAt){
+      stepLabel = '🚗 출발 확인';
+      stepControlHtml = `<button id="depart-confirm-btn" class="today-checklist-action-btn" onclick="confirmDepart(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">🚗 출발 완료</button>`;
+    } else if(!arrivedAt){
+      stepLabel = '📍 도착 확인';
+      stepControlHtml = `<button id="arrive-confirm-btn" class="today-checklist-action-btn" onclick="confirmArrive(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">📍 도착 완료</button>`;
+    } else {
+      stepLabel = '📍 도착 확인';
+      stepControlHtml = `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 도착 완료 · ${formatWakeUpTime(arrivedAt)}</span>`;
+    }
+
+    departSectionHtml = `
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #E5E7EB">
+        <div style="font-size:12px;color:#9CA3AF;font-weight:700;margin-bottom:6px">현재 예식</div>
+        <div class="today-checklist-schedule-info" style="font-size:13px;color:#111827;font-weight:600;margin-bottom:8px">${esc(currentSchedule.time||'-')} ${esc(currentSchedule.hall)} · ${esc(coupleName(currentSchedule))}</div>
+        <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="font-size:13px;color:#374151">${stepLabel}</div>
+          ${stepControlHtml}
+        </div>
+      </div>`;
+  }
+
   el.innerHTML = `
     <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px">오늘 체크리스트</div>
@@ -2232,9 +2315,10 @@ async function renderTodayChecklist(){
         <div style="font-size:13px;color:#374151">🌅 기상 확인</div>
         ${wakeUpAt
           ? `<span style="font-size:12px;font-weight:700;color:#059669">✅ 기상 완료 · ${formatWakeUpTime(wakeUpAt)}</span>`
-          : `<button id="wake-up-confirm-btn" onclick="confirmWakeUp()" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">기상 확인 완료</button>`
+          : `<button id="wake-up-confirm-btn" class="today-checklist-action-btn" onclick="confirmWakeUp()" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">기상 확인 완료</button>`
         }
       </div>
+      ${departSectionHtml}
     </div>`;
 }
 
@@ -2285,6 +2369,80 @@ async function sbUpsertStaffDailyOps(body){
   return r.json();
 }
 
+// ─── 출발 완료 (매니저 전용, 예식별) ────────────────────────────────────────────
+let _departSaving = false;
+
+async function confirmDepart(scheduleId){
+  if(_departSaving) return;
+  if(!confirm('해당 예식의 출발을 완료 처리하시겠습니까?')) return;
+
+  const btn = document.getElementById('depart-confirm-btn');
+  _departSaving = true;
+  if(btn){ btn.disabled = true; btn.style.opacity = '.6'; }
+
+  try{
+    const now = new Date().toISOString();
+    await sbUpsertScheduleOpsEvent({
+      schedule_id: scheduleId,
+      event_type: 'departed',
+      completed_at: now,
+      completed_by_staff_id: currentUser.id,
+      completed_by_name: currentUser.name,
+      metadata: {},
+    });
+    await renderTodayChecklist();
+  }catch(e){
+    console.error('[DG] 출발 완료 저장 실패:', e);
+    showToast('⚠️ 출발 완료 저장에 실패했습니다. 다시 시도해주세요.');
+  }finally{
+    _departSaving = false;
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+  }
+}
+
+// 기존 sb 래퍼에는 upsert가 없어, schedule_ops_events 전용으로 최소한의 별도 요청 함수만 추가한다.
+// conflict 키는 schedule_id,event_type (staff_daily_ops의 upsert 함수와 동일한 PostgREST 방식).
+async function sbUpsertScheduleOpsEvent(body){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/schedule_ops_events?on_conflict=schedule_id,event_type`, {
+    method: 'POST',
+    headers: { ...sb.headers, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+// ─── 도착 완료 (매니저 전용, 예식별) — confirmDepart와 동일한 패턴, sbUpsertScheduleOpsEvent 재사용 ──
+let _arriveSaving = false;
+
+async function confirmArrive(scheduleId){
+  if(_arriveSaving) return;
+  if(!confirm('해당 예식의 도착을 완료 처리하시겠습니까?')) return;
+
+  const btn = document.getElementById('arrive-confirm-btn');
+  _arriveSaving = true;
+  if(btn){ btn.disabled = true; btn.style.opacity = '.6'; }
+
+  try{
+    const now = new Date().toISOString();
+    await sbUpsertScheduleOpsEvent({
+      schedule_id: scheduleId,
+      event_type: 'arrived',
+      completed_at: now,
+      completed_by_staff_id: currentUser.id,
+      completed_by_name: currentUser.name,
+      metadata: {},
+    });
+    await renderTodayChecklist();
+  }catch(e){
+    console.error('[DG] 도착 완료 저장 실패:', e);
+    showToast('⚠️ 도착 완료 저장에 실패했습니다. 다시 시도해주세요.');
+  }finally{
+    _arriveSaving = false;
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+  }
+}
+
 // ─── 오늘 운영현황 (관리자 전용) ────────────────────────────────────────────────
 // 오늘 예식을 시간순으로 최대 5개까지 요약하고, 담당자별 기상 확인 상태를 함께 보여준다.
 // staff_daily_ops는 오늘 날짜 전체를 1회만 조회해서 Map으로 매칭한다(예식마다 개별 조회하지 않음).
@@ -2319,10 +2477,38 @@ async function renderTodayOpsSummary(){
   const extraCount = todayList.length - shown.length;
   const seenStaffIds = new Set();
 
+  // 출발·도착 상태를 한 번의 조회로 함께 가져와 Map으로 분리 (화면에 표시될 최대 5건 대상, 예식별 개별 조회 금지)
+  // 실패해도 기존 기상 기반 표시는 그대로 유지
+  let departedMap = new Map();
+  let arrivedMap  = new Map();
+  try{
+    const ids = shown.map(s => s.id).join(',');
+    if(ids){
+      const eRows = await sb.get('schedule_ops_events', `?schedule_id=in.(${ids})&event_type=in.(departed,arrived)&select=schedule_id,event_type,completed_at`);
+      (eRows||[]).forEach(r => {
+        if(r.event_type === 'departed') departedMap.set(r.schedule_id, r.completed_at);
+        if(r.event_type === 'arrived')  arrivedMap.set(r.schedule_id, r.completed_at);
+      });
+    }
+  }catch(e){
+    console.error('[DG] 오늘 운영현황 출발·도착 기록 조회 실패:', e);
+  }
+
   const rowsHtml = shown.map(s => {
     const names = _opsManagerNames(s);
-    const statusHtml = names.length
-      ? names.map(name => {
+    const arrivedAt  = arrivedMap.get(s.id);
+    const departedAt = departedMap.get(s.id);
+    const namesText = names.length ? names.map(n => esc(n)).join(' · ') : '담당자 미지정';
+    let statusHtml;
+    if(arrivedAt){
+      // 도착 완료는 출발·기상 상태보다 우선 표시 (이번 단계 우선순위 규칙)
+      names.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
+      statusHtml = `${namesText} <span style="color:#2563EB">📍 도착 ${formatWakeUpTime(arrivedAt)}</span>`;
+    } else if(departedAt){
+      names.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
+      statusHtml = `${namesText} <span style="color:#2563EB">🚗 출발 ${formatWakeUpTime(departedAt)}</span>`;
+    } else if(names.length){
+      statusHtml = names.map(name => {
           const u = USERS.find(u => u.name === name);
           if(!u) return `<span style="color:#9CA3AF">${esc(name)}</span>`;
           let statusText;
@@ -2336,19 +2522,21 @@ async function renderTodayOpsSummary(){
               : `<span style="color:#D97706">⚠️ 기상 미확인</span>`;
           }
           return `${esc(name)} ${statusText}`;
-        }).join(' · ')
-      : `<span style="color:#9CA3AF">담당자 미지정</span>`;
+        }).join(' · ');
+    } else {
+      statusHtml = `<span style="color:#9CA3AF">담당자 미지정</span>`;
+    }
 
     return `
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:12px">
-        <span style="color:#6B7280;flex-shrink:0;width:44px">${esc(s.time||'-')}</span>
-        <span style="color:#111827;font-weight:600;flex-shrink:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(coupleName(s))} · ${esc(s.hall)}</span>
-        <span style="flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${statusHtml}</span>
+      <div class="today-ops-row" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:12px;min-width:0">
+        <span class="today-ops-time" style="color:#6B7280;flex-shrink:0;width:44px">${esc(s.time||'-')}</span>
+        <span class="today-ops-main" style="color:#111827;font-weight:600;flex-shrink:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(coupleName(s))} · ${esc(s.hall)}</span>
+        <span class="today-ops-status" style="flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">${statusHtml}</span>
       </div>`;
   }).join('');
 
   el.innerHTML = `
-    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;margin-bottom:14px">
+    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;margin-bottom:14px;overflow:hidden">
       <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px">오늘 운영현황</div>
       ${rowsHtml}
       ${extraCount > 0 ? `<div style="font-size:11px;color:#9CA3AF;text-align:right;margin-top:6px">외 ${extraCount}건</div>` : ''}
