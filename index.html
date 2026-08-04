@@ -383,6 +383,15 @@
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "5d9c8bc4-91b7-4bdd-a951-7f8ff07d7718",
+    });
+  });
+</script>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
