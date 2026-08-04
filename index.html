@@ -2285,26 +2285,33 @@ async function renderTodayChecklist(){
     const departedAt = departedMap.get(currentSchedule.id);
     const arrivedAt  = arrivedMap.get(currentSchedule.id);
 
-    let stepLabel, stepControlHtml;
-    if(!departedAt){
-      stepLabel = '🚗 출발 확인';
-      stepControlHtml = `<button id="depart-confirm-btn" class="today-checklist-action-btn" onclick="confirmDepart(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">🚗 출발 완료</button>`;
-    } else if(!arrivedAt){
-      stepLabel = '📍 도착 확인';
-      stepControlHtml = `<button id="arrive-confirm-btn" class="today-checklist-action-btn" onclick="confirmArrive(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">📍 도착 완료</button>`;
-    } else {
-      stepLabel = '📍 도착 확인';
-      stepControlHtml = `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 도착 완료 · ${formatWakeUpTime(arrivedAt)}</span>`;
+    const departRowHtml = `
+      <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+        <div style="font-size:13px;color:#374151">🚗 출발 확인</div>
+        ${departedAt
+          ? `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 출발 완료 · ${formatWakeUpTime(departedAt)}</span>`
+          : `<button id="depart-confirm-btn" class="today-checklist-action-btn" onclick="confirmDepart(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">🚗 출발 완료</button>`
+        }
+      </div>`;
+
+    let arriveRowHtml = '';
+    if(departedAt){
+      arriveRowHtml = `
+        <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="font-size:13px;color:#374151">📍 도착 확인</div>
+          ${arrivedAt
+            ? `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 도착 완료 · ${formatWakeUpTime(arrivedAt)}</span>`
+            : `<button id="arrive-confirm-btn" class="today-checklist-action-btn" onclick="confirmArrive(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">📍 도착 완료</button>`
+          }
+        </div>`;
     }
 
     departSectionHtml = `
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid #E5E7EB">
         <div style="font-size:12px;color:#9CA3AF;font-weight:700;margin-bottom:6px">현재 예식</div>
         <div class="today-checklist-schedule-info" style="font-size:13px;color:#111827;font-weight:600;margin-bottom:8px">${esc(currentSchedule.time||'-')} ${esc(currentSchedule.hall)} · ${esc(coupleName(currentSchedule))}</div>
-        <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <div style="font-size:13px;color:#374151">${stepLabel}</div>
-          ${stepControlHtml}
-        </div>
+        ${departRowHtml}
+        ${arriveRowHtml}
       </div>`;
   }
 
