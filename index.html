@@ -2737,11 +2737,33 @@ async function renderTodayOpsSummary(){
       statusHtml = `<span style="color:#9CA3AF">담당자 미지정</span>`;
     }
 
+    // 예식별 진행률 (총 6단계: 기상/출발/도착/운영완료/인계완료/라이브등록)
+    // 기상은 담당자가 여러 명이어도 "한 명이라도 오늘 기상 기록이 있으면" 1단계로만 계산한다.
+    const anyManagerWokeUp = names.some(name => {
+      const u = USERS.find(u => u.name === name);
+      return u && wakeUpMap.has(u.id);
+    });
+    const completedCount = [anyManagerWokeUp, departedAt, arrivedAt, operationCompletedAt, handoverCompletedAt, liveUrlAt].filter(Boolean).length;
+    const percent = Math.round((completedCount / 6) * 100);
+    let progressColor;
+    if(completedCount <= 2) progressColor = '#9CA3AF';       // 0~2단계: 회색
+    else if(completedCount <= 4) progressColor = '#D97706';  // 3~4단계: 주황 계열
+    else if(completedCount === 5) progressColor = '#10B981'; // 5단계: 초록 계열
+    else progressColor = '#047857';                          // 6단계: 진한 초록
+
     return `
-      <div class="today-ops-row" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:12px;min-width:0">
-        <span class="today-ops-time" style="color:#6B7280;flex-shrink:0;width:44px">${esc(s.time||'-')}</span>
-        <span class="today-ops-main" style="color:#111827;font-weight:600;flex-shrink:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(coupleName(s))} · ${esc(s.hall)}</span>
-        <span class="today-ops-status" style="flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">${statusHtml}</span>
+      <div style="padding:6px 0;border-bottom:1px solid #F3F4F6;min-width:0">
+        <div class="today-ops-row" style="display:flex;align-items:center;gap:8px;font-size:12px;min-width:0">
+          <span class="today-ops-time" style="color:#6B7280;flex-shrink:0;width:44px">${esc(s.time||'-')}</span>
+          <span class="today-ops-main" style="color:#111827;font-weight:600;flex-shrink:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(coupleName(s))} · ${esc(s.hall)}</span>
+          <span class="today-ops-status" style="flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">${statusHtml}</span>
+        </div>
+        <div class="today-ops-progress-row" style="display:flex;align-items:center;gap:6px;margin-top:4px;min-width:0">
+          <div class="today-ops-progress-track" style="flex:1;min-width:0;height:4px;background:#E5E7EB;border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${percent}%;background:${progressColor};border-radius:2px"></div>
+          </div>
+          <span class="today-ops-progress-text" style="flex-shrink:0;white-space:nowrap;font-size:10px;font-weight:700;color:${progressColor}">${completedCount}/6 · ${percent}%${completedCount === 6 ? ' 완료' : ''}</span>
+        </div>
       </div>`;
   }).join('');
 
