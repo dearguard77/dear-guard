@@ -415,20 +415,9 @@
 <style>
 /* 오늘 운영현황(관리자) / 오늘 체크리스트(매니저) 모바일 전용 — 신규 클래스만 다룸, 전역 .card/.stats-grid 등은 건드리지 않음 */
 @media (max-width: 768px){
-  #today-ops-summary-card .today-ops-row{
-    flex-wrap: wrap;
-  }
   #today-ops-summary-card .today-ops-time,
   #today-ops-summary-card .today-ops-main{
     min-width: 0;
-  }
-  #today-ops-summary-card .today-ops-status{
-    width: 100%;
-    flex: none;
-    text-align: left;
-    margin-top: 2px;
-    padding-left: 52px;
-    box-sizing: border-box;
   }
   #today-checklist-card .today-checklist-schedule-info{
     white-space: normal;
@@ -2674,16 +2663,21 @@ async function renderTodayOpsSummary(){
   let operationCompletedMap = new Map();
   let handoverCompletedMap  = new Map();
   let liveUrlRegisteredMap  = new Map();
+  let departedByMap = new Map();
+  let arrivedByMap  = new Map();
+  let operationCompletedByMap = new Map();
+  let handoverCompletedByMap  = new Map();
+  let liveUrlRegisteredByMap  = new Map();
   try{
     const ids = shown.map(s => s.id).join(',');
     if(ids){
-      const eRows = await sb.get('schedule_ops_events', `?schedule_id=in.(${ids})&event_type=in.(departed,arrived,operation_completed,handover_completed,live_url_registered)&select=schedule_id,event_type,completed_at`);
+      const eRows = await sb.get('schedule_ops_events', `?schedule_id=in.(${ids})&event_type=in.(departed,arrived,operation_completed,handover_completed,live_url_registered)&select=schedule_id,event_type,completed_at,completed_by_name`);
       (eRows||[]).forEach(r => {
-        if(r.event_type === 'departed')            departedMap.set(String(r.schedule_id), r.completed_at);
-        if(r.event_type === 'arrived')              arrivedMap.set(String(r.schedule_id), r.completed_at);
-        if(r.event_type === 'operation_completed')  operationCompletedMap.set(String(r.schedule_id), r.completed_at);
-        if(r.event_type === 'handover_completed')   handoverCompletedMap.set(String(r.schedule_id), r.completed_at);
-        if(r.event_type === 'live_url_registered')  liveUrlRegisteredMap.set(String(r.schedule_id), r.completed_at);
+        if(r.event_type === 'departed'){            departedMap.set(String(r.schedule_id), r.completed_at); departedByMap.set(String(r.schedule_id), r.completed_by_name); }
+        if(r.event_type === 'arrived'){              arrivedMap.set(String(r.schedule_id), r.completed_at); arrivedByMap.set(String(r.schedule_id), r.completed_by_name); }
+        if(r.event_type === 'operation_completed'){  operationCompletedMap.set(String(r.schedule_id), r.completed_at); operationCompletedByMap.set(String(r.schedule_id), r.completed_by_name); }
+        if(r.event_type === 'handover_completed'){   handoverCompletedMap.set(String(r.schedule_id), r.completed_at); handoverCompletedByMap.set(String(r.schedule_id), r.completed_by_name); }
+        if(r.event_type === 'live_url_registered'){  liveUrlRegisteredMap.set(String(r.schedule_id), r.completed_at); liveUrlRegisteredByMap.set(String(r.schedule_id), r.completed_by_name); }
       });
     }
   }catch(e){
@@ -2698,43 +2692,60 @@ async function renderTodayOpsSummary(){
     const arrivedAt  = arrivedMap.get(String(s.id));
     const departedAt = departedMap.get(String(s.id));
     const namesText = names.length ? names.map(n => esc(n)).join(' · ') : '담당자 미지정';
-    let statusHtml;
+
+    // "처리" 줄: 현재 단계를 실제 처리한 사람 + 상태(아이콘·시간). 판단 조건과 seenStaffIds 부기 순서는 기존과 동일하게 유지.
+    let processedByName, statusOnlyHtml;
     if(liveUrlAt){
       // 라이브등록은 인계완료·운영완료·도착·출발·기상 상태보다 우선 표시 (이번 단계 우선순위 규칙, URL 원문은 표시하지 않음)
       names.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
-      statusHtml = `${namesText} <span style="color:#2563EB">🔗 라이브등록 ${formatWakeUpTime(liveUrlAt)}</span>`;
+      processedByName = liveUrlRegisteredByMap.get(String(s.id)) || '';
+      statusOnlyHtml = `<span style="color:#2563EB">🔗 라이브등록 ${formatWakeUpTime(liveUrlAt)}</span>`;
     } else if(handoverCompletedAt){
       // 인계완료는 운영완료·도착·출발·기상 상태보다 우선 표시 (이번 단계 우선순위 규칙)
       names.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
-      statusHtml = `${namesText} <span style="color:#2563EB">🤝 인계완료 ${formatWakeUpTime(handoverCompletedAt)}</span>`;
+      processedByName = handoverCompletedByMap.get(String(s.id)) || '';
+      statusOnlyHtml = `<span style="color:#2563EB">🤝 인계완료 ${formatWakeUpTime(handoverCompletedAt)}</span>`;
     } else if(operationCompletedAt){
       // 운영완료는 도착·출발·기상 상태보다 우선 표시 (이번 단계 우선순위 규칙)
       names.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
-      statusHtml = `${namesText} <span style="color:#2563EB">✅ 운영완료 ${formatWakeUpTime(operationCompletedAt)}</span>`;
+      processedByName = operationCompletedByMap.get(String(s.id)) || '';
+      statusOnlyHtml = `<span style="color:#2563EB">✅ 운영완료 ${formatWakeUpTime(operationCompletedAt)}</span>`;
     } else if(arrivedAt){
       names.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
-      statusHtml = `${namesText} <span style="color:#2563EB">📍 도착 ${formatWakeUpTime(arrivedAt)}</span>`;
+      processedByName = arrivedByMap.get(String(s.id)) || '';
+      statusOnlyHtml = `<span style="color:#2563EB">📍 도착 ${formatWakeUpTime(arrivedAt)}</span>`;
     } else if(departedAt){
       names.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
-      statusHtml = `${namesText} <span style="color:#2563EB">🚗 출발 ${formatWakeUpTime(departedAt)}</span>`;
+      processedByName = departedByMap.get(String(s.id)) || '';
+      statusOnlyHtml = `<span style="color:#2563EB">🚗 출발 ${formatWakeUpTime(departedAt)}</span>`;
     } else if(names.length){
-      statusHtml = names.map(name => {
+      // 아직 기상 단계 — 이 예식 담당자 중 오늘 다른 예식에서 이미 처리(seen)되지 않은 사람이 있는지 확인 (기존 판단 순서와 동일)
+      const unseenNames = names.filter(name => {
+        const u = USERS.find(u => u.name === name);
+        return u && !seenStaffIds.has(u.id);
+      });
+      if(unseenNames.length === 0){
+        processedByName = '';
+        statusOnlyHtml = `<span style="color:#9CA3AF">⏳ 다음 예식</span>`;
+      } else {
+        unseenNames.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
+        // 미확인 담당자 중 실제로 오늘 기상 기록(wakeUpMap)이 있는 첫 번째 사람을 처리자로 표시
+        const wokeName = unseenNames.find(name => {
           const u = USERS.find(u => u.name === name);
-          if(!u) return `<span style="color:#9CA3AF">${esc(name)}</span>`;
-          let statusText;
-          if(seenStaffIds.has(u.id)){
-            statusText = `<span style="color:#9CA3AF">⏳ 다음 예식</span>`;
-          } else {
-            seenStaffIds.add(u.id);
-            const wakeUpAt = wakeUpMap.get(u.id);
-            statusText = wakeUpAt
-              ? `<span style="color:#059669">✅ 기상 ${formatWakeUpTime(wakeUpAt)}</span>`
-              : `<span style="color:#D97706">⚠️ 기상 미확인</span>`;
-          }
-          return `${esc(name)} ${statusText}`;
-        }).join(' · ');
+          return u && wakeUpMap.has(u.id);
+        });
+        if(wokeName){
+          const u = USERS.find(u => u.name === wokeName);
+          processedByName = wokeName;
+          statusOnlyHtml = `<span style="color:#059669">✅ 기상 ${formatWakeUpTime(wakeUpMap.get(u.id))}</span>`;
+        } else {
+          processedByName = '';
+          statusOnlyHtml = `<span style="color:#D97706">⚠️ 기상 미확인</span>`;
+        }
+      }
     } else {
-      statusHtml = `<span style="color:#9CA3AF">담당자 미지정</span>`;
+      processedByName = '';
+      statusOnlyHtml = `<span style="color:#9CA3AF">담당자 미지정</span>`;
     }
 
     // 예식별 진행률 (총 6단계: 기상/출발/도착/운영완료/인계완료/라이브등록)
@@ -2755,8 +2766,16 @@ async function renderTodayOpsSummary(){
       <div style="padding:6px 0;border-bottom:1px solid #F3F4F6;min-width:0">
         <div class="today-ops-row" style="display:flex;align-items:center;gap:8px;font-size:12px;min-width:0">
           <span class="today-ops-time" style="color:#6B7280;flex-shrink:0;width:44px">${esc(s.time||'-')}</span>
-          <span class="today-ops-main" style="color:#111827;font-weight:600;flex-shrink:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(coupleName(s))} · ${esc(s.hall)}</span>
-          <span class="today-ops-status" style="flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">${statusHtml}</span>
+          <span class="today-ops-main" style="color:#111827;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(coupleName(s))} · ${esc(s.hall)}</span>
+        </div>
+        <div class="today-ops-assignees" style="display:flex;align-items:baseline;gap:6px;margin-top:4px;font-size:11px">
+          <span style="flex-shrink:0;color:#9CA3AF;font-weight:700">담당</span>
+          <span class="today-ops-assignees-text" style="min-width:0;color:#374151;white-space:normal;word-break:keep-all">${namesText}</span>
+        </div>
+        <div class="today-ops-processor" style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;flex-wrap:nowrap;white-space:nowrap">
+          <span style="flex-shrink:0;color:#9CA3AF;font-weight:700">처리</span>
+          ${processedByName ? `<span style="flex-shrink:0;color:#374151;font-weight:600;white-space:nowrap">${esc(processedByName)}</span>` : ''}
+          <span style="flex-shrink:0;white-space:nowrap">${statusOnlyHtml}</span>
         </div>
         <div class="today-ops-progress-row" style="display:flex;align-items:center;gap:6px;margin-top:4px;min-width:0">
           <div class="today-ops-progress-track" style="flex:1;min-width:0;height:4px;background:#E5E7EB;border-radius:2px;overflow:hidden">
