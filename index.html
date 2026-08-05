@@ -2418,7 +2418,7 @@ async function renderTodayChecklist(){
         ${handoverRowHtml}
         ${liveUrlRowHtml}
       </div>`;
-  } else if(wakeUpAt && !currentSchedule && todayList.length > 0){
+  } else if(!currentSchedule && todayList.length > 0){
     departSectionHtml = `
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid #E5E7EB;text-align:center">
         <span style="font-size:13px;font-weight:700;color:#059669">✅ 오늘 현장 운영이 모두 완료되었습니다.</span>
