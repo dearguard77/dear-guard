@@ -2319,18 +2319,26 @@ async function renderTodayChecklist(){
   const currentSchedule = todayList.find(s => !liveUrlMap.has(String(s.id))) || null;
 
   // 현재 예식 기준 진행률 (기상 포함 총 6단계) — 기존 조회 로직/변수는 그대로 두고 별도로 계산만 추가
+  // currentSchedule이 있으면 그 예식 기준, 없어도 오늘 예식이 있었다면(전부 완료) 6/6·100%로 표시한다.
   let progressHtml = '';
-  if(currentSchedule){
-    const cid = String(currentSchedule.id);
-    const completedCount = [
-      wakeUpAt,
-      departedMap.get(cid),
-      arrivedMap.get(cid),
-      operationCompletedMap.get(cid),
-      handoverCompletedMap.get(cid),
-      liveUrlMap.get(cid),
-    ].filter(Boolean).length;
-    const percent = Math.round((completedCount / 6) * 100);
+  if(currentSchedule || todayList.length > 0){
+    let completedCount, percent;
+    if(currentSchedule){
+      const cid = String(currentSchedule.id);
+      completedCount = [
+        wakeUpAt,
+        departedMap.get(cid),
+        arrivedMap.get(cid),
+        operationCompletedMap.get(cid),
+        handoverCompletedMap.get(cid),
+        liveUrlMap.get(cid),
+      ].filter(Boolean).length;
+      percent = Math.round((completedCount / 6) * 100);
+    } else {
+      // currentSchedule이 null = 오늘 예식이 전부 live_url_registered까지 완료된 상태
+      completedCount = 6;
+      percent = 100;
+    }
     progressHtml = `
       <div class="today-checklist-progress">
         <div class="today-checklist-progress-label">
