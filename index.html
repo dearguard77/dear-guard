@@ -2274,9 +2274,8 @@ async function renderTodayChecklist(){
   // 출발·도착·운영완료·인계완료·라이브등록 상태를 한 번의 조회로 함께 가져와 Map으로 분리 (예식별 개별 조회 금지)
   // 실패해도 기상 UI는 그대로 유지하고 출발/도착/운영완료/인계완료/라이브등록 구역만 생략
   // schedule_id(bigint)는 PostgREST가 문자열로 내려줄 수 있어 String()으로 키를 통일해 조회 실패를 방지한다.
-  // 출발/도착은 team(1/2) 구분이 생겨, 예식별로 내 team을 먼저 계산해서 내 team 행만 Map에 반영한다.
-  const myTeamByScheduleId = new Map();
-  todayList.forEach(s => myTeamByScheduleId.set(String(s.id), _resolveMyTeam(s)));
+  // 출발/도착은 team(1/2) 구분이 있어 schedule_id+team 복합키로 Map을 만든다 — schedule_id만으로 키를 만들면 team1/team2가 서로 덮어써버린다.
+  const eventKey = (scheduleId, team) => `${String(scheduleId)}|${String(team)}`;
 
   let departedMap = new Map();
   let arrivedMap  = new Map();
@@ -2286,11 +2285,12 @@ async function renderTodayChecklist(){
   try{
     const ids = todayList.map(s => s.id).join(',');
     const rows = await sb.get('schedule_ops_events', `?schedule_id=in.(${ids})&event_type=in.(departed,arrived,operation_completed,handover_completed,live_url_registered)&select=schedule_id,event_type,completed_at,completed_by_name,team`);
+    console.log('[DG][진단] schedule_ops_events 조회 결과', rows);
     (rows||[]).forEach(r => {
       const sid = String(r.schedule_id);
-      const myTeam = myTeamByScheduleId.get(sid);
-      if(r.event_type === 'departed'){ if(r.team === myTeam) departedMap.set(sid, r.completed_at); }
-      if(r.event_type === 'arrived'){  if(r.team === myTeam) arrivedMap.set(sid, r.completed_at); }
+      // team='common'인 옛 기록은 team1/team2 어느 쪽에도 완료로 인정하지 않고 무시한다 (자동 삭제는 하지 않음).
+      if(r.event_type === 'departed' && (r.team === '1' || r.team === '2')) departedMap.set(eventKey(r.schedule_id, r.team), r.completed_at);
+      if(r.event_type === 'arrived'  && (r.team === '1' || r.team === '2')) arrivedMap.set(eventKey(r.schedule_id, r.team), r.completed_at);
       if(r.event_type === 'operation_completed')  operationCompletedMap.set(sid, r.completed_at);
       if(r.event_type === 'handover_completed')   handoverCompletedMap.set(sid, r.completed_at);
       if(r.event_type === 'live_url_registered')  liveUrlMap.set(sid, r.completed_at);
@@ -2309,10 +2309,11 @@ async function renderTodayChecklist(){
     let completedCount, percent;
     if(currentSchedule){
       const cid = String(currentSchedule.id);
+      const myTeam = _resolveMyTeam(currentSchedule);
       completedCount = [
         wakeUpAt,
-        departedMap.get(cid),
-        arrivedMap.get(cid),
+        departedMap.get(eventKey(currentSchedule.id, myTeam)),
+        arrivedMap.get(eventKey(currentSchedule.id, myTeam)),
         operationCompletedMap.get(cid),
         handoverCompletedMap.get(cid),
         liveUrlMap.get(cid),
@@ -2350,8 +2351,10 @@ async function renderTodayChecklist(){
 
   let departSectionHtml = '';
   if(wakeUpAt && currentSchedule){
-    const departedAt = departedMap.get(String(currentSchedule.id));
-    const arrivedAt  = arrivedMap.get(String(currentSchedule.id));
+    const myTeam = _resolveMyTeam(currentSchedule);
+    const departedAt = departedMap.get(eventKey(currentSchedule.id, myTeam));
+    const arrivedAt  = arrivedMap.get(eventKey(currentSchedule.id, myTeam));
+    console.log('[DG][진단] 현재예식 id=', currentSchedule.id, '내 team=', myTeam, '출발=', departedAt, '도착=', arrivedAt);
     const operationCompletedAt = operationCompletedMap.get(String(currentSchedule.id));
     const handoverCompletedAt  = handoverCompletedMap.get(String(currentSchedule.id));
 
@@ -2492,6 +2495,7 @@ async function confirmDepart(scheduleId){
 
   try{
     const now = new Date().toISOString();
+    console.log('[DG][진단] 출발 완료 저장 — scheduleId=', scheduleId, 'currentUser=', currentUser.name, 'team=', team);
     await sbUpsertScheduleOpsEvent({
       schedule_id: scheduleId,
       event_type: 'departed',
@@ -2543,6 +2547,7 @@ async function confirmArrive(scheduleId){
 
   try{
     const now = new Date().toISOString();
+    console.log('[DG][진단] 도착 완료 저장 — scheduleId=', scheduleId, 'currentUser=', currentUser.name, 'team=', team);
     await sbUpsertScheduleOpsEvent({
       schedule_id: scheduleId,
       event_type: 'arrived',
