@@ -430,20 +430,9 @@
     padding-left: 52px;
     box-sizing: border-box;
   }
-  #today-checklist-card .today-checklist-step-row{
-    flex-wrap: wrap;
-  }
   #today-checklist-card .today-checklist-schedule-info{
     white-space: normal;
     line-height: 1.4;
-  }
-  #today-checklist-card .today-checklist-action-btn{
-    width: 100%;
-    min-height: 44px;
-  }
-  #today-checklist-card .today-checklist-done-label{
-    white-space: normal;
-    text-align: right;
   }
 }
 </style>
@@ -2351,6 +2340,19 @@ async function renderTodayChecklist(){
       </div>`;
   }
 
+  // 체크리스트 각 단계 행 렌더링 공통 헬퍼 — 라벨/버튼/완료 문구를 한 곳에서 통일하고 한 줄 고정 CSS를 적용한다.
+  // (표시 전용 헬퍼이며 confirmWakeUp/confirmDepart 등 저장 로직과는 무관)
+  function _checklistStepRow(label, completedAt, buttonHtml){
+    return `
+      <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap;white-space:nowrap;margin-bottom:8px">
+        <div class="today-checklist-step-label" style="font-size:13px;color:#374151;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</div>
+        <div style="flex-shrink:0;white-space:nowrap">${completedAt
+          ? `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669;white-space:nowrap">완료 · ${formatWakeUpTime(completedAt)}</span>`
+          : buttonHtml
+        }</div>
+      </div>`;
+  }
+
   let departSectionHtml = '';
   if(wakeUpAt && currentSchedule){
     const departedAt = departedMap.get(String(currentSchedule.id));
@@ -2358,62 +2360,32 @@ async function renderTodayChecklist(){
     const operationCompletedAt = operationCompletedMap.get(String(currentSchedule.id));
     const handoverCompletedAt  = handoverCompletedMap.get(String(currentSchedule.id));
 
-    const departRowHtml = `
-      <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-        <div style="font-size:13px;color:#374151">🚗 출발 확인</div>
-        ${departedAt
-          ? `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 출발 완료 · ${formatWakeUpTime(departedAt)}</span>`
-          : `<button id="depart-confirm-btn" class="today-checklist-action-btn" onclick="confirmDepart(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">🚗 출발 완료</button>`
-        }
-      </div>`;
+    const departRowHtml = _checklistStepRow('출발', departedAt,
+      `<button id="depart-confirm-btn" class="today-checklist-action-btn" onclick="confirmDepart(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">완료</button>`);
 
     let arriveRowHtml = '';
     if(departedAt){
-      arriveRowHtml = `
-        <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-          <div style="font-size:13px;color:#374151">📍 도착 확인</div>
-          ${arrivedAt
-            ? `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 도착 완료 · ${formatWakeUpTime(arrivedAt)}</span>`
-            : `<button id="arrive-confirm-btn" class="today-checklist-action-btn" onclick="confirmArrive(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">📍 도착 완료</button>`
-          }
-        </div>`;
+      arriveRowHtml = _checklistStepRow('도착', arrivedAt,
+        `<button id="arrive-confirm-btn" class="today-checklist-action-btn" onclick="confirmArrive(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">완료</button>`);
     }
 
     let opCompleteRowHtml = '';
     if(arrivedAt){
-      opCompleteRowHtml = `
-        <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-          <div style="font-size:13px;color:#374151">✅ 운영 확인</div>
-          ${operationCompletedAt
-            ? `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 운영 완료 · ${formatWakeUpTime(operationCompletedAt)}</span>`
-            : `<button id="op-complete-confirm-btn" class="today-checklist-action-btn" onclick="confirmOperationComplete(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">✅ 운영 완료</button>`
-          }
-        </div>`;
+      opCompleteRowHtml = _checklistStepRow('운영', operationCompletedAt,
+        `<button id="op-complete-confirm-btn" class="today-checklist-action-btn" onclick="confirmOperationComplete(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">완료</button>`);
     }
 
     let handoverRowHtml = '';
     if(operationCompletedAt){
-      handoverRowHtml = `
-        <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-          <div style="font-size:13px;color:#374151">🤝 화환사진·인계서 전달</div>
-          ${handoverCompletedAt
-            ? `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 화환사진·인계서 전달 완료 · ${formatWakeUpTime(handoverCompletedAt)}</span>`
-            : `<button id="handover-complete-confirm-btn" class="today-checklist-action-btn" onclick="confirmHandoverComplete(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">전달 완료</button>`
-          }
-        </div>`;
+      handoverRowHtml = _checklistStepRow('화환·인계서 전달', handoverCompletedAt,
+        `<button id="handover-complete-confirm-btn" class="today-checklist-action-btn" onclick="confirmHandoverComplete(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">완료</button>`);
     }
 
     let liveUrlRowHtml = '';
     if(handoverCompletedAt){
       const liveUrlAt = liveUrlMap.get(String(currentSchedule.id));
-      liveUrlRowHtml = `
-        <div class="today-checklist-step-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <div style="font-size:13px;color:#374151">🔗 라이브 주소 등록 확인</div>
-          ${liveUrlAt
-            ? `<span class="today-checklist-done-label" style="font-size:12px;font-weight:700;color:#059669">✅ 라이브 주소 등록 완료 · ${formatWakeUpTime(liveUrlAt)}</span>`
-            : `<button id="live-url-confirm-btn" class="today-checklist-action-btn" onclick="confirmLiveUrlRegister(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">등록 완료</button>`
-          }
-        </div>`;
+      liveUrlRowHtml = _checklistStepRow('라이브링크', liveUrlAt,
+        `<button id="live-url-confirm-btn" class="today-checklist-action-btn" onclick="confirmLiveUrlRegister(${currentSchedule.id})" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">완료</button>`);
     }
 
     departSectionHtml = `
@@ -2433,14 +2405,9 @@ async function renderTodayChecklist(){
       </div>`;
   }
 
-  const wakeUpRowHtml = currentSchedule ? `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-        <div style="font-size:13px;color:#374151">🌅 기상 확인</div>
-        ${wakeUpAt
-          ? `<span style="font-size:12px;font-weight:700;color:#059669">✅ 기상 완료 · ${formatWakeUpTime(wakeUpAt)}</span>`
-          : `<button id="wake-up-confirm-btn" class="today-checklist-action-btn" onclick="confirmWakeUp()" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">기상 확인 완료</button>`
-        }
-      </div>` : '';
+  const wakeUpRowHtml = currentSchedule ? _checklistStepRow('기상', wakeUpAt,
+      `<button id="wake-up-confirm-btn" class="today-checklist-action-btn" onclick="confirmWakeUp()" style="background:#374151;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">완료</button>`
+    ) : '';
 
   el.innerHTML = `
     <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;margin-bottom:14px">
