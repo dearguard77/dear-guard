@@ -413,8 +413,79 @@
 </style>
 
 <style>
+/* 관리자 홈 "운영 대시보드" 4카드 — 신규 클래스만 사용, 기존 .stats-grid/.stat-card/.shortcuts-grid는 매니저 화면용으로 그대로 유지 */
+.admin-quick-title{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: nowrap;
+}
+.admin-quick-title > span:first-child{
+  font-size: 15px;
+  font-weight: 800;
+  color: #111827;
+  white-space: nowrap;
+}
+.admin-quick-title-badge{
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.admin-quick-grid{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.admin-quick-card{
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 14px 6px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 76px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+.admin-quick-icon{
+  font-size: 20px;
+  line-height: 1;
+}
+.admin-quick-value{
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+.admin-quick-label{
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7280;
+}
+</style>
+
+<style>
 /* 오늘 운영현황(관리자) / 오늘 체크리스트(매니저) 모바일 전용 — 신규 클래스만 다룸, 전역 .card/.stats-grid 등은 건드리지 않음 */
 @media (max-width: 768px){
+  .admin-quick-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .admin-quick-title > span:first-child{
+    font-size: 14px;
+  }
+  .admin-quick-title-badge{
+    font-size: 11px;
+  }
   #today-ops-summary-card .today-ops-time,
   #today-ops-summary-card .today-ops-main{
     min-width: 0;
@@ -584,32 +655,6 @@
     <div id="today-checklist-card"></div>
     <div id="today-ops-summary-card"></div>
     <div class="stats-grid" id="stats-grid"></div>
-
-    <!-- 운영 바로가기 (관리자 전용) -->
-    <div id="home-admin-shortcuts" style="display:none;margin-bottom:14px">
-      <div class="sec-header" style="margin-bottom:0;cursor:pointer" onclick="toggleShortcutContent('admin')">
-        <h2>운영 바로가기 <span id="shortcut-admin-icon" style="font-size:11px;color:#9CA3AF">▸</span></h2>
-      </div>
-      <div id="shortcut-admin-content" style="display:none;margin-top:8px">
-        <div class="shortcuts-grid">
-          <button onclick="switchTab('settle',document.getElementById('nav-settle-btn'))" style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:20px">💰</div>
-            <div style="font-size:14px;font-weight:800;color:#111827">정산관리</div>
-            <div style="font-size:11px;color:#9CA3AF">계약금 · 잔금 · 매니저 정산</div>
-          </button>
-          <button onclick="window.open('assign-review.html','_blank','noopener,noreferrer')" style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:20px">🤖</div>
-            <div style="font-size:14px;font-weight:800;color:#111827">배정관리</div>
-            <div style="font-size:11px;color:#9CA3AF">예식별 인원 배정</div>
-          </button>
-          <button onclick="openReferralModal()" style="background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:20px">🤝</div>
-            <div style="font-size:14px;font-weight:800;color:#111827">짝꿍코드</div>
-            <div style="font-size:11px;color:#9CA3AF">코드 발급 · 사용 현황</div>
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- 매뉴얼 바로가기 (매니저 전용) -->
     <div id="home-manager-shortcuts" style="display:none;margin-bottom:14px">
@@ -2114,11 +2159,9 @@ function renderNav(){
   const navResultBtn = document.getElementById('nav-result-btn');
   if(navResultBtn) navResultBtn.style.display = 'block';
 
-  // 홈 화면 바로가기 카드 — 관리자/매니저 권한별 분리
-  const homeAdminShortcuts   = document.getElementById('home-admin-shortcuts');
+  // 홈 화면 바로가기 카드 — 매뉴얼 바로가기(매니저 전용)만 남음. 관리자용은 renderStats()의 운영 대시보드 카드로 대체됨.
   const homeManagerShortcuts = document.getElementById('home-manager-shortcuts');
-  if(homeAdminShortcuts)   homeAdminShortcuts.style.display   = isAdmin ? 'block' : 'none';
-  if(homeManagerShortcuts) homeManagerShortcuts.style.display = isAdmin ? 'none'  : 'block';
+  if(homeManagerShortcuts) homeManagerShortcuts.style.display = isAdmin ? 'none' : 'block';
 }
 
 const HOME_SECTION_LIST_IDS = { upcoming: 'upcoming-list', precheck: 'precheck-reminder-list' };
@@ -2183,6 +2226,33 @@ function renderStats(){
   const monthCnt = vs.filter(s=>s.date && s.date.slice(0,7)===TODAY.slice(0,7)).length;
   const noBalance = vs.filter(s=>!s.checklist.balance).length;
   const urgent    = vs.filter(s=>s.status==='긴급확인').length;
+
+  const isAdmin = ADMIN_NAMES.includes(currentUser.name);
+
+  if(isAdmin){
+    // 관리자 홈: "운영 바로가기" 토글 제거 → 운영 대시보드 타이틀 + 잔금/긴급/배정/짝꿍 4카드로 통합
+    // 각 카드 클릭은 기존 정산관리/배정관리/짝꿍코드/긴급확인 기능을 그대로 재사용(새 로직 없음)
+    const quickItems = [
+      { icon:'💰', label:'잔금', value:noBalance+'건', click:"switchTab('settle',document.getElementById('nav-settle-btn'))" },
+      { icon:'🚨', label:'긴급', value:urgent+'건',     click:"openUrgentFilter()" },
+      { icon:'🤖', label:'배정', value:'',              click:"window.open('assign-review.html','_blank','noopener,noreferrer')" },
+      { icon:'🤝', label:'짝꿍', value:'',              click:"openReferralModal()" },
+    ];
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="admin-quick-title">
+        <span>운영 대시보드</span>
+        <span class="admin-quick-title-badge">이번달 예식 ${monthCnt}건</span>
+      </div>
+      <div class="admin-quick-grid">
+        ${quickItems.map(q => `
+          <div class="admin-quick-card" onclick="${q.click}">
+            <div class="admin-quick-icon">${q.icon}</div>
+            ${q.value ? `<div class="admin-quick-value">${q.value}</div>` : ''}
+            <div class="admin-quick-label">${q.label}</div>
+          </div>`).join('')}
+      </div>`;
+    return;
+  }
 
   const statItems = [
     {label:'이번달 예식',value:monthCnt, icon:'🗓', color:'#374151', click:'switchTab(\'calendar\',null,document.querySelectorAll(\'.bnav-btn\')[1])'},
