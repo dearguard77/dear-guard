@@ -713,7 +713,11 @@
       <div id="today-list"></div>
     </div>
     <div id="today-checklist-card"></div>
-    <div id="today-ops-summary-card"></div>
+    <div class="today-ops-header sec-header" id="today-ops-header" style="margin-top:20px;cursor:pointer" onclick="toggleTodayOpsSummary()">
+      <h2><span id="today-ops-toggle-icon" style="display:inline-block;transition:transform .2s ease">▶</span> 오늘 운영현황</h2>
+      <span id="today-ops-count-badge"></span>
+    </div>
+    <div id="today-ops-summary-card" style="display:none;overflow:hidden"></div>
     <div class="stats-grid" id="stats-grid"></div>
 
     <!-- 매뉴얼 바로가기 (매니저 전용) -->
@@ -2234,6 +2238,15 @@ function toggleShortcutContent(type){
   icon.textContent = isHidden ? '▾' : '▸';
 }
 
+function toggleTodayOpsSummary(){
+  const content = document.getElementById('today-ops-summary-card');
+  const icon    = document.getElementById('today-ops-toggle-icon');
+  if(!content||!icon) return;
+  const isHidden = content.style.display === 'none' || content.style.display === '';
+  content.style.display = isHidden ? 'block' : 'none';
+  icon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+}
+
 function toggleHomeSection(key){
   const list = document.getElementById(HOME_SECTION_LIST_IDS[key]);
   const icon = document.getElementById(key + '-toggle-icon');
@@ -2310,8 +2323,10 @@ function renderStats(){
         ${quickItems.map(q => `
           <div class="admin-quick-card" onclick="${q.click}">
             <div class="admin-quick-icon">${q.icon}</div>
-            ${q.value ? `<div class="admin-quick-value">${q.value}</div>` : ''}
-            <div class="admin-quick-label">${q.label}</div>
+            ${q.value
+              ? `<div class="admin-quick-value">${q.value}</div><div class="admin-quick-label">${q.label}</div>`
+              : `<div class="admin-quick-value">${q.label}</div>`
+            }
           </div>`).join('')}
       </div>`;
     return;
@@ -2907,13 +2922,15 @@ function _opsManagerNames(s){
 
 async function renderTodayOpsSummary(){
   const el = document.getElementById('today-ops-summary-card');
+  const headerEl = document.getElementById('today-ops-header');
   if(!el) return;
 
   const isAdmin = ADMIN_NAMES.includes(currentUser.name);
-  if(!isAdmin){ el.innerHTML = ''; return; }
+  if(!isAdmin){ el.innerHTML = ''; if(headerEl) headerEl.style.display = 'none'; return; }
 
   const todayList = visible().filter(s => s.date === TODAY).slice().sort((a,b) => (a.time||'').localeCompare(b.time||''));
-  if(!todayList.length){ el.innerHTML = ''; return; }
+  if(!todayList.length){ el.innerHTML = ''; if(headerEl) headerEl.style.display = 'none'; return; }
+  if(headerEl) headerEl.style.display = '';
 
   let wakeUpMap = new Map();
   try{
@@ -2935,7 +2952,7 @@ async function renderTodayOpsSummary(){
   EVENT_KEYS.forEach(key => { stageTeam1Maps[key] = new Map(); stageTeam2Maps[key] = new Map(); });
 
   try{
-    const ids = shown.map(s => s.id).join(',');
+    const ids = todayList.map(s => s.id).join(',');
     if(ids){
       const eRows = await sb.get('schedule_ops_events', `?schedule_id=in.(${ids})&event_type=in.(${EVENT_KEYS.join(',')})&select=schedule_id,event_type,completed_at,completed_by_name,team`);
       (eRows||[]).forEach(r => {
@@ -2986,7 +3003,7 @@ async function renderTodayOpsSummary(){
     const emojiRow = STAGE_DISPLAY.map(st => {
       const done = st.key === 'wake' ? !!wokeInfo : teamMaps[st.key].has(sid);
       return done ? st.emoji : '⚪';
-    }).join('');
+    }).join(' ');
     return { count, emojiRow, recent };
   }
 
@@ -3034,9 +3051,20 @@ async function renderTodayOpsSummary(){
       </div>`;
   }).join('');
 
+  // "N건 진행중" 배지 — 오늘 예식 전체 기준, 단측은 team1, 양측은 team1 AND team2 모두 venue_review_completed(7단계 마지막)여야 완료로 인정
+  const inProgressCount = todayList.filter(s => {
+    const sid = String(s.id);
+    const isBothSides = s.product === '4인 2팀';
+    const t1Done = stageTeam1Maps.venue_review_completed.has(sid);
+    const t2Done = stageTeam2Maps.venue_review_completed.has(sid);
+    const fullyDone = isBothSides ? (t1Done && t2Done) : t1Done;
+    return !fullyDone;
+  }).length;
+  const badgeEl = document.getElementById('today-ops-count-badge');
+  if(badgeEl) badgeEl.textContent = `${inProgressCount}건 진행중`;
+
   el.innerHTML = `
     <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;margin-bottom:14px;overflow:hidden">
-      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px">오늘 운영현황</div>
       ${rowsHtml}
       ${extraCount > 0 ? `<div style="font-size:11px;color:#9CA3AF;text-align:right;margin-top:6px">외 ${extraCount}건</div>` : ''}
     </div>`;
