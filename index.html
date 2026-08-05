@@ -447,6 +447,38 @@
   }
 }
 </style>
+
+<style>
+/* 오늘 체크리스트 현재 예식 진행률 전용 — 신규 클래스만 다룸, 전역 스타일 미변경 */
+#today-checklist-card .today-checklist-progress{
+  margin-bottom: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+#today-checklist-card .today-checklist-progress-label{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+#today-checklist-card .today-checklist-progress-track{
+  width: 100%;
+  height: 7px;
+  background: #E5E7EB;
+  border-radius: 4px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+#today-checklist-card .today-checklist-progress-fill{
+  height: 100%;
+  background: #374151;
+  border-radius: 4px;
+}
+</style>
 </head>
 <body>
 <div id="ptr-indicator">↓ 아래로 당겨 새로고침</div>
@@ -2286,6 +2318,31 @@ async function renderTodayChecklist(){
   // 현재 예식: live_url_registered가 없는 가장 빠른 예식 — 마지막 단계 완료 후에만 다음 예식으로 전환된다.
   const currentSchedule = todayList.find(s => !liveUrlMap.has(String(s.id))) || null;
 
+  // 현재 예식 기준 진행률 (기상 포함 총 6단계) — 기존 조회 로직/변수는 그대로 두고 별도로 계산만 추가
+  let progressHtml = '';
+  if(currentSchedule){
+    const cid = String(currentSchedule.id);
+    const completedCount = [
+      wakeUpAt,
+      departedMap.get(cid),
+      arrivedMap.get(cid),
+      operationCompletedMap.get(cid),
+      handoverCompletedMap.get(cid),
+      liveUrlMap.get(cid),
+    ].filter(Boolean).length;
+    const percent = Math.round((completedCount / 6) * 100);
+    progressHtml = `
+      <div class="today-checklist-progress">
+        <div class="today-checklist-progress-label">
+          <span>현장 진행률</span>
+          <span>${completedCount} / 6 완료 · ${percent}%</span>
+        </div>
+        <div class="today-checklist-progress-track">
+          <div class="today-checklist-progress-fill" style="width:${percent}%"></div>
+        </div>
+      </div>`;
+  }
+
   let departSectionHtml = '';
   if(wakeUpAt && currentSchedule){
     const departedAt = departedMap.get(String(currentSchedule.id));
@@ -2371,6 +2428,7 @@ async function renderTodayChecklist(){
   el.innerHTML = `
     <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px">오늘 체크리스트</div>
+      ${progressHtml}
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
         <div style="font-size:13px;color:#374151">🌅 기상 확인</div>
         ${wakeUpAt
