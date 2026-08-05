@@ -419,19 +419,19 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
   flex-wrap: nowrap;
 }
 .admin-quick-title > span:first-child{
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 800;
   color: #111827;
   white-space: nowrap;
 }
 .admin-quick-title-badge{
   font-size: 12px;
-  font-weight: 600;
-  color: #6B7280;
+  font-weight: 400;
+  color: #9CA3AF;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -445,42 +445,72 @@
   background: #fff;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
-  padding: 14px 6px;
+  padding: 10px 6px;
   text-align: center;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  min-height: 76px;
+  gap: 2px;
+  min-height: 58px;
   box-sizing: border-box;
   min-width: 0;
 }
 .admin-quick-icon{
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
 }
 .admin-quick-value{
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 800;
   color: #111827;
   line-height: 1;
 }
 .admin-quick-label{
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: #6B7280;
 }
 .today-ops-stage-chip{
-  display: inline-block;
-  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
   font-weight: 700;
   color: #111827;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
   white-space: nowrap;
   flex-shrink: 0;
+}
+.today-ops-team-card{
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+}
+.today-ops-team-label{
+  font-size: 10px;
+  font-weight: 800;
+  color: #9CA3AF;
+  margin-bottom: 2px;
+}
+.today-ops-team-members{
+  font-size: 11px;
+  color: #374151;
+  line-height: 1.4;
+}
+.today-ops-team-status{
+  font-size: 11px;
+  color: #374151;
+  line-height: 1.4;
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 1px solid #F3F4F6;
 }
 </style>
 
@@ -490,20 +520,12 @@
   .admin-quick-grid{
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .admin-quick-title > span:first-child{
-    font-size: 14px;
-  }
-  .admin-quick-title-badge{
-    font-size: 11px;
-  }
   #today-ops-summary-card .today-ops-time,
   #today-ops-summary-card .today-ops-main{
     min-width: 0;
   }
-  #today-ops-summary-card .today-ops-stage-chip{
-    flex: 0 0 calc(33.333% - 3px);
-    text-align: center;
-    box-sizing: border-box;
+  #today-ops-summary-card .today-ops-teams-row{
+    flex-wrap: nowrap;
   }
   #today-ops-summary-card .today-ops-total-count{
     flex-basis: 100%;
@@ -2865,14 +2887,14 @@ async function renderTodayOpsSummary(){
     console.error('[DG] 오늘 운영현황 출발·도착·운영완료·인계완료·라이브등록 기록 조회 실패:', e);
   }
 
-  // 6단계 상태칩 판정 — 단측은 ○/●만, 양측은 한쪽만 완료 시 ◐. 단계별 배경색은 완료 여부와 무관하게 고정(이모지 미사용).
+  // 6단계 상태칩 — 상태(●/◐/○)가 먼저 보이고 그 뒤에 원문자 번호. 배경색은 완료 여부와 무관하게 고정(이모지 미사용).
   const STAGE_DISPLAY = [
-    { key: 'wake',                 label: '기상', bg: '#FEE2E2' },
-    { key: 'departed',             label: '출발', bg: '#FFEDD5' },
-    { key: 'arrived',              label: '도착', bg: '#FFEDD5' },
-    { key: 'operation_completed',  label: '운영', bg: '#FEF3C7' },
-    { key: 'handover_completed',   label: '인계', bg: '#D1FAE5' },
-    { key: 'live_url_registered',  label: '링크', bg: '#D1FAE5' },
+    { key: 'wake',                 num: '①', bg: '#FEE2E2' },
+    { key: 'departed',             num: '②', bg: '#FFEDD5' },
+    { key: 'arrived',              num: '③', bg: '#FFEDD5' },
+    { key: 'operation_completed',  num: '④', bg: '#FEF3C7' },
+    { key: 'handover_completed',   num: '⑤', bg: '#D1FAE5' },
+    { key: 'live_url_registered',  num: '⑥', bg: '#D1FAE5' },
   ];
   function _stageSymbol(complete1, complete2, isBothSides){
     if(!isBothSides) return complete1 ? '●' : '○';
@@ -2880,87 +2902,79 @@ async function renderTodayOpsSummary(){
     if(complete1 || complete2) return '◐';
     return '○';
   }
+  // 팀 카드 렌더링 — 완료된 팀은 completed_by_name 한 명만, 미완료 팀은 담당자 전체 이름을 그대로 유지해서 표시한다.
+  function _teamCardHtml(label, members, status){
+    const memberLines = members.length ? members.map(n => `<div>${esc(n)}</div>`).join('') : '<div>미배정</div>';
+    let statusHtml;
+    if(status && status.done){
+      statusHtml = `<div>${esc(status.name||'')} ✅ ${formatWakeUpTime(status.at)}</div>`;
+    } else if(status && status.next){
+      statusHtml = `<div>⏳ 다음 예식</div>`;
+    } else {
+      statusHtml = `${memberLines}<div>⏳</div>`;
+    }
+    return `
+      <div class="today-ops-team-card">
+        <div class="today-ops-team-label">${label}</div>
+        <div class="today-ops-team-members">${memberLines}</div>
+        <div class="today-ops-team-status">${statusHtml}</div>
+      </div>`;
+  }
 
   const rowsHtml = shown.map(s => {
     const names = _opsManagerNames(s);
     const isBothSides = s.product === '4인 2팀';
 
-    // 담당: 팀 단위로 표시(단측은 1팀 한 줄만)
     let team1Members = [], team2Members = [];
     const frontParts = (s.frontManager || '').split(',').map(m => m.trim()).filter(Boolean);
     const backParts  = (s.backManager  || '').split(',').map(m => m.trim()).filter(Boolean);
     team1Members = [frontParts[0], backParts[0]].filter(Boolean);
     if(isBothSides) team2Members = [frontParts[1], backParts[1]].filter(Boolean);
-    const team1Text = team1Members.length ? team1Members.map(n => esc(n)).join(' · ') : '미배정';
-    const team2Text = team2Members.length ? team2Members.map(n => esc(n)).join(' · ') : '미배정';
-    const assigneesHtml = isBothSides
-      ? `<div>1팀 ${team1Text}</div><div>2팀 ${team2Text}</div>`
-      : `<div>1팀 ${team1Text}</div>`;
 
-    // "처리" 헤더: 현재 단계를 실제 처리한 사람 + 상태. 라이브등록→...→출발 순서로 완료/진행중인 최상위 단계를 찾는다.
-    let processedByName = '', headerHtml = '', teamBreakdownHtml = '', matchedStage = false;
+    // 현재 활성 단계(라이브등록→...→출발 순서로 완료/진행중인 최상위 단계) 판단 — 판단 조건과 seenStaffIds 부기 순서는 기존과 완전히 동일
+    let matchedStage = false, t1Status = null, t2Status = null;
     for(const stage of STAGE_ORDER){
       const t1Info = stageTeam1Maps[stage.key].get(String(s.id));
       const t2Info = stageTeam2Maps[stage.key].get(String(s.id));
       const bothComplete = isBothSides ? !!(t1Info && t2Info) : !!t1Info;
-      if(bothComplete){
+      if(bothComplete || (isBothSides && (t1Info || t2Info))){
         names.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
-        processedByName = isBothSides ? '' : (t1Info.completed_by_name || '');
-        headerHtml = isBothSides
-          ? `${stage.icon} ${stage.label}`
-          : `${stage.icon} ${stage.label} ${formatWakeUpTime(t1Info.completed_at)}`;
-        if(isBothSides){
-          teamBreakdownHtml = `
-            <div>1팀 ${esc(t1Info.completed_by_name||'')} ✅ ${formatWakeUpTime(t1Info.completed_at)}</div>
-            <div>2팀 ${esc(t2Info.completed_by_name||'')} ✅ ${formatWakeUpTime(t2Info.completed_at)}</div>`;
-        }
-        matchedStage = true;
-        break;
-      } else if(isBothSides && (t1Info || t2Info)){
-        // 양측 예식 — 이 단계가 한쪽 팀만 완료된 진행중 상태. 완료된 쪽은 실제 처리자, 미완료 쪽은 담당자 전체 표시.
-        processedByName = '';
-        headerHtml = `${stage.icon} ${stage.label}`;
-        const t1Line = t1Info ? `1팀 ${esc(t1Info.completed_by_name||'')} ✅ ${formatWakeUpTime(t1Info.completed_at)}` : `1팀 ${team1Text} ⏳`;
-        const t2Line = t2Info ? `2팀 ${esc(t2Info.completed_by_name||'')} ✅ ${formatWakeUpTime(t2Info.completed_at)}` : `2팀 ${team2Text} ⏳`;
-        teamBreakdownHtml = `<div>${t1Line}</div><div>${t2Line}</div>`;
+        t1Status = t1Info ? { done:true, name:t1Info.completed_by_name, at:t1Info.completed_at } : { done:false };
+        t2Status = isBothSides ? (t2Info ? { done:true, name:t2Info.completed_by_name, at:t2Info.completed_at } : { done:false }) : null;
         matchedStage = true;
         break;
       }
     }
 
-    // 팀별 기상 완료 여부(팀 구성원 중 한 명이라도 오늘 기록이 있으면 그 팀은 기상 완료) — 처리 표시와 진행률 계산에 공통 사용
+    // 팀별 기상 완료 여부(팀 구성원 중 한 명이라도 오늘 기록이 있으면 그 팀은 기상 완료) — 상태칩·진행률 계산에 공통 사용
     const team1WokeUp = team1Members.some(name => { const u = USERS.find(u => u.name === name); return u && wakeUpMap.has(u.id); });
     const team2WokeUp = isBothSides ? team2Members.some(name => { const u = USERS.find(u => u.name === name); return u && wakeUpMap.has(u.id); }) : false;
 
     if(!matchedStage){
-      // 아직 5개 이벤트 중 완료/진행중인 단계가 없음 — 기상 단계 표시 (이 예식 담당자 중 오늘 다른 예식에서 이미 처리(seen)되지 않은 사람이 있는지 확인, 기존 판단 순서와 동일)
-      const unseenNames = names.filter(name => {
-        const u = USERS.find(u => u.name === name);
-        return u && !seenStaffIds.has(u.id);
-      });
-      if(names.length === 0){
-        headerHtml = `담당자 미지정`;
-      } else if(unseenNames.length === 0){
-        headerHtml = `⏳ 다음 예식`;
-      } else {
-        unseenNames.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
-        const wokeName = unseenNames.find(name => {
-          const u = USERS.find(u => u.name === name);
-          return u && wakeUpMap.has(u.id);
-        });
+      // 아직 5개 이벤트 중 완료/진행중인 단계가 없음 — 팀별 기상 상태 표시 (기존 unseenNames/wokeName 판단 순서를 팀 단위로 동일하게 적용)
+      const _resolveTeamWake = (members) => {
+        if(members.length === 0) return { done:false, next:false };
+        const unseen = members.filter(name => { const u = USERS.find(u => u.name === name); return u && !seenStaffIds.has(u.id); });
+        if(unseen.length === 0) return { done:false, next:true };
+        unseen.forEach(name => { const u = USERS.find(u => u.name === name); if(u) seenStaffIds.add(u.id); });
+        const wokeName = unseen.find(name => { const u = USERS.find(u => u.name === name); return u && wakeUpMap.has(u.id); });
         if(wokeName){
           const u = USERS.find(u => u.name === wokeName);
-          processedByName = wokeName;
-          headerHtml = `🌅 기상 ${formatWakeUpTime(wakeUpMap.get(u.id))}`;
-        } else {
-          headerHtml = `⚠️ 기상 미확인`;
+          return { done:true, next:false, name:wokeName, at:wakeUpMap.get(u.id) };
         }
-      }
+        return { done:false, next:false };
+      };
+      t1Status = _resolveTeamWake(team1Members);
+      if(isBothSides) t2Status = _resolveTeamWake(team2Members);
     }
 
-    // 예식별 진행률 (총 6단계: 기상/출발/도착/운영완료/인계완료/라이브등록)
-    // 단측은 team1 완료 시, 양측은 team1·team2 모두 완료해야 그 단계 완료로 계산한다(기상 포함 6단계 전부 동일 기준).
-    // 상태칩(○/◐/●)과 "전체완료 N/6" 숫자가 서로 다른 값을 보여주지 않도록 완료 판정을 한 곳(_stageSymbol 기반)에서만 계산한다. 계산식 자체는 기존과 동일.
+    const teamsRowHtml = `
+      <div class="today-ops-teams-row" style="display:flex;gap:6px;margin-top:6px">
+        ${_teamCardHtml('1팀', team1Members, t1Status)}
+        ${isBothSides ? _teamCardHtml('2팀', team2Members, t2Status) : ''}
+      </div>`;
+
+    // 예식별 진행률 (총 6단계) — 단측은 team1 완료 시, 양측은 team1·team2 모두 완료해야 그 단계 완료로 계산한다. 계산식 자체는 기존과 완전히 동일.
     const stageComplete = {};
     STAGE_ORDER.forEach(stage => {
       const t1 = stageTeam1Maps[stage.key].get(String(s.id));
@@ -2970,7 +2984,7 @@ async function renderTodayOpsSummary(){
     const wakeUpChipComplete = _stageSymbol(team1WokeUp, team2WokeUp, isBothSides) === '●';
     const completedCount = [wakeUpChipComplete, stageComplete.departed, stageComplete.arrived, stageComplete.operation_completed, stageComplete.handover_completed, stageComplete.live_url_registered].filter(Boolean).length;
 
-    // 상태칩: 단계별 고정 배경색 + ○/◐/● 완료기호(항상 검정). 게이지바·퍼센트는 사용하지 않는다.
+    // 상태칩: 상태 기호가 먼저, 그 뒤 원문자 번호. 단계명 텍스트 대신 순서 번호로 표시.
     const chipsHtml = STAGE_DISPLAY.map(sd => {
       let symbol;
       if(sd.key === 'wake'){
@@ -2980,26 +2994,19 @@ async function renderTodayOpsSummary(){
         const t2 = stageTeam2Maps[sd.key].get(String(s.id));
         symbol = _stageSymbol(!!t1, !!t2, isBothSides);
       }
-      return `<span class="today-ops-stage-chip" style="background:${sd.bg}">${symbol} ${sd.label}</span>`;
+      return `<span class="today-ops-stage-chip" style="background:${sd.bg}">${symbol} ${sd.num}</span>`;
     }).join('');
 
     return `
-      <div style="padding:6px 0;border-bottom:1px solid #F3F4F6;min-width:0">
+      <div style="padding:8px 0;border-bottom:1px solid #F3F4F6;min-width:0">
         <div class="today-ops-row" style="display:flex;align-items:center;gap:8px;font-size:12px;min-width:0">
           <span class="today-ops-time" style="color:#6B7280;flex-shrink:0;width:44px">${esc(s.time||'-')}</span>
           <span class="today-ops-main" style="color:#111827;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(coupleName(s))} · ${esc(s.hall)}</span>
         </div>
-        <div class="today-ops-assignees" style="margin-top:4px;font-size:11px;color:#374151">
-          <span style="color:#9CA3AF;font-weight:700">담당</span> ${assigneesHtml}
-        </div>
-        <div class="today-ops-processor" style="margin-top:4px;font-size:11px;color:#374151">
-          <span style="color:#9CA3AF;font-weight:700">처리</span> <span style="color:#2563EB;font-weight:700">${headerHtml}</span>
-          ${processedByName ? `<span style="color:#374151;font-weight:600"> · ${esc(processedByName)}</span>` : ''}
-          ${teamBreakdownHtml}
-        </div>
-        <div class="today-ops-stage-row" style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:6px">
+        ${teamsRowHtml}
+        <div class="today-ops-stage-row" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px">
           ${chipsHtml}
-          <span class="today-ops-total-count" style="margin-left:auto;flex-shrink:0;font-size:11px;font-weight:700;color:#374151;white-space:nowrap">전체완료 ${completedCount}/6</span>
+          <span class="today-ops-total-count" style="margin-left:auto;flex-shrink:0;font-size:12px;font-weight:700;color:#374151;white-space:nowrap">전체완료 ${completedCount}/6</span>
         </div>
       </div>`;
   }).join('');
