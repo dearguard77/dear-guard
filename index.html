@@ -2722,6 +2722,37 @@ function formatWakeUpTime(isoStr){
   return `${ampm} ${h12}:${mm}`;
 }
 
+// ─── 관리자 완료 즉시 푸시 (send-admin-push 재사용) ───────────────────────────
+// 7개 완료 함수에서 "기존 DB 저장이 성공한 직후"에만 fire-and-forget(.catch)으로 호출한다.
+// 이 함수 자체가 실패해도 이미 완료된 저장에는 영향이 없다 — 반드시 .catch(()=>{})와 함께 호출할 것.
+const ADMIN_EXTERNAL_ID_BY_NAME = { '강성주': 'staff_1', '전수연': 'staff_2' };
+
+async function notifyAdminOnComplete(icon, stepLabel, scheduleId){
+  const title = `${icon} ${currentUser.name} 매니저 · ${stepLabel}`;
+
+  let message = '오늘 기상 확인이 완료되었습니다.';
+  if(scheduleId){
+    const s = schedules.find(x => x.id === scheduleId);
+    if(s){
+      const coupleLabel = s.brideName ? `${s.brideName} 신부님` : s.groomName ? `${s.groomName} 신랑님` : (s.hall || '예식');
+      message = `${s.time||''} · ${s.hall||''} · ${coupleLabel}`;
+    }
+  }
+
+  // 강성주가 완료 처리하면 강성주(staff_1) 제외, 전수연이면 전수연(staff_2) 제외, 일반 매니저는 미전달(관리자 둘 다 수신)
+  const excludeId = ADMIN_EXTERNAL_ID_BY_NAME[currentUser.name];
+  const payload = { title, message };
+  if(excludeId) payload.exclude_external_id = excludeId;
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/send-admin-push`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    body: JSON.stringify(payload),
+    keepalive: true,
+  });
+  if(!res.ok) throw new Error(await res.text());
+}
+
 async function confirmWakeUp(){
   if(_wakeUpSaving) return;
   if(!confirm('기상 확인을 완료 처리하시겠습니까?')) return;
@@ -2738,6 +2769,7 @@ async function confirmWakeUp(){
       wake_up_at: now,
       updated_at: now,
     });
+    notifyAdminOnComplete('🌅', '기상 완료', null).catch(e => console.error('[DG] 관리자 완료 푸시 실패(기상):', e));
     await renderTodayChecklist();
   }catch(e){
     console.error('[DG] 기상 확인 저장 실패:', e);
@@ -2801,6 +2833,7 @@ async function confirmDepart(scheduleId){
       completed_by_name: currentUser.name,
       metadata: {},
     });
+    notifyAdminOnComplete('🚗', '출발 완료', scheduleId).catch(e => console.error('[DG] 관리자 완료 푸시 실패(출발):', e));
     await renderTodayChecklist();
   }catch(e){
     console.error('[DG] 출발 완료 저장 실패:', e);
@@ -2852,6 +2885,7 @@ async function confirmArrive(scheduleId){
       completed_by_name: currentUser.name,
       metadata: {},
     });
+    notifyAdminOnComplete('📍', '도착 완료', scheduleId).catch(e => console.error('[DG] 관리자 완료 푸시 실패(도착):', e));
     await renderTodayChecklist();
   }catch(e){
     console.error('[DG] 도착 완료 저장 실패:', e);
@@ -2891,6 +2925,7 @@ async function confirmOperationComplete(scheduleId){
       completed_by_name: currentUser.name,
       metadata: {},
     });
+    notifyAdminOnComplete('🎉', '운영 완료', scheduleId).catch(e => console.error('[DG] 관리자 완료 푸시 실패(운영):', e));
     await renderTodayChecklist();
   }catch(e){
     console.error('[DG] 운영 완료 저장 실패:', e);
@@ -2930,6 +2965,7 @@ async function confirmHandoverComplete(scheduleId){
       completed_by_name: currentUser.name,
       metadata: {},
     });
+    notifyAdminOnComplete('🤝', '인계 완료', scheduleId).catch(e => console.error('[DG] 관리자 완료 푸시 실패(인계):', e));
     await renderTodayChecklist();
   }catch(e){
     console.error('[DG] 화환사진·인계서 전달 완료 저장 실패:', e);
@@ -2969,6 +3005,7 @@ async function confirmLiveUrlRegister(scheduleId){
       completed_by_name: currentUser.name,
       metadata: {},
     });
+    notifyAdminOnComplete('🔗', '라이브 링크 등록', scheduleId).catch(e => console.error('[DG] 관리자 완료 푸시 실패(링크):', e));
     await renderTodayChecklist();
   }catch(e){
     console.error('[DG] 라이브 주소 등록 확인 저장 실패:', e);
@@ -3008,6 +3045,7 @@ async function confirmVenueReviewComplete(scheduleId){
       completed_by_name: currentUser.name,
       metadata: {},
     });
+    notifyAdminOnComplete('⭐', '예식장 리뷰 완료', scheduleId).catch(e => console.error('[DG] 관리자 완료 푸시 실패(리뷰):', e));
     await renderTodayChecklist();
   }catch(e){
     console.error('[DG] 예식장 리뷰 완료 저장 실패:', e);
