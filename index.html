@@ -2744,7 +2744,7 @@ async function notifyAdminOnComplete(icon, stepLabel, scheduleId){
   const payload = { title, message };
   if(excludeId) payload.exclude_external_id = excludeId;
 
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/send-admin-push`, {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/hyper-function`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
     body: JSON.stringify(payload),
