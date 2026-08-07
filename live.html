@@ -906,8 +906,16 @@ function lbDestroyPlayers(){
 function lbUpdateToggleUI(){
   const b1=document.getElementById('lb-toggle-live1');
   const b2=document.getElementById('lb-toggle-live2');
+
   if(b1) b1.classList.toggle('active', lbActiveVideoKey==='live1');
   if(b2) b2.classList.toggle('active', lbActiveVideoKey==='live2');
+
+  // 현재 선택된 영상에 맞춰 플레이어 좌측 상단 라벨 변경
+  const camLabel=document.querySelector('#lb-cam-front-box .lb-cam-label');
+  if(camLabel){
+    camLabel.textContent =
+      lbActiveVideoKey==='live2' ? '기록측 영상' : '접수측 영상';
+  }
 }
 
 // 접수측/기록측 영상 전환 — 기존 플레이어를 제거하지 않고 loadVideoById()로 영상만 교체
