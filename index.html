@@ -523,6 +523,125 @@
   text-overflow: ellipsis;
   min-width: 0;
 }
+.ops-card{
+  padding: 8px 0;
+  border-bottom: 1px solid #F3F4F6;
+  min-width: 0;
+  cursor: pointer;
+}
+.ops-card-header{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  min-width: 0;
+}
+.ops-card-time{
+  color: #6B7280;
+  flex-shrink: 0;
+  width: 44px;
+}
+.ops-card-main{
+  color: #111827;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ops-chevron{
+  flex-shrink: 0;
+  color: #9CA3AF;
+  font-size: 14px;
+  transition: transform .15s ease;
+}
+.ops-chevron.is-open{
+  transform: rotate(90deg);
+}
+.ops-team-line{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #374151;
+  margin-top: 4px;
+  min-width: 0;
+}
+.ops-team-line-label{
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #9CA3AF;
+}
+.ops-team-line-members{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.ops-team-line-stage{
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.ops-team-line-count{
+  flex-shrink: 0;
+  white-space: nowrap;
+  color: #6B7280;
+  font-weight: 700;
+}
+.ops-detail{
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ops-detail-circles{
+  font-size: 15px;
+  letter-spacing: 2px;
+  text-align: center;
+  color: #2563EB;
+}
+.ops-detail-labels{
+  font-size: 9px;
+  color: #9CA3AF;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.ops-detail-step-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  padding: 3px 0;
+  border-top: 1px solid #F3F4F6;
+}
+.ops-detail-step-label{
+  color: #374151;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.ops-detail-step-meta{
+  color: #6B7280;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+.ops-detail-complete-btn{
+  flex-shrink: 0;
+  background: #374151;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
 </style>
 
 <style>
@@ -552,6 +671,9 @@
   }
   #today-ops-summary-card .today-ops-team-line3{
     font-size: 9px;
+  }
+  #today-ops-summary-card .ops-team-line{
+    font-size: 10px;
   }
   #today-checklist-card .today-checklist-schedule-info{
     white-space: normal;
@@ -3066,6 +3188,14 @@ function _opsManagerNames(s){
   return names;
 }
 
+// 오늘 운영현황(관리자)에서 현재 펼쳐진 예식 id — 한 번에 하나만 펼쳐지도록 단일 값으로 관리
+let _expandedOpsScheduleId = null;
+
+function toggleOpsScheduleExpand(scheduleId){
+  _expandedOpsScheduleId = (_expandedOpsScheduleId === scheduleId) ? null : scheduleId;
+  renderTodayOpsSummary();
+}
+
 async function renderTodayOpsSummary(){
   const el = document.getElementById('today-ops-summary-card');
   const headerEl = document.getElementById('today-ops-header');
@@ -3153,21 +3283,82 @@ async function renderTodayOpsSummary(){
     return { count, emojiRow, recent };
   }
 
-  // 팀 카드(3줄 고정) — ①팀명·팀원(한 줄)+N/7, ②7단계 진행 이모지(공백 없이), ③최근 완료 단계
-  function _teamCard3LineHtml(label, members, teamMaps, sid){
-    const { count, emojiRow, recent } = _resolveTeamProgress(members, teamMaps, sid);
+  // 팀 하나의 압축 1줄(접힌 상태) — 팀명·팀원·현재단계·N/7. 양측은 이 줄을 팀별로 각각 보여주고 대표값으로 합치지 않는다.
+  function _teamCompactLineHtml(label, members, teamMaps, sid){
+    const { count, recent } = _resolveTeamProgress(members, teamMaps, sid);
     const membersText = members.length ? members.map(n => esc(n)).join('·') : '미배정';
-    const recentText = recent
-      ? `${recent.emoji} ${recent.label} ${esc(recent.name||'')} ${formatWakeUpTime(recent.at)}`
-      : `대기중`;
+    const stageText = recent ? `${recent.emoji} ${recent.label}` : '⚪ 대기';
+    return `
+      <div class="ops-team-line">
+        <span class="ops-team-line-label">${label}</span>
+        <span class="ops-team-line-members">${membersText}</span>
+        <span class="ops-team-line-stage">${stageText}</span>
+        <span class="ops-team-line-count">${count}/7</span>
+      </div>`;
+  }
+
+  // 완료 버튼 onclick에 연결할 기존 confirm 함수 호출문 생성 — 함수 자체는 그대로 호출만 하고 내부는 손대지 않는다.
+  function _stageConfirmCall(key, scheduleId){
+    switch(key){
+      case 'wake':                    return 'confirmWakeUp()';
+      case 'departed':                return `confirmDepart(${scheduleId})`;
+      case 'arrived':                 return `confirmArrive(${scheduleId})`;
+      case 'operation_completed':     return `confirmOperationComplete(${scheduleId})`;
+      case 'handover_completed':      return `confirmHandoverComplete(${scheduleId})`;
+      case 'live_url_registered':     return `confirmLiveUrlRegister(${scheduleId})`;
+      case 'venue_review_completed':  return `confirmVenueReviewComplete(${scheduleId})`;
+      default: return '';
+    }
+  }
+
+  // 펼친 상태의 팀 상세 — 7단계 원형(●/○) + 완료자/완료시간, 현재 로그인 사용자가 이 팀에 실제 배정돼 있을 때만
+  // 다음 순서의 완료 버튼을 노출한다(기존 renderTodayChecklist()의 순차 노출과 동일한 규칙).
+  function _teamDetailHtml(schedule, team, label, members, teamMaps){
+    const sid = String(schedule.id);
+    const isMyTeam = _resolveMyTeam(schedule) === team;
+    const { count } = _resolveTeamProgress(members, teamMaps, sid);
+    const membersText = members.length ? members.map(n => esc(n)).join('·') : '미배정';
+
+    const wokeName = members.find(name => { const u = USERS.find(u => u.name === name); return u && wakeUpMap.has(u.id); });
+    const wokeInfo = wokeName ? { name: wokeName, at: wakeUpMap.get(USERS.find(u => u.name === wokeName).id) } : null;
+
+    const circles = STAGE_DISPLAY.map(st => (st.key === 'wake' ? !!wokeInfo : teamMaps[st.key].has(sid)) ? '●' : '○').join(' ');
+    const labels  = STAGE_DISPLAY.map(st => st.label).join('  ');
+
+    let stepsHtml = '';
+    let blocked = false; // 이전 단계가 미완료면 그 다음 단계 버튼은 아직 노출하지 않음(기존 순차 노출 규칙과 동일)
+    STAGE_DISPLAY.forEach(st => {
+      const done = st.key === 'wake' ? !!wokeInfo : teamMaps[st.key].has(sid);
+      if(done){
+        const name = st.key === 'wake' ? wokeInfo.name : teamMaps[st.key].get(sid).completed_by_name;
+        const at   = st.key === 'wake' ? wokeInfo.at   : teamMaps[st.key].get(sid).completed_at;
+        stepsHtml += `
+          <div class="ops-detail-step-row">
+            <span class="ops-detail-step-label">${st.label} 완료</span>
+            <span class="ops-detail-step-meta">${esc(name||'')} · ${formatWakeUpTime(at)}</span>
+          </div>`;
+      } else if(!blocked && isMyTeam){
+        const call = _stageConfirmCall(st.key, schedule.id);
+        stepsHtml += `
+          <div class="ops-detail-step-row">
+            <span class="ops-detail-step-label">${st.label}</span>
+            <button class="ops-detail-complete-btn" onclick="${call}.then(()=>renderTodayOpsSummary())">완료</button>
+          </div>`;
+      }
+      if(!done) blocked = true;
+    });
+
     return `
       <div class="today-ops-team-card">
         <div class="today-ops-team-line1">
           <span class="today-ops-team-members">${label} ${membersText}</span>
           <span class="today-ops-team-count">${count}/7</span>
         </div>
-        <div class="today-ops-team-line2">${emojiRow}</div>
-        <div class="today-ops-team-line3">${recentText}</div>
+        <div class="ops-detail">
+          <div class="ops-detail-circles">${circles}</div>
+          <div class="ops-detail-labels">${labels}</div>
+          ${stepsHtml}
+        </div>
       </div>`;
   }
 
@@ -3181,19 +3372,27 @@ async function renderTodayOpsSummary(){
     team1Members = [frontParts[0], backParts[0]].filter(Boolean);
     if(isBothSides) team2Members = [frontParts[1], backParts[1]].filter(Boolean);
 
-    const teamsRowHtml = `
-      <div class="today-ops-teams-row" style="display:flex;gap:6px;margin-top:6px">
-        ${_teamCard3LineHtml('1팀', team1Members, stageTeam1Maps, sid)}
-        ${isBothSides ? _teamCard3LineHtml('2팀', team2Members, stageTeam2Maps, sid) : ''}
-      </div>`;
+    const isExpanded = _expandedOpsScheduleId === s.id;
+
+    const compactLinesHtml = `
+      ${_teamCompactLineHtml('1팀', team1Members, stageTeam1Maps, sid)}
+      ${isBothSides ? _teamCompactLineHtml('2팀', team2Members, stageTeam2Maps, sid) : ''}`;
+
+    const detailHtml = isExpanded ? `
+      <div class="today-ops-teams-row" style="display:flex;gap:6px;margin-top:8px">
+        ${_teamDetailHtml(s, '1', '1팀', team1Members, stageTeam1Maps)}
+        ${isBothSides ? _teamDetailHtml(s, '2', '2팀', team2Members, stageTeam2Maps) : ''}
+      </div>` : '';
 
     return `
-      <div style="padding:8px 0;border-bottom:1px solid #F3F4F6;min-width:0">
-        <div class="today-ops-row" style="display:flex;align-items:center;gap:8px;font-size:12px;min-width:0">
-          <span class="today-ops-time" style="color:#6B7280;flex-shrink:0;width:44px">${esc(s.time||'-')}</span>
-          <span class="today-ops-main" style="color:#111827;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(coupleName(s))} · ${esc(s.hall)}</span>
+      <div class="ops-card">
+        <div class="ops-card-header" onclick="toggleOpsScheduleExpand(${s.id})">
+          <span class="ops-card-time">${esc(s.time||'-')}</span>
+          <span class="ops-card-main">${esc(coupleName(s))}</span>
+          <span class="ops-chevron${isExpanded ? ' is-open' : ''}">›</span>
         </div>
-        ${teamsRowHtml}
+        ${compactLinesHtml}
+        ${detailHtml}
       </div>`;
   }).join('');
 
