@@ -336,7 +336,10 @@
   .settle-row{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:all .15s}
   .settle-row:hover{border-color:#C7B89A}
   .settle-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
-  .settle-summary-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;text-align:center}
+  .settle-summary-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;text-align:center;min-width:0}
+  .settle-summary-label{font-size:10px;color:#9CA3AF;margin-bottom:6px}
+  .settle-summary-value{font-size:20px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .settle-summary-sub{font-size:11px;color:#9CA3AF;margin-top:4px}
   .paid-badge{background:#ECFDF5;color:#10B981;border:1px solid #A7F3D0;border-radius:8px;padding:2px 10px;font-size:11px;font-weight:700}
   .unpaid-badge{background:#FEF9C3;color:#CA8A04;border:1px solid #FDE047;border-radius:8px;padding:2px 10px;font-size:11px;font-weight:700}
   /* RESPONSIVE */
@@ -362,6 +365,12 @@
     #notif-btn{width:28px;height:28px;font-size:15px}
     .assign-form-grid{grid-template-columns:1fr !important}
     .assign-form-grid .form-field.span{grid-column:unset}
+
+    /* 정산관리 요약 카드(총 매출/총 인건비/순수익) — 모바일에서도 3열 유지하되 폭에 맞게 압축 */
+    .settle-summary{gap:6px}
+    .settle-summary-card{padding:10px 4px}
+    .settle-summary-value{font-size:14px}
+    .settle-summary-label,.settle-summary-sub{font-size:9px}
 
     /* 결과 탭 단계 버튼 — 모바일: 자연스럽게 줄바꿈 + 짧은 라벨 */
     .result-step-tabs{
@@ -965,7 +974,11 @@
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
       <div class="sec-header" style="margin-bottom:0"><h2>📊 정산 현황</h2><span>관리자 전용</span></div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <select class="form-input" id="settle-month-filter" onchange="renderSettle()" style="width:auto;padding:6px 12px;font-size:12px"></select>
+        <div class="cal-nav" style="margin-bottom:0;gap:4px">
+          <button class="btn btn-ghost sm" onclick="settleMove(-1)">‹</button>
+          <div class="cal-nav-title" id="settle-month-title" style="font-size:14px;white-space:nowrap;padding:0 2px"></div>
+          <button class="btn btn-ghost sm" onclick="settleMove(1)">›</button>
+        </div>
         <select class="form-input" id="settle-manager-filter" onchange="renderSettle()" style="width:auto;padding:6px 12px;font-size:12px">
           <option value="">전체 매니저</option>
         </select>
@@ -1918,6 +1931,9 @@ let currentUser = USERS[0];
 let activeTab   = 'home';
 let calYear     = new Date().getFullYear();
 let calMonth    = new Date().getMonth();
+// 정산관리 탭 전용 연/월 상태 — 일정 탭의 calYear/calMonth와 완전히 독립적으로 관리한다(서로 영향 없음).
+let settleYear  = new Date().getFullYear();
+let settleMonth = new Date().getMonth();
 let detailId    = null;
 let formId      = null;
 let resultId    = null;
@@ -7374,33 +7390,22 @@ function showUvEditDialog(myName, partnerName){
 //  📊  정산 현황 기능 (관리자 전용)
 // ════════════════════════════════════════════════════════════
 
-function initSettleMonthFilter(){
-  const sel = document.getElementById('settle-month-filter'); if(!sel) return;
-  const months = [...new Set(schedules
-    .filter(s => s.totalPrice || s.laborCost)
-    .map(s => s.date?.slice(0,7))
-    .filter(Boolean)
-  )].sort().reverse();
-
-  // 현재 달도 항상 포함
-  const thisMonth = TODAY.slice(0,7);
-  if(!months.includes(thisMonth)) months.unshift(thisMonth);
-
-  const cur = sel.value || thisMonth;
-  sel.innerHTML = months.map(m =>
-    `<option value="${m}"${m===cur?' selected':''}>${m.replace('-','년 ')}월</option>`
-  ).join('');
-  if(!sel.value) sel.value = cur;
+// 정산관리 탭 전용 월 이동 — 일정 탭의 calMove()와 동일한 패턴(연도 경계 처리 포함), 상태 변수만 독립적으로 분리
+function settleMove(dir){
+  settleMonth += dir;
+  if(settleMonth < 0){ settleMonth = 11; settleYear--; }
+  if(settleMonth > 11){ settleMonth = 0; settleYear++; }
+  renderSettle();
 }
 
 function renderSettle(){
   if(!ADMIN_NAMES.includes(currentUser.name)) return;
 
-  initSettleMonthFilter();
   initSettleManagerFilter();
 
-  const sel = document.getElementById('settle-month-filter');
-  const month = sel?.value || TODAY.slice(0,7);
+  const month = `${settleYear}-${String(settleMonth+1).padStart(2,'0')}`;
+  const titleEl = document.getElementById('settle-month-title');
+  if(titleEl) titleEl.textContent = `${settleYear}년 ${String(settleMonth+1).padStart(2,'0')}월`;
   const unpaidOnly = document.getElementById('settle-unpaid-only')?.checked || false;
   const managerName = document.getElementById('settle-manager-filter')?.value || '';
 
@@ -7440,19 +7445,19 @@ function renderSettle(){
 
   document.getElementById('settle-summary').innerHTML = `
     <div class="settle-summary-card">
-      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">총 매출</div>
-      <div style="font-size:20px;font-weight:800;color:#111827">${totalRevenue.toLocaleString()}원</div>
-      <div style="font-size:11px;color:#9CA3AF;margin-top:4px">${list.length}건</div>
+      <div class="settle-summary-label">총 매출</div>
+      <div class="settle-summary-value" style="color:#111827">${totalRevenue.toLocaleString()}원</div>
+      <div class="settle-summary-sub">${list.length}건</div>
     </div>
     <div class="settle-summary-card">
-      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">${managerName ? esc(managerName)+' 인건비' : '총 인건비'}</div>
-      <div style="font-size:20px;font-weight:800;color:#EF4444">${totalLabor.toLocaleString()}원</div>
-      <div style="font-size:11px;color:#F59E0B;margin-top:4px;font-weight:600">미지급 ${unpaidCount}건</div>
+      <div class="settle-summary-label">${managerName ? esc(managerName)+' 인건비' : '총 인건비'}</div>
+      <div class="settle-summary-value" style="color:#EF4444">${totalLabor.toLocaleString()}원</div>
+      <div class="settle-summary-sub" style="color:#F59E0B;font-weight:600">미지급 ${unpaidCount}건</div>
     </div>
     <div class="settle-summary-card" style="background:${totalNet>=0?'#ECFDF5':'#FEF2F2'};border-color:${totalNet>=0?'#A7F3D0':'#FCA5A5'}">
-      <div style="font-size:10px;color:#9CA3AF;margin-bottom:6px">순수익</div>
-      <div style="font-size:20px;font-weight:800;color:${totalNet>=0?'#10B981':'#EF4444'}">${totalNet.toLocaleString()}원</div>
-      <div style="font-size:11px;color:#9CA3AF;margin-top:4px">매출 - 인건비</div>
+      <div class="settle-summary-label">순수익</div>
+      <div class="settle-summary-value" style="color:${totalNet>=0?'#10B981':'#EF4444'}">${totalNet.toLocaleString()}원</div>
+      <div class="settle-summary-sub">매출 - 인건비</div>
     </div>`;
 
   // ── 리스트 ──
