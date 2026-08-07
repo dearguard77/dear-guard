@@ -2188,7 +2188,7 @@ async function sendStaffTestPush(){
   if(btn){ btn.disabled = true; }
 
   try{
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/swift-api`, {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-staff-test-push`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
       body: JSON.stringify({
@@ -6128,6 +6128,10 @@ async function saveForm(){
       if(idx !== -1) schedules[idx] = newS;
       showToast('✅ 예식 정보가 수정되었습니다');
       if(oldS) sendUpdateScheduleNotifs(oldS, newS).catch(()=>{});
+      if(oldS){
+        const { added, removed, changed } = _computeManagerDiff(oldS, newS);
+        sendAssignmentPush(newS.id, added, removed, changed, false).catch(()=>{});
+      }
       closeForm(); renderAll();
     } else {
       // 신규 등록 — INSERT 결과에서 id 확보 후 상세모달 자동 오픈
@@ -6138,6 +6142,10 @@ async function saveForm(){
       schedules.push(newS);
       showToast('🎉 새 예식이 등록되었습니다');
       sendNewScheduleNotifs(newS).catch(()=>{});
+      {
+        const { added, removed, changed } = _computeManagerDiff(null, newS);
+        sendAssignmentPush(newS.id, added, removed, changed, true).catch(()=>{});
+      }
       closeForm();
       renderAll();
       // 관리자에게만 — renderAll 완료 후 상세모달 오픈
@@ -8972,6 +8980,42 @@ async function sendUpdateScheduleNotifs(oldS, newS){
         newS.id
       );
     }
+  }
+}
+
+// ─── 배정 즉시 푸시 (send-ops-push의 immediate 모드 호출) ───────────────────────
+// sendNewScheduleNotifs/sendUpdateScheduleNotifs(인앱 알림)와는 완전히 별개의 기능이며,
+// 위 두 함수는 이 기능 추가 과정에서 전혀 수정하지 않았다.
+// oldS가 없으면(신규 등록) 전체 담당자를 added로, 있으면(수정) 기존 담당자와 비교해 diff를 계산한다.
+function _computeManagerDiff(oldS, newS){
+  const oldFront = (oldS?.frontManager||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const oldBack  = (oldS?.backManager ||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const newFront = (newS.frontManager||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const newBack  = (newS.backManager ||'').split(',').map(m=>m.trim()).filter(Boolean);
+  const oldAll = [...new Set([...oldFront, ...oldBack])];
+  const newAll = [...new Set([...newFront, ...newBack])];
+  const added   = newAll.filter(m => !oldAll.includes(m));
+  const removed = oldAll.filter(m => !newAll.includes(m));
+  const changed = newAll.filter(m => oldAll.includes(m) && (
+    (oldFront.includes(m) !== newFront.includes(m)) || (oldBack.includes(m) !== newBack.includes(m))
+  ));
+  return { added, removed, changed };
+}
+
+// DB 저장(sb.post/sb.patch)이 성공한 뒤에만 호출되는 자리에서만 사용한다 — 저장 실패 시에는
+// 호출되지 않도록 saveForm()의 성공 분기 안에서만 연결한다. 실패해도 예식 저장 자체는
+// 이미 완료된 상태라 rollback되지 않으며, 에러는 콘솔에만 남기고 조용히 무시한다.
+async function sendAssignmentPush(scheduleId, added, removed, changed, isNewSchedule){
+  if(!added.length && !removed.length && !changed.length) return;
+  try{
+    await fetch(`${SUPABASE_URL}/functions/v1/send-ops-push`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+      body: JSON.stringify({ immediate: true, schedule_id: scheduleId, added, removed, changed, is_new_schedule: !!isNewSchedule }),
+      keepalive: true, // 저장 직후 페이지 전환·새로고침이 일어나도 요청이 취소되지 않고 브라우저가 백그라운드로 전달을 보장한다
+    });
+  }catch(e){
+    console.error('[DG] 배정 즉시 푸시 요청 실패(예식 저장 자체와는 무관):', e);
   }
 }
 // ─── 본식 5분 후 사진 촬영 알림 ──────────────────────────────────────────────
