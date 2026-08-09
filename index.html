@@ -6163,7 +6163,7 @@ function buildManagerOptions(selectedName){
   const timeStr = (timeH && timeM !== '') ? `${timeH}:${timeM}` : '';
   const UV_LABEL = { all_day:'종일불가', morning:'오전불가', afternoon:'오후불가' };
 
-  return '<option value="">— 선택 —</option>' + USERS.map(u => {
+  return '<option value="">미정</option>' + USERS.map(u => {
     const tags = [];
 
     // 불가일정 체크
