@@ -161,6 +161,7 @@
   .guide-btn:hover{background:#F8FAFC}
   .guide-btn-primary{border-color:#E5E7EB;color:#374151}
   .guide-btn-danger{background:#FEF2F2;border-color:#FCA5A5;color:#DC2626}
+  .guide-link-open-btn{flex-shrink:0;background:#fff;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:0 12px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .guide-btn-warn{background:#FFF7ED;border-color:#FED7AA;color:#C2410C}
   .guide-btn-success{background:#ECFDF5;border-color:#A7F3D0;color:#059669}
   .guide-status-badge{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;border:1px solid}
@@ -4294,18 +4295,21 @@ async function openPrecheckModal(id){
       <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
         <div>
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">🤝 통합 체크 링크</div>
-          <div class="guide-link-box" style="margin-bottom:10px">${precheckUrl}</div>
-          <div class="guide-action-grid">
-            <button class="guide-btn" onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 체크 링크 복사됨'))">
+          <div style="display:flex;gap:6px;align-items:stretch;margin-bottom:10px">
+            <div class="guide-link-box" style="flex:1;margin-bottom:0">${precheckUrl}</div>
+            <button class="guide-link-open-btn" onclick="window.open('${precheckUrl}','_blank','noopener,noreferrer')" title="새 탭에서 열기">↗</button>
+          </div>
+          <div class="guide-action-grid" style="flex-wrap:nowrap">
+            <button class="guide-btn" style="min-width:0" onclick="navigator.clipboard.writeText('${precheckUrl}').then(()=>showToast('📋 체크 링크 복사됨'))">
               📋 링크 복사
             </button>
-            <button class="guide-btn" onclick="copyPrecheckGuide('${precheckUrl}')">
+            <button class="guide-btn" style="min-width:0" onclick="copyPrecheckGuide('${precheckUrl}')">
               💬 안내문 복사
             </button>
+            <button class="guide-btn guide-btn-primary" style="min-width:0" onclick="copyBalanceGuide(${id})">
+              💰 잔금 안내
+            </button>
           </div>
-          <button class="guide-btn guide-btn-primary" onclick="copyBalanceGuide(${id})" style="width:100%;margin-top:8px">
-            💰 잔금 안내
-          </button>
         </div>
         <div style="border-top:1px solid #E5E7EB;padding-top:12px">
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">🔒 사전체크 잠금 관리</div>
@@ -4501,7 +4505,10 @@ async function openContractModal(id){
         ${signedBadge}
         <div>
           <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">📝 전자계약 링크</div>
-          <div class="guide-link-box" style="margin-bottom:10px">${contractUrl}</div>
+          <div style="display:flex;gap:6px;align-items:stretch;margin-bottom:10px">
+            <div class="guide-link-box" style="flex:1;margin-bottom:0">${contractUrl}</div>
+            <button class="guide-link-open-btn" onclick="window.open('${contractUrl}','_blank','noopener,noreferrer')" title="새 탭에서 열기">↗</button>
+          </div>
           <div class="guide-action-grid">
             <button class="guide-btn" onclick="navigator.clipboard.writeText('${contractUrl}').then(()=>showToast('📝 계약 링크 복사됨'))">
               📝 계약 링크 복사
