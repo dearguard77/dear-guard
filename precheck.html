@@ -210,6 +210,7 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="section-body open" id="sec-1-body">
       <div id="live-mode-wrap">
+        <div class="field-label" style="margin-bottom:8px">장부 방식을 선택해주세요 <span class="req">*</span></div>
         <div class="radio-group" id="live-mode-group">
           <!-- [수정1] 단측 진행: 클릭 즉시 아래에 진행측 선택 노출 -->
           <label class="radio-item" data-val="single" onclick="selectRadio('live-mode-group',this,'single');onLiveModeChange();autoSaveDraft()">
@@ -295,11 +296,11 @@ input,select,textarea{font-family:inherit;outline:none}
         <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측 인계 담당자</div>
         <div class="grid2" style="margin-bottom:8px">
           <div class="field">
-            <label class="field-label">관계/성함</label>
+            <label class="field-label">관계/성함 <span class="req">*</span></label>
             <input class="field-input" id="groom_contact_name" placeholder="예: 친동생 김OO" oninput="updateProgress();autoSaveDraft()">
           </div>
           <div class="field">
-            <label class="field-label">연락처</label>
+            <label class="field-label">연락처 <span class="req">*</span></label>
             <input class="field-input" id="groom_contact_phone" placeholder="010-0000-0000" oninput="updateProgress();autoSaveDraft()">
           </div>
         </div>
@@ -309,11 +310,11 @@ input,select,textarea{font-family:inherit;outline:none}
         <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측 인계 담당자</div>
         <div class="grid2">
           <div class="field">
-            <label class="field-label">관계/성함</label>
+            <label class="field-label">관계/성함 <span class="req">*</span></label>
             <input class="field-input" id="bride_contact_name" placeholder="예: 가방순이 박OO" oninput="updateProgress();autoSaveDraft()">
           </div>
           <div class="field">
-            <label class="field-label">연락처</label>
+            <label class="field-label">연락처 <span class="req">*</span></label>
             <input class="field-input" id="bride_contact_phone" placeholder="010-0000-0000" oninput="updateProgress();autoSaveDraft()">
           </div>
         </div>
@@ -346,7 +347,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <!-- [수정2] 신랑측 소인 식권 여부 -->
         <div class="field" style="margin-top:6px">
-          <label class="field-label" style="color:#2563EB">🤵 신랑측 소인 식권 여부</label>
+          <label class="field-label" style="color:#2563EB">🤵 신랑측 소인 식권 여부 <span class="req">*</span></label>
           <div class="radio-group" id="child-groom-yn-group" style="flex-direction:row;gap:8px">
             <label class="radio-item" data-val="true" onclick="selectRadio('child-groom-yn-group',this,'true');toggleChildTicket('groom',true);updateProgress();autoSaveDraft()" style="flex:1">
               <input type="radio" name="child_groom_yn" value="true">
@@ -374,7 +375,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <!-- [수정2] 신부측 소인 식권 여부 -->
         <div class="field" style="margin-top:6px">
-          <label class="field-label" style="color:#DB2777">👰 신부측 소인 식권 여부</label>
+          <label class="field-label" style="color:#DB2777">👰 신부측 소인 식권 여부 <span class="req">*</span></label>
           <div class="radio-group" id="child-bride-yn-group" style="flex-direction:row;gap:8px">
             <label class="radio-item" data-val="true" onclick="selectRadio('child-bride-yn-group',this,'true');toggleChildTicket('bride',true);updateProgress();autoSaveDraft()" style="flex:1">
               <input type="radio" name="child_bride_yn" value="true">
@@ -460,6 +461,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="section-toggle" id="sec-5-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-5-body">
+      <div class="field-label" style="margin-bottom:8px">축의금 전달 방식을 선택해주세요 <span class="req">*</span></div>
       <div class="radio-group" id="cash-group">
         <label class="radio-item" data-val="sealed" onclick="selectRadio('cash-group',this,'sealed');updateProgress();autoSaveDraft()">
           <input type="radio" name="cash_method" value="sealed">
@@ -523,7 +525,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="section-toggle" id="sec-6-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-6-body">
-      <div class="field-label" style="margin-bottom:8px">혼주분께 디어가드 이용 여부를 알리고 계신가요?</div>
+      <div class="field-label" style="margin-bottom:8px">혼주분께 디어가드 이용 여부를 알리고 계신가요? <span class="req">*</span></div>
       <div class="radio-group" id="dg-disclosed-group" style="flex-direction:row;gap:8px">
         <label class="radio-item" data-val="true" onclick="selectRadio('dg-disclosed-group',this,'true');toggleDgRelation(false);updateProgress();autoSaveDraft()" style="flex:1">
           <input type="radio" name="dg_disclosed" value="true">
@@ -555,6 +557,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="section-toggle" id="sec-7-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-7-body">
+      <div class="field-label" style="margin-bottom:8px">답례품 유무를 선택해주세요 <span class="req">*</span></div>
       <div class="radio-group" id="gift-group" style="flex-direction:row;gap:8px">
         <label class="radio-item" data-val="true" onclick="selectRadio('gift-group',this,'true');toggleGiftDetail(true);updateProgress();autoSaveDraft()" style="flex:1">
           <input type="radio" name="gift_yn" value="true">
@@ -624,11 +627,11 @@ input,select,textarea{font-family:inherit;outline:none}
     </div>
     <div class="section-body" id="sec-10-body">
       <div id="groom-pw-wrap">
-        <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측</div>
+        <div style="font-size:12px;font-weight:700;color:#2563EB;margin-bottom:8px">🤵 신랑측 <span class="req">*</span></div>
         <input class="field-input" id="g_ho_pw" placeholder="예: 123" maxlength="3" oninput="updateProgress();autoSaveDraft()" style="margin-bottom:12px;letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
       </div>
       <div id="bride-pw-wrap">
-        <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측</div>
+        <div style="font-size:12px;font-weight:700;color:#DB2777;margin-bottom:8px">👰 신부측 <span class="req">*</span></div>
         <input class="field-input" id="b_ho_pw" placeholder="예: 567" maxlength="3" oninput="updateProgress();autoSaveDraft()" style="letter-spacing:4px;font-size:20px;font-weight:800;text-align:center">
       </div>
     </div>
@@ -646,6 +649,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <div class="section-toggle" id="sec-11-toggle">▼</div>
     </div>
     <div class="section-body" id="sec-11-body">
+      <label class="field-label">모바일 청첩장 링크 <span class="req">*</span></label>
       <input class="field-input" id="mobile_invite_url" placeholder="https://..." oninput="updateProgress();autoSaveDraft()">
     </div>
   </div>
@@ -666,6 +670,7 @@ input,select,textarea{font-family:inherit;outline:none}
         본식 후기 작성 시 후기 페이백이 가능합니다 😊<br>
         후기 작성 예정 여부를 선택해주세요.
       </div>
+      <div class="field-label" style="margin-bottom:8px">본식 후기 작성 예정 여부를 선택해주세요 <span class="req">*</span></div>
       <div class="radio-group" id="review-planned-group" style="flex-direction:row;gap:8px">
         <label class="radio-item" data-val="true" onclick="selectRadio('review-planned-group',this,'true');updateProgress();autoSaveDraft()" style="flex:1">
           <input type="radio" name="review_planned" value="true">
