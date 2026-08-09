@@ -4582,6 +4582,7 @@ function renderReferralList(){
       .filter(({ s, code }) => code && !usedCodeSet.has(code))
       .map(({ s, code }) => ({
         code,
+        scheduleId:   s.id,
         name:         [s.groomName, s.brideName].filter(Boolean).join(' / '),
         contractDate: s.contractDate || s.contractSignedAt?.slice(0,10) || s.createdAt?.slice(0,10) || '',
         weddingDate:  s.date || '',
@@ -4625,7 +4626,10 @@ function renderReferralList(){
         </div>
         ${r.contractDate ? `<div style="font-size:11px;color:#6B7280">계약일: ${r.contractDate}</div>` : ''}
         ${r.weddingDate  ? `<div style="font-size:11px;color:#6B7280">예식일: ${r.weddingDate}</div>`  : ''}
-        <button onclick="openReferralApplyPicker('${esc(r.code)}','${esc(r.name || '')}')" style="margin-top:8px;width:100%;background:#374151;color:#fff;border:none;border-radius:6px;padding:7px;font-size:12px;font-weight:700;cursor:pointer">🤝 할인 적용</button>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="openReferralApplyPicker('${esc(r.code)}','${esc(r.name || '')}')" style="flex:1;background:#374151;color:#fff;border:none;border-radius:6px;padding:7px;font-size:12px;font-weight:700;cursor:pointer">🤝 할인 적용</button>
+          <button onclick="updateReferralCode(${r.scheduleId}, '${esc(r.code)}')" style="background:#fff;color:#374151;border:1px solid #D1D5DB;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer">✏️ 코드 수정</button>
+        </div>
       </div>`).join('');
 
     // ── 대표 미지정 섹션 (양측 예식인데 코드 계산 불가한 경우만) ──────────────
@@ -4724,6 +4728,58 @@ function renderReferralList(){
         ${dateStr        ? `<div style="font-size:11px;color:#6B7280">${u.source==='legacy'?'등록일':'사용일'}: ${dateStr}</div>` : ''}
       </div>`;
     }).join('');
+  }
+}
+
+// ── 대표 짝꿍코드 수정 (관리자 전용, "사용 가능" 탭에서만) ──────────────────────
+// 목적: 이름 오타 등으로 잘못 생성된 코드를 사용 전에 정정. 이미 사용된 코드는 수정 자체를 막는다.
+// referral_code_usages/couple_discount_code/할인금액/잔금/정산 데이터는 어떤 경우에도 건드리지 않고,
+// schedules.couple_referral_code 1개 컬럼만 수정한다.
+async function updateReferralCode(scheduleId, oldCode){
+  if(!ADMIN_NAMES.includes(currentUser.name)){ showToast('⚠️ 관리자만 수정 가능합니다'); return; }
+
+  const s = schedules.find(x => x.id === scheduleId);
+  if(!s){ showToast('⚠️ 예식 정보를 찾을 수 없습니다'); return; }
+
+  const newCode = (prompt('새 대표 짝꿍코드를 입력해주세요.', oldCode) || '').trim();
+  if(!newCode || newCode === oldCode) return; // 취소 또는 변경 없음
+
+  try{
+    // 1) 사용 이력 확인 — referral_code_usages에 active로 존재하는지
+    const activeUsages = await sb.get('referral_code_usages', `?used_code=eq.${encodeURIComponent(oldCode)}&status=eq.active&select=id`);
+    if(activeUsages && activeUsages.length){
+      showToast('⚠️ 이미 사용된 짝꿍코드는 수정할 수 없습니다.');
+      return;
+    }
+    // 2) 사용 이력 확인 — 다른 예식이 이 코드를 couple_discount_code로 이미 사용했는지
+    const usedInSchedules = schedules.some(x => x.id !== scheduleId && x.coupleDiscountCode && x.coupleDiscountCode.trim() === oldCode);
+    if(usedInSchedules){
+      showToast('⚠️ 이미 사용된 짝꿍코드는 수정할 수 없습니다.');
+      return;
+    }
+
+    // 3) 새 코드 중복 검증 — 다른 예식의 대표코드(저장값 또는 이름+전화 뒷4자리 폴백)와 겹치는지
+    const fallbackCode = x => {
+      if(x.coupleReferralCode) return x.coupleReferralCode;
+      if(x.groomName && x.brideName) return ''; // 양측은 폴백 없음(기존 규칙과 동일)
+      const name  = x.groomName || x.brideName || '';
+      const phone = x.groomPhone || x.bridePhone || '';
+      const last4 = (phone || '').replace(/\D/g,'').slice(-4);
+      return (name && last4) ? name + last4 : '';
+    };
+    const dup = schedules.find(x => x.id !== scheduleId && fallbackCode(x) === newCode);
+    if(dup){
+      showToast('⚠️ 이미 다른 예식에서 사용 중인 코드입니다.');
+      return;
+    }
+
+    // 4) 저장 — schedules.couple_referral_code 1개 컬럼만 수정
+    await sb.patch('schedules', scheduleId, { couple_referral_code: newCode });
+    s.coupleReferralCode = newCode;
+    showToast('✅ 대표 짝꿍코드가 수정되었습니다.');
+    renderReferralList();
+  }catch(e){
+    showToast('⚠️ 코드 수정 중 오류가 발생했습니다: ' + e.message);
   }
 }
 
