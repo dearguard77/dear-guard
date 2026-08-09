@@ -396,6 +396,17 @@ const FIELD_SCHEMA = [
     options:['도장 지참 시에만 추가 발급','도장 없이도 추가 발급 가능','추가 발급분 전량 반환 불가·비용 처리'] },
   { section:'D', id:'child_ticket', label:'소인 식권', type:'chip', required:true,
     options:['있음','없음'] },
+  { section:'D', id:'child_ticket_age_start', label:'소인 식권 적용 연령 (시작)', type:'text', required:false,
+    placeholder:'예) 5', showIf: v => v.child_ticket === '있음' },
+  { section:'D', id:'child_ticket_age_end', label:'소인 식권 적용 연령 (종료)', type:'text', required:false,
+    placeholder:'예) 7', showIf: v => v.child_ticket === '있음' },
+  { section:'D', id:'child_ticket_note', label:'소인 식권 기타사항', type:'text', required:false,
+    placeholder:'예) 4세 이하 무료', showIf: v => v.child_ticket === '있음' },
+  { section:'D', id:'adult_ticket_from_age', label:'대인 식권 적용 시작 연령', type:'chip', required:false,
+    options:['7세부터','8세부터','기타'], other:'기타', otherPlaceholder:'예) 6세부터',
+    showIf: v => v.child_ticket === '없음' },
+  { section:'D', id:'adult_ticket_note', label:'대인 식권 기타사항', type:'text', required:false,
+    placeholder:'예) 소인권 없음 / 8세부터 대인 식권 사용', showIf: v => v.child_ticket === '없음' },
   { section:'D', id:'ticket_issue', label:'식권 거지 발생 여부', type:'chip', required:false,
     options:['있었음','없었음'] },
   { section:'D', id:'ticket_issue_detail', label:'식권 거지 상세 상황', type:'text', required:false,
@@ -671,7 +682,7 @@ function renderDetail(){
         <div class="sec-block-body open" id="sum-${gi}-body">
           <div class="sec-block-inner">
             <div class="info-grid2">
-              ${items.map(id=>`<div class="info-item"><div class="lbl">${fieldLabel(id)}</div><div class="val">${formatFieldValue(id, latest[id])}</div></div>`).join('')}
+              ${items.map(id=>`<div class="info-item"><div class="lbl">${fieldLabel(id)}</div><div class="val">${id==='child_ticket' ? (formatChildTicketSummary(latest)||formatFieldValue(id, latest[id])) : formatFieldValue(id, latest[id])}</div></div>`).join('')}
             </div>
           </div>
         </div>
@@ -712,7 +723,7 @@ function renderReviewCard(r){
       <div class="review-detail-group">
         <div class="review-detail-group-title">${g.title}</div>
         <div class="info-grid2">
-          ${items.map(id=>`<div class="info-item"><div class="lbl">${fieldLabel(id)}</div><div class="val">${formatFieldValue(id, r[id])}</div></div>`).join('')}
+          ${items.map(id=>`<div class="info-item"><div class="lbl">${fieldLabel(id)}</div><div class="val">${id==='child_ticket' ? (formatChildTicketSummary(r)||formatFieldValue(id, r[id])) : formatFieldValue(id, r[id])}</div></div>`).join('')}
         </div>
       </div>`;
   });
@@ -759,6 +770,29 @@ function formatFieldValue(id, val){
   if(Array.isArray(val)) return val.map(escapeHtml).join(', ');
   if(val===null || val===undefined) return '-';
   return escapeHtml(String(val));
+}
+// 소인/대인 식권 정보를 "🎟 소인권 있음 · 만 5~7세" 형태의 한 줄 요약으로 조합.
+// record는 리뷰 레코드(latest 또는 r) — child_ticket 값 없으면 null 반환(기존 리뷰 호환, 오류 없이 처리됨).
+function formatChildTicketSummary(record){
+  const childTicket = record.child_ticket;
+  if(!hasValue(childTicket)) return null;
+  if(childTicket === '있음'){
+    const start = record.child_ticket_age_start;
+    const end   = record.child_ticket_age_end;
+    let ageText = '';
+    if(hasValue(start) && hasValue(end)) ageText = ` · 만 ${escapeHtml(String(start))}~${escapeHtml(String(end))}세`;
+    else if(hasValue(start)) ageText = ` · 만 ${escapeHtml(String(start))}세부터`;
+    else if(hasValue(end))   ageText = ` · 만 ${escapeHtml(String(end))}세까지`;
+    const note = hasValue(record.child_ticket_note) ? ` · ${escapeHtml(String(record.child_ticket_note))}` : '';
+    return `🎟 소인권 있음${ageText}${note}`;
+  }
+  if(childTicket === '없음'){
+    const from = record.adult_ticket_from_age;
+    const ageText = hasValue(from) ? ` · ${escapeHtml(String(from))} 대인` : '';
+    const note = hasValue(record.adult_ticket_note) ? ` · ${escapeHtml(String(record.adult_ticket_note))}` : '';
+    return `🎟 소인권 없음${ageText}${note}`;
+  }
+  return `🎟 ${escapeHtml(String(childTicket))}`;
 }
 function fmtDate(d){
   if(!d) return '-';
@@ -1239,23 +1273,19 @@ function timeStrToMinutes(t){
 }
 
 // 종료된 예식만 필터링: 예식일 < 오늘, 그리고 오늘로부터 1개월 이내
-// 단, 오늘 날짜 예식은 "종료 시각(예식 시작 + 50분)이 지난 경우"에만 예외적으로 포함
+// 오늘 날짜 예식은 예식 시작 전/후와 무관하게 항상 포함(현장에서 예식 종료 직후 바로 리뷰 작성 가능하도록).
 function filterEndedSchedules(rows){
   const { y, m, d } = getKSTTodayParts();
   const todayStr = dateStrFromYMD(y, m, d);
   const monthAgoStr = oneMonthAgoDateStr();
-  const nowMin = getKSTNowMinutes();
 
   return rows.filter(s=>{
     if(!s.date) return false;
     if(s.date > todayStr) return false; // 미래 예식 제외
 
     if(s.date === todayStr){
-      // 오늘 예식: 종료 시각(시작+50분)이 지났을 때만 예외적으로 포함, 시각 정보 없으면 제외
-      const startMin = timeStrToMinutes(s.time);
-      if(startMin === null) return false;
-      const endMin = startMin + 50;
-      return endMin <= nowMin;
+      // 오늘 예식: 예식 시작 전/후와 무관하게 바로 노출
+      return true;
     }
 
     // 과거 예식: 최근 1개월 이내인지 확인
