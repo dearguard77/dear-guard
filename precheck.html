@@ -1525,6 +1525,23 @@ async function saveAll(){
     return;
   }
 
+  // [신규] STEP 2: 인계 담당자 연락처 필수 (화면에 실제 보이는 측만 검사 — applySingleSideUI()가 숨긴 반대측은 검사하지 않음)
+  {
+    const gWrap = document.getElementById('groom-contact-wrap');
+    const bWrap = document.getElementById('bride-contact-wrap');
+    const gVisible = !gWrap || gWrap.style.display !== 'none';
+    const bVisible = !bWrap || bWrap.style.display !== 'none';
+    const gMissing = gVisible && (!gv('groom_contact_name') || !gv('groom_contact_phone'));
+    const bMissing = bVisible && (!gv('bride_contact_name') || !gv('bride_contact_phone'));
+    if(gMissing || bMissing){
+      const sec2body = document.getElementById('sec-2-body');
+      if(sec2body && !sec2body.classList.contains('open')) toggleSection('sec-2');
+      document.getElementById('sec-2').scrollIntoView({behavior:'smooth'});
+      showToast('⚠️ STEP 2 인계 담당자 정보를 입력해주세요 (관계/성함·연락처)');
+      return;
+    }
+  }
+
   // 식권 필수 3개 검증
   if(!gv('ticket_guarantee') || !gv('ticket_total_groom') || !gv('ticket_total_bride')){
     const sec3body = document.getElementById('sec-3-body');
@@ -1535,6 +1552,68 @@ async function saveAll(){
     const missingEl = document.getElementById(missingId);
     if(missingEl){ missingEl.scrollIntoView({behavior:'smooth',block:'center'}); missingEl.focus(); }
     showToast('⚠️ STEP 3 식권 정보를 모두 입력해주세요 (전체 보증인원·신랑측·신부측 수량)');
+    return;
+  }
+
+  // [신규] STEP 3: 소인 식권 여부 필수 선택 (신랑측/신부측 각각 — 기존 식권수량 검증과 동일하게 단측 구분 없이 둘 다 검사)
+  if(!getRadioVal('child-groom-yn-group') || !getRadioVal('child-bride-yn-group')){
+    const sec3body = document.getElementById('sec-3-body');
+    if(sec3body && !sec3body.classList.contains('open')) toggleSection('sec-3');
+    document.getElementById('sec-3').scrollIntoView({behavior:'smooth'});
+    showToast('⚠️ STEP 3 소인 식권 여부를 선택해주세요');
+    return;
+  }
+
+  // [신규] STEP 5: 축의금 전달 방식 필수 선택
+  if(!getRadioVal('cash-group')){
+    const sec5body = document.getElementById('sec-5-body');
+    if(sec5body && !sec5body.classList.contains('open')) toggleSection('sec-5');
+    document.getElementById('sec-5').scrollIntoView({behavior:'smooth'});
+    showToast('⚠️ STEP 5 축의금 전달 방식을 선택해주세요');
+    return;
+  }
+
+  // [신규] STEP 6: 디어가드 이용 안내 여부 필수 선택
+  if(!getRadioVal('dg-disclosed-group')){
+    const sec6body = document.getElementById('sec-6-body');
+    if(sec6body && !sec6body.classList.contains('open')) toggleSection('sec-6');
+    document.getElementById('sec-6').scrollIntoView({behavior:'smooth'});
+    showToast('⚠️ STEP 6 디어가드 이용 안내 여부를 선택해주세요');
+    return;
+  }
+
+  // [신규] STEP 7: 답례품 여부 필수 선택
+  if(!getRadioVal('gift-group')){
+    const sec7body = document.getElementById('sec-7-body');
+    if(sec7body && !sec7body.classList.contains('open')) toggleSection('sec-7');
+    document.getElementById('sec-7').scrollIntoView({behavior:'smooth'});
+    showToast('⚠️ STEP 7 답례품 여부를 선택해주세요');
+    return;
+  }
+
+  // [신규] STEP 9: 레디백 비밀번호 필수 (화면에 실제 보이는 측만 검사)
+  {
+    const gPwWrap = document.getElementById('groom-pw-wrap');
+    const bPwWrap = document.getElementById('bride-pw-wrap');
+    const gPwVisible = !gPwWrap || gPwWrap.style.display !== 'none';
+    const bPwVisible = !bPwWrap || bPwWrap.style.display !== 'none';
+    const gPwMissing = gPwVisible && !gv('g_ho_pw');
+    const bPwMissing = bPwVisible && !gv('b_ho_pw');
+    if(gPwMissing || bPwMissing){
+      const sec10body = document.getElementById('sec-10-body');
+      if(sec10body && !sec10body.classList.contains('open')) toggleSection('sec-10');
+      document.getElementById('sec-10').scrollIntoView({behavior:'smooth'});
+      showToast('⚠️ STEP 9 레디백 비밀번호를 입력해주세요');
+      return;
+    }
+  }
+
+  // [신규] STEP 11: 본식 후기 작성 예정 여부 필수 선택
+  if(!getRadioVal('review-planned-group')){
+    const secReviewBody = document.getElementById('sec-review-body');
+    if(secReviewBody && !secReviewBody.classList.contains('open')) toggleSection('sec-review');
+    document.getElementById('sec-review').scrollIntoView({behavior:'smooth'});
+    showToast('⚠️ STEP 11 본식 후기 작성 예정 여부를 선택해주세요');
     return;
   }
 
