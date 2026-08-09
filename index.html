@@ -481,6 +481,40 @@
   font-weight: 700;
   color: #6B7280;
 }
+.admin-quick-bar{
+  display: flex;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.admin-quick-seg{
+  flex: 1 1 25%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 9px 2px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.admin-quick-seg + .admin-quick-seg{
+  border-left: 1px solid #E5E7EB;
+}
+.admin-quick-seg-icon{
+  font-size: 15px;
+  line-height: 1;
+}
+.admin-quick-seg-text{
+  font-size: 11px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+  white-space: nowrap;
+}
 .today-ops-team-card{
   flex: 1;
   min-width: 0;
@@ -2554,24 +2588,21 @@ function renderStats(){
     // #stats-grid가 class="stats-grid"(3열 grid)를 계속 갖고 있으면 아래 두 div가 그 안의 grid item으로 끼여 폭이 1/3로 줄어들므로, 관리자 표시에서는 클래스를 비운다.
     gridEl.className = '';
     const quickItems = [
-      { icon:'💰', label:'잔금', value:noBalance+'건', click:"switchTab('settle',document.getElementById('nav-settle-btn'))" },
-      { icon:'🚨', label:'긴급', value:urgent+'건',     click:"openUrgentFilter()" },
-      { icon:'🤖', label:'배정', value:'',              click:"window.open('assign-review.html','_blank','noopener,noreferrer')" },
-      { icon:'🤝', label:'짝꿍', value:'',              click:"openReferralModal()" },
+      { icon:'💰', text:noBalance+'건', click:"switchTab('settle',document.getElementById('nav-settle-btn'))" },
+      { icon:'🚨', text:urgent+'건',     click:"openUrgentFilter()" },
+      { icon:'🤖', text:'배정',          click:"window.open('assign-review.html','_blank','noopener,noreferrer')" },
+      { icon:'🤝', text:'짝꿍',          click:"openReferralModal()" },
     ];
     gridEl.innerHTML = `
       <div class="admin-quick-title">
         <span>운영 대시보드</span>
         <span class="admin-quick-title-badge">이번달 예식 ${monthCnt}건</span>
       </div>
-      <div class="admin-quick-grid">
+      <div class="admin-quick-bar">
         ${quickItems.map(q => `
-          <div class="admin-quick-card" onclick="${q.click}">
-            <div class="admin-quick-icon">${q.icon}</div>
-            ${q.value
-              ? `<div class="admin-quick-value">${q.value}</div><div class="admin-quick-label">${q.label}</div>`
-              : `<div class="admin-quick-value">${q.label}</div>`
-            }
+          <div class="admin-quick-seg" onclick="${q.click}">
+            <div class="admin-quick-seg-icon">${q.icon}</div>
+            <div class="admin-quick-seg-text">${q.text}</div>
           </div>`).join('')}
       </div>
       <button onclick="openStaffTestPushModal()" style="width:100%;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;margin-bottom:16px">🔔 푸시 테스트</button>`;
