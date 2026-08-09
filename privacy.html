@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>개인정보 처리방침 · Dear Guard</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#F4F4F3">
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --bg:#F4F4F3; --bg2:#fff; --bg3:#F8F8F7;
+    --border:#E5E5E3; --border2:#EAEAE8;
+    --text:#111827; --text2:#4B5563; --text3:#9CA3AF;
+    --dark:#1F2937;
+    --radius-sm:8px; --radius:10px; --radius-md:12px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+
+  header.pg{position:sticky;top:0;z-index:10;background:rgba(244,244,243,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border2);padding:16px 18px;display:flex;align-items:center;gap:10px}
+  header.pg a.back{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);color:var(--text2);text-decoration:none;font-size:16px;flex-shrink:0}
+  header.pg .h-title{font-size:15px;font-weight:700;color:var(--text)}
+  header.pg .h-sub{font-size:11px;color:var(--text3);font-weight:500}
+
+  .wrap{max-width:720px;margin:0 auto;padding:24px 18px 64px}
+
+  .intro-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px 18px;margin-bottom:22px}
+  .intro-card h1{font-size:19px;font-weight:800;margin:0 0 10px;color:var(--text)}
+  .intro-card p{margin:0;font-size:13px;color:var(--text2)}
+
+  .toc{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 16px;margin-bottom:24px;font-size:12.5px;color:var(--text2)}
+  .toc-title{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:.02em}
+  .toc ol{margin:0;padding-left:18px}
+  .toc li{margin-bottom:4px}
+  .toc a{color:var(--text2);text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+
+  section.article{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px 18px;margin-bottom:14px;scroll-margin-top:70px}
+  section.article h2{font-size:15px;font-weight:800;margin:0 0 12px;color:var(--text);display:flex;align-items:baseline;gap:6px}
+  section.article h2 .num{color:var(--dark)}
+  section.article p{margin:0 0 10px;font-size:13px;color:var(--text2)}
+  section.article p:last-child{margin-bottom:0}
+  section.article ul, section.article ol{margin:0 0 10px;padding-left:20px;font-size:13px;color:var(--text2)}
+  section.article li{margin-bottom:5px}
+  section.article h3{font-size:13px;font-weight:700;color:var(--text);margin:16px 0 8px}
+  section.article h3:first-of-type{margin-top:2px}
+
+  table.item-table{width:100%;border-collapse:collapse;margin:0 0 16px;font-size:12.5px}
+  table.item-table caption{text-align:left;font-size:12.5px;font-weight:700;color:var(--text);padding:0 0 8px;caption-side:top}
+  table.item-table th,table.item-table td{border:1px solid var(--border2);padding:9px 10px;text-align:left;vertical-align:top}
+  table.item-table th{background:var(--bg3);color:var(--text2);font-weight:700;width:30%}
+  table.item-table td{color:var(--text2)}
+  table.item-table td ul{margin:0;padding-left:16px}
+
+  .note-box{background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text3);margin-top:4px}
+  .placeholder{color:#D97706;font-weight:700}
+
+  .contact-box{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:14px 16px;font-size:12.5px;color:var(--text2);margin-top:4px}
+  .contact-box .row{display:flex;gap:8px;margin-bottom:4px}
+  .contact-box .row:last-child{margin-bottom:0}
+  .contact-box .label{width:64px;flex-shrink:0;color:var(--text3);font-weight:600}
+
+  .foot-meta{text-align:center;font-size:11px;color:var(--text3);margin-top:24px;padding-top:16px;border-top:1px solid var(--border2)}
+</style>
+</head>
+<body>
+
+<header class="pg">
+  <a class="back" href="javascript:history.length>1?history.back():location.href='/'" aria-label="뒤로가기">←</a>
+  <div>
+    <div class="h-title">개인정보 처리방침</div>
+    <div class="h-sub">Dear Guard · 디어가드</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="intro-card">
+    <h1>개인정보 처리방침</h1>
+    <p>디어가드는 이용자의 개인정보를 중요하게 생각하며, 「개인정보 보호법」 등 관련 법령을 준수하고 있습니다. 본 개인정보 처리방침은 디어가드가 어떠한 개인정보를 수집·이용하고 어떻게 보호하는지 안내합니다.</p>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">목차</div>
+    <ol>
+      <li><a href="#a1">제1조 개인정보의 처리 목적</a></li>
+      <li><a href="#a2">제2조 처리하는 개인정보 항목</a></li>
+      <li><a href="#a3">제3조 개인정보의 처리 및 보유기간</a></li>
+      <li><a href="#a4">제4조 개인정보의 제3자 제공</a></li>
+      <li><a href="#a5">제5조 개인정보 처리업무의 위탁</a></li>
+      <li><a href="#a6">제6조 개인정보의 국외 이전</a></li>
+      <li><a href="#a7">제7조 개인정보의 파기 절차 및 방법</a></li>
+      <li><a href="#a8">제8조 정보주체의 권리·의무 및 행사방법</a></li>
+      <li><a href="#a9">제9조 개인정보의 안전성 확보조치</a></li>
+      <li><a href="#a10">제10조 개인정보 보호책임자</a></li>
+      <li><a href="#a11">제11조 권익침해 구제방법</a></li>
+      <li><a href="#a12">제12조 개인정보 처리방침의 변경</a></li>
+    </ol>
+  </div>
+
+  <!-- 제1조 -->
+  <section class="article" id="a1">
+    <h2><span class="num">제1조</span> 개인정보의 처리 목적</h2>
+    <p>디어가드는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 「개인정보 보호법」 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.</p>
+    <ul>
+      <li>예식 서비스 신청 및 계약 체결·이행</li>
+      <li>신랑·신부 및 예식 정보 확인</li>
+      <li>사전 체크리스트 작성 및 현장 운영 준비</li>
+      <li>축의금 접수, 식권 관리, 장부 작성 및 예식 의뢰인에게 결과 전달</li>
+      <li>예식 당일 라이브 기록 및 관련 서비스 제공</li>
+      <li>축의금 및 현장 운영 결과 확인</li>
+      <li>문의 및 고객 응대</li>
+      <li>계약·결제·정산 관련 업무</li>
+    </ul>
+  </section>
+
+  <!-- 제2조 -->
+  <section class="article" id="a2">
+    <h2><span class="num">제2조</span> 처리하는 개인정보의 항목</h2>
+    <p>디어가드는 서비스 제공을 위해 아래와 같은 개인정보 항목을 처리하고 있습니다.</p>
+
+    <table class="item-table">
+      <caption>계약 및 예식 운영</caption>
+      <tr><th>수집 항목</th><td>
+        <ul>
+          <li>신랑·신부 성명</li>
+          <li>휴대전화번호</li>
+          <li>예식일시</li>
+          <li>예식장 및 홀 정보</li>
+          <li>계약 및 서비스 이용정보</li>
+          <li>전자서명</li>
+        </ul>
+      </td></tr>
+    </table>
+
+    <table class="item-table">
+      <caption>사전 체크 및 현장 운영</caption>
+      <tr><th>수집 항목</th><td>
+        <ul>
+          <li>인계 담당자 성명</li>
+          <li>관계</li>
+          <li>연락처</li>
+          <li>식권 및 보증인원 관련 정보</li>
+          <li>현금영수증 발급을 위해 입력한 정보</li>
+          <li>모바일 청첩장 URL</li>
+        </ul>
+      </td></tr>
+    </table>
+
+    <table class="item-table">
+      <caption>축의금 접수</caption>
+      <tr><th>수집 항목</th><td>
+        <ul>
+          <li>하객 성명</li>
+          <li>축의금액</li>
+          <li>식권 수량</li>
+          <li>접수 과정에서 입력되는 메모 등</li>
+        </ul>
+      </td></tr>
+    </table>
+
+    <table class="item-table">
+      <caption>서비스 이용 과정에서 생성되는 정보</caption>
+      <tr><th>수집 항목</th><td>
+        <ul>
+          <li>라이브 영상 URL</li>
+        </ul>
+      </td></tr>
+    </table>
+
+    <div class="note-box">별도의 쿠키(Cookie)나 자동수집 스크립트를 통한 접속기록·IP 수집은 현재 디어가드 애플리케이션 코드 상에서 직접 이루어지지 않습니다. 다만 서비스 호스팅·인프라 제공업체(Vercel, Supabase 등)의 운영 과정에서 접속 로그가 자동으로 생성될 수 있습니다.</div>
+  </section>
+
+  <!-- 제3조 -->
+  <section class="article" id="a3">
+    <h2><span class="num">제3조</span> 개인정보의 처리 및 보유기간</h2>
+    <p>디어가드는 법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.</p>
+
+    <h3>① 예식 운영을 위해 수집된 개인정보</h3>
+    <p>사전 체크 정보, 인계 담당자 정보, 현장 운영정보, 축의금 장부 등 예식 운영을 위해 수집한 일반 개인정보는 <strong>본식일로부터 1개월</strong>을 보유기간으로 하며, 보유기간 경과 또는 처리 목적 달성 후에는 지체 없이 파기합니다.</p>
+
+    <h3>② 계약·결제 및 거래 관련 정보</h3>
+    <p>전자계약서, 전자서명 등 계약 체결·이행에 관한 기록이나 결제·정산과 관련하여 관계 법령(「전자상거래 등에서의 소비자보호에 관한 법률」, 「전자문서 및 전자거래 기본법」, 「국세기본법」 등)에서 별도의 보존기간을 정하고 있는 경우에는, 해당 법령에서 정한 기간 동안 관련 정보를 보관합니다.</p>
+    <div class="note-box">현재 코드 기준으로는 계약서·전자서명 데이터에 대한 자동 파기 로직이 별도로 구현되어 있지 않습니다. 위 법정 보존기간 및 실제 파기 절차는 <span class="placeholder">[확인 필요]</span>이며, 확정되는 대로 본 조항에 구체적인 보존 근거 법령과 기간을 명시하겠습니다.</div>
+  </section>
+
+  <!-- 제4조 -->
+  <section class="article" id="a4">
+    <h2><span class="num">제4조</span> 개인정보의 제3자 제공</h2>
+    <p>디어가드는 원칙적으로 정보주체의 개인정보를 제1조에서 명시한 처리 목적의 범위 내에서 처리하며, 정보주체의 동의 또는 법률에서 정한 경우를 제외하고 개인정보를 제3자에게 제공하지 않습니다.</p>
+    <p>다만, 축의금 접수 내역(하객 성명, 축의금액 등)을 예식 의뢰인(신랑·신부)에게 실시간으로 확인할 수 있도록 제공하는 것은 디어가드 서비스 본연의 기능(축의금 장부 관리 및 결과 전달)을 이행하기 위한 것으로, 이는 처리 목적 범위 내의 서비스 제공 행위입니다.</p>
+  </section>
+
+  <!-- 제5조 -->
+  <section class="article" id="a5">
+    <h2><span class="num">제5조</span> 개인정보 처리업무의 위탁</h2>
+    <p>디어가드는 원활한 서비스 제공을 위하여 아래와 같이 개인정보 처리업무를 위탁하고 있습니다.</p>
+    <table class="item-table">
+      <tr><th>수탁자</th><th>위탁업무 내용</th></tr>
+      <tr><td>Supabase, Inc.</td><td>데이터베이스, 인증 및 파일 저장 등 서비스 인프라 제공</td></tr>
+      <tr><td>Vercel Inc.</td><td>웹서비스 호스팅 및 제공</td></tr>
+      <tr><td>OneSignal, Inc.</td><td>직원(관리자·매니저) 대상 내부 업무 알림(푸시) 발송 — 고객·하객을 대상으로 한 서비스가 아닙니다.</td></tr>
+    </table>
+    <p>디어가드는 위탁계약 체결 시 「개인정보 보호법」 제26조에 따라 위탁업무 수행목적 외 개인정보 처리금지, 기술적·관리적 보호조치, 재위탁 제한, 수탁자에 대한 관리·감독 등을 규정하고 있습니다.</p>
+  </section>
+
+  <!-- 제6조 -->
+  <section class="article" id="a6">
+    <h2><span class="num">제6조</span> 개인정보의 국외 이전</h2>
+    <p>디어가드는 서비스 제공을 위해 아래와 같이 개인정보를 국외로 이전하고 있습니다.</p>
+
+    <h3>① Supabase(데이터베이스·파일 저장)를 통한 국외이전</h3>
+    <table class="item-table">
+      <tr><th>이전받는 자</th><td>Supabase, Inc. 및 서비스 제공에 필요한 수탁자</td></tr>
+      <tr><th>이전 국가</th><td>싱가포르(Singapore)</td></tr>
+      <tr><th>이전 일시 및 방법</th><td>서비스 이용 과정에서 암호화된 네트워크(HTTPS/TLS)를 통해 실시간으로 전송 및 저장</td></tr>
+      <tr><th>이전 목적</th><td>디어가드 서비스 제공을 위한 데이터베이스 및 파일(전자서명 이미지 등) 저장·처리</td></tr>
+      <tr><th>이전 항목</th><td>제2조에서 명시한 개인정보 항목 중 Supabase 데이터베이스·스토리지에 실제 저장되는 항목(신랑·신부 성명·연락처, 인계 담당자 정보, 전자서명, 축의금 장부 정보 등)</td></tr>
+      <tr><th>보유 및 이용기간</th><td>제3조에서 정한 디어가드의 개인정보 보유기간 또는 서비스 제공에 필요한 기간</td></tr>
+    </table>
+
+    <h3>② OneSignal(직원 대상 푸시 알림)을 통한 국외이전 가능성</h3>
+    <p>디어가드는 관리자·매니저 등 직원의 업무용 알림(푸시) 발송을 위해 OneSignal을 사용하고 있습니다. OneSignal 이용 과정에서 직원의 기기·브라우저 식별정보 및 푸시 구독정보가 국외 서버에서 처리될 가능성이 있습니다. 이는 <strong>고객(신랑·신부) 또는 하객의 개인정보가 아닌 디어가드 소속 직원의 정보에 한정</strong>됩니다. 정확한 처리 지역 및 처리 위탁 계약(DPA) 내용은 <span class="placeholder">[확인 필요]</span>이며, 확인되는 대로 본 조항을 구체화하겠습니다.</p>
+
+    <div class="note-box">정보주체는 국외이전에 동의하지 않을 권리가 있으나, 국외이전이 서비스 제공(계약의 이행)에 필수적인 경우 동의를 거부하실 경우 서비스 이용이 제한될 수 있습니다.</div>
+  </section>
+
+  <!-- 제7조 -->
+  <section class="article" id="a7">
+    <h2><span class="num">제7조</span> 개인정보의 파기 절차 및 방법</h2>
+    <ul>
+      <li>디어가드는 개인정보 보유기간의 경과, 처리 목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체 없이 해당 개인정보를 파기합니다.</li>
+      <li>전자적 파일 형태로 저장된 개인정보는 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제합니다.</li>
+      <li>제3조 제2항에 따라 관계 법령상 별도 보존이 필요한 정보는 다른 개인정보와 분리하여 보관하며, 해당 보존기간이 경과한 후 지체 없이 파기합니다.</li>
+    </ul>
+    <div class="note-box">현재 파기는 별도 자동화 절차 없이 운영 정책에 따라 이루어지고 있으며, 자동 파기 체계는 <span class="placeholder">[확인 필요]</span> 상태로 향후 순차적으로 정비할 예정입니다.</div>
+  </section>
+
+  <!-- 제8조 -->
+  <section class="article" id="a8">
+    <h2><span class="num">제8조</span> 정보주체의 권리·의무 및 행사방법</h2>
+    <p>정보주체는 디어가드에 대해 언제든지 다음 각 호의 개인정보 보호 관련 권리를 행사할 수 있습니다.</p>
+    <ul>
+      <li>개인정보 열람 요구</li>
+      <li>오류 등이 있을 경우 정정 요구</li>
+      <li>삭제 요구</li>
+      <li>처리정지 요구</li>
+    </ul>
+    <p>위 권리 행사는 디어가드에 대해 아래 제10조의 연락처를 통해 서면, 이메일 등으로 하실 수 있으며, 디어가드는 이에 대해 지체 없이 조치하겠습니다. 정보주체가 개인정보의 오류 등에 대한 정정 또는 삭제를 요구한 경우에는 디어가드는 정정 또는 삭제를 완료할 때까지 해당 개인정보를 이용하거나 제공하지 않습니다.</p>
+  </section>
+
+  <!-- 제9조 -->
+  <section class="article" id="a9">
+    <h2><span class="num">제9조</span> 개인정보의 안전성 확보조치</h2>
+    <p>디어가드는 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다.</p>
+    <ul>
+      <li>관리자·직원별 접근권한 관리: 계정 역할(관리자/매니저)에 따라 조회·수정 가능한 범위를 구분하여 운영합니다.</li>
+      <li>인증 및 접근통제: 서비스 접속 시 계정 인증 절차를 거치며, 고객용 페이지는 개별 접근 링크(토큰) 방식으로 접근을 제한합니다.</li>
+      <li>전송구간 암호화: 이용자와 서버 간 데이터 전송 시 HTTPS(TLS)를 통해 암호화합니다.</li>
+      <li>개인정보 접근 최소화: 업무상 필요한 최소한의 개인정보만 화면에 노출되도록 운영하고 있습니다.</li>
+    </ul>
+    <div class="note-box">위 항목은 현재 실제 구현된 범위 내에서만 기재하였습니다. 암호화 저장, 접근기록 보관 등 추가적인 안전조치는 현재 시점에 전면 적용되어 있지 않으며, 적용 시 본 조항을 갱신하겠습니다.</div>
+  </section>
+
+  <!-- 제10조 -->
+  <section class="article" id="a10">
+    <h2><span class="num">제10조</span> 개인정보 보호책임자</h2>
+    <p>디어가드는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.</p>
+    <div class="contact-box">
+      <div class="row"><span class="label">성명</span><span>강성주</span></div>
+      <div class="row"><span class="label">직책</span><span>대표</span></div>
+      <div class="row"><span class="label">연락처</span><span>0507-1314-6117</span></div>
+      <div class="row"><span class="label">이메일</span><span>DEARGUARD77@NAVER.COM</span></div>
+      <div class="row"><span class="label">주소</span><span>대전광역시 유성구 온천북로 73</span></div>
+    </div>
+    <p style="margin-top:12px">정보주체는 디어가드의 서비스를 이용하시면서 발생한 모든 개인정보 보호 관련 문의, 불만처리, 피해구제 등에 관한 사항을 개인정보 보호책임자에게 문의하실 수 있습니다.</p>
+  </section>
+
+  <!-- 제11조 -->
+  <section class="article" id="a11">
+    <h2><span class="num">제11조</span> 권익침해 구제방법</h2>
+    <p>정보주체는 아래의 기관에 개인정보 침해에 대한 신고나 상담을 하실 수 있습니다. 아래 기관은 디어가드와는 별개의 기관으로, 디어가드의 자체적인 개인정보 불만처리·피해구제 결과에 만족하지 못하시거나 보다 자세한 도움이 필요하시면 문의하시기 바랍니다.</p>
+    <table class="item-table">
+      <tr><th>개인정보분쟁조정위원회</th><td>국번없이 1833-6972 (www.kopico.go.kr)</td></tr>
+      <tr><th>개인정보침해신고센터(한국인터넷진흥원)</th><td>국번없이 118 (privacy.kisa.or.kr)</td></tr>
+      <tr><th>대검찰청 사이버수사과</th><td>국번없이 1301 (www.spo.go.kr)</td></tr>
+      <tr><th>경찰청 사이버수사국</th><td>국번없이 182 (ecrm.cyber.go.kr)</td></tr>
+    </table>
+    <p>「개인정보 보호법」 제35조(개인정보의 열람), 제36조(개인정보의 정정·삭제), 제37조(개인정보의 처리정지 등)의 규정에 의하여 권리 또는 이익을 침해받은 자는 행정심판을 청구할 수 있습니다. (중앙행정심판위원회 www.simpan.go.kr / 국번없이 110)</p>
+  </section>
+
+  <!-- 제12조 -->
+  <section class="article" id="a12">
+    <h2><span class="num">제12조</span> 개인정보 처리방침의 변경</h2>
+    <p>이 개인정보 처리방침은 법령·정책 또는 보안기술의 변경에 따라 내용의 추가·삭제 및 수정이 있을 경우에는 시행되기 최소 7일 전부터 홈페이지를 통해 고지할 것입니다.</p>
+    <div class="contact-box">
+      <div class="row"><span class="label">시행일</span><span class="placeholder">2026년 __월 __일</span></div>
+    </div>
+  </section>
+
+  <div class="foot-meta">Dear Guard · 디어가드<br>본 문서는 <span class="placeholder">[확인 필요]</span>로 표시된 항목의 확정 즉시 갱신됩니다.</div>
+
+</div>
+</body>
+</html>
