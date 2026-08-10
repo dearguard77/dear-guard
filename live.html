@@ -19,6 +19,8 @@
 <meta name="apple-mobile-web-app-title" content="Dear Guard">
 <meta name="theme-color" content="#F5F3F0">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
@@ -58,6 +60,37 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .excel-btn{background:#217346;color:#fff;border:none;border-radius:var(--radius);padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+/* ── 저장 드롭다운 ── */
+.save-dd-wrap{position:relative;display:inline-block}
+.save-dd-btn{background:#217346;color:#fff;border:none;border-radius:var(--radius);padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.save-dd-btn .dd-arrow{font-size:9px;transition:transform .15s}
+.save-dd-btn.open .dd-arrow{transform:rotate(180deg)}
+.save-dd-menu{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:148px;z-index:200;display:none;overflow:hidden;padding:4px}
+.save-dd-menu.open{display:block}
+.save-dd-item{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--text);text-align:left;cursor:pointer;font-family:inherit}
+.save-dd-item:hover{background:var(--bg3)}
+.save-dd-item .dd-icon{font-size:14px;width:16px;text-align:center}
+/* ── PDF 전용 출력 레이아웃(화면에는 보이지 않음) ── */
+.pdf-render-root{position:fixed;left:-99999px;top:0;z-index:-1}
+.pdf-page{width:794px;height:1123px;background:#fff;box-sizing:border-box;padding:53px 45px;font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111827;overflow:hidden;position:relative}
+.pdfx-brand{font-size:12px;font-weight:800;letter-spacing:.08em;color:#374151}
+.pdfx-title{font-size:22px;font-weight:800;color:#111827;margin-top:4px}
+.pdfx-meta{font-size:12.5px;color:#4B5563;margin-top:10px;line-height:1.6}
+.pdfx-meta b{color:#111827}
+.pdfx-hr{height:1px;background:#E5E5E3;margin:16px 0}
+.pdfx-cont-hdr{font-size:12px;color:#6B7280;font-weight:700;margin-bottom:10px}
+.pdfx-section-title{font-size:14px;font-weight:800;color:#111827;margin:0 0 8px}
+.pdfx-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.pdfx-table th{background:#F4F4F3;border:1px solid #E5E5E3;font-size:11px;color:#4B5563;font-weight:700;height:30px;padding:0 6px}
+.pdfx-table td{border:1px solid #E5E5E3;font-size:11.5px;color:#111827;height:26px;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pdfx-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pdfx-table td.ctr{text-align:center}
+.pdfx-empty-row td{color:#9CA3AF;text-align:center}
+.pdfx-summary{background:#F8F8F7;border:1px solid #E5E5E3;border-radius:8px;padding:16px 18px;margin-top:14px}
+.pdfx-summary-title{font-size:13px;font-weight:800;color:#111827;margin-bottom:10px}
+.pdfx-summary-row{display:flex;justify-content:space-between;font-size:12.5px;color:#374151;padding:4px 0}
+.pdfx-summary-row b{color:#111827;font-variant-numeric:tabular-nums}
+.pdfx-foot{position:absolute;bottom:20px;left:45px;right:45px;font-size:9.5px;color:#9CA3AF;text-align:center}
 .live-stream-btn{display:inline-flex;align-items:center;gap:5px;background:#5A6E8A;color:#fff;border-radius:var(--radius);padding:5px 12px;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;border:none}
 .live-stream-btn:hover{background:#4A5E7A}
 #last-upd{font-size:10px;color:var(--text3)}
@@ -253,7 +286,13 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
         <a id="groom-live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none;visibility:hidden;width:0;padding:0;margin:0;overflow:hidden"></a>
         <a id="bride-live-btn-1" href="#" target="_blank" class="live-stream-btn" style="display:none;visibility:hidden;width:0;padding:0;margin:0;overflow:hidden"></a>
         <a id="bride-live-btn-2" href="#" target="_blank" class="live-stream-btn" style="display:none;visibility:hidden;width:0;padding:0;margin:0;overflow:hidden"></a>
-        <button class="excel-btn" onclick="downloadExcel()">📥 엑셀 다운로드</button>
+        <div class="save-dd-wrap" id="save-dd-wrap">
+          <button class="save-dd-btn" id="save-dd-btn" onclick="toggleSaveMenu(event)">💾 저장 <span class="dd-arrow">▾</span></button>
+          <div class="save-dd-menu" id="save-dd-menu">
+            <button class="save-dd-item" onclick="downloadExcel();closeSaveMenu()"><span class="dd-icon">📊</span>Excel로 저장</button>
+            <button class="save-dd-item" onclick="downloadLivePDF();closeSaveMenu()"><span class="dd-icon">📄</span>PDF로 저장</button>
+          </div>
+        </div>
         <span id="last-upd"></span>
       </div>
     </div>
@@ -1420,6 +1459,263 @@ function downloadExcel(){
   if(currentViewSide!=='groom') XLSX.utils.book_append_sheet(wb,makeSideSheet(bL),'신부측');
   XLSX.writeFile(wb,'축의접수_'+nm+'_'+dt+'.xlsx');
 }
+
+/* ── 저장 ▾ 드롭다운 ── */
+function toggleSaveMenu(e){
+  if(e) e.stopPropagation();
+  const btn=document.getElementById('save-dd-btn');
+  const menu=document.getElementById('save-dd-menu');
+  const isOpen=menu.classList.contains('open');
+  if(isOpen){ menu.classList.remove('open'); btn.classList.remove('open'); }
+  else{ menu.classList.add('open'); btn.classList.add('open'); }
+}
+function closeSaveMenu(){
+  const btn=document.getElementById('save-dd-btn');
+  const menu=document.getElementById('save-dd-menu');
+  if(menu) menu.classList.remove('open');
+  if(btn) btn.classList.remove('open');
+}
+document.addEventListener('click',function(e){
+  const wrap=document.getElementById('save-dd-wrap');
+  if(wrap && !wrap.contains(e.target)) closeSaveMenu();
+});
+
+/* ── PDF 저장 (장부 데이터 기반 전용 출력 레이아웃) ── */
+async function downloadLivePDF(){
+  if(!schedule) return;
+  const btn=document.getElementById('save-dd-btn');
+  const btnHtml=btn ? btn.innerHTML : '';
+  if(btn){ btn.innerHTML='📄 생성 중...'; btn.disabled=true; }
+
+  let root=null;
+  try{
+    const g=(schedule.groom_name||'').trim(), b=(schedule.bride_name||'').trim();
+    const nm=(g&&b)?g+' ♥ '+b:(g||b||schedule.hall||'예식');
+    const dt=schedule.date||new Date().toISOString().slice(0,10);
+    const vLogs=getVisibleLogs();
+    const hasChild=vLogs.some(l=>(l.child_ticket||0)>0);
+    const bySeq=(a,c)=>(a.seq||999999)-(c.seq||999999);
+    const gL=vLogs.filter(l=>l.side==='신랑측').sort(bySeq);
+    const bL=vLogs.filter(l=>l.side==='신부측').sort(bySeq);
+
+    const sections=[];
+    if(currentViewSide!=='bride') sections.push({label:'신랑측', list:gL});
+    if(currentViewSide!=='groom') sections.push({label:'신부측', list:bL});
+
+    const _d=schedule.date?new Date(schedule.date+'T00:00:00'):null;
+    const _days=['일','월','화','수','목','금','토'];
+    const dateStr=_d?`${schedule.date}(${_days[_d.getDay()]}) ${(schedule.time||'').slice(0,5)}`:'—';
+
+    root=await buildPdfPages({nm,dateStr,hall:schedule.hall||'—',hasChild,sections});
+    document.body.appendChild(root);
+
+    await document.fonts.ready;
+    await new Promise(r=>setTimeout(r,150));
+
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pageEls=root.querySelectorAll('.pdf-page');
+    for(let i=0;i<pageEls.length;i++){
+      const canvas=await html2canvas(pageEls[i],{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+      const imgData=canvas.toDataURL('image/jpeg',0.95);
+      if(i>0) doc.addPage();
+      doc.addImage(imgData,'JPEG',0,0,210,297);
+    }
+    doc.save('축의접수_'+nm+'_'+dt+'.pdf');
+  }catch(e){
+    console.error('[DG] PDF 생성 실패:', e);
+    alert('PDF 생성에 실패했습니다: '+e.message);
+  }finally{
+    if(root && root.parentNode) root.parentNode.removeChild(root);
+    if(btn){ btn.innerHTML=btnHtml; btn.disabled=false; }
+  }
+}
+
+// PDF 페이지들을 구성한다. 표 행이 페이지 경계에서 잘리지 않도록
+// 행 단위로 페이지를 미리 나눠서, 페이지마다 완전한 <table>을 새로 렌더링한다.
+async function buildPdfPages({nm,dateStr,hall,hasChild,sections}){
+  const root=document.createElement('div');
+  root.className='pdf-render-root';
+  document.body.appendChild(root); // 임시로 붙여서 높이 측정
+
+  const PAGE_CONTENT_H=1123-53*2; // .pdf-page의 padding(53px) 제외 실제 사용 가능 높이
+  const money=v=>(v||0).toLocaleString('ko-KR')+'원';
+  const colCount=hasChild?6:5;
+
+  function tableHeaderHtml(){
+    return `<tr>
+      <th style="width:8%">번호</th>
+      <th style="width:16%">결제방식</th>
+      <th style="width:${hasChild?'26%':'32%'}">하객성명</th>
+      <th style="width:20%">축의금액</th>
+      <th style="width:${hasChild?'15%':'24%'}">대인식권</th>
+      ${hasChild?'<th style="width:15%">소인식권</th>':''}
+    </tr>`;
+  }
+  function rowHtml(l,i){
+    return `<tr>
+      <td class="ctr">${l.seq||i+1}</td>
+      <td class="ctr">${l.payment_type||''}</td>
+      <td>${(l.guest_name||'').replace(/</g,'&lt;')}</td>
+      <td class="num">${money(l.amount)}</td>
+      <td class="ctr">${l.adult_ticket||0}</td>
+      ${hasChild?`<td class="ctr">${l.child_ticket||0}</td>`:''}
+    </tr>`;
+  }
+
+  // 헤더/섹션제목/요약 블록의 실제 렌더링 높이를 측정하기 위한 임시 페이지
+  const measurePage=document.createElement('div');
+  measurePage.className='pdf-page';
+  root.appendChild(measurePage);
+
+  measurePage.innerHTML=`
+    <div class="pdfx-brand">DEAR GUARD</div>
+    <div class="pdfx-title">축의금 장부</div>
+    <div class="pdfx-meta">
+      <div><b>${nm}</b></div>
+      <div>예식일 · ${dateStr}</div>
+      <div>예식장 · ${hall}</div>
+    </div>
+    <div class="pdfx-hr"></div>`;
+  const mainHeaderH=measurePage.scrollHeight;
+
+  measurePage.innerHTML=`<div class="pdfx-cont-hdr">${nm} · 축의금 장부 (계속)</div><div class="pdfx-hr" style="margin-top:6px"></div>`;
+  const contHeaderH=measurePage.scrollHeight;
+
+  measurePage.innerHTML=`<div class="pdfx-section-title">신랑측</div>`;
+  const sectionTitleH=measurePage.scrollHeight;
+
+  measurePage.innerHTML=`<table class="pdfx-table"><thead>${tableHeaderHtml()}</thead></table>`;
+  const tableHeadH=measurePage.querySelector('thead').offsetHeight;
+  const rowH=30; // .pdfx-table td 의 고정 높이(26px)+테두리 여유 반영
+
+  // 총 합계 요약 블록 높이 측정
+  let totalCnt=0,totalAmt=0,totalAdult=0,totalChild=0;
+  sections.forEach(sec=>{ sec.list.forEach(l=>{ totalCnt++; totalAmt+=(l.amount||0); totalAdult+=(l.adult_ticket||0); totalChild+=(l.child_ticket||0); }); });
+  const summaryHtml=`
+    <div class="pdfx-summary">
+      <div class="pdfx-summary-title">총 접수 요약</div>
+      <div class="pdfx-summary-row"><span>총 접수 건수</span><b>${totalCnt}건</b></div>
+      <div class="pdfx-summary-row"><span>총 축의금</span><b>${money(totalAmt)}</b></div>
+      <div class="pdfx-summary-row"><span>총 식권${hasChild?' (대인)':''}</span><b>${totalAdult}매</b></div>
+      ${hasChild?`<div class="pdfx-summary-row"><span>총 식권 (소인)</span><b>${totalChild}매</b></div>`:''}
+    </div>`;
+  measurePage.innerHTML=summaryHtml;
+  const summaryH=measurePage.scrollHeight;
+
+  root.removeChild(measurePage);
+
+  // ── 행 단위 페이지 분할 계획 세우기 ──
+  const plan=[]; // {isFirst, headerH, blocks:[{type:'sectionTitle'|'tableStart'|'rows'|'summary', ...}]}
+  let pageIdx=0;
+  let cur=null;
+  function newPage(headerType){
+    cur={headerType, blocks:[], used:0};
+    plan.push(cur);
+    pageIdx++;
+    cur.used = headerType==='main' ? mainHeaderH : contHeaderH;
+  }
+  newPage('main');
+
+  sections.forEach((sec)=>{
+    // 섹션 제목이 남은 공간에 안 들어가면 새 페이지
+    if(cur.used+sectionTitleH+tableHeadH+rowH > PAGE_CONTENT_H){
+      newPage('cont');
+    }
+    cur.blocks.push({type:'sectionTitle', label:sec.label});
+    cur.used+=sectionTitleH;
+    cur.blocks.push({type:'tableStart', hasChild});
+    cur.used+=tableHeadH;
+
+    const list=sec.list.length?sec.list:[null]; // 데이터 없으면 '접수 내역 없음' 한 줄
+    list.forEach((l,i)=>{
+      if(cur.used+rowH > PAGE_CONTENT_H){
+        newPage('cont');
+        cur.blocks.push({type:'tableStart', hasChild});
+        cur.used+=tableHeadH;
+      }
+      cur.blocks.push({type:'row', log:l, idx:i});
+      cur.used+=rowH;
+    });
+
+    // 섹션 합계
+    const subCnt=sec.list.length;
+    const subAmt=sec.list.reduce((s,l)=>s+(l.amount||0),0);
+    const subAdult=sec.list.reduce((s,l)=>s+(l.adult_ticket||0),0);
+    const subChild=sec.list.reduce((s,l)=>s+(l.child_ticket||0),0);
+    if(cur.used+rowH > PAGE_CONTENT_H){
+      newPage('cont');
+      cur.blocks.push({type:'tableStart', hasChild});
+      cur.used+=tableHeadH;
+    }
+    cur.blocks.push({type:'subtotal', label:sec.label, cnt:subCnt, amt:subAmt, adult:subAdult, child:subChild});
+    cur.used+=rowH;
+  });
+
+  // 총 요약 블록
+  if(cur.used+summaryH > PAGE_CONTENT_H){
+    newPage('cont');
+  }
+  cur.blocks.push({type:'summary'});
+  cur.used+=summaryH;
+
+  // ── 계획대로 실제 페이지 DOM 생성 ──
+  plan.forEach((p,pi)=>{
+    const pageEl=document.createElement('div');
+    pageEl.className='pdf-page';
+    let html='';
+    if(p.headerType==='main'){
+      html+=`
+        <div class="pdfx-brand">DEAR GUARD</div>
+        <div class="pdfx-title">축의금 장부</div>
+        <div class="pdfx-meta">
+          <div><b>${nm}</b></div>
+          <div>예식일 · ${dateStr}</div>
+          <div>예식장 · ${hall}</div>
+        </div>
+        <div class="pdfx-hr"></div>`;
+    }else{
+      html+=`<div class="pdfx-cont-hdr">${nm} · 축의금 장부 (계속)</div><div class="pdfx-hr" style="margin-top:6px"></div>`;
+    }
+
+    let tableOpen=false;
+    p.blocks.forEach(b=>{
+      if(b.type==='sectionTitle'){
+        if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
+        html+=`<div class="pdfx-section-title">${b.label}</div>`;
+      }else if(b.type==='tableStart'){
+        if(tableOpen){ html+='</tbody></table>'; }
+        html+=`<table class="pdfx-table"><thead>${tableHeaderHtml()}</thead><tbody>`;
+        tableOpen=true;
+      }else if(b.type==='row'){
+        if(!b.log){
+          html+=`<tr class="pdfx-empty-row"><td colspan="${colCount}">접수 내역 없음</td></tr>`;
+        }else{
+          html+=rowHtml(b.log,b.idx);
+        }
+      }else if(b.type==='subtotal'){
+        html+=`<tr style="font-weight:700;background:#F8F8F7">
+          <td class="ctr" colspan="2">${b.label} 합계</td>
+          <td class="ctr">${b.cnt}건</td>
+          <td class="num">${money(b.amt)}</td>
+          <td class="ctr">${b.adult}${hasChild?'':'매'}</td>
+          ${hasChild?`<td class="ctr">${b.child}매</td>`:''}
+        </tr>`;
+      }else if(b.type==='summary'){
+        if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
+        html+=summaryHtml;
+      }
+    });
+    if(tableOpen) html+='</tbody></table>';
+
+    html+=`<div class="pdfx-foot">Dear Guard · ${pi+1} / ${plan.length}</div>`;
+    pageEl.innerHTML=html;
+    root.appendChild(pageEl);
+  });
+
+  return root;
+}
+
 init();
 </script>
 </body>
