@@ -1854,6 +1854,27 @@ const sb = {
   url: (table, query='') => `${SUPABASE_URL}/rest/v1/${table}${query}`,
 
   async get(table, query=''){
+    // schedules/contribution_logs/operation_logs/ticket_additions/referral_code_usages는
+    // anon SELECT가 전부 막혀 있으므로, 세션 검증 읽기 RPC로 라우팅하고
+    // 기존 querystring(eq./neq./order/limit)을 클라이언트에서 재현한다.
+    if(table==='schedules'){
+      const rows = await sb.rpc('read_schedules_staff', { p_session_token: _dgStaffSessionToken });
+      return _dgApplyQuery(rows, query);
+    }
+    if(table==='contribution_logs' || table==='operation_logs' || table==='ticket_additions'){
+      const sid = _dgExtractEqParam(query, 'schedule_id');
+      const fnMap = {
+        contribution_logs: 'read_contribution_logs_staff',
+        operation_logs:    'read_operation_logs_staff',
+        ticket_additions:  'read_ticket_additions_staff',
+      };
+      const rows = await sb.rpc(fnMap[table], { p_schedule_id: sid, p_session_token: _dgStaffSessionToken });
+      return _dgApplyQuery(rows, query);
+    }
+    if(table==='referral_code_usages'){
+      const rows = await sb.rpc('read_referral_usages_staff', { p_session_token: _dgStaffSessionToken });
+      return _dgApplyQuery(rows, query);
+    }
     const r = await fetch(sb.url(table, query), { headers: sb.headers });
     if(!r.ok) throw new Error(await r.text());
     return r.json();
@@ -2304,12 +2325,95 @@ async function doLogin(){
     return;
   }
 
+  // 관리자 전용 삭제 RPC(delete_schedule_secure 등) 인증에 쓰일 세션 토큰 발급.
+  // login_staff 자체는 건드리지 않고, 검증이 끝난 뒤 별도로 1회 추가 호출한다.
+  // 토큰은 페이지 메모리 변수에만 보관하며 새로고침/로그아웃 시 사라진다.
+  // [이번 개정] fail-closed: 세션 발급에 실패하면 로그인 자체를 실패로 처리하고
+  // 로그인 화면에 남긴다. 이제 schedules/contribution_logs/ticket_additions/
+  // operation_logs/referral_code_usages의 읽기까지 전부 이 토큰에 의존하므로,
+  // 토큰 없이 앱에 들어가면 사실상 아무것도 못 보는 반쪽짜리 상태가 된다.
+  let sessionResult;
+  try {
+    sessionResult = await sb.rpc('create_staff_session', { p_name: inputName, p_password: pwVal });
+  } catch(e){
+    console.error('[DG] 세션 토큰 발급 실패:', e);
+    errEl.textContent = '로그인 세션 생성에 실패했습니다. 다시 시도해주세요.';
+    _dgStaffSessionToken = null;
+    return;
+  }
+  _dgStaffSessionToken = Array.isArray(sessionResult) ? sessionResult[0] : sessionResult;
+  if(!_dgStaffSessionToken){
+    errEl.textContent = '로그인 세션 생성에 실패했습니다. 다시 시도해주세요.';
+    return;
+  }
+
   // 로그인 성공 — localStorage에 저장 (기존 자동 재로그인 방식 그대로 유지)
   localStorage.setItem('dg_user_id', user.id);
   currentUser = user;
+
   identifyOneSignalUser();
   document.getElementById('login-screen').style.display = 'none';
   startApp();
+}
+
+// ────────── PostgREST 쿼리스트링 재현 헬퍼 (읽기 RPC가 authorized 범위의
+// 배열을 통째로 주면, 원래 querystring이 하던 필터/정렬/limit을 클라이언트에서
+// 재현한다. eq./neq./order=/limit= 패턴만 지원 — 이 앱에서 쓰는 패턴은 이걸로 충분) ──────────
+function _dgApplyQuery(rows, query){
+  if(!Array.isArray(rows) || !query) return rows;
+  const qs = query.startsWith('?') ? query.slice(1) : query;
+  const params = new URLSearchParams(qs);
+  let out = rows;
+  for(const [key, val] of params.entries()){
+    if(key==='order' || key==='select' || key==='limit' || key==='offset') continue;
+    let m = val.match(/^eq\.(.*)$/);
+    if(m){ const v = decodeURIComponent(m[1]); out = out.filter(r => String(r[key]) === v); continue; }
+    m = val.match(/^neq\.(.*)$/);
+    if(m){ const v = decodeURIComponent(m[1]); out = out.filter(r => String(r[key]) !== v); continue; }
+  }
+  const order = params.get('order');
+  if(order){
+    const parts = order.split(',').map(p => p.split('.'));
+    out = out.slice().sort((a,b) => {
+      for(const [col,dir] of parts){
+        const av=a[col], bv=b[col];
+        if(av<bv) return dir==='desc'?1:-1;
+        if(av>bv) return dir==='desc'?-1:1;
+      }
+      return 0;
+    });
+  }
+  const limit = params.get('limit');
+  if(limit) out = out.slice(0, parseInt(limit,10));
+  return out;
+}
+function _dgExtractEqParam(query, key){
+  if(!query) return null;
+  const qs = query.startsWith('?') ? query.slice(1) : query;
+  const params = new URLSearchParams(qs);
+  const val = params.get(key);
+  if(!val) return null;
+  const m = val.match(/^eq\.(.*)$/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+// 삭제 RPC(delete_schedule_secure 등) 인증용 세션 토큰. login 성공 시 채워짐.
+let _dgStaffSessionToken = null;
+
+// schedules / referral_code_usages 직접 REST 쓰기를 세션 검증 RPC로
+// 감싸는 얇은 래퍼. 기존 sb.patch/sb.post 호출부와 인자 순서를 동일하게
+// 맞춰서, 호출부 코드 자체는 함수명만 바뀌고 인자는 그대로 재사용합니다.
+async function sbSchedulePatch(id, body){
+  return sb.rpc('update_schedule_staff', { p_id: id, p_patch: body, p_session_token: _dgStaffSessionToken });
+}
+async function sbScheduleInsert(body){
+  return sb.rpc('insert_schedule_staff', { p_row: body, p_session_token: _dgStaffSessionToken });
+}
+async function sbReferralPatch(id, body){
+  return sb.rpc('update_referral_usage_staff', { p_id: id, p_patch: body, p_session_token: _dgStaffSessionToken });
+}
+async function sbReferralInsert(body){
+  return sb.rpc('insert_referral_usage_staff', { p_row: body, p_session_token: _dgStaffSessionToken });
 }
 
 // ─── 관리자 전용 푸시 테스트 (send-staff-test-push 호출) ────────────────────────
@@ -2398,6 +2502,7 @@ async function sendStaffTestPush(){
 function doLogout(){
   if(!confirm('로그아웃 하시겠습니까?')) return;
   _adminTestPushPassword = null; // 메모리에 보관 중인 관리자 비밀번호 즉시 제거
+  _dgStaffSessionToken = null;   // 세션 토큰도 즉시 제거
   unlinkOneSignalUser();
   localStorage.removeItem('dg_user_id');
   location.reload();
@@ -2407,16 +2512,17 @@ function doLogout(){
 async function init(){
   initLoginScreen();
 
-  // 저장된 로그인 확인
+  // 저장된 로그인(이름)이 있으면 편의상 이름 입력란만 채워주고,
+  // 비밀번호는 매번 다시 입력받습니다. staff_sessions 토큰은 새로고침 시
+  // 메모리에서 사라지므로(의도된 동작), 토큰 없이 예전처럼 로그인 화면을
+  // 건너뛰면 쓰기 계열 RPC가 전부 실패하게 됩니다 — 그래서 이번 개편으로
+  // "자동 로그인" 자체를 없애고 "이름 자동 입력"까지만 남겼습니다.
   const savedId = localStorage.getItem('dg_user_id');
   if(savedId){
     const user = USERS.find(u => u.id === Number(savedId));
     if(user){
-      currentUser = user;
-      identifyOneSignalUser();
-      document.getElementById('login-screen').style.display = 'none';
-      await startApp();
-      return;
+      const nameInput = document.getElementById('login-name');
+      if(nameInput) nameInput.value = user.name;
     }
   }
 
@@ -3874,7 +3980,7 @@ async function openLiveBook(id){
   try{
     if(!s.dashboardToken){
       const newToken = 'T_' + Math.random().toString(36).slice(2,10).toUpperCase();
-      await sb.patch('schedules', id, { dashboard_token: newToken });
+      await sbSchedulePatch(id, { dashboard_token: newToken });
       s.dashboardToken = newToken;
     }
     window.open(`${location.origin}/live.html?t=${s.dashboardToken}`, '_blank');
@@ -4260,13 +4366,13 @@ async function openPrecheckModal(id){
   if(!s.dashboardToken){
     const newToken = 'T_' + Math.random().toString(36).slice(2,10).toUpperCase();
     try {
-      await sb.patch('schedules', id, { dashboard_token: newToken });
+      await sbSchedulePatch(id, { dashboard_token: newToken });
       s.dashboardToken = newToken;
       // 분리 토큰도 함께 생성
       if(!s.groomToken || !s.brideToken){
         const gt = 'G_' + Math.random().toString(36).slice(2,10).toUpperCase();
         const bt = 'B_' + Math.random().toString(36).slice(2,10).toUpperCase();
-        await sb.patch('schedules', id, { groom_token: gt, bride_token: bt });
+        await sbSchedulePatch(id, { groom_token: gt, bride_token: bt });
         s.groomToken = gt;
         s.brideToken = bt;
       }
@@ -4350,7 +4456,7 @@ function closePrecheckModal(){
 
 async function setPrecheckLock(id, locked, forceUnlock){
   try{
-    await sb.patch('schedules', id, {
+    await sbSchedulePatch(id, {
       precheck_locked:       locked,
       precheck_force_unlock: forceUnlock,
     });
@@ -4447,7 +4553,7 @@ async function openContractModal(id){
   if(!s.contractToken){
     const ct = 'C_' + Math.random().toString(36).slice(2,10).toUpperCase();
     try {
-      await sb.patch('schedules', id, { contract_token: ct });
+      await sbSchedulePatch(id, { contract_token: ct });
       s.contractToken = ct;
     } catch(e){ showToast('⚠️ 토큰 생성 실패: '+e.message); return; }
   }
@@ -4463,7 +4569,7 @@ async function openContractModal(id){
     if(ownerName && last4){
       const newCode = ownerName + last4;
       try {
-        await sb.patch('schedules', id, { couple_referral_code: newCode });
+        await sbSchedulePatch(id, { couple_referral_code: newCode });
         s.coupleReferralCode = newCode;
       } catch(e){ console.warn('짝꿍코드 자동 생성 실패:', e); }
     }
@@ -4817,7 +4923,7 @@ async function updateReferralCode(scheduleId, oldCode){
     }
 
     // 4) 저장 — schedules.couple_referral_code 1개 컬럼만 수정
-    await sb.patch('schedules', scheduleId, { couple_referral_code: newCode });
+    await sbSchedulePatch(scheduleId, { couple_referral_code: newCode });
     s.coupleReferralCode = newCode;
     showToast('✅ 대표 짝꿍코드가 수정되었습니다.');
     renderReferralList();
@@ -4869,7 +4975,7 @@ ${codeSection}
 async function manualCompleteContract(id){
   if(!confirm('계약완료로 변경하시겠습니까?\n(외부 계약서 등 수동 완료 처리)')) return;
   try {
-    await sb.patch('schedules', id, { contract_status: 'completed' });
+    await sbSchedulePatch(id, { contract_status: 'completed' });
     const s = schedules.find(x => x.id === id);
     if(s) s.contractStatus = 'completed';
     showToast('✅ 계약완료로 변경되었습니다');
@@ -5066,7 +5172,7 @@ async function applyReferralCodeAsAdmin(code, aScheduleId){
   // STEP 1: referral_code_usages INSERT (코드 선점 잠금)
   let usageInsertId = null;
   try{
-    const inserted = await sb.post('referral_code_usages', {
+    const inserted = await sbReferralInsert({
       used_code: code, referrer_name: bName, used_by_name: aName,
       used_by_schedule_id: aRow.id, source: 'admin', status: 'active',
     });
@@ -5100,20 +5206,21 @@ async function applyReferralCodeAsAdmin(code, aScheduleId){
         result.a.balanceRecalculated = true;
         result.a.pdfInvalidated = true;
       }
-      await sb.patch('schedules', aRow.id, aPatch);
+      await sbSchedulePatch(aRow.id, aPatch);
       Object.assign(aRow, aPatch);
       result.a.newlyApplied = true;
     } else {
       result.a.alreadyApplied = true;
       const aMemoTxt = `짝꿍코드(${code}) 사용 처리 — 기존 짝꿍할인 이력이 있어 추가 할인 미적용 (관리자 처리)`;
       const newAAm = { ...aAm, text: aAm.text ? aAm.text+'\n\n'+aMemoTxt : aMemoTxt };
-      try{ await sb.patch('schedules', aRow.id, { admin_memo:newAAm }); Object.assign(aRow, {admin_memo:newAAm}); }
+      try{ await sbSchedulePatch(aRow.id, { admin_memo:newAAm }); Object.assign(aRow, {admin_memo:newAAm}); }
       catch(e){ console.warn('[DG] A 메모 추가 실패:', e); }
     }
   }catch(saveErr){
     // A 처리 실패 → STEP1 롤백 (contract.html과 동일한 규칙)
+    // 관리자 수기 등록 화면이라 고객 token이 없으므로 세션 토큰으로 인증
     if(usageInsertId){
-      try{ await sb.delete('referral_code_usages', usageInsertId); }
+      try{ await sb.rpc('rollback_referral_usage', { p_usage_id: usageInsertId, p_session_token: _dgStaffSessionToken }); }
       catch(re){ console.warn('[DG] STEP1 롤백 실패:', re); }
     }
     throw new Error('할인 저장 중 오류가 발생했습니다: ' + saveErr.message);
@@ -5139,14 +5246,14 @@ async function applyReferralCodeAsAdmin(code, aScheduleId){
         result.b.balanceRecalculated = true;
         result.b.pdfInvalidated = true;
       }
-      await sb.patch('schedules', bRow.id, bPatch);
+      await sbSchedulePatch(bRow.id, bPatch);
       Object.assign(bRow, bPatch);
       result.b.newlyApplied = true;
     } else {
       result.b.alreadyApplied = true;
       const bMemoTxt = `내 대표코드(${code})가 ${aName} 계약자에 의해 사용되었으나 기존 짝꿍할인 이력이 있어 추가 할인 미적용 (관리자 처리)`;
       const newBAm = { ...bAm, text: bAm.text ? bAm.text+'\n\n'+bMemoTxt : bMemoTxt };
-      try{ await sb.patch('schedules', bRow.id, { admin_memo:newBAm }); Object.assign(bRow, {admin_memo:newBAm}); }
+      try{ await sbSchedulePatch(bRow.id, { admin_memo:newBAm }); Object.assign(bRow, {admin_memo:newBAm}); }
       catch(e){ console.warn('[DG] B 메모 추가 실패:', e); }
     }
   }catch(e){
@@ -5214,7 +5321,7 @@ async function cancelCoupleDiscount(id){
       couple_discount: false,
       text: existingAm.text ? existingAm.text + '\n\n' + memoEntry : memoEntry,
     };
-    await sb.patch('schedules', id, {
+    await sbSchedulePatch(id, {
       couple_discount_code:   null,
       couple_discount_status: 'cancelled',
       couple_discount_amount: 0,
@@ -5231,7 +5338,7 @@ async function cancelCoupleDiscount(id){
       const usageRows = await sb.get('referral_code_usages',
         `?used_by_schedule_id=eq.${id}&status=eq.active&select=id`);
       if(usageRows && usageRows.length > 0){
-        await sb.patch('referral_code_usages', usageRows[0].id, { status: 'cancelled' });
+        await sbReferralPatch(usageRows[0].id, { status: 'cancelled' });
       }
     }catch(e){ console.warn('[DG] 사용이력 취소 실패:', e); }
     // 폼이 열려있으면 즉시 갱신
@@ -5267,7 +5374,7 @@ async function toggleCL(schId, key, checked){
 
   // Supabase 저장
   try {
-    await sb.patch('schedules', schId, { checklist: s.checklist });
+    await sbSchedulePatch(schId, { checklist: s.checklist });
     showToast(checked ? '✅ 체크 완료' : '↩️ 체크 해제');
   } catch(e){
     console.error('체크리스트 저장 실패:', e);
@@ -5302,8 +5409,12 @@ function closeDeleteModal(){
 async function executeDelete(){
   if(!deleteTargetId || !ADMIN_NAMES.includes(currentUser.name)) return;
   const id = deleteTargetId;
+  if(!_dgStaffSessionToken){
+    alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+    return;
+  }
   try {
-    await sb.delete('schedules', id);
+    await sb.rpc('delete_schedule_secure', { p_id: id, p_session_token: _dgStaffSessionToken });
     schedules = schedules.filter(s => s.id !== id);
     closeDeleteModal();
     renderAll();
@@ -5316,8 +5427,12 @@ async function executeDelete(){
 async function deleteSch(id){
   if(!ADMIN_NAMES.includes(currentUser.name)) return; // 관리자만 실행 가능
   if(!confirm('정말 삭제하시겠습니까?')) return;
+  if(!_dgStaffSessionToken){
+    alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+    return;
+  }
   try {
-    await sb.delete('schedules', id);
+    await sb.rpc('delete_schedule_secure', { p_id: id, p_session_token: _dgStaffSessionToken });
     schedules=schedules.filter(s=>s.id!==id);
     renderAll(); showToast('🗑️ 예식이 삭제되었습니다');
   } catch(e){
@@ -6470,7 +6585,7 @@ async function saveForm(){
   try {
     if(formId){
       const oldS    = schedules.find(x => x.id === formId);
-      const updated = await sb.patch('schedules', formId, row);
+      const updated = await sbSchedulePatch(formId, row);
       const newS    = rowToSchedule(Array.isArray(updated)?updated[0]:updated);
       const idx     = schedules.findIndex(x=>x.id===formId);
       if(idx !== -1) schedules[idx] = newS;
@@ -6483,7 +6598,7 @@ async function saveForm(){
       closeForm(); renderAll();
     } else {
       // 신규 등록 — INSERT 결과에서 id 확보 후 상세모달 자동 오픈
-      const created = await sb.post('schedules', row);
+      const created = await sbScheduleInsert(row);
       const newRow  = Array.isArray(created)?created[0]:created;
       const newS    = rowToSchedule(newRow);
       const newId   = newS.id;
@@ -6580,7 +6695,7 @@ async function saveResult(){
 
   try {
     console.log('[DG] saveResult 저장 시작 - scheduleId:', resultId, 'result:', result);
-    const saved = await sb.patch('schedules', resultId, { result, checklist: s.checklist });
+    const saved = await sbSchedulePatch(resultId, { result, checklist: s.checklist });
     console.log('[DG] saveResult DB 응답:', saved);
     s.result = result;
     // schedules 전체 재로드 후 렌더 (메모리 불일치 방지)
@@ -7725,7 +7840,7 @@ async function toggleManagerRatePaid(scheduleId, managerName, checked){
   s.managerRateInfo = nextInfo; // 낙관적 업데이트
   renderSettle();
   try {
-    await sb.patch('schedules', scheduleId, { manager_rate_info: nextInfo });
+    await sbSchedulePatch(scheduleId, { manager_rate_info: nextInfo });
   } catch(e){
     s.managerRateInfo = prevInfo; // 롤백
     renderSettle();
@@ -8144,7 +8259,7 @@ async function rtLoadSchedule(){
         const bt = 'B_' + Math.random().toString(36).slice(2,10).toUpperCase();
         patchBody.bride_token = bt; rtSchedule.brideToken = bt;
       }
-      if(Object.keys(patchBody).length) await sb.patch('schedules', id, patchBody);
+      if(Object.keys(patchBody).length) await sbSchedulePatch(id, patchBody);
     } catch(e){ console.warn('[DG] 토큰 생성 실패:', e); }
   }
   // contribution 데이터 자동 로드 (각각 독립 처리 — 하나 실패해도 나머지는 정상 반영)
@@ -8393,7 +8508,7 @@ function rtAutoSaveClosing(){
       tktCount: document.getElementById('rt-tkt-count')?.value?.trim() || '1',
     });
     try{
-      await sb.patch('schedules', rtSchedule.id, { handover_cert_closing: closingJson });
+      await sbSchedulePatch(rtSchedule.id, { handover_cert_closing: closingJson });
       rtSchedule.handoverCertClosing = closingJson;
     }catch(e){ console.warn('[DG] 마감 후 상황 자동 저장 실패:', e); }
   }, 1000);
@@ -8666,7 +8781,7 @@ function rtCompleteHandover(){
       tktNames: document.getElementById('rt-tkt-names')?.value?.trim() || '',
       tktCount: document.getElementById('rt-tkt-count')?.value?.trim() || '1',
     });
-    sb.patch('schedules', rtSchedule.id, {
+    sbSchedulePatch(rtSchedule.id, {
       handover_cert_completed: true,
       handover_cert_at:        hvCompletedAt.toISOString(),
       handover_cert_name:      hvCompletedName,
@@ -8972,7 +9087,7 @@ async function toggleLaborPaid(schId, checked){
 
   try {
     const patchBody = hasDetailInfo ? { labor_paid: checked, manager_rate_info: nextInfo } : { labor_paid: checked };
-    await sb.patch('schedules', schId, patchBody);
+    await sbSchedulePatch(schId, patchBody);
     showToast(checked ? '✅ 인건비 지급 처리 완료' : '↩️ 인건비 미지급으로 변경');
   } catch(e){
     console.error('인건비 지급 처리 실패:', e);
@@ -9373,7 +9488,7 @@ async function _completePhotoAlert(s, popup){
   if(popup && popup.parentNode) popup.remove();
   // 4. DB 저장 (비동기)
   try {
-    await sb.patch('schedules', s.id, { photo_alert_completed: true });
+    await sbSchedulePatch(s.id, { photo_alert_completed: true });
     console.log('[DG] photo_alert_completed DB 저장 완료:', s.id);
   } catch(e){
     console.error('[DG] photo_alert_completed 저장 실패:', e);
