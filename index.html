@@ -2349,6 +2349,7 @@ async function doLogin(){
 
   // 로그인 성공 — localStorage에 저장 (기존 자동 재로그인 방식 그대로 유지)
   localStorage.setItem('dg_user_id', user.id);
+  localStorage.setItem('dg_staff_session', _dgStaffSessionToken); // 새로고침 시 세션 복구용(평문 비밀번호 아님, 서버 발급 토큰)
   currentUser = user;
 
   identifyOneSignalUser();
@@ -2505,6 +2506,7 @@ function doLogout(){
   _dgStaffSessionToken = null;   // 세션 토큰도 즉시 제거
   unlinkOneSignalUser();
   localStorage.removeItem('dg_user_id');
+  localStorage.removeItem('dg_staff_session');
   location.reload();
 }
 
@@ -2512,12 +2514,38 @@ function doLogout(){
 async function init(){
   initLoginScreen();
 
-  // 저장된 로그인(이름)이 있으면 편의상 이름 입력란만 채워주고,
-  // 비밀번호는 매번 다시 입력받습니다. staff_sessions 토큰은 새로고침 시
-  // 메모리에서 사라지므로(의도된 동작), 토큰 없이 예전처럼 로그인 화면을
-  // 건너뛰면 쓰기 계열 RPC가 전부 실패하게 됩니다 — 그래서 이번 개편으로
-  // "자동 로그인" 자체를 없애고 "이름 자동 입력"까지만 남겼습니다.
-  const savedId = localStorage.getItem('dg_user_id');
+  // [이번 개정] 새로고침 시 로그인이 풀리던 문제 수정. localStorage에 저장된
+  // 세션 토큰(dg_staff_session)이 있으면, 새 RPC를 추가하지 않고 이미 존재하는
+  // read_schedules_staff(세션 검증이 필수인 RPC)를 "검증 겸 데이터 로드"용으로
+  // 재사용한다 — 이 호출이 성공해야만(=서버가 토큰을 유효하다고 확인해야만)
+  // 로그인 상태를 복구한다. 실패(만료/무효)하면 그대로 로그인 화면으로 보낸다
+  // (fail-closed 유지 — 토큰 유효성을 클라이언트가 임의로 가정하지 않음).
+  // 평문 비밀번호는 여전히 어디에도 저장하지 않는다.
+  const savedId    = localStorage.getItem('dg_user_id');
+  const savedToken = localStorage.getItem('dg_staff_session');
+  if(savedId && savedToken){
+    const user = USERS.find(u => u.id === Number(savedId));
+    if(user){
+      try{
+        await sb.rpc('read_schedules_staff', { p_session_token: savedToken });
+        // 검증 성공 — 세션 복구. startApp()이 이어서 loadSchedules()를 호출하며
+        // 같은 데이터를 다시 받아오지만(약간의 중복 호출), 기존 시작 흐름을
+        // 그대로 재사용하기 위해 별도 분기를 만들지 않았다.
+        _dgStaffSessionToken = savedToken;
+        currentUser = user;
+        identifyOneSignalUser();
+        document.getElementById('login-screen').style.display = 'none';
+        await startApp();
+        return;
+      }catch(e){
+        console.warn('[DG] 저장된 세션이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.', e);
+        localStorage.removeItem('dg_staff_session');
+      }
+    }
+  }
+
+  // 저장된 로그인(이름)이 있으면 편의상 이름 입력란만 채워준다(세션 복구
+  // 실패했거나 애초에 토큰이 없는 경우) — 비밀번호는 항상 다시 입력받는다.
   if(savedId){
     const user = USERS.find(u => u.id === Number(savedId));
     if(user){
