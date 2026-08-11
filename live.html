@@ -484,8 +484,49 @@ const SUPABASE_ANON_KEY='sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
 const sb={
   h:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
   url:(t,q='')=>`${SUPABASE_URL}/rest/v1/${t}${q}`,
-  async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+  async rpc(fnName, params={}){ const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`,{method:'POST',headers:sb.h,body:JSON.stringify(params)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
+  // schedules/contribution_logs/operation_logs/ticket_additions는 anon SELECT가
+  // 막혀 있으므로 token 기반 읽기 RPC로 라우팅한다. 호출부는 그대로 유지.
+  async get(t,q=''){
+    const token = getToken();
+    if(t==='schedules'){
+      const row = await sb.rpc('read_schedule_live', { p_t: token });
+      return row ? [row] : [];
+    }
+    if(t==='contribution_logs') return _dgApplyQuery(await sb.rpc('read_contribution_logs_by_token', { p_t: token }), q);
+    if(t==='operation_logs')    return _dgApplyQuery(await sb.rpc('read_operation_logs_by_token',    { p_t: token }), q);
+    if(t==='ticket_additions')  return _dgApplyQuery(await sb.rpc('read_ticket_additions_by_token',  { p_t: token }), q);
+    const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json();
+  }
 };
+function _dgApplyQuery(rows, query){
+  if(!Array.isArray(rows) || !query) return rows;
+  const qs = query.startsWith('?') ? query.slice(1) : query;
+  const params = new URLSearchParams(qs);
+  let out = rows;
+  for(const [key, val] of params.entries()){
+    if(key==='order' || key==='select' || key==='limit' || key==='offset') continue;
+    let m = val.match(/^eq\.(.*)$/);
+    if(m){ const v = decodeURIComponent(m[1]); out = out.filter(r => String(r[key]) === v); continue; }
+    m = val.match(/^neq\.(.*)$/);
+    if(m){ const v = decodeURIComponent(m[1]); out = out.filter(r => String(r[key]) !== v); continue; }
+  }
+  const order = params.get('order');
+  if(order){
+    const parts = order.split(',').map(p => p.split('.'));
+    out = out.slice().sort((a,b) => {
+      for(const [col,dir] of parts){
+        const av=a[col], bv=b[col];
+        if(av<bv) return dir==='desc'?1:-1;
+        if(av>bv) return dir==='desc'?-1:1;
+      }
+      return 0;
+    });
+  }
+  const limit = params.get('limit');
+  if(limit) out = out.slice(0, parseInt(limit,10));
+  return out;
+}
 
 let schedule=null,logs=[],opsLogs=[],preShares=[],newIds=new Set();
 let currentViewSide='both'; // 'both' | 'groom' | 'bride'
@@ -560,18 +601,10 @@ async function init(){
   const token=getToken();
   if(!token){showError();return;}
   try{
-    let rows=await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}`);
-    let viewSide='both';
-    if(!rows.length){
-      rows=await sb.get('schedules',`?groom_token=eq.${encodeURIComponent(token)}`);
-      if(rows.length) viewSide='groom';
-    }
-    if(!rows.length){
-      rows=await sb.get('schedules',`?bride_token=eq.${encodeURIComponent(token)}`);
-      if(rows.length) viewSide='bride';
-    }
-    if(!rows.length) throw new Error('not found');
-    schedule=rows[0];
+    const row=await sb.rpc('read_schedule_live', { p_t: token });
+    if(!row) throw new Error('not found');
+    let viewSide=row._side==='groom'?'groom':row._side==='bride'?'bride':'both';
+    schedule=row;
     if(isCustomerLinkExpired(schedule.date)){ showExpired(schedule.date); return; }
     currentViewSide=viewSide; // ★ 전역 저장
 

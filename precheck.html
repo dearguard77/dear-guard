@@ -777,6 +777,7 @@ const sb = {
   async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
   async patch(t,id,b){ const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
   async post(t,b){ const r=await fetch(sb.url(t),{method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
+  async rpc(fnName, params={}){ const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`,{method:'POST',headers:sb.h,body:JSON.stringify(params)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
 };
 
 let schedule = null;
@@ -818,24 +819,17 @@ async function init(){
   const token = getToken();
   if(!token){ showError(); return; }
   try {
-    let rows = await sb.get('schedules',`?dashboard_token=eq.${encodeURIComponent(token)}&select=*`);
-    sideFilter = null;
-    if(!rows.length){
-      rows = await sb.get('schedules',`?groom_token=eq.${encodeURIComponent(token)}&select=*`);
-      if(rows.length) sideFilter = 'groom';
-    }
-    if(!rows.length){
-      rows = await sb.get('schedules',`?bride_token=eq.${encodeURIComponent(token)}&select=*`);
-      if(rows.length) sideFilter = 'bride';
-    }
-    if(!rows.length){ showError(); return; }
-
-    schedule = rows[0];
+    const row = await sb.rpc('read_schedule_precheck', { p_t: token });
+    if(!row){ showError(); return; }
+    const _side = row._side;
+    sideFilter = _side === 'groom' ? 'groom' : _side === 'bride' ? 'bride' : null;
+    schedule = row;
     if(isCustomerLinkExpired(schedule.date)){ showExpired(); return; }
 
     try {
-      preShares = await sb.get('ticket_additions',
-        `?schedule_id=eq.${schedule.id}&type=eq.pre_share&source=neq.onsite&order=created_at.asc`);
+      const allTickets = await sb.rpc('read_ticket_additions_by_token', { p_t: token });
+      preShares = (allTickets||[]).filter(t => t.type==='pre_share' && t.source!=='onsite')
+        .sort((a,b) => (a.created_at||'') < (b.created_at||'') ? -1 : 1);
     } catch(e){}
 
     renderHeader();
@@ -1138,18 +1132,14 @@ async function addPreSharePc(){
   if(amount<1){ showToast('⚠️ 장수를 입력해주세요'); return; }
   if(!schedule){ return; }
   try {
-    const res = await fetch(sb.url('ticket_additions'), {
-      method: 'POST',
-      headers: {...sb.h, 'Prefer':'return=representation'},
-      body: JSON.stringify({
-        schedule_id: schedule.id, side, amount,
+    const created = await sb.rpc('insert_ticket_addition_by_token', {
+      p_t: getToken(),
+      p_row: {
+        side, amount,
         person_name: name, type:'pre_share', ticket_kind: kind,
         created_by: 'precheck'
-      })
+      }
     });
-    const text = await res.text();
-    if(!res.ok) throw new Error(text);
-    const created = JSON.parse(text);
     preShares.push(Array.isArray(created)?created[0]:created);
     document.getElementById('ps-name').value = '';
     document.getElementById('ps-amount').value = '';
@@ -1160,7 +1150,7 @@ async function addPreSharePc(){
 
 async function deletePreSharePc(id){
   try {
-    await fetch(sb.url('ticket_additions','?id=eq.'+id),{method:'DELETE',headers:sb.h});
+    await sb.rpc('delete_ticket_addition_by_token', { p_id: id, p_t: getToken() });
     preShares = preShares.filter(p=>p.id!==id);
     renderPreShareList();
   } catch(e){ showToast('⚠️ 삭제 실패'); }
@@ -1339,16 +1329,19 @@ async function saveDraftToDB(){
       lines.push(`🤝 디어가드 이용 안내: 당일 관계 안내 필요 · ${dgRelationDesc||'미입력'}`);
     }
     const precheckText = lines.join('\n');
-    const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
-    const prevFieldMemo = (existing[0]?.field_memo) || {};
+    const existing = await sb.rpc('read_schedule_precheck', { p_t: getToken() });
+    const prevFieldMemo = (existing?.field_memo) || {};
     const newFieldMemo  = { ...prevFieldMemo, precheck: precheckText };
     const _isRuntimeConfirmed = schedule.ticket_runtime_confirmed === true;
-    await sb.patch('schedules', schedule.id, {
-      precheck_draft:   draft,
-      draft_updated_at: new Date().toISOString(),
-      field_memo:       newFieldMemo,
-      ticket_guarantee: parseInt(gv('ticket_guarantee'))||null,
-      ...(_isRuntimeConfirmed ? {} : computeTicketColumnsForSave()), // contribution에서 이미 현장 확정했으면 표준 식권 컬럼은 절대 덮어쓰지 않음
+    await sb.rpc('update_schedule_precheck_by_token', {
+      p_t: getToken(),
+      p_patch: {
+        precheck_draft:   draft,
+        draft_updated_at: new Date().toISOString(),
+        field_memo:       newFieldMemo,
+        ticket_guarantee: parseInt(gv('ticket_guarantee'))||null,
+        ...(_isRuntimeConfirmed ? {} : computeTicketColumnsForSave()), // contribution에서 이미 현장 확정했으면 표준 식권 컬럼은 절대 덮어쓰지 않음
+      }
     });
     Object.assign(schedule, (_isRuntimeConfirmed ? {} : computeTicketColumnsForSave()), { ticket_guarantee: parseInt(gv('ticket_guarantee'))||null });
   } catch(e){ console.warn('[DG] draft DB 저장 실패:', e); }
@@ -1658,7 +1651,7 @@ async function saveAll(){
   };
 
   try {
-    await sb.patch('schedules', schedule.id, body);
+    await sb.rpc('update_schedule_precheck_by_token', { p_t: getToken(), p_patch: body });
     Object.assign(schedule, body);
 
     // ── 현장 메모 자동 등록 ──
@@ -1757,15 +1750,15 @@ async function saveAll(){
 
       const precheckText = lines.join('\n');
 
-      const existing = await sb.get('schedules', `?id=eq.${schedule.id}&select=field_memo`);
-      const prevFieldMemo = (existing[0]?.field_memo) || {};
+      const existing = await sb.rpc('read_schedule_precheck', { p_t: getToken() });
+      const prevFieldMemo = (existing?.field_memo) || {};
       const newFieldMemo  = { ...prevFieldMemo, precheck: precheckText };
-      await sb.patch('schedules', schedule.id, { field_memo: newFieldMemo });
+      await sb.rpc('update_schedule_precheck_by_token', { p_t: getToken(), p_patch: { field_memo: newFieldMemo } });
     } catch(e){ console.warn('[DG] 현장메모 등록 실패:', e); }
 
     Object.assign(schedule, body);
     try { const k=getDraftKey(); if(k) localStorage.removeItem(k); } catch(e){}
-    sb.patch('schedules', schedule.id, { precheck_draft: null, draft_updated_at: null }).catch(()=>{});
+    sb.rpc('update_schedule_precheck_by_token', { p_t: getToken(), p_patch: { precheck_draft: null, draft_updated_at: null } }).catch(()=>{});
     showToast('✅ 저장되었습니다!');
     setTimeout(()=>{
       document.getElementById('app').style.display='none';

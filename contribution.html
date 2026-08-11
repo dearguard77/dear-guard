@@ -381,7 +381,7 @@ input,select,textarea{font-family:inherit;outline:none}
       <label class="login-label">비밀번호</label>
       <input class="login-input" id="login-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">로그인</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
@@ -1240,30 +1240,123 @@ const ADMIN_NAMES       = ['강성주','전수연'];
 const sb = {
   h:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`},
   url:(t,q='')=>`${SUPABASE_URL}/rest/v1/${t}${q}`,
-  async get(t,q=''){ const r=await fetch(sb.url(t,q),{headers:sb.h,mode:'cors'}); if(!r.ok){ const txt=await r.text(); throw new Error('HTTP '+r.status+': '+txt.slice(0,100)); } return r.json(); },
-  async post(t,b){ const r=await fetch(sb.url(t),{method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
-  async patch(t,id,b){ const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+  async get(t,q=''){
+    // schedules/contribution_logs/operation_logs/ticket_additions는 anon SELECT가
+    // 막혀 있으므로 세션 검증 읽기 RPC로 라우팅한다. 호출부는 그대로 유지.
+    if(t==='schedules'){
+      const rows = await sb.rpc('read_schedules_staff', { p_session_token: _dgContribSessionToken });
+      return _dgApplyQuery(rows, q);
+    }
+    if(t==='contribution_logs' || t==='operation_logs' || t==='ticket_additions'){
+      const sid = _dgExtractEqParam(q, 'schedule_id') || (currentSchedule ? currentSchedule.id : null);
+      const fnMap = {
+        contribution_logs: 'read_contribution_logs_staff',
+        operation_logs:    'read_operation_logs_staff',
+        ticket_additions:  'read_ticket_additions_staff',
+      };
+      const rows = await sb.rpc(fnMap[t], { p_schedule_id: sid, p_session_token: _dgContribSessionToken });
+      return _dgApplyQuery(rows, q);
+    }
+    const r=await fetch(sb.url(t,q),{headers:sb.h,mode:'cors'}); if(!r.ok){ const txt=await r.text(); throw new Error('HTTP '+r.status+': '+txt.slice(0,100)); } return r.json();
+  },
+  async rpc(fnName, params={}){ const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`,{method:'POST',headers:sb.h,body:JSON.stringify(params)}); if(!r.ok) throw new Error(await r.text()); return r.json(); },
+  // contribution_logs / operation_logs / ticket_additions / schedules는 RLS로
+  // anon 직접 INSERT/UPDATE/DELETE가 막혀 있으므로, 여기서 테이블명을 보고
+  // 세션 검증 RPC로 자동 라우팅한다. 호출부(postWithDedup, postOfflineEntry,
+  // flushOfflineQueue 등)는 전혀 손대지 않아도 그대로 동작한다.
+  async post(t,b){
+    if(t==='contribution_logs') return sb.rpc('insert_contribution_log_staff', { p_row:b, p_session_token:_dgContribSessionToken });
+    if(t==='ticket_additions')  return sb.rpc('insert_ticket_addition_staff',  { p_row:b, p_session_token:_dgContribSessionToken });
+    if(t==='operation_logs')    return sb.rpc('insert_operation_log_staff',    { p_row:b, p_session_token:_dgContribSessionToken });
+    if(t==='schedules')         return sb.rpc('insert_schedule_staff',         { p_row:b, p_session_token:_dgContribSessionToken });
+    const r=await fetch(sb.url(t),{method:'POST',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json();
+  },
+  async patch(t,id,b){
+    if(t==='contribution_logs') return sb.rpc('update_contribution_log_staff', { p_id:id, p_patch:b, p_session_token:_dgContribSessionToken });
+    if(t==='ticket_additions')  return sb.rpc('update_ticket_addition_staff',  { p_id:id, p_patch:b, p_session_token:_dgContribSessionToken });
+    if(t==='operation_logs')    return sb.rpc('update_operation_log_staff',    { p_id:id, p_patch:b, p_session_token:_dgContribSessionToken });
+    if(t==='schedules')         return sb.rpc('update_schedule_staff',        { p_id:id, p_patch:b, p_session_token:_dgContribSessionToken });
+    const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(await r.text()); return r.json();
+  },
+  // 직접 REST DELETE를 쓰던 곳(flushOfflineQueue의 raw fetch 포함)을 전부
+  // 이 함수 호출로 바꾼다. 404는 "이미 삭제됨"으로 간주해 성공 취급(기존 동작 유지).
+  async delete(t,id){
+    try{
+      if(t==='contribution_logs') await sb.rpc('delete_contribution_log_staff', { p_id:id, p_session_token:_dgContribSessionToken });
+      else if(t==='ticket_additions') await sb.rpc('delete_ticket_addition_staff', { p_id:id, p_session_token:_dgContribSessionToken });
+      else if(t==='operation_logs') await sb.rpc('delete_operation_log_staff', { p_id:id, p_session_token:_dgContribSessionToken });
+      else { const r=await fetch(sb.url(t,`?id=eq.${id}`),{method:'DELETE',headers:sb.h}); if(!r.ok && r.status!==404) throw new Error('HTTP '+r.status); }
+    }catch(e){
+      // RPC는 "대상 없음"을 예외로 던지므로, 텍스트에 대상 없음 문구가 보이면
+      // 이미 삭제된 것으로 간주해 재시도 흐름을 막지 않는다(기존 404-허용 동작과 동등하게 유지).
+      if(String(e.message||'').includes('찾을 수 없습니다')) return;
+      throw e;
+    }
+  }
 };
 
+// 직원 세션 토큰(staff_sessions.token). 로그인 성공 시 create_staff_session
+// 호출로 채워지며, 새로고침하면 사라진다(의도된 동작 — 매번 비밀번호 재확인).
+let _dgContribSessionToken = null;
+
+// ────────── PostgREST 쿼리스트링 재현 헬퍼 (index.html과 동일 로직) ──────────
+function _dgApplyQuery(rows, query){
+  if(!Array.isArray(rows) || !query) return rows;
+  const qs = query.startsWith('?') ? query.slice(1) : query;
+  const params = new URLSearchParams(qs);
+  let out = rows;
+  for(const [key, val] of params.entries()){
+    if(key==='order' || key==='select' || key==='limit' || key==='offset') continue;
+    let m = val.match(/^eq\.(.*)$/);
+    if(m){ const v = decodeURIComponent(m[1]); out = out.filter(r => String(r[key]) === v); continue; }
+    m = val.match(/^neq\.(.*)$/);
+    if(m){ const v = decodeURIComponent(m[1]); out = out.filter(r => String(r[key]) !== v); continue; }
+  }
+  const order = params.get('order');
+  if(order){
+    const parts = order.split(',').map(p => p.split('.'));
+    out = out.slice().sort((a,b) => {
+      for(const [col,dir] of parts){
+        const av=a[col], bv=b[col];
+        if(av<bv) return dir==='desc'?1:-1;
+        if(av>bv) return dir==='desc'?-1:1;
+      }
+      return 0;
+    });
+  }
+  const limit = params.get('limit');
+  if(limit) out = out.slice(0, parseInt(limit,10));
+  return out;
+}
+function _dgExtractEqParam(query, key){
+  if(!query) return null;
+  const qs = query.startsWith('?') ? query.slice(1) : query;
+  const params = new URLSearchParams(qs);
+  const val = params.get(key);
+  if(!val) return null;
+  const m = val.match(/^eq\.(.*)$/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
 const USERS=[
-  {id:1, name:'강성주',role:'대표',pw:'gg'},
-  {id:2, name:'전수연',role:'실장',pw:'gg'},
-  {id:3, name:'조윤성',role:'매니저',pw:'ys'},
-  {id:4, name:'정선화',role:'매니저',pw:'sh'},
-  {id:5, name:'김지현',role:'매니저',pw:'jh'},
-  {id:6, name:'목수빈',role:'매니저',pw:'sb'},
-  {id:7, name:'양윤수',role:'매니저',pw:'ys'},
-  {id:8, name:'김홍주',role:'매니저',pw:'hj'},
-  {id:9, name:'이승윤',role:'매니저',pw:'sy'},
-  {id:10,name:'임우령',role:'매니저',pw:'wr'},
-  {id:11,name:'강미송',role:'매니저',pw:'ms'},
-  {id:12,name:'노지훈',role:'매니저',pw:'jh'},
-  {id:13,name:'김아희',role:'매니저',pw:'ah'},
-  {id:14,name:'진효성',role:'매니저',pw:'hs'},
-  {id:15,name:'김우석',role:'매니저',pw:'ws'},
-  {id:16,name:'전혜진',role:'매니저',pw:'hj'},
-  {id:17,name:'이형준',role:'매니저',pw:'hj'},
-  {id:18,name:'편승연',role:'매니저',pw:'sy'},
+  {id:1, name:'강성주',role:'대표'},
+  {id:2, name:'전수연',role:'실장'},
+  {id:3, name:'조윤성',role:'매니저'},
+  {id:4, name:'정선화',role:'매니저'},
+  {id:5, name:'김지현',role:'매니저'},
+  {id:6, name:'목수빈',role:'매니저'},
+  {id:7, name:'양윤수',role:'매니저'},
+  {id:8, name:'김홍주',role:'매니저'},
+  {id:9, name:'이승윤',role:'매니저'},
+  {id:10,name:'임우령',role:'매니저'},
+  {id:11,name:'강미송',role:'매니저'},
+  {id:12,name:'노지훈',role:'매니저'},
+  {id:13,name:'김아희',role:'매니저'},
+  {id:14,name:'진효성',role:'매니저'},
+  {id:15,name:'김우석',role:'매니저'},
+  {id:16,name:'전혜진',role:'매니저'},
+  {id:17,name:'이형준',role:'매니저'},
+  {id:18,name:'편승연',role:'매니저'},
 ];
 
 const STATUS_CFG={'계약완료':{c:'#6B7280'},'인터뷰대기':{c:'#D97706'},'최종준비완료':{c:'#3B82F6'},'진행완료':{c:'#10B981'},'긴급확인':{c:'#EF4444'}};
@@ -1292,7 +1385,7 @@ function initLogin(){
   const sel=document.getElementById('login-name');
   sel.innerHTML='<option value="">— 이름을 선택하세요 —</option>'+USERS.map(u=>`<option value="${u.id}">${u.name} (${u.role})</option>`).join('');
 }
-function doLogin(){
+async function doLogin(){
   const nv=document.getElementById('login-name').value;
   const pw=document.getElementById('login-pw').value;
   const err=document.getElementById('login-err');
@@ -1300,7 +1393,50 @@ function doLogin(){
   if(!nv){err.textContent='이름을 선택해주세요.';return;}
   if(!pw){err.textContent='비밀번호를 입력해주세요.';return;}
   const user=USERS.find(u=>u.id===Number(nv));
-  if(!user||user.pw!==pw){err.textContent='비밀번호가 올바르지 않습니다.';document.getElementById('login-pw').value='';return;}
+  if(!user){err.textContent='이름을 다시 선택해주세요.';return;}
+
+  const loginBtn=document.getElementById('login-btn');
+  if(loginBtn) loginBtn.disabled=true;
+
+  // index.html과 동일하게 login_staff RPC로 서버(staff_auth)에서 실제
+  // 비밀번호를 검증한다 — 더 이상 클라이언트 하드코딩 비밀번호를 쓰지 않는다.
+  let result;
+  try{
+    result = await sb.rpc('login_staff', { p_name: user.name, p_password: pw });
+  }catch(e){
+    console.error('로그인 검증 실패:', e);
+    err.textContent='로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.';
+    if(loginBtn) loginBtn.disabled=false;
+    return;
+  }
+  const row = Array.isArray(result) ? result[0] : result;
+  if(!row || !row.out_name){
+    err.textContent='비밀번호가 올바르지 않습니다.';
+    document.getElementById('login-pw').value='';
+    if(loginBtn) loginBtn.disabled=false;
+    return;
+  }
+
+  // [이번 개정] fail-closed: 세션 발급에 실패하면 로그인 자체를 실패로
+  // 처리하고 로그인 화면에 남긴다(index.html과 동일 원칙).
+  let sessionResult;
+  try{
+    sessionResult = await sb.rpc('create_staff_session', { p_name: user.name, p_password: pw });
+  }catch(e){
+    console.error('[DG] 세션 토큰 발급 실패:', e);
+    err.textContent='로그인 세션 생성에 실패했습니다. 다시 시도해주세요.';
+    _dgContribSessionToken = null;
+    if(loginBtn) loginBtn.disabled=false;
+    return;
+  }
+  _dgContribSessionToken = Array.isArray(sessionResult) ? sessionResult[0] : sessionResult;
+  if(!_dgContribSessionToken){
+    err.textContent='로그인 세션 생성에 실패했습니다. 다시 시도해주세요.';
+    if(loginBtn) loginBtn.disabled=false;
+    return;
+  }
+
+  if(loginBtn) loginBtn.disabled=false;
   currentUser=user;
   localStorage.setItem('dg_contrib_user',user.id);
   document.getElementById('login-screen').style.display='none';
@@ -1308,7 +1444,7 @@ function doLogin(){
   if(_directId) selectSchedule(Number(_directId));
   else goSelectSchedule();
 }
-function doLogout(){ localStorage.removeItem('dg_contrib_user'); location.reload(); }
+function doLogout(){ _dgContribSessionToken=null; localStorage.removeItem('dg_contrib_user'); location.reload(); }
 
 var _schTab='upcoming', _allSchRows=[];
 function setSchTab(tab){
@@ -1335,6 +1471,7 @@ function renderSchList(){
   wrap.innerHTML=html;
 }
 async function goSelectSchedule(){
+  _dgStopContribPolling();
   currentSchedule=null;
   document.getElementById('main-screen').style.display='none';
   document.body.style.overflow='auto';
@@ -1460,6 +1597,7 @@ async function selectSchedule(id){
     loadOpsLogs();
     loadHandover();
     subscribeRealtime();
+    _dgStartContribPolling();
     flushOfflineQueue(); // 진입 시 미전송(오프라인 보관) 데이터가 있으면 자동으로 이어서 동기화
     refreshSyncNavBadge(); // 동기화 버튼 배지 초기 상태 표시
   } catch(e){ console.error('[DG] 예식 로드 실패:',e); showToast('⚠️ 예식 로드 실패: '+e.message); }
@@ -1579,6 +1717,19 @@ async function addTicketExtra(){
 }
 // 오프라인 대응 공용 POST — client_entry_id 중복(재전송)은 서버가 무시하도록 요청 (postOfflineEntry와 동일 패턴, 테이블명만 매개변수화)
 async function postWithDedup(table, row){
+  // contribution_logs/ticket_additions/operation_logs는 sb.post가 세션 검증
+  // RPC로 라우팅한다. p_ignore_duplicate:true로 client_entry_id 충돌 시
+  // 조용히 null을 반환하도록 해서(기존 ignore-duplicates와 동등한 의미),
+  // 이미 동기화된 항목을 다시 넣으려다 에러가 나는 일을 막는다.
+  if(table==='contribution_logs' || table==='ticket_additions' || table==='operation_logs'){
+    const fnMap = {
+      contribution_logs: 'insert_contribution_log_staff',
+      ticket_additions:  'insert_ticket_addition_staff',
+      operation_logs:    'insert_operation_log_staff',
+    };
+    const data = await sb.rpc(fnMap[table], { p_row: row, p_session_token: _dgContribSessionToken, p_ignore_duplicate: true });
+    return Array.isArray(data) ? (data[0]||null) : data;
+  }
   const r=await fetch(sb.url(table),{
     method:'POST',
     headers:{...sb.h,'Prefer':'return=representation,resolution=ignore-duplicates'},
@@ -1601,8 +1752,7 @@ async function deleteTicketExtra(ref){
   if(target.id!=null){
     // 서버에 이미 존재하는 행 — 온라인 우선 시도
     try {
-      const r=await fetch(sb.url('ticket_additions','?id=eq.'+target.id),{method:'DELETE',headers:sb.h});
-      if(!r.ok) throw new Error('HTTP '+r.status);
+      await sb.delete('ticket_additions', target.id);
       ticketExtras=ticketExtras.filter(x=>x.id!==target.id);
       _refreshUi();
       showToast('✅ 삭제 완료');
@@ -1755,8 +1905,7 @@ async function editPreShare(ref){
   if(p.id!=null){
     // 서버에 이미 존재하는 행 — 온라인 우선 시도
     try {
-      var res = await fetch(sb.url('ticket_additions','?id=eq.'+p.id), {method:'PATCH',headers:{...sb.h,'Prefer':'return=representation'},body:JSON.stringify(payload)});
-      if(!res.ok) throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
+      await sb.patch('ticket_additions', p.id, payload);
       Object.assign(p, payload);
       _refreshUi();
       showToast('✅ 현장 식권이 수정되었습니다.');
@@ -1909,8 +2058,7 @@ async function deletePreShare(ref){
   if(p.id!=null){
     // 서버에 이미 존재하는 행 — 온라인 우선 시도
     try {
-      var res = await fetch(sb.url('ticket_additions','?id=eq.'+p.id), {method:'DELETE', headers:sb.h});
-      if(!res.ok) throw new Error('HTTP '+res.status);
+      await sb.delete('ticket_additions', p.id);
       preShares = preShares.filter(function(x){ return x.id !== p.id; });
       _refreshUi();
       showToast('✅ 현장 식권이 삭제되었습니다.');
@@ -1995,8 +2143,7 @@ async function togglePreShareReceived(id){
   if(!p || !currentSchedule) return;
   var newVal = !p.received;
   try {
-    var res = await fetch(sb.url('ticket_additions','?id=eq.'+id), {method:'PATCH',headers:sb.h,body:JSON.stringify({received:newVal})});
-    if(!res.ok) throw new Error('HTTP '+res.status+': '+(await res.text()).slice(0,200));
+    await sb.patch('ticket_additions', id, {received:newVal});
     p.received = newVal;
     renderPreShipChecklist();
     renderPreShareList();
@@ -2342,8 +2489,7 @@ async function saveOpsEdit(id, side){
 async function deleteOpsLog(id, side){
   if(!confirm('메모를 삭제하시겠습니까?')) return;
   try {
-    const res = await fetch(sb.url('operation_logs','?id=eq.'+id), {method:'DELETE', headers:sb.h});
-    if(!res.ok){ const txt=await res.text(); showToast('⚠️ 삭제 실패 ('+res.status+'): '+txt.slice(0,80)); return; }
+    await sb.delete('operation_logs', id);
     if(side==='g'){ opsLogsG=opsLogsG.filter(function(l){return l.id!==id;}); renderOpsLogs('g',opsLogsG); }
     else{ opsLogsB=opsLogsB.filter(function(l){return l.id!==id;}); renderOpsLogs('b',opsLogsB); }
     showToast('🗑️ 메모가 삭제되었습니다');
@@ -2372,6 +2518,32 @@ async function initSeqIfNeeded(){
     }
   }
   console.log('[DG] seq 초기화 완료');
+}
+
+// ────────── Realtime 폴백: 주기적 폴링 (5번 요청사항) ──────────
+// anon SELECT 잠금 이후 Supabase Realtime(postgres_changes)이 RLS를 따르므로
+// 조용히 끊길 수 있음 — live.html처럼 폴백 폴링을 추가한다. Realtime은
+// 제거하지 않고 병행(Realtime이 살아있으면 더 빠르게 반영되고, 죽어있어도
+// 이 폴링이 늦게라도 반영한다).
+let _dgContribPollTimer = null;
+function _dgStartContribPolling(){
+  _dgStopContribPolling();
+  _dgContribPollTimer = setInterval(async () => {
+    if(!currentSchedule) return;
+    try {
+      await loadLogs(); // contribution_logs 재로딩 + 화면 갱신(기존 로직 그대로 재사용)
+      const freshRows = await sb.get('schedules', `?id=eq.${currentSchedule.id}&select=*`);
+      if(freshRows && freshRows.length){
+        Object.assign(currentSchedule, freshRows[0]);
+        applyTicketTotalsFromSchedule();
+        sv('groom-total-ticket', totalTickets.groom||'');
+        sv('bride-total-ticket', totalTickets.bride||'');
+      }
+    } catch(e){ console.warn('[DG] 폴백 폴링 실패(다음 주기에 재시도):', e); }
+  }, 6000);
+}
+function _dgStopContribPolling(){
+  if(_dgContribPollTimer){ clearInterval(_dgContribPollTimer); _dgContribPollTimer = null; }
 }
 
 function subscribeRealtime(){
@@ -2907,14 +3079,10 @@ function genClientEntryId(){
 // contribution_logs에 저장 시도 — client_entry_id 중복(재전송)은 서버가 무시하도록 요청
 // (기존 공용 sb.post()는 다른 여러 저장 호출에서 함께 쓰이므로 건드리지 않고, 이 용도로만 별도 호출)
 async function postOfflineEntry(row){
-  const r=await fetch(sb.url('contribution_logs'),{
-    method:'POST',
-    headers:{...sb.h,'Prefer':'return=representation,resolution=ignore-duplicates'},
-    body:JSON.stringify(row)
-  });
-  if(!r.ok) throw new Error(await r.text());
-  const data=await r.json();
-  // ignore-duplicates로 인해 이미 존재하는 client_entry_id면 빈 배열이 올 수 있음 → 이미 동기화된 것으로 간주
+  // contribution_logs 전용 — sb.post가 세션 검증 RPC로 라우팅한다.
+  // p_ignore_duplicate:true로 이미 동기화된 client_entry_id는 null 반환
+  // (기존 ignore-duplicates가 빈 배열을 반환하던 것과 동등한 의미).
+  const data = await sb.rpc('insert_contribution_log_staff', { p_row: row, p_session_token: _dgContribSessionToken, p_ignore_duplicate: true });
   return Array.isArray(data) ? (data[0]||null) : data;
 }
 
@@ -3079,8 +3247,7 @@ async function flushOfflineQueue(){
       } else if(action.type==='DELETE'){
         // 1단계: 서버 삭제 (이미 삭제됐음을 뜻하는 404는 성공으로 간주 — 재시도 시 중복 오류 방지)
         if(!action.deleted){
-          const r=await fetch(sb.url('contribution_logs','?id=eq.'+action.target_id),{method:'DELETE',headers:sb.h});
-          if(!r.ok && r.status!==404) throw new Error('HTTP '+r.status);
+          await sb.delete('contribution_logs', action.target_id);
           action.deleted=true;
           await idbPutAction(action); // 서버 삭제 완료 상태를 큐에 저장 (아직 큐에서 제거하지 않음)
         }
@@ -3124,8 +3291,7 @@ async function flushOfflineQueue(){
         if(idx>-1) Object.assign(ticketExtras[idx], action.payload);
         ticketUiTouched=true;
       } else if(action.type==='TICKET_EXTRA_DELETE'){
-        const r=await fetch(sb.url('ticket_additions','?id=eq.'+action.target_id),{method:'DELETE',headers:sb.h});
-        if(!r.ok && r.status!==404) throw new Error('HTTP '+r.status);
+        await sb.delete('ticket_additions', action.target_id);
         ticketExtras=ticketExtras.filter(t=>t.id!==action.target_id);
         ticketUiTouched=true;
       } else if(action.type==='PRE_SHARE_TOGGLE'){
@@ -3144,8 +3310,7 @@ async function flushOfflineQueue(){
         if(idx>-1) Object.assign(preShares[idx], action.payload);
         ticketUiTouched=true;
       } else if(action.type==='ONSITE_TICKET_DELETE'){
-        const r=await fetch(sb.url('ticket_additions','?id=eq.'+action.target_id),{method:'DELETE',headers:sb.h});
-        if(!r.ok && r.status!==404) throw new Error('HTTP '+r.status);
+        await sb.delete('ticket_additions', action.target_id);
         preShares=preShares.filter(p=>p.id!==action.target_id);
         ticketUiTouched=true;
       } else if(action.type==='CASH_COUNT_SET'){
@@ -3475,8 +3640,7 @@ async function deleteLog(ref){
     // ── 서버에 이미 존재하는 행 ──
     try {
       // 온라인 삭제 시도 — 기존 동작 그대로 유지
-      const r=await fetch(sb.url('contribution_logs','?id=eq.'+target.id),{method:'DELETE',headers:sb.h});
-      if(!r.ok) throw new Error('HTTP '+r.status);
+      await sb.delete('contribution_logs', target.id);
       logs=logs.filter(x=>x.id!==target.id);
       if(target.seq){
         const toShift = logs.filter(l=>l.side===target.side && (l.seq||0)>target.seq);
@@ -4244,16 +4408,16 @@ function cashUpdate(){
 // [수정5: init() - localStorage 없을때 login-screen 명시적으로 보여주기]
 (function init(){
   initLogin();
+  // 저장된 로그인(이름)이 있으면 편의상 select에 이름만 미리 선택해주고,
+  // 비밀번호는 매번 다시 입력받는다. staff_sessions 토큰은 새로고침 시
+  // 메모리에서 사라지므로(의도된 동작), 예전처럼 자동으로 화면을 건너뛰면
+  // 세션 토큰 없이 쓰기 RPC가 전부 실패하게 된다.
   const saved=localStorage.getItem('dg_contrib_user');
   if(saved){
     const user=USERS.find(u=>u.id===Number(saved));
     if(user){
-      currentUser=user;
-      document.getElementById('login-screen').style.display='none';
-      const _directId = new URLSearchParams(location.search).get('schedule_id');
-      if(_directId) selectSchedule(Number(_directId));
-      else goSelectSchedule();
-      return;
+      const sel=document.getElementById('login-name');
+      if(sel) sel.value=String(user.id);
     }
   }
   document.getElementById('login-screen').style.display='flex';
