@@ -5722,10 +5722,41 @@ function getPaidManagerNamesFromForm(){
 // - 없으면(최초 진입) 등록일(createdAt, 신규는 현재시각) 기준으로 자동 판단
 // ── 금액 입력(총금액/계약금/잔금) 콤마 포맷 헬퍼 ──────────────────────────
 // 표시는 "400,000원" 형태로, 계산 시에는 숫자만 추출해서 사용(계산 로직 자체는 무변경)
+// ── 금액 입력(총금액/계약금/잔금/일급) 콤마 포맷 헬퍼 ──────────────────────
+// 표시는 "400,000원" 형태로, 계산 시에는 숫자만 추출해서 사용(계산 로직 자체는 무변경)
+// [버그 수정] 기존 코드는 매 입력마다 el.value를 통째로 재할당했는데, 이렇게
+// 하면 브라우저가 커서를 항상 값의 맨 끝으로 이동시킨다. 그래서 "…원" 뒤에서
+// 백스페이스를 눌러도 "원" 글자만 지워졌다가 다시 포맷되며 그 자리로 복귀하고,
+// 이 상태에서 숫자를 입력하면 커서가 맨 끝에 있어 기존 숫자 뒤에 그대로
+// 이어붙는 문제가 있었다(예: 90,000원 → 900,000원 → 9,000,000원). 아래는
+// "커서 이전에 있던 숫자 개수"를 기준으로 포맷 후에도 같은 자리에 커서를
+// 복원하는 최소 수정이다 — 숫자 추출/포맷 규칙(digits, toLocaleString)과
+// parseWon()은 전혀 바꾸지 않았다.
 function formatWonInput(el){
   if(!el) return;
-  const digits = (el.value || '').replace(/[^0-9]/g, '');
-  el.value = digits ? Number(digits).toLocaleString() + '원' : '';
+  const oldValue  = el.value || '';
+  const cursorPos = el.selectionStart != null ? el.selectionStart : oldValue.length;
+  const digitsBeforeCursor = (oldValue.slice(0, cursorPos).match(/[0-9]/g) || []).length;
+
+  const digits   = oldValue.replace(/[^0-9]/g, '');
+  const newValue = digits ? Number(digits).toLocaleString() + '원' : '';
+  el.value = newValue;
+
+  if(document.activeElement === el){
+    let pos = newValue.length;
+    if(digitsBeforeCursor === 0){
+      pos = 0;
+    } else {
+      let count = 0;
+      for(let i = 0; i < newValue.length; i++){
+        if(/[0-9]/.test(newValue[i])){
+          count++;
+          if(count === digitsBeforeCursor){ pos = i + 1; break; }
+        }
+      }
+    }
+    el.setSelectionRange(pos, pos);
+  }
 }
 function formatWon(n){
   const num = Number(n) || 0;
