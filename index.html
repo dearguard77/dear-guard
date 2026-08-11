@@ -6383,14 +6383,10 @@ async function saveForm(){
     if(!v.date)         errs.push('예식일');
     if(!v.time)         errs.push('예식시간 (시·분 모두 선택)');
     if(!v.hall)         errs.push('웨딩홀');
-    if(!v.frontManager) errs.push('Front 담당자');
-    if(!v.backManager)  errs.push('Back 담당자');
     if(errs.length){
       alert('필수 항목을 입력하세요:\n' + errs.join('\n'));
       if(!v.date || !v.time || !v.hall || (!v.groomName && !v.brideName && !v.hall))
         showFormSection('basic');
-      else if(!v.frontManager || !v.backManager)
-        showFormSection('managers');
       return;
     }
   }
