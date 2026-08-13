@@ -12,85 +12,102 @@
 <meta property="og:site_name"   content="Dear Guard">
 <meta property="og:title"       content="2026 예약 현황 · Dear Guard">
 <meta property="og:description" content="디어가드 2026년 예약 현황을 확인하세요">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
   :root{
     --dark:#1F2937; --dark2:#111827;
-    --bg:#F7F7F6; --card:#fff;
-    --border:#E5E7EB; --border2:#EEF0F2;
+    --bg:#F8F7F5; --card:#fff;
+    --border:#E5E7EB; --border2:#E5E7EB;
     --text:#111827; --text2:#6B7280; --text3:#9CA3AF;
     --gold:#C9A876;
-    --radius:14px; --radius-sm:10px;
+    --radius:12px; --radius-sm:8px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
-  /* ── 상단 다크 헤더 ── */
-  header.top{background:linear-gradient(155deg,var(--dark2),var(--dark));color:#fff;padding:34px 20px 30px;text-align:center}
-  header.top .brand{font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:700;margin-bottom:10px}
-  header.top h1{font-size:22px;font-weight:800;margin:0 0 6px}
-  header.top .sub{font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.55);font-weight:600;margin-bottom:14px}
-  header.top .note{font-size:12px;color:rgba(255,255,255,.72);max-width:420px;margin:0 auto}
+  /* ── 상단 다크 헤더 (컴팩트) ── */
+  header.top{background:linear-gradient(155deg,var(--dark2),var(--dark));color:#fff;padding:18px 20px 16px;text-align:center}
+  header.top .brand{font-size:10.5px;letter-spacing:.16em;color:var(--gold);font-weight:700;margin-bottom:6px}
+  header.top h1{font-size:19px;font-weight:800;margin:0 0 5px}
+  header.top .note{font-size:11.5px;color:rgba(255,255,255,.68);max-width:420px;margin:0 auto}
 
-  .wrap{max-width:960px;margin:0 auto;padding:0 16px 40px}
-  .layout{display:flex;flex-direction:column;gap:18px;margin-top:-18px}
+  .wrap{max-width:880px;margin:0 auto;padding:0 14px 32px}
+  .layout{display:flex;flex-direction:column;gap:12px;margin-top:-10px}
   @media(min-width:760px){
-    .layout{flex-direction:row;align-items:flex-start;gap:20px}
-    .col-cal{flex:1.3;min-width:0}
-    .col-side{flex:1;min-width:280px}
+    .wrap{padding:0 20px 40px}
+    .layout{flex-direction:row;align-items:flex-start;gap:16px;margin-top:-14px}
+    .col-cal{flex:1.25;min-width:0}
+    .col-side{flex:1;min-width:270px}
   }
 
   /* ── 달력 카드 ── */
-  .cal-card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.08);padding:18px 16px 20px;border:1px solid var(--border2)}
-  .cal-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
-  .cal-nav button{background:var(--bg);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;font-size:15px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .cal-card{background:var(--card);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.06);padding:12px 12px 10px;border:1px solid var(--border2)}
+  @media(min-width:760px){ .cal-card{padding:16px 16px 14px} }
+
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px}
+  .cal-nav button{flex-shrink:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;white-space:nowrap;line-height:1.4}
   .cal-nav button:disabled{opacity:.35;cursor:default}
   .cal-nav button:not(:disabled):hover{background:#EFEFEE}
-  .cal-nav .title{font-size:16px;font-weight:800;color:var(--text);min-width:120px;text-align:center}
+  .cal-nav .title{flex:1;font-size:14.5px;font-weight:800;color:var(--text);text-align:center;white-space:nowrap}
 
-  .weekday-row{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px}
-  .weekday-row div{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:4px 0}
+  /* ── 상태 범례: 월 이동 바로 아래, 한 줄 ── */
+  .legend{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:nowrap;overflow-x:auto;margin-bottom:10px;font-size:10.5px;font-weight:600;color:var(--text2);white-space:nowrap}
+  .legend span{display:inline-flex;align-items:center;gap:3px}
+  .legend i{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .legend i.available{background:#10B981}
+  .legend i.partial{background:#F59E0B}
+  .legend i.closed{background:#EF4444}
+
+  .weekday-row{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px}
+  .weekday-row div{text-align:center;font-size:10px;font-weight:700;color:var(--text3);padding:3px 0}
   .weekday-row div.sun{color:#DC2626}
   .weekday-row div.sat{color:#2563EB}
 
-  .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .day-cell{aspect-ratio:1/1.02;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#FBFBFA;border:1px solid transparent}
+  /* ── 날짜 그리드: 기본은 배경 없이 숫자만, 상태가 있을 때만 옅은 배경 ── */
+  .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .day-cell{min-height:32px;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px 1px;background:transparent;border:1px solid transparent}
+  @media(min-width:760px){ .day-cell{min-height:46px;border-radius:8px;padding:5px 2px} }
   .day-cell.empty{background:transparent}
-  .day-cell .dnum{font-size:13px;font-weight:700;color:var(--text)}
+  .day-cell .dnum{font-size:11.5px;font-weight:600;color:var(--text)}
+  @media(min-width:760px){ .day-cell .dnum{font-size:13px} }
   .day-cell.sun .dnum{color:#DC2626}
   .day-cell.sat .dnum{color:#2563EB}
   .day-cell.holiday .dnum{color:#DC2626}
-  .day-cell .badge{font-size:9px;font-weight:800;padding:2px 5px;border-radius:20px;white-space:nowrap;line-height:1.5}
+  .day-cell .badge{font-size:7px;font-weight:800;padding:1px 3px;border-radius:6px;white-space:nowrap;line-height:1.4;transform:scale(.94)}
+  @media(min-width:760px){ .day-cell .badge{font-size:8.5px;padding:1px 5px;border-radius:8px;transform:none} }
   .day-cell.st-available{background:#ECFDF5;border-color:#A7F3D0}
+  .day-cell.st-available .dnum{font-weight:800}
   .day-cell.st-available .badge{background:#fff;color:#047857}
   .day-cell.st-partial{background:#FFFBEB;border-color:#FDE68A}
+  .day-cell.st-partial .dnum{font-weight:800}
   .day-cell.st-partial .badge{background:#fff;color:#B45309}
   .day-cell.st-closed{background:#FEF2F2;border-color:#FECACA}
+  .day-cell.st-closed .dnum{font-weight:800}
   .day-cell.st-closed .badge{background:#fff;color:#B91C1C}
 
-  .legend{display:flex;justify-content:center;gap:14px;margin-top:16px;flex-wrap:wrap;font-size:11.5px;color:var(--text2)}
-  .legend span{display:inline-flex;align-items:center;gap:4px}
-
-  /* ── NOTICE ── */
-  .notice-card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.06);padding:18px 16px;border:1px solid var(--border2)}
-  .notice-card h2{font-size:13px;font-weight:800;color:var(--text);margin:0 0 12px;display:flex;align-items:center;gap:6px}
-  .notice-item{border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px}
+  /* ── NOTICE (컴팩트) ── */
+  .notice-card{background:var(--card);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.05);padding:12px 12px;border:1px solid var(--border2)}
+  @media(min-width:760px){ .notice-card{padding:14px 14px} }
+  .notice-card h2{font-size:12px;font-weight:800;color:var(--text);margin:0 0 8px;display:flex;align-items:center;gap:5px}
+  .notice-item{border:1px solid var(--border2);border-radius:var(--radius-sm);padding:9px 10px;margin-bottom:6px}
   .notice-item:last-child{margin-bottom:0}
-  .notice-item .n-meta{font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:4px}
-  .notice-item .n-type{display:inline-block;padding:1px 7px;border-radius:20px;font-size:9.5px;font-weight:800;margin-right:5px}
+  .notice-item .n-meta{font-size:10px;font-weight:700;color:var(--text3);margin-bottom:2px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+  .notice-item .n-type{display:inline-block;padding:1px 6px;border-radius:20px;font-size:9px;font-weight:800}
   .n-type.expo{background:#EEF2FF;color:#4338CA}
   .n-type.holiday{background:#FEF2F2;color:#B91C1C}
   .n-type.delay{background:#FFFBEB;color:#B45309}
   .n-type.etc{background:#F3F4F6;color:#4B5563}
-  .notice-item .n-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
-  .notice-item .n-body{font-size:12px;color:var(--text2)}
-  .notice-empty{font-size:12.5px;color:var(--text3);text-align:center;padding:14px 0}
+  .notice-item .n-title{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:2px}
+  .notice-item .n-body{font-size:11.5px;color:var(--text2);line-height:1.45}
+  .notice-empty{font-size:12px;color:var(--text3);text-align:center;padding:10px 0}
 
-  /* ── 하단 안내 ── */
-  .foot-card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.06);padding:16px;border:1px solid var(--border2);margin-top:18px;font-size:11.5px;color:var(--text3);line-height:1.7}
-  .kakao-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:#FEE500;color:#181600;font-weight:800;font-size:13.5px;border:none;border-radius:10px;padding:13px;margin-top:12px;cursor:pointer;text-decoration:none}
+  /* ── 하단 안내 (컴팩트) ── */
+  .foot-card{background:var(--card);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.05);padding:12px;border:1px solid var(--border2);margin-top:10px;font-size:10.5px;color:var(--text3);line-height:1.55}
+  .kakao-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:#FEE500;color:#181600;font-weight:800;font-size:12.5px;border:none;border-radius:var(--radius-sm);padding:10px;margin-top:9px;cursor:pointer;text-decoration:none}
   .kakao-btn:active{opacity:.85}
 
-  .loading-row{text-align:center;padding:40px 0;color:var(--text3);font-size:13px}
+  .loading-row{text-align:center;padding:28px 0;color:var(--text3);font-size:12px}
 </style>
 </head>
 <body>
@@ -98,7 +115,6 @@
 <header class="top">
   <div class="brand">DEAR GUARD SCHEDULE</div>
   <h1>2026 예약 현황</h1>
-  <div class="sub">DEAR GUARD SCHEDULE</div>
   <div class="note">실시간 예약 상황에 따라 일정은 변동될 수 있습니다.</div>
 </header>
 
@@ -111,16 +127,16 @@
           <div class="title" id="cal-title">2026년 8월</div>
           <button id="cal-next" onclick="availMove(1)" aria-label="다음 달">다음 ›</button>
         </div>
+        <div class="legend">
+          <span><i class="available"></i>예약 가능</span>
+          <span><i class="partial"></i>일부 가능</span>
+          <span><i class="closed"></i>예약 마감</span>
+        </div>
         <div class="weekday-row">
           <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
         </div>
         <div class="day-grid" id="day-grid">
           <div class="loading-row" style="grid-column:1/-1">불러오는 중...</div>
-        </div>
-        <div class="legend">
-          <span>🟢 예약 가능</span>
-          <span>🟡 일부 가능</span>
-          <span>🔴 예약 마감</span>
         </div>
       </div>
     </div>
