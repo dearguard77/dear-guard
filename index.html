@@ -2500,9 +2500,6 @@ async function sbReferralInsert(body){
 async function sbAvailUpsert(dateStr, status){
   return sb.rpc('upsert_availability_staff', { p_date: dateStr, p_status: status, p_session_token: _dgStaffSessionToken });
 }
-async function sbAvailDelete(dateStr){
-  return sb.rpc('delete_availability_staff', { p_date: dateStr, p_session_token: _dgStaffSessionToken });
-}
 async function sbNoticeUpsert(id, startDate, endDate, title, body, noticeType){
   return sb.rpc('upsert_notice_staff', {
     p_id: id, p_start_date: startDate, p_end_date: endDate,
@@ -2510,8 +2507,25 @@ async function sbNoticeUpsert(id, startDate, endDate, title, body, noticeType){
     p_session_token: _dgStaffSessionToken
   });
 }
+
+// delete_availability_staff/delete_notice_staff는 성공 시 응답 본문이 빈
+// 문자열(No Content)이라, 항상 r.json()을 호출하는 공용 sb.rpc()를 그대로
+// 쓰면 "Unexpected end of JSON input" 오류가 난다. 이 신규 삭제 RPC 2개에만
+// 한정해서 쓰는 전용 헬퍼 — 기존 sb.rpc()와 그걸 쓰는 다른 기능들은
+// 그대로 둔다.
+async function sbRpcNoContent(fnName, params={}){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+    method:'POST', headers: sb.headers, body: JSON.stringify(params)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  const text = await r.text();
+  return text ? JSON.parse(text) : null;
+}
+async function sbAvailDelete(dateStr){
+  return sbRpcNoContent('delete_availability_staff', { p_date: dateStr, p_session_token: _dgStaffSessionToken });
+}
 async function sbNoticeDelete(id){
-  return sb.rpc('delete_notice_staff', { p_id: id, p_session_token: _dgStaffSessionToken });
+  return sbRpcNoContent('delete_notice_staff', { p_id: id, p_session_token: _dgStaffSessionToken });
 }
 
 // 2026년 대한민국 공휴일 목록 (대체공휴일 포함, 총 19일).
