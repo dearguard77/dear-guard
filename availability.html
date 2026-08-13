@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>2026 예약 현황 · Dear Guard</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#1F2937">
+<meta name="robots" content="noindex">
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="Dear Guard">
+<meta property="og:title"       content="2026 예약 현황 · Dear Guard">
+<meta property="og:description" content="디어가드 2026년 예약 현황을 확인하세요">
+<style>
+  :root{
+    --dark:#1F2937; --dark2:#111827;
+    --bg:#F7F7F6; --card:#fff;
+    --border:#E5E7EB; --border2:#EEF0F2;
+    --text:#111827; --text2:#6B7280; --text3:#9CA3AF;
+    --gold:#C9A876;
+    --radius:14px; --radius-sm:10px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+  /* ── 상단 다크 헤더 ── */
+  header.top{background:linear-gradient(155deg,var(--dark2),var(--dark));color:#fff;padding:34px 20px 30px;text-align:center}
+  header.top .brand{font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:700;margin-bottom:10px}
+  header.top h1{font-size:22px;font-weight:800;margin:0 0 6px}
+  header.top .sub{font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.55);font-weight:600;margin-bottom:14px}
+  header.top .note{font-size:12px;color:rgba(255,255,255,.72);max-width:420px;margin:0 auto}
+
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px 40px}
+  .layout{display:flex;flex-direction:column;gap:18px;margin-top:-18px}
+  @media(min-width:760px){
+    .layout{flex-direction:row;align-items:flex-start;gap:20px}
+    .col-cal{flex:1.3;min-width:0}
+    .col-side{flex:1;min-width:280px}
+  }
+
+  /* ── 달력 카드 ── */
+  .cal-card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.08);padding:18px 16px 20px;border:1px solid var(--border2)}
+  .cal-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px}
+  .cal-nav button{background:var(--bg);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;font-size:15px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .cal-nav button:disabled{opacity:.35;cursor:default}
+  .cal-nav button:not(:disabled):hover{background:#EFEFEE}
+  .cal-nav .title{font-size:16px;font-weight:800;color:var(--text);min-width:120px;text-align:center}
+
+  .weekday-row{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px}
+  .weekday-row div{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:4px 0}
+  .weekday-row div.sun{color:#DC2626}
+  .weekday-row div.sat{color:#2563EB}
+
+  .day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .day-cell{aspect-ratio:1/1.02;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#FBFBFA;border:1px solid transparent}
+  .day-cell.empty{background:transparent}
+  .day-cell .dnum{font-size:13px;font-weight:700;color:var(--text)}
+  .day-cell.sun .dnum{color:#DC2626}
+  .day-cell.sat .dnum{color:#2563EB}
+  .day-cell.holiday .dnum{color:#DC2626}
+  .day-cell .badge{font-size:9px;font-weight:800;padding:2px 5px;border-radius:20px;white-space:nowrap;line-height:1.5}
+  .day-cell.st-available{background:#ECFDF5;border-color:#A7F3D0}
+  .day-cell.st-available .badge{background:#fff;color:#047857}
+  .day-cell.st-partial{background:#FFFBEB;border-color:#FDE68A}
+  .day-cell.st-partial .badge{background:#fff;color:#B45309}
+  .day-cell.st-closed{background:#FEF2F2;border-color:#FECACA}
+  .day-cell.st-closed .badge{background:#fff;color:#B91C1C}
+
+  .legend{display:flex;justify-content:center;gap:14px;margin-top:16px;flex-wrap:wrap;font-size:11.5px;color:var(--text2)}
+  .legend span{display:inline-flex;align-items:center;gap:4px}
+
+  /* ── NOTICE ── */
+  .notice-card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.06);padding:18px 16px;border:1px solid var(--border2)}
+  .notice-card h2{font-size:13px;font-weight:800;color:var(--text);margin:0 0 12px;display:flex;align-items:center;gap:6px}
+  .notice-item{border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px}
+  .notice-item:last-child{margin-bottom:0}
+  .notice-item .n-meta{font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:4px}
+  .notice-item .n-type{display:inline-block;padding:1px 7px;border-radius:20px;font-size:9.5px;font-weight:800;margin-right:5px}
+  .n-type.expo{background:#EEF2FF;color:#4338CA}
+  .n-type.holiday{background:#FEF2F2;color:#B91C1C}
+  .n-type.delay{background:#FFFBEB;color:#B45309}
+  .n-type.etc{background:#F3F4F6;color:#4B5563}
+  .notice-item .n-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+  .notice-item .n-body{font-size:12px;color:var(--text2)}
+  .notice-empty{font-size:12.5px;color:var(--text3);text-align:center;padding:14px 0}
+
+  /* ── 하단 안내 ── */
+  .foot-card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(0,0,0,.06);padding:16px;border:1px solid var(--border2);margin-top:18px;font-size:11.5px;color:var(--text3);line-height:1.7}
+  .kakao-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:#FEE500;color:#181600;font-weight:800;font-size:13.5px;border:none;border-radius:10px;padding:13px;margin-top:12px;cursor:pointer;text-decoration:none}
+  .kakao-btn:active{opacity:.85}
+
+  .loading-row{text-align:center;padding:40px 0;color:var(--text3);font-size:13px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">DEAR GUARD SCHEDULE</div>
+  <h1>2026 예약 현황</h1>
+  <div class="sub">DEAR GUARD SCHEDULE</div>
+  <div class="note">실시간 예약 상황에 따라 일정은 변동될 수 있습니다.</div>
+</header>
+
+<div class="wrap">
+  <div class="layout">
+    <div class="col-cal">
+      <div class="cal-card">
+        <div class="cal-nav">
+          <button id="cal-prev" onclick="availMove(-1)" aria-label="이전 달">‹ 이전</button>
+          <div class="title" id="cal-title">2026년 8월</div>
+          <button id="cal-next" onclick="availMove(1)" aria-label="다음 달">다음 ›</button>
+        </div>
+        <div class="weekday-row">
+          <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
+        </div>
+        <div class="day-grid" id="day-grid">
+          <div class="loading-row" style="grid-column:1/-1">불러오는 중...</div>
+        </div>
+        <div class="legend">
+          <span>🟢 예약 가능</span>
+          <span>🟡 일부 가능</span>
+          <span>🔴 예약 마감</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-side">
+      <div class="notice-card">
+        <h2>📢 NOTICE</h2>
+        <div id="notice-list"><div class="notice-empty">불러오는 중...</div></div>
+      </div>
+
+      <div class="foot-card">
+        ※ '일부 가능' 일정은 예식 시간 및 예식장 위치에 따라 진행 가능 여부가 달라질 수 있습니다. 정확한 가능 여부는 문의주시면 확인 후 안내드리겠습니다.
+        <a class="kakao-btn" href="http://pf.kakao.com/_zxiZxhX" target="_blank" rel="noopener">💬 카카오톡 채널 문의</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://fmvomfjmkbklhaaapkbk.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_3GWkLSDzMFw6FfA_839Ydw_C5F1paf2';
+const sbHeaders={ 'apikey':SUPABASE_ANON_KEY, 'Authorization':`Bearer ${SUPABASE_ANON_KEY}` };
+
+// ── anon 조회 전용 헬퍼. public_availability/public_notices에 대해서만
+// GET만 호출한다 — 이 페이지에는 POST/PATCH/DELETE 호출이 전혀 없다. ──
+async function sbSelect(table, query=''){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, { headers: sbHeaders });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+// 2026년 대한민국 공휴일 목록 (대체공휴일 포함, 총 19일).
+// ⚠️ index.html에도 완전히 동일한 배열이 하드코딩되어 있습니다.
+// 이 페이지는 2026년 한정으로만 운영되므로 연도 계산 로직 없이 고정 목록을
+// 씁니다. 값을 바꿀 일이 있으면 index.html과 availability.html 양쪽을
+// 함께 수정해야 합니다.
+const KR_HOLIDAYS_2026 = [
+  '2026-01-01', // 신정
+  '2026-02-16','2026-02-17','2026-02-18', // 설날 연휴
+  '2026-03-01', // 삼일절
+  '2026-03-02', // 삼일절 대체공휴일
+  '2026-05-05', // 어린이날
+  '2026-05-24', // 부처님오신날
+  '2026-05-25', // 부처님오신날 대체공휴일
+  '2026-06-06', // 현충일
+  '2026-08-15', // 광복절
+  '2026-08-17', // 광복절 대체공휴일
+  '2026-09-24','2026-09-25','2026-09-26', // 추석 연휴
+  '2026-10-03', // 개천절
+  '2026-10-05', // 개천절 대체공휴일
+  '2026-10-09', // 한글날
+  '2026-12-25', // 크리스마스
+];
+function isAvailTargetDate(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const day = d.getDay();
+  return day===0 || day===6 || KR_HOLIDAYS_2026.includes(dateStr);
+}
+function isHolidayOnly(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  return KR_HOLIDAYS_2026.includes(dateStr) && d.getDay()!==0 && d.getDay()!==6;
+}
+
+const YEAR = 2026;
+let curMonth = (new Date().getFullYear()===2026) ? new Date().getMonth() : 7; // 0-index, 기본 8월
+
+let statusMap = {};  // { 'YYYY-MM-DD': 'available'|'partial'|'closed' }
+let allNotices = [];
+
+const STATUS_META = {
+  available: { emoji:'🟢', label:'가능' },
+  partial:   { emoji:'🟡', label:'일부' },
+  closed:    { emoji:'🔴', label:'마감' },
+};
+const NOTICE_TYPE_LABEL = { expo:'박람회', holiday:'디어가드 휴무', delay:'상담 지연', etc:'기타' };
+
+function availMove(dir){
+  const next = curMonth + dir;
+  if(next < 0 || next > 11) return; // 2026년 한정 페이지: 연도 이동 없음
+  curMonth = next;
+  updateNavButtons();
+  renderCalendar();
+  renderNotices();
+}
+function updateNavButtons(){
+  document.getElementById('cal-prev').disabled = (curMonth<=0);
+  document.getElementById('cal-next').disabled = (curMonth>=11);
+}
+
+function renderCalendar(){
+  document.getElementById('cal-title').textContent = `${YEAR}년 ${curMonth+1}월`;
+  const grid = document.getElementById('day-grid');
+  const firstDay = new Date(YEAR, curMonth, 1).getDay();
+  const daysInMonth = new Date(YEAR, curMonth+1, 0).getDate();
+
+  let html = '';
+  for(let i=0;i<firstDay;i++) html += `<div class="day-cell empty"></div>`;
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dow = new Date(YEAR, curMonth, d).getDay();
+    const dateStr = `${YEAR}-${String(curMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const target = isAvailTargetDate(dateStr);
+    const holiday = isHolidayOnly(dateStr);
+    let cls = 'day-cell';
+    if(dow===0) cls += ' sun';
+    if(dow===6) cls += ' sat';
+    if(holiday) cls += ' holiday';
+
+    let badgeHtml = '';
+    if(target){
+      const status = statusMap[dateStr];
+      if(status && STATUS_META[status]){
+        cls += ' st-'+status;
+        badgeHtml = `<div class="badge">${STATUS_META[status].emoji} ${STATUS_META[status].label}</div>`;
+      }
+    }
+    html += `<div class="${cls}"><div class="dnum">${d}</div>${badgeHtml}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderNotices(){
+  const wrap = document.getElementById('notice-list');
+  const monthStart = `${YEAR}-${String(curMonth+1).padStart(2,'0')}-01`;
+  const lastDay = new Date(YEAR, curMonth+1, 0).getDate();
+  const monthEnd = `${YEAR}-${String(curMonth+1).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+
+  // 기간형 NOTICE가 이번 달과 겹치기만 하면(시작 ≤ 이번달 말, 종료 ≥ 이번달 초) 노출
+  const matched = allNotices
+    .filter(n => n.start_date <= monthEnd && n.end_date >= monthStart)
+    .sort((a,b) => a.start_date < b.start_date ? -1 : 1);
+
+  if(!matched.length){
+    wrap.innerHTML = `<div class="notice-empty">이번 달 안내사항이 없습니다.</div>`;
+    return;
+  }
+  wrap.innerHTML = matched.map(n => {
+    const period = n.start_date===n.end_date ? formatKDate(n.start_date) : `${formatKDate(n.start_date)} ~ ${formatKDate(n.end_date)}`;
+    const typeCls = ['expo','holiday','delay','etc'].includes(n.notice_type) ? n.notice_type : 'etc';
+    return `
+      <div class="notice-item">
+        <div class="n-meta"><span class="n-type ${typeCls}">${NOTICE_TYPE_LABEL[n.notice_type]||'기타'}</span>${period}</div>
+        <div class="n-title">${escapeHtml(n.title)}</div>
+        <div class="n-body">${escapeHtml(n.body)}</div>
+      </div>`;
+  }).join('');
+}
+
+function formatKDate(dateStr){
+  const [y,m,d] = dateStr.split('-');
+  return `${Number(m)}.${Number(d)}`;
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function init(){
+  updateNavButtons();
+  try{
+    const [statusRows, noticeRows] = await Promise.all([
+      sbSelect('public_availability', '?select=date,status'),
+      sbSelect('public_notices', '?select=start_date,end_date,title,body,notice_type'),
+    ]);
+    statusMap = {};
+    (statusRows||[]).forEach(r => { statusMap[r.date] = r.status; });
+    allNotices = noticeRows || [];
+  }catch(e){
+    console.error('[DG] 예약 현황 데이터 로드 실패:', e);
+  }
+  renderCalendar();
+  renderNotices();
+}
+init();
+</script>
+</body>
+</html>
