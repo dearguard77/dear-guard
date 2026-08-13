@@ -178,6 +178,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 /* ── Badges ── */
 .badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
 .badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
+.badge-gift{display:inline-block;background:#FCE7F3;color:#DB2777;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
 .badge-cash{display:inline-block;background:#D1FAE5;color:#059669;border-radius:2px;padding:2px 7px;font-size:11px;font-weight:600}
 .badge-trans{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:2px;padding:2px 7px;font-size:11px;font-weight:600}
 .badge-side-g{display:inline-block;background:#EFF6FF;color:#2563EB;border-radius:2px;padding:1px 5px;font-size:10px;font-weight:700}
@@ -328,6 +329,9 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
               <span style="color:var(--text3)">대인 <strong style="color:#D97706" id="groom-adult-tkt">0</strong></span>
               <span style="color:var(--text3)">소인 <strong style="color:#7C3AED" id="groom-child-tkt">0</strong></span>
             </div>
+            <div id="groom-gift-wrap" style="display:none;font-size:13px;margin-top:3px">
+              <span style="color:var(--text3)">🎁 지급 <strong style="color:#DB2777" id="groom-gift-used">0</strong> / 잔여 <strong style="color:#DB2777" id="groom-gift-remain">0</strong></span>
+            </div>
           </div>
           <div id="ticket-bride-wrap">
             <div style="font-size:11px;font-weight:700;color:var(--pink);margin-bottom:3px">👰 신부측</div>
@@ -335,11 +339,17 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
               <span style="color:var(--text3)">대인 <strong style="color:#D97706" id="bride-adult-tkt">0</strong></span>
               <span style="color:var(--text3)">소인 <strong style="color:#7C3AED" id="bride-child-tkt">0</strong></span>
             </div>
+            <div id="bride-gift-wrap" style="display:none;font-size:13px;margin-top:3px">
+              <span style="color:var(--text3)">🎁 지급 <strong style="color:#DB2777" id="bride-gift-used">0</strong> / 잔여 <strong style="color:#DB2777" id="bride-gift-remain">0</strong></span>
+            </div>
           </div>
         </div>
         <div style="display:none;gap:16px;font-size:12px" id="ticket-single-wrap">
           <span style="color:var(--text3)">대인 <strong style="color:#D97706" id="total-adult">0</strong></span>
           <span style="color:var(--text3)">소인 <strong style="color:#7C3AED" id="total-child">0</strong></span>
+        </div>
+        <div style="display:none;gap:16px;font-size:12px;margin-top:3px" id="ticket-total-gift-wrap">
+          <span style="color:var(--text3)">🎁 총 <strong style="color:#DB2777" id="total-gift-total">0</strong>개 · 지급 <strong style="color:#DB2777" id="total-gift-used">0</strong>개 · 잔여 <strong style="color:#DB2777" id="total-gift-remain">0</strong>개</span>
         </div>
       </div>
     </div>
@@ -528,7 +538,7 @@ function _dgApplyQuery(rows, query){
   return out;
 }
 
-let schedule=null,logs=[],opsLogs=[],preShares=[],newIds=new Set();
+let schedule=null,logs=[],opsLogs=[],preShares=[],giftExtras=[],newIds=new Set();
 let currentViewSide='both'; // 'both' | 'groom' | 'bride'
 let _sortKey='num',_sortDir='desc',_activeTab='all';
 
@@ -658,14 +668,15 @@ function showError(){
 async function loadLogs(){
   if(!schedule)return;
   try{
-    const [nl,no,np]=await Promise.all([
+    const [nl,no,np,ng]=await Promise.all([
       sb.get('contribution_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`),
       sb.get('operation_logs',`?schedule_id=eq.${schedule.id}&order=created_at.desc`),
-      sb.get('ticket_additions',`?schedule_id=eq.${schedule.id}&type=eq.pre_share`)
+      sb.get('ticket_additions',`?schedule_id=eq.${schedule.id}&type=eq.pre_share`),
+      sb.get('ticket_additions',`?schedule_id=eq.${schedule.id}&type=eq.extra&ticket_kind=eq.gift`)
     ]);
     const oldIds=new Set(logs.map(l=>l.id));
     nl.forEach(l=>{if(!oldIds.has(l.id))newIds.add(l.id);});
-    logs=nl;opsLogs=no;preShares=np;
+    logs=nl;opsLogs=no;preShares=np;giftExtras=ng;
     renderStats();renderList();renderOpsList();applyWeddingMode();renderHandover();
     showUpdBadge();
     se('last-upd','갱신 '+fmtTime(new Date().toISOString()));
@@ -701,6 +712,40 @@ function renderStats(){
   se('groom-child-tkt',gChildTkt);
   se('bride-adult-tkt',bUsedTotal);
   se('bride-child-tkt',bChildTkt);
+  // ── 답례품 집계 — 대인/소인과 완전히 독립적으로 계산
+  // schedule.gift_total_groom/bride = 초기수량, giftExtras = ticket_additions(type=extra, ticket_kind=gift) 추가수량
+  // 총 보유 = 초기 + 추가, 잔여 = 초기 + 추가 - 지급
+  const gGiftInit = schedule?.gift_total_groom||0;
+  const bGiftInit = schedule?.gift_total_bride||0;
+  const gGiftExtra = giftExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
+  const bGiftExtra = giftExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+  const gGiftTotal = gGiftInit + gGiftExtra;
+  const bGiftTotal = bGiftInit + bGiftExtra;
+  const gGiftUsed = gL.reduce((s,l)=>s+(l.gift_count||0),0);
+  const bGiftUsed = bL.reduce((s,l)=>s+(l.gift_count||0),0);
+  const gGiftRemain = gGiftTotal - gGiftUsed;
+  const bGiftRemain = bGiftTotal - bGiftUsed;
+  const gHasGift = gGiftTotal>0 || gGiftUsed>0;
+  const bHasGift = bGiftTotal>0 || bGiftUsed>0;
+  const groomGiftWrap=document.getElementById('groom-gift-wrap');
+  const brideGiftWrap=document.getElementById('bride-gift-wrap');
+  if(groomGiftWrap) groomGiftWrap.style.display = gHasGift ? 'block' : 'none';
+  if(brideGiftWrap) brideGiftWrap.style.display = bHasGift ? 'block' : 'none';
+  if(gHasGift){ se('groom-gift-used', gGiftUsed); se('groom-gift-remain', gGiftRemain); }
+  if(bHasGift){ se('bride-gift-used', bGiftUsed); se('bride-gift-remain', bGiftRemain); }
+  // 양측 통합 답례품 집계
+  const totalGiftTotal = gGiftTotal+bGiftTotal;
+  const totalGiftUsed = gGiftUsed+bGiftUsed;
+  const totalGiftWrap = document.getElementById('ticket-total-gift-wrap');
+  if(totalGiftWrap){
+    const showTotalGift = gHasGift || bHasGift;
+    totalGiftWrap.style.display = showTotalGift ? 'flex' : 'none';
+    if(showTotalGift){
+      se('total-gift-total', totalGiftTotal);
+      se('total-gift-used', totalGiftUsed);
+      se('total-gift-remain', totalGiftTotal-totalGiftUsed);
+    }
+  }
   const mode=schedule?schedule.wedding_mode||'양측':'양측';
   const ticketDetail=document.getElementById('ticket-detail-wrap');
   const ticketSingle=document.getElementById('ticket-single-wrap');
@@ -1141,9 +1186,10 @@ function getFiltered(side){
 function buildRow(l,showSide,sideIndex,sideTotal,overrideNum){
   const num=overrideNum!==undefined?overrideNum:(l.seq||(sideIndex!==undefined?sideTotal-sideIndex:getVisibleLogs().length-getVisibleLogs().indexOf(l)));
   const isNew=newIds.has(l.id);
-  const adultT=l.adult_ticket||0,childT=l.child_ticket||0;
+  const adultT=l.adult_ticket||0,childT=l.child_ticket||0,giftT=l.gift_count||0;
   const tktHtml=(adultT>0?`<span class="badge-adult">대${adultT}</span>`:'')+
-                (childT>0?`<span class="badge-child">소${childT}</span>`:'');
+                (childT>0?`<span class="badge-child">소${childT}</span>`:'')+
+                (giftT>0?`<span class="badge-gift">🎁${giftT}</span>`:'');
   const payBadge=l.payment_type==='계좌이체'?'<span class="badge-trans">계좌</span>':'<span class="badge-cash">현금</span>';
   const sideBadge=l.side==='신랑측'?'<span class="badge-side-g">신랑</span>':'<span class="badge-side-b">신부</span>';
   const name=esc(l.guest_name||'—');
@@ -1438,15 +1484,18 @@ function downloadExcel(){
   const gL=vLogs.filter(l=>l.side==='신랑측');
   const bL=vLogs.filter(l=>l.side==='신부측');
   const hasChild=vLogs.some(l=>(l.child_ticket||0)>0);
+  const hasGift=vLogs.some(l=>(l.gift_count||0)>0);
   const money=v=>({v:v||0,t:'n',z:'#,##0'});
   const gOps=vOps.filter(l=>l.side==='신랑측'||!l.side);
   const bOps=vOps.filter(l=>l.side==='신부측');
   const summaryHeader=['구분','건수','금액(원)','대인식권'];
   if(hasChild) summaryHeader.push('소인식권');
+  if(hasGift) summaryHeader.push('답례품');
   const summaryRows=[['Dear Guard 축의 정산 요약'],[],summaryHeader];
   function makeSummaryRow(label,list){
     const row=[label,list.length,money(list.reduce((s,l)=>s+(l.amount||0),0)),list.reduce((s,l)=>s+(l.adult_ticket||0),0)];
     if(hasChild) row.push(list.reduce((s,l)=>s+(l.child_ticket||0),0));
+    if(hasGift) row.push(list.reduce((s,l)=>s+(l.gift_count||0),0));
     return row;
   }
   summaryRows.push(makeSummaryRow('전체',vLogs));
@@ -1459,28 +1508,32 @@ function downloadExcel(){
   summaryRows.push(['※ 관계는 디어가드가 직접 입력하는 값이 아니며, 필요한 경우 신랑·신부님이 별도로 확인·정리해 주세요.']);
   summaryRows.push(['   예: 친구, 직장동료, 친척, 부모님 지인']);
   const ws0=XLSX.utils.aoa_to_sheet(summaryRows);
-  ws0['!cols']=[{wch:12},{wch:8},{wch:14},{wch:10},{wch:10}];
+  ws0['!cols']=summaryHeader.map(()=>({wch:11}));
   XLSX.utils.book_append_sheet(wb,ws0,'전체 요약');
   function makeSideSheet(list){
     const header=['번호','결제방식','하객이름','금액(원)','대인식권'];
     if(hasChild) header.push('소인식권');
+    if(hasGift) header.push('답례품');
     header.push('메모','관계','접수시간');
     const rows=[header];
     const sorted=[...list].sort((a,b)=>(a.seq||999999)-(b.seq||999999));
     sorted.forEach((l,i)=>{
       const row=[l.seq||i+1,l.payment_type||'',l.guest_name||'',money(l.amount||0),l.adult_ticket||0];
       if(hasChild) row.push(l.child_ticket||0);
+      if(hasGift) row.push(l.gift_count||0);
       row.push(l.memo||'',l.relation||'',l.created_at?fmtTime(l.created_at):'');
       rows.push(row);
     });
     rows.push([]);
     const sumRow=['합계','','',money(list.reduce((s,l)=>s+(l.amount||0),0)),list.reduce((s,l)=>s+(l.adult_ticket||0),0)];
     if(hasChild) sumRow.push(list.reduce((s,l)=>s+(l.child_ticket||0),0));
+    if(hasGift) sumRow.push(list.reduce((s,l)=>s+(l.gift_count||0),0));
     sumRow.push('','','');
     rows.push(sumRow);
     const ws=XLSX.utils.aoa_to_sheet(rows);
     const cols=[{wch:6},{wch:10},{wch:12},{wch:12},{wch:8}];
     if(hasChild) cols.push({wch:8});
+    if(hasGift) cols.push({wch:8});
     cols.push({wch:20},{wch:10},{wch:8});
     ws['!cols']=cols;
     const lastCol=String.fromCharCode(64+header.length);
@@ -1527,6 +1580,7 @@ async function downloadLivePDF(){
     const dt=schedule.date||new Date().toISOString().slice(0,10);
     const vLogs=getVisibleLogs();
     const hasChild=vLogs.some(l=>(l.child_ticket||0)>0);
+    const hasGift=vLogs.some(l=>(l.gift_count||0)>0);
     const bySeq=(a,c)=>(a.seq||999999)-(c.seq||999999);
     const gL=vLogs.filter(l=>l.side==='신랑측').sort(bySeq);
     const bL=vLogs.filter(l=>l.side==='신부측').sort(bySeq);
@@ -1539,7 +1593,7 @@ async function downloadLivePDF(){
     const _days=['일','월','화','수','목','금','토'];
     const dateStr=_d?`${schedule.date}(${_days[_d.getDay()]}) ${(schedule.time||'').slice(0,5)}`:'—';
 
-    root=await buildPdfPages({nm,dateStr,hall:schedule.hall||'—',hasChild,sections});
+    root=await buildPdfPages({nm,dateStr,hall:schedule.hall||'—',hasChild,hasGift,sections});
     document.body.appendChild(root);
 
     await document.fonts.ready;
@@ -1566,23 +1620,27 @@ async function downloadLivePDF(){
 
 // PDF 페이지들을 구성한다. 표 행이 페이지 경계에서 잘리지 않도록
 // 행 단위로 페이지를 미리 나눠서, 페이지마다 완전한 <table>을 새로 렌더링한다.
-async function buildPdfPages({nm,dateStr,hall,hasChild,sections}){
+async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
   const root=document.createElement('div');
   root.className='pdf-render-root';
   document.body.appendChild(root); // 임시로 붙여서 높이 측정
 
   const PAGE_CONTENT_H=1123-53*2; // .pdf-page의 padding(53px) 제외 실제 사용 가능 높이
   const money=v=>(v||0).toLocaleString('ko-KR')+'원';
-  const colCount=hasChild?6:5;
+  const extraCount=(hasChild?1:0)+(hasGift?1:0);
+  const colCount=5+extraCount;
+  const nameW=extraCount===0?32:extraCount===1?26:20;
+  const ticketW=extraCount===0?24:extraCount===1?15:12;
 
   function tableHeaderHtml(){
     return `<tr>
       <th style="width:8%">번호</th>
       <th style="width:16%">결제방식</th>
-      <th style="width:${hasChild?'26%':'32%'}">하객성명</th>
+      <th style="width:${nameW}%">하객성명</th>
       <th style="width:20%">축의금액</th>
-      <th style="width:${hasChild?'15%':'24%'}">대인식권</th>
-      ${hasChild?'<th style="width:15%">소인식권</th>':''}
+      <th style="width:${ticketW}%">대인식권</th>
+      ${hasChild?`<th style="width:${ticketW}%">소인식권</th>`:''}
+      ${hasGift?`<th style="width:${ticketW}%">답례품</th>`:''}
     </tr>`;
   }
   function rowHtml(l,i){
@@ -1593,6 +1651,7 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,sections}){
       <td class="num">${money(l.amount)}</td>
       <td class="ctr">${l.adult_ticket||0}</td>
       ${hasChild?`<td class="ctr">${l.child_ticket||0}</td>`:''}
+      ${hasGift?`<td class="ctr">${l.gift_count||0}</td>`:''}
     </tr>`;
   }
 
@@ -1626,8 +1685,8 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,sections}){
   const rowH=30; // .pdfx-table td 의 고정 높이(26px)+테두리 여유 반영
 
   // 총 합계 요약 블록 높이 측정
-  let totalCnt=0,totalAmt=0,totalAdult=0,totalChild=0;
-  sections.forEach(sec=>{ sec.list.forEach(l=>{ totalCnt++; totalAmt+=(l.amount||0); totalAdult+=(l.adult_ticket||0); totalChild+=(l.child_ticket||0); }); });
+  let totalCnt=0,totalAmt=0,totalAdult=0,totalChild=0,totalGift=0;
+  sections.forEach(sec=>{ sec.list.forEach(l=>{ totalCnt++; totalAmt+=(l.amount||0); totalAdult+=(l.adult_ticket||0); totalChild+=(l.child_ticket||0); totalGift+=(l.gift_count||0); }); });
   const summaryHtml=`
     <div class="pdfx-summary">
       <div class="pdfx-summary-title">총 접수 요약</div>
@@ -1635,6 +1694,7 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,sections}){
       <div class="pdfx-summary-row"><span>총 축의금</span><b>${money(totalAmt)}</b></div>
       <div class="pdfx-summary-row"><span>총 식권${hasChild?' (대인)':''}</span><b>${totalAdult}매</b></div>
       ${hasChild?`<div class="pdfx-summary-row"><span>총 식권 (소인)</span><b>${totalChild}매</b></div>`:''}
+      ${hasGift?`<div class="pdfx-summary-row"><span>총 답례품</span><b>${totalGift}개</b></div>`:''}
     </div>`;
   measureBox.innerHTML=summaryHtml;
   const summaryH=measureBox.scrollHeight;
@@ -1679,12 +1739,13 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,sections}){
     const subAmt=sec.list.reduce((s,l)=>s+(l.amount||0),0);
     const subAdult=sec.list.reduce((s,l)=>s+(l.adult_ticket||0),0);
     const subChild=sec.list.reduce((s,l)=>s+(l.child_ticket||0),0);
+    const subGift=sec.list.reduce((s,l)=>s+(l.gift_count||0),0);
     if(cur.used+rowH > PAGE_CONTENT_H){
       newPage('cont');
       cur.blocks.push({type:'tableStart', hasChild});
       cur.used+=tableHeadH;
     }
-    cur.blocks.push({type:'subtotal', label:sec.label, cnt:subCnt, amt:subAmt, adult:subAdult, child:subChild});
+    cur.blocks.push({type:'subtotal', label:sec.label, cnt:subCnt, amt:subAmt, adult:subAdult, child:subChild, gift:subGift});
     cur.used+=rowH;
   });
 
@@ -1734,8 +1795,9 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,sections}){
           <td class="ctr" colspan="2">${b.label} 합계</td>
           <td class="ctr">${b.cnt}건</td>
           <td class="num">${money(b.amt)}</td>
-          <td class="ctr">${b.adult}${hasChild?'':'매'}</td>
+          <td class="ctr">${b.adult}${hasChild||hasGift?'':'매'}</td>
           ${hasChild?`<td class="ctr">${b.child}매</td>`:''}
+          ${hasGift?`<td class="ctr">${b.gift}개</td>`:''}
         </tr>`;
       }else if(b.type==='summary'){
         if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
