@@ -3793,6 +3793,8 @@ function renderPrecheckReminder(){
   el.innerHTML = list.map(s => {
     const diff = Math.ceil((new Date(s.date) - new Date(TODAY)) / 86400000);
     const dday = `D-${diff}`;
+    // D-8~D-10만 주황 계열로 강조, D-11~D-15는 기존 색상 그대로 (텍스트 색상만 구분, 카드/배지/정렬 등은 무변경)
+    const ddayColor = (diff >= 8 && diff <= 10) ? '#D97706' : '#374151';
 
     // 상태 배지
     const precheckDone = s.precheckStatus === 'submitted';
@@ -3816,7 +3818,7 @@ function renderPrecheckReminder(){
         onmouseout="this.style.background='#fff'">
         <div style="min-width:36px;text-align:center;flex-shrink:0">
           <div style="font-size:14px;line-height:1;margin-bottom:2px">${sideIcon(s)}</div>
-          <div style="font-size:11px;font-weight:800;color:#374151">${dday}</div>
+          <div style="font-size:11px;font-weight:800;color:${ddayColor}">${dday}</div>
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
