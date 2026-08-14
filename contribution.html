@@ -1383,7 +1383,9 @@ const sb = {
 };
 
 // 직원 세션 토큰(staff_sessions.token). 로그인 성공 시 create_staff_session
-// 호출로 채워지며, 새로고침하면 사라진다(의도된 동작 — 매번 비밀번호 재확인).
+// 호출로 채워진다. localStorage(dg_contrib_session)에도 저장해두고, 새로고침
+// 시 init()이 read_schedules_staff로 서버 검증에 성공했을 때만 이 값을 복원한다
+// (검증 없이 클라이언트가 임의로 신뢰하지 않음 — index.html과 동일 원칙).
 let _dgContribSessionToken = null;
 
 // ────────── PostgREST 쿼리스트링 재현 헬퍼 (index.html과 동일 로직) ──────────
@@ -1526,12 +1528,13 @@ async function doLogin(){
   if(loginBtn) loginBtn.disabled=false;
   currentUser=user;
   localStorage.setItem('dg_contrib_user',user.id);
+  localStorage.setItem('dg_contrib_session',_dgContribSessionToken); // 새로고침 시 세션 복구용(평문 비밀번호 아님, 서버 발급 토큰)
   document.getElementById('login-screen').style.display='none';
   const _directId = new URLSearchParams(location.search).get('schedule_id');
   if(_directId) selectSchedule(Number(_directId));
   else goSelectSchedule();
 }
-function doLogout(){ _dgContribSessionToken=null; localStorage.removeItem('dg_contrib_user'); location.reload(); }
+function doLogout(){ _dgContribSessionToken=null; localStorage.removeItem('dg_contrib_user'); localStorage.removeItem('dg_contrib_session'); location.reload(); }
 
 var _schTab='upcoming', _allSchRows=[];
 function setSchTab(tab){
@@ -4754,12 +4757,39 @@ function cashUpdate(){
 // ────────────────────────────────────────────────────────────────────────────
 
 // [수정5: init() - localStorage 없을때 login-screen 명시적으로 보여주기]
-(function init(){
+// [이번 개정] 새로고침 시 로그인이 풀리던 문제 수정. index.html과 완전히 동일한
+// 원칙: 새 RPC를 추가하지 않고 이미 존재하는 read_schedules_staff(세션 검증이
+// 필수인 RPC)를 "검증 겸 데이터 로드"용으로 재사용한다 — 이 호출이 성공해야만
+// (=서버가 토큰을 유효하다고 확인해야만) 로그인 상태를 복구한다. 실패(만료/무효)
+// 하면 그대로 로그인 화면으로 보낸다(fail-closed — 토큰 유효성을 클라이언트가
+// 임의로 가정하지 않음). 평문 비밀번호는 여전히 어디에도 저장하지 않는다.
+(async function init(){
   initLogin();
+
+  const savedId    = localStorage.getItem('dg_contrib_user');
+  const savedToken = localStorage.getItem('dg_contrib_session');
+  if(savedId && savedToken){
+    const user = USERS.find(u=>u.id===Number(savedId));
+    if(user){
+      try{
+        await sb.rpc('read_schedules_staff', { p_session_token: savedToken });
+        // 검증 성공 — 세션 복구
+        _dgContribSessionToken = savedToken;
+        currentUser = user;
+        document.getElementById('login-screen').style.display='none';
+        const _directId = new URLSearchParams(location.search).get('schedule_id');
+        if(_directId) selectSchedule(Number(_directId));
+        else goSelectSchedule();
+        return;
+      }catch(e){
+        console.warn('[DG] 저장된 세션이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.', e);
+        localStorage.removeItem('dg_contrib_session');
+      }
+    }
+  }
+
   // 저장된 로그인(이름)이 있으면 편의상 select에 이름만 미리 선택해주고,
-  // 비밀번호는 매번 다시 입력받는다. staff_sessions 토큰은 새로고침 시
-  // 메모리에서 사라지므로(의도된 동작), 예전처럼 자동으로 화면을 건너뛰면
-  // 세션 토큰 없이 쓰기 RPC가 전부 실패하게 된다.
+  // 비밀번호는 매번 다시 입력받는다(세션 복구 실패했거나 애초에 토큰이 없는 경우).
   const saved=localStorage.getItem('dg_contrib_user');
   if(saved){
     const user=USERS.find(u=>u.id===Number(saved));
