@@ -330,6 +330,7 @@ input,select,textarea{font-family:inherit;outline:none}
 .tm-init-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
 .tm-init-lbl{font-size:12px;color:var(--text2);width:32px;flex-shrink:0;font-weight:400}
 .tm-init-inp{border:1px solid var(--border);border-radius:var(--r-sm);padding:4px 8px;font-size:13px;font-weight:600;color:var(--text);width:68px;text-align:center;background:var(--bg2);height:28px}
+.tm-init-inp:disabled{opacity:.4;cursor:not-allowed;background:#F3F4F6}
 .tm-init-inp:focus{border-color:var(--blue);outline:none}
 
 /* ── 현금 계산기 ── */
@@ -911,6 +912,20 @@ input,select,textarea{font-family:inherit;outline:none}
       <button class="tm-tab active-g" id="tm-tab-g" onclick="setTicketTab('g')">🤵 신랑측</button>
       <button class="tm-tab" id="tm-tab-b" onclick="setTicketTab('b')">👰 신부측</button>
     </div>
+    <!-- 답례품 양측 통합 운영 토글 — 양측 예식에서 답례품을 신랑/신부로 나누지 않고
+         공용 재고 하나로 관리하고 싶을 때 사용. 체크 해제 시 기존 측별 방식 그대로 동작. -->
+    <div style="padding:8px 14px;border-bottom:1px solid #E8E5E1;background:#FAFAF9;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:#374151;cursor:pointer;white-space:nowrap">
+        <input type="checkbox" id="gift-shared-toggle" onchange="toggleGiftShared()" style="width:14px;height:14px;accent-color:#DB2777">
+        🎁 답례품 양측 통합 운영
+      </label>
+      <div id="gift-shared-input-wrap" style="display:none;align-items:center;gap:5px">
+        <span style="font-size:11px;color:#9CA3AF">통합 초기수량</span>
+        <input id="gift-shared-total" type="number" placeholder="0" min="0" inputmode="numeric" oninput="saveGiftShared()"
+          style="width:56px;height:26px;text-align:center;font-size:12.5px;font-weight:800;color:#111;background:#fff;border:1.5px solid #E0E0E0;border-radius:6px;padding:0">
+        <span style="font-size:11px;color:#9CA3AF">개</span>
+      </div>
+    </div>
     <div class="tm-body">
       <!-- ══ 신랑측 ══ -->
       <div class="tm-col tm-visible" id="tm-col-g">
@@ -972,6 +987,7 @@ input,select,textarea{font-family:inherit;outline:none}
           <span class="tm-stat-compact-item">잔여 <span id="tp-g-remain-child" class="tm-stat-remain-g">0장</span></span>
         </div>
 
+        <div id="tm-gift-section-g">
         <div class="tm-sec">⑤ 답례품</div>
         <div class="tm-stat-compact-row">
           <span class="tm-stat-compact-lbl">🎁</span>
@@ -985,6 +1001,7 @@ input,select,textarea{font-family:inherit;outline:none}
         </div>
         <div class="tm-history" id="tm-gift-history-g">
           <div class="tm-history-empty">발급 내역 없음</div>
+        </div>
         </div>
       </div>
 
@@ -1048,6 +1065,7 @@ input,select,textarea{font-family:inherit;outline:none}
           <span class="tm-stat-compact-item">잔여 <span id="tp-b-remain-child" class="tm-stat-remain-b">0장</span></span>
         </div>
 
+        <div id="tm-gift-section-b">
         <div class="tm-sec">⑤ 답례품</div>
         <div class="tm-stat-compact-row">
           <span class="tm-stat-compact-lbl">🎁</span>
@@ -1062,6 +1080,21 @@ input,select,textarea{font-family:inherit;outline:none}
         <div class="tm-history" id="tm-gift-history-b">
           <div class="tm-history-empty">발급 내역 없음</div>
         </div>
+        </div>
+      </div>
+    </div>
+    <!-- 🎁 양측 통합 답례품 — gift_total_shared가 설정된 예식에서만 노출되는
+         팝업 전체 폭 영역. 신랑/신부 개별 ⑤ 답례품 행은 이때 숨겨진다. -->
+    <div id="tm-gift-shared-section" style="display:none;padding:12px 16px;border-top:1px solid #E8E5E1;background:#FFF7FB">
+      <div class="tm-sec" style="margin-bottom:6px">🎁 양측 통합 답례품</div>
+      <div class="tm-stat-compact-row">
+        <span class="tm-stat-compact-item">초기 <span id="tp-shared-gift-init" class="tm-stat-val">0개</span></span>
+        <span class="tm-stat-compact-sep">·</span>
+        <span class="tm-stat-compact-item">추가 <span id="tp-shared-gift-extra" class="tm-stat-val" style="color:#059669">0개</span></span>
+        <span class="tm-stat-compact-sep">·</span>
+        <span class="tm-stat-compact-item">지급 <span id="tp-shared-gift-used" class="tm-stat-val">0개</span></span>
+        <span class="tm-stat-compact-sep">·</span>
+        <span class="tm-stat-compact-item">잔여 <span id="tp-shared-gift-remain" class="tm-stat-remain-g">—</span></span>
       </div>
     </div>
     <!-- 호환용 hidden IDs -->
@@ -1676,6 +1709,7 @@ function applyTicketTotalsFromSchedule(){
     totalTickets.bride = totalTickets.brideAdult + totalTickets.brideChild;
     totalTickets.giftGroom = currentSchedule.gift_total_groom || 0;
     totalTickets.giftBride = currentSchedule.gift_total_bride || 0;
+    totalTickets.giftShared = currentSchedule.gift_total_shared != null ? currentSchedule.gift_total_shared : null;
     return;
   }
 
@@ -1707,6 +1741,8 @@ function applyTicketTotalsFromSchedule(){
   // 답례품 초기수량 — 대인/소인과 완전히 독립적인 단순 로딩 (폴백 로직 없음, 기존 대인/소인 계산에 영향 없음)
   totalTickets.giftGroom = currentSchedule.gift_total_groom || 0;
   totalTickets.giftBride = currentSchedule.gift_total_bride || 0;
+  // 양측 통합 답례품(gift_total_shared) — null이면 기존 측별 방식, 값이 있으면 통합 모드
+  totalTickets.giftShared = currentSchedule.gift_total_shared != null ? currentSchedule.gift_total_shared : null;
 }
 
 async function loadTicketExtras(){
@@ -2413,6 +2449,63 @@ async function queueGiftInitSet(scheduleId, payload){
   }
 }
 
+// ── 답례품 양측 통합 운영 (gift_total_shared) ───────────────────────────────
+// saveGiftTotals()/saveGiftShared()는 서로 다른 컬럼(gift_total_groom·bride vs
+// gift_total_shared)만 건드리는 완전히 독립된 함수·큐 타입(GIFT_SHARED_SET)이라
+// 기존 측별 답례품 저장 로직에는 전혀 영향을 주지 않는다.
+function toggleGiftShared(){
+  const on = document.getElementById('gift-shared-toggle')?.checked;
+  const wrap = document.getElementById('gift-shared-input-wrap');
+  const ggEl = document.getElementById('groom-gift-total');
+  const bgEl = document.getElementById('bride-gift-total');
+  if(wrap) wrap.style.display = on ? 'flex' : 'none';
+  if(ggEl) ggEl.disabled = on;
+  if(bgEl) bgEl.disabled = on;
+  if(on){
+    // 체크 최초 On 시점에 값이 비어있으면 0으로 저장해 통합 모드로 전환
+    const inp = document.getElementById('gift-shared-total');
+    if(inp && inp.value==='') inp.value = totalTickets.giftShared!=null ? totalTickets.giftShared : 0;
+    saveGiftShared();
+  } else {
+    // 체크 해제 → 통합 모드 해제(gift_total_shared를 null로 되돌려 기존 측별 방식으로 복귀)
+    saveGiftShared(true);
+  }
+  renderTicketModal();
+}
+async function saveGiftShared(clear){
+  const val = clear ? null : (Number(document.getElementById('gift-shared-total')?.value)||0);
+  totalTickets.giftShared = val;
+  if(currentSchedule){
+    const patchBody = { gift_total_shared: val };
+    try{
+      await sb.patch('schedules', currentSchedule.id, patchBody);
+      Object.assign(currentSchedule, patchBody);
+    } catch(e){
+      try{
+        await queueGiftSharedSet(currentSchedule.id, patchBody);
+        Object.assign(currentSchedule, patchBody);
+        const q = await idbGetQueueForSchedule(currentSchedule.id).catch(()=>[]);
+        setSyncStatus('offline', q.length);
+      }catch(e2){
+        console.error('[DG] 통합 답례품 초기수량 오프라인 큐잉 실패:', e2);
+        showToast('⚠️ 통합 답례품 수량 저장 실패: '+e2.message);
+      }
+    }
+  }
+  renderStats();
+}
+async function queueGiftSharedSet(scheduleId, payload){
+  const existing = await idbFindActionByScheduleAndType(scheduleId, 'GIFT_SHARED_SET');
+  const now = new Date().toISOString();
+  if(existing){
+    existing.payload = payload;
+    existing.created_at = now;
+    await idbPutAction(existing);
+  } else {
+    await idbAddAction({ type:'GIFT_SHARED_SET', target_id:null, client_entry_id:null, schedule_id:scheduleId, side:null, payload, created_at:now });
+  }
+}
+
 var _hoSaveTimer=null;
 function loadHandover(){
   if(!currentSchedule) return;
@@ -2722,7 +2815,22 @@ function computeTicketStats(side){
 
 // 답례품 통계 — computeTicketStats와 병렬 구조. ticketExtras에서 kind==='gift'만 걸러서 쓰므로
 // 기존 대인/소인 집계(computeTicketStats)에는 전혀 영향을 주지 않는다.
+// 양측 통합 모드(currentSchedule.gift_total_shared가 null이 아님)일 때는 side 인자와 무관하게
+// 신랑측+신부측 합산 결과를 동일하게 반환한다 — 호출부(renderStats/renderTicketModal 등)는
+// 수정 없이 그대로 재사용 가능.
 function computeGiftStats(side){
+  const sharedMode = currentSchedule && currentSchedule.gift_total_shared != null;
+  if(sharedMode){
+    const init = currentSchedule.gift_total_shared || 0;
+    // 통합 모드에서는 신랑측/신부측 어느 쪽 패널에서 발급했든 같은 공용 재고에 합산
+    const extra = ticketExtras.filter(t=>ticketKindOf(t)==='gift').reduce((s,t)=>s+(t.amount||0),0);
+    const usedGroom = logs.filter(l=>l.side==='신랑측').reduce((s,l)=>s+(l.gift_count||0),0);
+    const usedBride = logs.filter(l=>l.side==='신부측').reduce((s,l)=>s+(l.gift_count||0),0);
+    const used = usedGroom + usedBride;
+    const total = init + extra;
+    const remain = total - used;
+    return { init, extra, used, total, remain, hasGift:true, shared:true, usedGroom, usedBride };
+  }
   const init = side==='신랑측' ? (totalTickets.giftGroom||0) : (totalTickets.giftBride||0);
   const sideExtras = ticketExtras.filter(t=>t.side===side && ticketKindOf(t)==='gift');
   const extra = sideExtras.reduce((s,t)=>s+(t.amount||0),0);
@@ -2731,7 +2839,7 @@ function computeGiftStats(side){
   const hasGift = init>0 || extra>0;
   const total = hasGift ? init+extra : null;
   const remain = total!==null ? total-used : null;
-  return { init, extra, used, total, remain, hasGift };
+  return { init, extra, used, total, remain, hasGift, shared:false };
 }
 
 function renderStats(){
@@ -2888,16 +2996,19 @@ function onGiftInput(){
   el.value=v;
   st.giftCount=v;
 }
-// 소인/답례품 조건부 노출 — "현재 접수 중인 측" 기준으로 판단(양측 예식이라도 반대측 설정이 새어나가지 않게)
-// 별도 ON/OFF 상태값 없이 초기/추가 수량 자체를 노출 조건으로 사용한다.
+// 소인/답례품 조건부 노출 — "신랑측 또는 신부측 중 어느 한쪽이라도" 초기/추가 수량이 있으면
+// 현재 보고 있는 측과 무관하게 양쪽 접수패널 모두 입력칸을 노출한다.
+// (실제 재고/잔여 계산은 computeTicketStats(side)/computeGiftStats(side)가 측별로 그대로 유지 —
+//  여기서는 "보여줄지 말지"만 양측 기준으로 판단한다)
 function updateGiftVisibility(){
-  const side = st.side==='groom' ? '신랑측' : '신부측';
-  const tStat = computeTicketStats(side);
-  const gStat = computeGiftStats(side);
+  const gTicket = computeTicketStats('신랑측');
+  const bTicket = computeTicketStats('신부측');
+  const gGift = computeGiftStats('신랑측');
+  const bGift = computeGiftStats('신부측');
   const childBlock = document.getElementById('child-ticket-block');
   const giftBlock  = document.getElementById('gift-ticket-block');
-  const showChild = tStat.initChild>0 || tStat.extraChild>0;
-  const showGift  = gStat.init>0 || gStat.extra>0;
+  const showChild = (gTicket.initChild>0 || gTicket.extraChild>0) || (bTicket.initChild>0 || bTicket.extraChild>0);
+  const showGift  = (gGift.init>0 || gGift.extra>0) || (bGift.init>0 || bGift.extra>0);
   if(childBlock) childBlock.style.display = showChild ? 'flex' : 'none';
   if(giftBlock)  giftBlock.style.display  = showGift  ? 'flex' : 'none';
 }
@@ -3427,6 +3538,11 @@ async function flushOfflineQueue(){
         totalTickets.giftGroom=action.payload.gift_total_groom||0;
         totalTickets.giftBride=action.payload.gift_total_bride||0;
         ticketUiTouched=true;
+      } else if(action.type==='GIFT_SHARED_SET'){
+        await sb.patch('schedules', currentSchedule.id, action.payload);
+        Object.assign(currentSchedule, action.payload);
+        totalTickets.giftShared = action.payload.gift_total_shared!=null ? action.payload.gift_total_shared : null;
+        ticketUiTouched=true;
       } else if(action.type==='TICKET_EXTRA_ADD'){
         const createdRow=await postWithDedup('ticket_additions', action.payload);
         const idx=ticketExtras.findIndex(t=>t.client_entry_id===action.client_entry_id);
@@ -3680,10 +3796,11 @@ function renderLedgerCol(elId,sideLogs,isAdmin){
     const name=esc(l.guest_name||'—');
     const rel=l.relation?'<span style="color:#9CA3AF;font-size:9px;margin-left:3px">'+esc(l.relation)+'</span>':'';
     const amt=l.amount?fmt(l.amount):'<span style="color:#D1D5DB">—</span>';
-    const adultT=l.adult_ticket||0,childT=l.child_ticket||0;
+    const adultT=l.adult_ticket||0,childT=l.child_ticket||0,giftT=l.gift_count||0;
     let tkt='';
     if(adultT>0) tkt+='<span style="background:#FEF3C7;color:#D97706;border-radius:3px;padding:0 3px;font-size:10px;font-weight:700">대'+adultT+'</span>';
     if(childT>0) tkt+='<span style="background:#EDE9FE;color:#7C3AED;border-radius:3px;padding:0 3px;font-size:10px;font-weight:700;margin-left:1px">소'+childT+'</span>';
+    if(giftT>0) tkt+='<span style="background:#FCE7F3;color:#DB2777;border-radius:3px;padding:0 3px;font-size:10px;font-weight:700;margin-left:1px">🎁'+giftT+'</span>';
     const payC=l.payment_type==='계좌이체'?'#7C3AED':'#059669';
     const payT=l.payment_type==='계좌이체'?'계좌':'현금';
     const time=(l.created_at_client||l.created_at)?fmtTime(l.created_at_client||l.created_at):'';
@@ -3879,10 +3996,11 @@ function renderRightCol(elId, sideLogs, isAdmin){
     var hasAmount = rawAmount > 0;
     var amt = l.amount == null ? '—' : hasAmount ? fmt(rawAmount) : '0원';
     var amtColor = hasAmount ? '#111827' : '#111';
-    var adultT = l.adult_ticket||0, childT = l.child_ticket||0;
+    var adultT = l.adult_ticket||0, childT = l.child_ticket||0, giftT = l.gift_count||0;
     var tkt = '';
     if(adultT>0) tkt += '<span style="background:#FEF3C7;color:#D97706;border-radius:3px;padding:0 3px;font-size:10px;font-weight:700">대'+adultT+'</span>';
     if(childT>0) tkt += '<span style="background:#EDE9FE;color:#7C3AED;border-radius:3px;padding:0 3px;font-size:10px;font-weight:700;margin-left:1px">소'+childT+'</span>';
+    if(giftT>0) tkt += '<span style="background:#FCE7F3;color:#DB2777;border-radius:3px;padding:0 3px;font-size:10px;font-weight:700;margin-left:1px">🎁'+giftT+'</span>';
     var payC = l.payment_type==='계좌이체' ? '#7C3AED' : '#059669';
     var payT = l.payment_type==='계좌이체' ? '계좌' : '현금';
     var time = (l.created_at_client||l.created_at) ? fmtTime(l.created_at_client||l.created_at) : '';
@@ -4031,6 +4149,16 @@ function openTicketModal(){
   const bgEl=document.getElementById('bride-gift-total');
   if(ggEl) ggEl.value = totalTickets.giftGroom || '';
   if(bgEl) bgEl.value = totalTickets.giftBride || '';
+  // 답례품 통합 운영 토글 복원
+  const sharedOn = totalTickets.giftShared != null;
+  const gsToggle = document.getElementById('gift-shared-toggle');
+  const gsWrap = document.getElementById('gift-shared-input-wrap');
+  const gsInput = document.getElementById('gift-shared-total');
+  if(gsToggle) gsToggle.checked = sharedOn;
+  if(gsWrap) gsWrap.style.display = sharedOn ? 'flex' : 'none';
+  if(gsInput) gsInput.value = sharedOn ? totalTickets.giftShared : '';
+  if(ggEl) ggEl.disabled = sharedOn;
+  if(bgEl) bgEl.disabled = sharedOn;
   renderTicketModal();
   document.getElementById('ticket-modal').style.display='flex';
 }
@@ -4166,16 +4294,35 @@ function renderTicketModal(){
   }
 
   // ── 답례품 (신랑측/신부측 독립 집계 — 대인/소인 로직과 완전히 분리) ──
+  // gift_total_shared가 설정된 통합모드에서는 측별 ⑤ 답례품 행을 숨기고
+  // 팝업 하단의 통합 전용 영역(tm-gift-shared-section) 하나만 보여준다.
+  const isSharedGiftMode = currentSchedule && currentSchedule.gift_total_shared != null;
+  const secG = document.getElementById('tm-gift-section-g');
+  const secB = document.getElementById('tm-gift-section-b');
+  const secShared = document.getElementById('tm-gift-shared-section');
+  if(secG) secG.style.display = isSharedGiftMode ? 'none' : '';
+  if(secB) secB.style.display = isSharedGiftMode ? 'none' : '';
+  if(secShared) secShared.style.display = isSharedGiftMode ? 'block' : 'none';
+
   const gGiftStat = computeGiftStats('신랑측');
   const bGiftStat = computeGiftStats('신부측');
-  se2('tp-g-gift-init',  gGiftStat.init+'개');
-  se2('tp-g-gift-extra', gGiftStat.extra+'개', '#059669');
-  se2('tp-g-gift-used',  gGiftStat.used+'개');
-  se2('tp-g-gift-remain', gGiftStat.remain!==null ? gGiftStat.remain+'개' : '—', gGiftStat.remain!==null && gGiftStat.remain>0 ? '#2563EB' : '#9CA3AF');
-  se2('tp-b-gift-init',  bGiftStat.init+'개');
-  se2('tp-b-gift-extra', bGiftStat.extra+'개', '#059669');
-  se2('tp-b-gift-used',  bGiftStat.used+'개');
-  se2('tp-b-gift-remain', bGiftStat.remain!==null ? bGiftStat.remain+'개' : '—', bGiftStat.remain!==null && bGiftStat.remain>0 ? '#DB2777' : '#9CA3AF');
+  if(isSharedGiftMode){
+    // 통합모드에서는 computeGiftStats('신랑측')와 ('신부측')가 이미 동일한 합산값을
+    // 반환하므로 둘 중 아무거나(gGiftStat) 써서 통합 영역 하나만 채운다.
+    se2('tp-shared-gift-init',  gGiftStat.init+'개');
+    se2('tp-shared-gift-extra', gGiftStat.extra+'개', '#059669');
+    se2('tp-shared-gift-used',  gGiftStat.used+'개');
+    se2('tp-shared-gift-remain', gGiftStat.remain!==null ? gGiftStat.remain+'개' : '—', gGiftStat.remain!==null && gGiftStat.remain>0 ? '#2563EB' : '#9CA3AF');
+  } else {
+    se2('tp-g-gift-init',  gGiftStat.init+'개');
+    se2('tp-g-gift-extra', gGiftStat.extra+'개', '#059669');
+    se2('tp-g-gift-used',  gGiftStat.used+'개');
+    se2('tp-g-gift-remain', gGiftStat.remain!==null ? gGiftStat.remain+'개' : '—', gGiftStat.remain!==null && gGiftStat.remain>0 ? '#2563EB' : '#9CA3AF');
+    se2('tp-b-gift-init',  bGiftStat.init+'개');
+    se2('tp-b-gift-extra', bGiftStat.extra+'개', '#059669');
+    se2('tp-b-gift-used',  bGiftStat.used+'개');
+    se2('tp-b-gift-remain', bGiftStat.remain!==null ? bGiftStat.remain+'개' : '—', bGiftStat.remain!==null && bGiftStat.remain>0 ? '#DB2777' : '#9CA3AF');
+  }
 
   const gGiftExtras = ticketExtras.filter(t=>t.side==='신랑측' && ticketKindOf(t)==='gift');
   const hgGift = document.getElementById('tm-gift-history-g');

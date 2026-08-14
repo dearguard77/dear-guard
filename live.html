@@ -176,9 +176,9 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 .th-sort.asc::after{content:" ↑";color:#6B7280}
 .th-sort.desc::after{content:" ↓";color:#6B7280}
 /* ── Badges ── */
-.badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
-.badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
-.badge-gift{display:inline-block;background:#FCE7F3;color:#DB2777;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
+.badge-adult{display:inline-block;background:#FEF3C7;color:#D97706;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700;line-height:1.4;vertical-align:middle}
+.badge-child{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700;line-height:1.4;vertical-align:middle}
+.badge-gift{display:inline-block;background:#FCE7F3;color:#DB2777;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700;line-height:1.4;vertical-align:middle}
 .badge-cash{display:inline-block;background:#D1FAE5;color:#059669;border-radius:2px;padding:2px 7px;font-size:11px;font-weight:600}
 .badge-trans{display:inline-block;background:#EDE9FE;color:#7C3AED;border-radius:2px;padding:2px 7px;font-size:11px;font-weight:600}
 .badge-side-g{display:inline-block;background:#EFF6FF;color:#2563EB;border-radius:2px;padding:1px 5px;font-size:10px;font-weight:700}
@@ -715,26 +715,46 @@ function renderStats(){
   // ── 답례품 집계 — 대인/소인과 완전히 독립적으로 계산
   // schedule.gift_total_groom/bride = 초기수량, giftExtras = ticket_additions(type=extra, ticket_kind=gift) 추가수량
   // 총 보유 = 초기 + 추가, 잔여 = 초기 + 추가 - 지급
-  const gGiftInit = schedule?.gift_total_groom||0;
-  const bGiftInit = schedule?.gift_total_bride||0;
-  const gGiftExtra = giftExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
-  const bGiftExtra = giftExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
-  const gGiftTotal = gGiftInit + gGiftExtra;
-  const bGiftTotal = bGiftInit + bGiftExtra;
-  const gGiftUsed = gL.reduce((s,l)=>s+(l.gift_count||0),0);
-  const bGiftUsed = bL.reduce((s,l)=>s+(l.gift_count||0),0);
-  const gGiftRemain = gGiftTotal - gGiftUsed;
-  const bGiftRemain = bGiftTotal - bGiftUsed;
-  const gHasGift = gGiftTotal>0 || gGiftUsed>0;
-  const bHasGift = bGiftTotal>0 || bGiftUsed>0;
+  // schedule.gift_total_shared가 설정된 예식(양측 통합 답례품 모드)은 신랑/신부를 나누지 않고
+  // 하나의 공용 재고로 계산한다 — 기존 측별 계산(gift_total_groom/bride) 흐름에는 전혀 영향 없음.
+  const isGiftShared = schedule?.gift_total_shared != null;
+  let gGiftInit,bGiftInit,gGiftExtra,bGiftExtra,gGiftTotal,bGiftTotal,gGiftUsed,bGiftUsed,gGiftRemain,bGiftRemain,gHasGift,bHasGift;
+  if(isGiftShared){
+    const sharedInit = schedule.gift_total_shared||0;
+    const sharedExtra = giftExtras.reduce((s,t)=>s+(t.amount||0),0); // 발급 패널의 side와 무관하게 공용 재고에 합산
+    const sharedTotal = sharedInit + sharedExtra;
+    gGiftUsed = gL.reduce((s,l)=>s+(l.gift_count||0),0);
+    bGiftUsed = bL.reduce((s,l)=>s+(l.gift_count||0),0);
+    const sharedUsed = gGiftUsed + bGiftUsed;
+    const sharedRemain = sharedTotal - sharedUsed;
+    gGiftInit=bGiftInit=sharedInit;
+    gGiftExtra=bGiftExtra=sharedExtra;
+    gGiftTotal=bGiftTotal=sharedTotal;
+    gGiftRemain=bGiftRemain=sharedRemain;
+    gHasGift=bHasGift=(sharedTotal>0 || sharedUsed>0);
+  } else {
+    gGiftInit = schedule?.gift_total_groom||0;
+    bGiftInit = schedule?.gift_total_bride||0;
+    gGiftExtra = giftExtras.filter(t=>t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
+    bGiftExtra = giftExtras.filter(t=>t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+    gGiftTotal = gGiftInit + gGiftExtra;
+    bGiftTotal = bGiftInit + bGiftExtra;
+    gGiftUsed = gL.reduce((s,l)=>s+(l.gift_count||0),0);
+    bGiftUsed = bL.reduce((s,l)=>s+(l.gift_count||0),0);
+    gGiftRemain = gGiftTotal - gGiftUsed;
+    bGiftRemain = bGiftTotal - bGiftUsed;
+    gHasGift = gGiftTotal>0 || gGiftUsed>0;
+    bHasGift = bGiftTotal>0 || bGiftUsed>0;
+  }
   const groomGiftWrap=document.getElementById('groom-gift-wrap');
   const brideGiftWrap=document.getElementById('bride-gift-wrap');
   if(groomGiftWrap) groomGiftWrap.style.display = gHasGift ? 'block' : 'none';
   if(brideGiftWrap) brideGiftWrap.style.display = bHasGift ? 'block' : 'none';
   if(gHasGift){ se('groom-gift-used', gGiftUsed); se('groom-gift-remain', gGiftRemain); }
   if(bHasGift){ se('bride-gift-used', bGiftUsed); se('bride-gift-remain', bGiftRemain); }
-  // 양측 통합 답례품 집계
-  const totalGiftTotal = gGiftTotal+bGiftTotal;
+  // 양측 통합 답례품 집계 (화면 하단 총계) — 통합 모드에서는 gGiftTotal===bGiftTotal(동일 공용 재고)이므로
+  // 그대로 더하면 두 배로 잡힌다. 이 경우엔 한쪽 값만 총계로 사용한다.
+  const totalGiftTotal = isGiftShared ? gGiftTotal : (gGiftTotal+bGiftTotal);
   const totalGiftUsed = gGiftUsed+bGiftUsed;
   const totalGiftWrap = document.getElementById('ticket-total-gift-wrap');
   if(totalGiftWrap){
