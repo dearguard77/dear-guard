@@ -4678,10 +4678,15 @@ function openDetail(id){
 
 // ── PRECHECK 링크 모달 ──
 // 체크리스트 자동 잠금 판정 — 실제 체크 페이지(api/precheck, calcIsLocked())와 동일한 규칙
-// 예식일 기준 D-2 00:00부터 자동 잠금, 수동 잠금/강제 열기가 없을 때만 적용
+// 2026-08-22 이하 예식은 D-2부터, 2026-08-23 이상 예식은 D-6부터 자동 잠금 (수동 잠금/강제 열기가 없을 때만 적용)
 function calcPrecheckAutoLocked(s){
   const lockDate = new Date(s.date + 'T00:00:00');
-  lockDate.setDate(lockDate.getDate() - 2);
+  // [2026-08-23 기준 정책 변경] precheck.html의 calcIsLocked()와 동일한 기준.
+  // 이미 안내가 나간 기존 예식은 소급 적용하지 않기 위해 예식일로 분기한다.
+  // 2026-08-22 이하 예식 = 기존 기준(D-2부터 잠금), 2026-08-23 이상 예식 =
+  // 신규 기준(D-6부터 잠금).
+  const lockDaysBefore = s.date <= '2026-08-22' ? 2 : 6;
+  lockDate.setDate(lockDate.getDate() - lockDaysBefore);
   return new Date() >= lockDate;
 }
 
@@ -4694,7 +4699,8 @@ function getPrecheckLockDisplay(s){
     return { text: '🔴 수동 잠금 중', color:'#DC2626', borderColor:'#FCA5A5', bg:'#FEF2F2' };
   }
   if(calcPrecheckAutoLocked(s)){
-    return { text: '🔴 자동 잠금 중 (D-2 경과)', color:'#DC2626', borderColor:'#FCA5A5', bg:'#FEF2F2' };
+    const lockLabel = s.date <= '2026-08-22' ? 'D-2' : 'D-6';
+    return { text: `🔴 자동 잠금 중 (${lockLabel} 경과)`, color:'#DC2626', borderColor:'#FCA5A5', bg:'#FEF2F2' };
   }
   return { text: '🟢 열려 있음', color:'#6B7280', borderColor:'#E5E7EB', bg:'#F9FAFB' };
 }
