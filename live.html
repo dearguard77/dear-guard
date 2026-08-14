@@ -330,7 +330,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
               <span style="color:var(--text3)">소인 <strong style="color:#7C3AED" id="groom-child-tkt">0</strong></span>
             </div>
             <div id="groom-gift-wrap" style="display:none;font-size:13px;margin-top:3px">
-              <span style="color:var(--text3)">🎁 지급 <strong style="color:#DB2777" id="groom-gift-used">0</strong> / 잔여 <strong style="color:#DB2777" id="groom-gift-remain">0</strong></span>
+              <span style="color:var(--text3)">🎁 지급 <strong style="color:#DB2777" id="groom-gift-used">0</strong><span id="groom-gift-remain-wrap"> / 잔여 <strong style="color:#DB2777" id="groom-gift-remain">0</strong></span></span>
             </div>
           </div>
           <div id="ticket-bride-wrap">
@@ -340,7 +340,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
               <span style="color:var(--text3)">소인 <strong style="color:#7C3AED" id="bride-child-tkt">0</strong></span>
             </div>
             <div id="bride-gift-wrap" style="display:none;font-size:13px;margin-top:3px">
-              <span style="color:var(--text3)">🎁 지급 <strong style="color:#DB2777" id="bride-gift-used">0</strong> / 잔여 <strong style="color:#DB2777" id="bride-gift-remain">0</strong></span>
+              <span style="color:var(--text3)">🎁 지급 <strong style="color:#DB2777" id="bride-gift-used">0</strong><span id="bride-gift-remain-wrap"> / 잔여 <strong style="color:#DB2777" id="bride-gift-remain">0</strong></span></span>
             </div>
           </div>
         </div>
@@ -752,6 +752,13 @@ function renderStats(){
   if(brideGiftWrap) brideGiftWrap.style.display = bHasGift ? 'block' : 'none';
   if(gHasGift){ se('groom-gift-used', gGiftUsed); se('groom-gift-remain', gGiftRemain); }
   if(bHasGift){ se('bride-gift-used', bGiftUsed); se('bride-gift-remain', bGiftRemain); }
+  // 통합모드(isGiftShared)에서는 신랑/신부 잔여가 같은 공용 재고를 그대로 중복
+  // 표시하는 것이므로 측별 "/ 잔여 N"만 숨기고 "지급 N"은 그대로 둔다.
+  // 측별 답례품 모드(isGiftShared=false)는 기존처럼 잔여도 함께 보여준다.
+  const groomGiftRemainWrap = document.getElementById('groom-gift-remain-wrap');
+  const brideGiftRemainWrap = document.getElementById('bride-gift-remain-wrap');
+  if(groomGiftRemainWrap) groomGiftRemainWrap.style.display = isGiftShared ? 'none' : 'inline';
+  if(brideGiftRemainWrap) brideGiftRemainWrap.style.display = isGiftShared ? 'none' : 'inline';
   // 양측 통합 답례품 집계 (화면 하단 총계) — 통합 모드에서는 gGiftTotal===bGiftTotal(동일 공용 재고)이므로
   // 그대로 더하면 두 배로 잡힌다. 이 경우엔 한쪽 값만 총계로 사용한다.
   const totalGiftTotal = isGiftShared ? gGiftTotal : (gGiftTotal+bGiftTotal);
