@@ -768,8 +768,7 @@
     <div class="login-sub">웨딩 운영 관리 시스템</div>
     <div class="login-field">
       <label class="login-label">이름 입력</label>
-      <input class="login-input" id="login-name" type="text" placeholder="이름을 입력하세요" autocomplete="off" list="login-name-list" onkeydown="if(event.key==='Enter') document.getElementById('login-pw').focus()">
-      <datalist id="login-name-list"></datalist>
+      <input class="login-input" id="login-name" type="text" placeholder="이름을 입력하세요" autocomplete="off" onkeydown="if(event.key==='Enter') document.getElementById('login-pw').focus()">
     </div>
     <div class="login-field">
       <label class="login-label">비밀번호</label>
@@ -2322,9 +2321,11 @@ function visible(){
 }
 
 // ─── LOGIN ───────────────────────────────────────────────────────────────────
+// [보안 개정] 로그인 화면에서 직원 이름을 드롭다운/자동완성 목록으로 노출하면
+// 외부인이 직원 이름·인원수를 유추할 수 있어, 목록을 렌더링하지 않는 일반
+// 텍스트 입력으로 변경했다. 로그인 허용 여부는 여전히 서버(login_staff RPC)의
+// 화이트리스트 검증만으로 결정되며, 이 함수는 더 이상 할 일이 없다.
 function initLoginScreen(){
-  const dl = document.getElementById('login-name-list');
-  dl.innerHTML = USERS.map(u => `<option value="${u.name} (${u.role})"></option>`).join('');
 }
 
 // ─── OneSignal External ID 연결 (로그인 사용자 ↔ staff_{id}) ──────────────────
