@@ -1538,30 +1538,30 @@ function downloadExcel(){
   ws0['!cols']=summaryHeader.map(()=>({wch:11}));
   XLSX.utils.book_append_sheet(wb,ws0,'전체 요약');
   function makeSideSheet(list){
-    const header=['번호','결제방식','하객이름','금액(원)','대인식권'];
+    const header=['번호','결제방식','하객이름','비고','금액(원)','대인식권'];
     if(hasChild) header.push('소인식권');
     if(hasGift) header.push('답례품');
-    header.push('메모','관계','접수시간');
+    header.push('관계','접수시간');
     const rows=[header];
     const sorted=[...list].sort((a,b)=>(a.seq||999999)-(b.seq||999999));
     sorted.forEach((l,i)=>{
-      const row=[l.seq||i+1,l.payment_type||'',l.guest_name||'',money(l.amount||0),l.adult_ticket||0];
+      const row=[l.seq||i+1,l.payment_type||'',l.guest_name||'',l.memo||'',money(l.amount||0),l.adult_ticket||0];
       if(hasChild) row.push(l.child_ticket||0);
       if(hasGift) row.push(l.gift_count||0);
-      row.push(l.memo||'',l.relation||'',l.created_at?fmtTime(l.created_at):'');
+      row.push(l.relation||'',l.created_at?fmtTime(l.created_at):'');
       rows.push(row);
     });
     rows.push([]);
-    const sumRow=['합계','','',money(list.reduce((s,l)=>s+(l.amount||0),0)),list.reduce((s,l)=>s+(l.adult_ticket||0),0)];
+    const sumRow=['합계','','','',money(list.reduce((s,l)=>s+(l.amount||0),0)),list.reduce((s,l)=>s+(l.adult_ticket||0),0)];
     if(hasChild) sumRow.push(list.reduce((s,l)=>s+(l.child_ticket||0),0));
     if(hasGift) sumRow.push(list.reduce((s,l)=>s+(l.gift_count||0),0));
-    sumRow.push('','','');
+    sumRow.push('','');
     rows.push(sumRow);
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    const cols=[{wch:6},{wch:10},{wch:12},{wch:12},{wch:8}];
+    const cols=[{wch:6},{wch:10},{wch:12},{wch:20},{wch:12},{wch:8}];
     if(hasChild) cols.push({wch:8});
     if(hasGift) cols.push({wch:8});
-    cols.push({wch:20},{wch:10},{wch:8});
+    cols.push({wch:10},{wch:8});
     ws['!cols']=cols;
     const lastCol=String.fromCharCode(64+header.length);
     ws['!autofilter']={ref:'A1:'+lastCol+'1'};
@@ -1655,16 +1655,19 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
   const PAGE_CONTENT_H=1123-53*2; // .pdf-page의 padding(53px) 제외 실제 사용 가능 높이
   const money=v=>(v||0).toLocaleString('ko-KR')+'원';
   const extraCount=(hasChild?1:0)+(hasGift?1:0);
-  const colCount=5+extraCount;
-  const nameW=extraCount===0?32:extraCount===1?26:20;
-  const ticketW=extraCount===0?24:extraCount===1?15:12;
+  const colCount=6+extraCount;
+  const nameW=extraCount===0?22:extraCount===1?18:14;
+  const memoW=extraCount===0?16:extraCount===1?13:10;
+  const amtW=extraCount===0?18:extraCount===1?17:15;
+  const ticketW=extraCount===0?22:extraCount===1?15:13;
 
   function tableHeaderHtml(){
     return `<tr>
       <th style="width:8%">번호</th>
-      <th style="width:16%">결제방식</th>
+      <th style="width:14%">결제방식</th>
       <th style="width:${nameW}%">하객성명</th>
-      <th style="width:20%">축의금액</th>
+      <th style="width:${memoW}%">비고</th>
+      <th style="width:${amtW}%">축의금액</th>
       <th style="width:${ticketW}%">대인식권</th>
       ${hasChild?`<th style="width:${ticketW}%">소인식권</th>`:''}
       ${hasGift?`<th style="width:${ticketW}%">답례품</th>`:''}
@@ -1675,6 +1678,7 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
       <td class="ctr">${l.seq||i+1}</td>
       <td class="ctr">${l.payment_type||''}</td>
       <td>${(l.guest_name||'').replace(/</g,'&lt;')}</td>
+      <td>${(l.memo||'').replace(/</g,'&lt;')}</td>
       <td class="num">${money(l.amount)}</td>
       <td class="ctr">${l.adult_ticket||0}</td>
       ${hasChild?`<td class="ctr">${l.child_ticket||0}</td>`:''}
@@ -1821,6 +1825,7 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
         html+=`<tr style="font-weight:700;background:#F8F8F7">
           <td class="ctr" colspan="2">${b.label} 합계</td>
           <td class="ctr">${b.cnt}건</td>
+          <td></td>
           <td class="num">${money(b.amt)}</td>
           <td class="ctr">${b.adult}${hasChild||hasGift?'':'매'}</td>
           ${hasChild?`<td class="ctr">${b.child}매</td>`:''}
