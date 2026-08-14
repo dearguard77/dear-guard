@@ -1508,6 +1508,11 @@ function downloadExcel(){
   const wb=XLSX.utils.book_new();
   const vLogs=getVisibleLogs();
   const vOps=getVisibleOpsLogs();
+  // [식권 지급 요약 보완] 현장 식권 수령(preShares 중 source==='onsite')도 새 fetch 없이
+  // 이미 로드된 preShares에서 그대로 가져온다. getVisiblePreShares()가 이미 개별/양측
+  // 토큰에 따라 side 필터링을 해주므로 그대로 재사용.
+  const vOnsite=getVisiblePreShares().filter(t=>t.source==='onsite');
+  const TICKET_KIND_LABEL={adult:'대인',child:'소인'};
   const gL=vLogs.filter(l=>l.side==='신랑측');
   const bL=vLogs.filter(l=>l.side==='신부측');
   const hasChild=vLogs.some(l=>(l.child_ticket||0)>0);
@@ -1528,6 +1533,20 @@ function downloadExcel(){
   summaryRows.push(makeSummaryRow('전체',vLogs));
   if(currentViewSide!=='bride') summaryRows.push(makeSummaryRow('신랑측',gL));
   if(currentViewSide!=='groom') summaryRows.push(makeSummaryRow('신부측',bL));
+  // 식권 지급 요약 (봉투 접수 + 현장 별도 지급)
+  const envelopeTicketTotal=vLogs.reduce((s,l)=>s+(l.adult_ticket||0)+(l.child_ticket||0),0);
+  const onsiteTicketTotal=vOnsite.reduce((s,t)=>s+(t.amount||0),0);
+  summaryRows.push([]);
+  summaryRows.push(['[식권 지급 요약]']);
+  summaryRows.push(['봉투 접수 지급 식권',envelopeTicketTotal]);
+  summaryRows.push(['현장 별도 지급 식권',onsiteTicketTotal]);
+  summaryRows.push(['총 지급 식권',envelopeTicketTotal+onsiteTicketTotal]);
+  if(vOnsite.length){
+    summaryRows.push([]);
+    summaryRows.push(['[현장 식권 수령 내역]']);
+    summaryRows.push(['구분','이름','식권종류','수량']);
+    vOnsite.forEach(t=>summaryRows.push([t.side||'',t.person_name||'',TICKET_KIND_LABEL[t.ticket_kind]||t.ticket_kind||'',t.amount||0]));
+  }
   if(gOps.length){summaryRows.push([]);summaryRows.push(['[신랑측 운영메모]']);summaryRows.push(['시간','내용']);gOps.forEach(l=>summaryRows.push([l.time_str||'',l.content||'']));}
   if(bOps.length){summaryRows.push([]);summaryRows.push(['[신부측 운영메모]']);summaryRows.push(['시간','내용']);bOps.forEach(l=>summaryRows.push([l.time_str||'',l.content||'']));}
   summaryRows.push([]);
@@ -1624,7 +1643,12 @@ async function downloadLivePDF(){
     const _days=['일','월','화','수','목','금','토'];
     const dateStr=_d?`${schedule.date}(${_days[_d.getDay()]}) ${(schedule.time||'').slice(0,5)}`:'—';
 
-    root=await buildPdfPages({nm,dateStr,hall:schedule.hall||'—',hasChild,hasGift,sections,opsList});
+    // [식권 지급 요약 보완] 현장 식권 수령(preShares 중 source==='onsite')도 새 fetch 없이
+    // 이미 로드된 preShares에서 그대로 가져온다. getVisiblePreShares()가 이미 개별/양측
+    // 토큰에 따라 side 필터링을 해주므로 그대로 재사용.
+    const onsiteList = getVisiblePreShares().filter(t=>t.source==='onsite');
+
+    root=await buildPdfPages({nm,dateStr,hall:schedule.hall||'—',hasChild,hasGift,sections,opsList,onsiteList});
     document.body.appendChild(root);
 
     await document.fonts.ready;
@@ -1651,7 +1675,7 @@ async function downloadLivePDF(){
 
 // PDF 페이지들을 구성한다. 표 행이 페이지 경계에서 잘리지 않도록
 // 행 단위로 페이지를 미리 나눠서, 페이지마다 완전한 <table>을 새로 렌더링한다.
-async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections,opsList}){
+async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections,opsList,onsiteList}){
   const root=document.createElement('div');
   root.className='pdf-render-root';
   document.body.appendChild(root); // 임시로 붙여서 높이 측정
@@ -1706,6 +1730,25 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections,opsList}
     </tr>`;
   }
 
+  // ── 현장 식권 수령 내역 표 (구분 | 이름 | 식권종류 | 수량) ──
+  const TICKET_KIND_LABEL={adult:'대인',child:'소인'};
+  function onsiteHeaderHtml(){
+    return `<tr>
+      <th style="width:18%">구분</th>
+      <th style="width:32%">이름</th>
+      <th style="width:25%">식권종류</th>
+      <th style="width:25%">수량</th>
+    </tr>`;
+  }
+  function onsiteRowHtml(t){
+    return `<tr>
+      <td class="ctr">${(t.side||'').replace(/</g,'&lt;')}</td>
+      <td>${(t.person_name||'').replace(/</g,'&lt;')}</td>
+      <td class="ctr">${TICKET_KIND_LABEL[t.ticket_kind]||t.ticket_kind||''}</td>
+      <td class="ctr">${t.amount||0}</td>
+    </tr>`;
+  }
+
   // 헤더/섹션제목/요약 블록의 실제 렌더링 높이를 측정하기 위한 임시 박스.
   // ★ .pdf-page(높이 고정 1123px)로 측정하면 scrollHeight가 콘텐츠 크기가 아니라
   //   컨테이너의 고정 높이를 그대로 반환해버리는 버그가 있어, 높이 제약이 없는
@@ -1743,18 +1786,39 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections,opsList}
       <div class="pdfx-summary-title">총 접수 요약</div>
       <div class="pdfx-summary-row"><span>총 접수 건수</span><b>${totalCnt}건</b></div>
       <div class="pdfx-summary-row"><span>총 축의금</span><b>${money(totalAmt)}</b></div>
-      <div class="pdfx-summary-row"><span>하객 지급 식권${hasChild?' (대인)':''}</span><b>${totalAdult}매</b></div>
-      ${hasChild?`<div class="pdfx-summary-row"><span>하객 지급 식권 (소인)</span><b>${totalChild}매</b></div>`:''}
+      <div class="pdfx-summary-row"><span>봉투 접수 지급 식권${hasChild?' (대인)':''}</span><b>${totalAdult}매</b></div>
+      ${hasChild?`<div class="pdfx-summary-row"><span>봉투 접수 지급 식권 (소인)</span><b>${totalChild}매</b></div>`:''}
       ${hasGift?`<div class="pdfx-summary-row"><span>총 답례품</span><b>${totalGift}개</b></div>`:''}
     </div>`;
   measureBox.innerHTML=summaryHtml;
   const summaryH=measureBox.scrollHeight;
+
+  // ── 식권 지급 요약(봉투 접수 + 현장 별도 지급) 계산 및 측정 ──
+  // 봉투 접수 지급 식권은 위에서 이미 구한 totalAdult+totalChild(contribution_logs 합)를 그대로 재사용.
+  const envelopeTicketTotal = totalAdult + totalChild;
+  const onsiteTicketTotal = (onsiteList||[]).reduce((s,t)=>s+(t.amount||0),0);
+  const grandTicketTotal = envelopeTicketTotal + onsiteTicketTotal;
+  const ticketSummaryHtml = `
+    <div class="pdfx-summary">
+      <div class="pdfx-summary-title">식권 지급 요약</div>
+      <div class="pdfx-summary-row"><span>봉투 접수 지급 식권</span><b>${envelopeTicketTotal}매</b></div>
+      <div class="pdfx-summary-row"><span>현장 별도 지급 식권</span><b>${onsiteTicketTotal}매</b></div>
+      <div class="pdfx-summary-row"><span>총 지급 식권</span><b>${grandTicketTotal}매</b></div>
+    </div>`;
+  measureBox.innerHTML=ticketSummaryHtml;
+  const ticketSummaryH=measureBox.scrollHeight;
 
   // 운영 메모 섹션 제목/표 헤더 높이 측정 (opsList가 있을 때만 필요)
   measureBox.innerHTML=`<div class="pdfx-section-title">운영 메모</div>`;
   const opsSectionTitleH=measureBox.scrollHeight;
   measureBox.innerHTML=`<table class="pdfx-table"><thead>${opsHeaderHtml()}</thead></table>`;
   const opsHeadH=measureBox.querySelector('thead').offsetHeight;
+
+  // 현장 식권 수령 내역 섹션 제목/표 헤더 높이 측정 (onsiteList가 있을 때만 필요)
+  measureBox.innerHTML=`<div class="pdfx-section-title">현장 식권 수령 내역</div>`;
+  const onsiteSectionTitleH=measureBox.scrollHeight;
+  measureBox.innerHTML=`<table class="pdfx-table"><thead>${onsiteHeaderHtml()}</thead></table>`;
+  const onsiteHeadH=measureBox.querySelector('thead').offsetHeight;
 
   root.removeChild(measureBox);
 
@@ -1812,6 +1876,34 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections,opsList}
   }
   cur.blocks.push({type:'summary'});
   cur.used+=summaryH;
+
+  // 식권 지급 요약 블록 (봉투 접수 + 현장 별도) — 총 요약과 동일하게 통짜 블록으로 취급
+  if(cur.used+ticketSummaryH > PAGE_CONTENT_H){
+    newPage('cont');
+  }
+  cur.blocks.push({type:'ticketSummary'});
+  cur.used+=ticketSummaryH;
+
+  // 현장 식권 수령 내역 표 — 운영 메모와 동일한 행 단위 페이지 분할 방식.
+  // 현장 별도 지급 내역이 없으면 섹션 자체를 아예 추가하지 않는다.
+  if(onsiteList && onsiteList.length){
+    if(cur.used+onsiteSectionTitleH+onsiteHeadH+rowH > PAGE_CONTENT_H){
+      newPage('cont');
+    }
+    cur.blocks.push({type:'onsiteSectionTitle'});
+    cur.used+=onsiteSectionTitleH;
+    cur.blocks.push({type:'onsiteTableStart'});
+    cur.used+=onsiteHeadH;
+    onsiteList.forEach(t=>{
+      if(cur.used+rowH > PAGE_CONTENT_H){
+        newPage('cont');
+        cur.blocks.push({type:'onsiteTableStart'});
+        cur.used+=onsiteHeadH;
+      }
+      cur.blocks.push({type:'onsiteRow', log:t});
+      cur.used+=rowH;
+    });
+  }
 
   // 운영 메모 블록 — 접수내역과 동일한 "행 단위로 남은 공간 계산 → 넘치면
   // 새 페이지 + 표 헤더 반복" 방식. 메모가 없으면 섹션 자체를 아예 추가하지 않는다.
@@ -1881,6 +1973,18 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections,opsList}
       }else if(b.type==='summary'){
         if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
         html+=summaryHtml;
+      }else if(b.type==='ticketSummary'){
+        if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
+        html+=ticketSummaryHtml;
+      }else if(b.type==='onsiteSectionTitle'){
+        if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
+        html+=`<div class="pdfx-section-title">현장 식권 수령 내역</div>`;
+      }else if(b.type==='onsiteTableStart'){
+        if(tableOpen){ html+='</tbody></table>'; }
+        html+=`<table class="pdfx-table"><thead>${onsiteHeaderHtml()}</thead><tbody>`;
+        tableOpen=true;
+      }else if(b.type==='onsiteRow'){
+        html+=onsiteRowHtml(b.log);
       }else if(b.type==='opsSectionTitle'){
         if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
         html+=`<div class="pdfx-section-title">운영 메모</div>`;
