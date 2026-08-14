@@ -104,6 +104,15 @@
 
   /* ── 하단 안내 (컴팩트) ── */
   .foot-card{background:var(--card);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.05);padding:12px;border:1px solid var(--border2);margin-top:10px;font-size:10.5px;color:var(--text3);line-height:1.55}
+
+  /* ── 예약 연도 안내 (NOTICE ↔ 카카오 문의 사이) ── */
+  .year-card{background:var(--card);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.05);padding:12px 12px;border:1px solid var(--border2);margin-top:10px}
+  @media(min-width:760px){ .year-card{padding:14px 14px} }
+  .year-card h2{font-size:12px;font-weight:800;color:var(--text);margin:0 0 8px;display:flex;align-items:center;gap:5px}
+  .year-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-top:1px solid var(--border2)}
+  .year-row:first-of-type{border-top:none}
+  .year-label{flex-shrink:0;font-size:14px;font-weight:800;color:#B8935A}
+  .year-desc{font-size:11px;color:var(--text2);line-height:1.4}
   .kakao-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:#FEE500;color:#181600;font-weight:800;font-size:12.5px;border:none;border-radius:var(--radius-sm);padding:10px;margin-top:9px;cursor:pointer;text-decoration:none}
   .kakao-btn:active{opacity:.85}
 
@@ -145,6 +154,22 @@
       <div class="notice-card">
         <h2>📢 NOTICE</h2>
         <div id="notice-list"><div class="notice-empty">불러오는 중...</div></div>
+      </div>
+
+      <div class="year-card">
+        <h2>📅 예약 연도 안내</h2>
+        <div class="year-row">
+          <span class="year-label">26년</span>
+          <span class="year-desc">현재 페이지에서 잔여 일정 확인</span>
+        </div>
+        <div class="year-row">
+          <span class="year-label">27년</span>
+          <span class="year-desc">카카오톡 채널로 별도 문의</span>
+        </div>
+        <div class="year-row">
+          <span class="year-label">28년</span>
+          <span class="year-desc">아직 예약 오픈 전 · 추후 공지 예정</span>
+        </div>
       </div>
 
       <div class="foot-card">
