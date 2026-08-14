@@ -1616,11 +1616,15 @@ async function downloadLivePDF(){
     if(currentViewSide!=='bride') sections.push({label:'신랑측', list:gL});
     if(currentViewSide!=='groom') sections.push({label:'신부측', list:bL});
 
+    // [비고/운영메모 보완] downloadExcel()에서 이미 쓰는 getVisibleOpsLogs()를
+    // 그대로 재사용 — 새 계산/새 데이터 소스 없이 기존 값만 시간순 정렬해서 전달.
+    const opsList = getVisibleOpsLogs().slice().sort((a,b)=>(a.time_str||'').localeCompare(b.time_str||''));
+
     const _d=schedule.date?new Date(schedule.date+'T00:00:00'):null;
     const _days=['일','월','화','수','목','금','토'];
     const dateStr=_d?`${schedule.date}(${_days[_d.getDay()]}) ${(schedule.time||'').slice(0,5)}`:'—';
 
-    root=await buildPdfPages({nm,dateStr,hall:schedule.hall||'—',hasChild,hasGift,sections});
+    root=await buildPdfPages({nm,dateStr,hall:schedule.hall||'—',hasChild,hasGift,sections,opsList});
     document.body.appendChild(root);
 
     await document.fonts.ready;
@@ -1647,7 +1651,7 @@ async function downloadLivePDF(){
 
 // PDF 페이지들을 구성한다. 표 행이 페이지 경계에서 잘리지 않도록
 // 행 단위로 페이지를 미리 나눠서, 페이지마다 완전한 <table>을 새로 렌더링한다.
-async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
+async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections,opsList}){
   const root=document.createElement('div');
   root.className='pdf-render-root';
   document.body.appendChild(root); // 임시로 붙여서 높이 측정
@@ -1683,6 +1687,22 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
       <td class="ctr">${l.adult_ticket||0}</td>
       ${hasChild?`<td class="ctr">${l.child_ticket||0}</td>`:''}
       ${hasGift?`<td class="ctr">${l.gift_count||0}</td>`:''}
+    </tr>`;
+  }
+
+  // ── 운영 메모 표 (시간 | 구분 | 내용) — downloadExcel()과 동일하게 getVisibleOpsLogs() 데이터를 그대로 사용 ──
+  function opsHeaderHtml(){
+    return `<tr>
+      <th style="width:15%">시간</th>
+      <th style="width:18%">구분</th>
+      <th style="width:67%">내용</th>
+    </tr>`;
+  }
+  function opsRowHtml(l){
+    return `<tr>
+      <td class="ctr">${(l.time_str||'').replace(/</g,'&lt;')}</td>
+      <td class="ctr">${(l.side||'').replace(/</g,'&lt;')}</td>
+      <td>${(l.content||'').replace(/</g,'&lt;')}</td>
     </tr>`;
   }
 
@@ -1723,12 +1743,18 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
       <div class="pdfx-summary-title">총 접수 요약</div>
       <div class="pdfx-summary-row"><span>총 접수 건수</span><b>${totalCnt}건</b></div>
       <div class="pdfx-summary-row"><span>총 축의금</span><b>${money(totalAmt)}</b></div>
-      <div class="pdfx-summary-row"><span>총 식권${hasChild?' (대인)':''}</span><b>${totalAdult}매</b></div>
-      ${hasChild?`<div class="pdfx-summary-row"><span>총 식권 (소인)</span><b>${totalChild}매</b></div>`:''}
+      <div class="pdfx-summary-row"><span>하객 지급 식권${hasChild?' (대인)':''}</span><b>${totalAdult}매</b></div>
+      ${hasChild?`<div class="pdfx-summary-row"><span>하객 지급 식권 (소인)</span><b>${totalChild}매</b></div>`:''}
       ${hasGift?`<div class="pdfx-summary-row"><span>총 답례품</span><b>${totalGift}개</b></div>`:''}
     </div>`;
   measureBox.innerHTML=summaryHtml;
   const summaryH=measureBox.scrollHeight;
+
+  // 운영 메모 섹션 제목/표 헤더 높이 측정 (opsList가 있을 때만 필요)
+  measureBox.innerHTML=`<div class="pdfx-section-title">운영 메모</div>`;
+  const opsSectionTitleH=measureBox.scrollHeight;
+  measureBox.innerHTML=`<table class="pdfx-table"><thead>${opsHeaderHtml()}</thead></table>`;
+  const opsHeadH=measureBox.querySelector('thead').offsetHeight;
 
   root.removeChild(measureBox);
 
@@ -1787,6 +1813,27 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
   cur.blocks.push({type:'summary'});
   cur.used+=summaryH;
 
+  // 운영 메모 블록 — 접수내역과 동일한 "행 단위로 남은 공간 계산 → 넘치면
+  // 새 페이지 + 표 헤더 반복" 방식. 메모가 없으면 섹션 자체를 아예 추가하지 않는다.
+  if(opsList && opsList.length){
+    if(cur.used+opsSectionTitleH+opsHeadH+rowH > PAGE_CONTENT_H){
+      newPage('cont');
+    }
+    cur.blocks.push({type:'opsSectionTitle'});
+    cur.used+=opsSectionTitleH;
+    cur.blocks.push({type:'opsTableStart'});
+    cur.used+=opsHeadH;
+    opsList.forEach(l=>{
+      if(cur.used+rowH > PAGE_CONTENT_H){
+        newPage('cont');
+        cur.blocks.push({type:'opsTableStart'});
+        cur.used+=opsHeadH;
+      }
+      cur.blocks.push({type:'opsRow', log:l});
+      cur.used+=rowH;
+    });
+  }
+
   // ── 계획대로 실제 페이지 DOM 생성 ──
   plan.forEach((p,pi)=>{
     const pageEl=document.createElement('div');
@@ -1834,6 +1881,15 @@ async function buildPdfPages({nm,dateStr,hall,hasChild,hasGift,sections}){
       }else if(b.type==='summary'){
         if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
         html+=summaryHtml;
+      }else if(b.type==='opsSectionTitle'){
+        if(tableOpen){ html+='</tbody></table>'; tableOpen=false; }
+        html+=`<div class="pdfx-section-title">운영 메모</div>`;
+      }else if(b.type==='opsTableStart'){
+        if(tableOpen){ html+='</tbody></table>'; }
+        html+=`<table class="pdfx-table"><thead>${opsHeaderHtml()}</thead><tbody>`;
+        tableOpen=true;
+      }else if(b.type==='opsRow'){
+        html+=opsRowHtml(b.log);
       }
     });
     if(tableOpen) html+='</tbody></table>';
