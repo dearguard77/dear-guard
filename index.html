@@ -51,7 +51,7 @@
 
   /* BOTTOM NAV */
   #bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid var(--border2);padding:8px 0 12px;display:flex;justify-content:space-around;z-index:50}
-  .bnav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 20px;font-size:10px;color:var(--text3);font-weight:400}
+  .bnav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 12px;font-size:10px;color:var(--text3);font-weight:400}
   .bnav-btn.active{color:var(--gold);font-weight:700}
   .bnav-icon{font-size:20px}
 
@@ -1262,6 +1262,7 @@
   <button class="bnav-btn" onclick="switchTab(&#39;calendar&#39;,null,this)"><span class="bnav-icon">📅</span>일정</button>
   <button class="bnav-btn" onclick="switchTab(&#39;schedules&#39;,null,this)"><span class="bnav-icon">📋</span>전체</button>
   <button class="bnav-btn" onclick="switchTab(&#39;unavail&#39;,null,this)"><span class="bnav-icon">🚫</span>불가</button>
+  <button class="bnav-btn" id="bnav-avail" style="display:none" onclick="switchTab(&#39;avail&#39;,null,this)"><span class="bnav-icon">📅</span>잔여</button>
   <button class="bnav-btn" id="bnav-result" onclick="switchTab(&#39;result&#39;,null,this)"><span class="bnav-icon">📊</span>결과</button>
 </div>
 
@@ -2783,6 +2784,9 @@ function renderNav(){
   if(navAssignReviewBtn) navAssignReviewBtn.style.display = isAdmin ? 'block' : 'none';
   const navSheetBtn = document.getElementById('nav-sheet-btn');
   if(navSheetBtn)  navSheetBtn.style.display   = isAdmin ? 'block' : 'none';
+  // 잔여 탭(모바일 하단 진입 버튼) — PC 상단의 nav-sheet-btn과 동일하게 관리자만 노출
+  const bnavAvail = document.getElementById('bnav-avail');
+  if(bnavAvail) bnavAvail.style.display = isAdmin ? 'flex' : 'none';
   // 결과 탭 — 전체 표시 (renderResultTab 예식 드롭다운 초기화)
   const navResultBtn = document.getElementById('nav-result-btn');
   if(navResultBtn) navResultBtn.style.display = 'block';
