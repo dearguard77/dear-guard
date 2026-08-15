@@ -349,7 +349,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
           <span style="color:var(--text3)">소인 <strong style="color:#7C3AED" id="total-child">0</strong></span>
         </div>
         <div style="display:none;gap:16px;font-size:12px;margin-top:3px" id="ticket-total-gift-wrap">
-          <span style="color:var(--text3)">🎁 총 <strong style="color:#DB2777" id="total-gift-total">0</strong>개 · 지급 <strong style="color:#DB2777" id="total-gift-used">0</strong>개 · 잔여 <strong style="color:#DB2777" id="total-gift-remain">0</strong>개</span>
+          <span style="color:var(--text3)">🎁 지급 <strong style="color:#DB2777" id="total-gift-used">0</strong>개</span>
         </div>
       </div>
     </div>
@@ -765,7 +765,10 @@ function renderStats(){
   const totalGiftUsed = gGiftUsed+bGiftUsed;
   const totalGiftWrap = document.getElementById('ticket-total-gift-wrap');
   if(totalGiftWrap){
-    const showTotalGift = gHasGift || bHasGift;
+    // [고객 화면 표시 단순화] 재고 현황(총/잔여)은 고객에게 노출할 필요가 없어 숨기고,
+    // 실제 지급된 개수만 보여준다 — 지급이 1건도 없으면 행 자체를 숨긴다.
+    // totalGiftTotal/totalGiftUsed 계산 자체(gift_count 집계)는 그대로 재사용한다.
+    const showTotalGift = totalGiftUsed > 0;
     totalGiftWrap.style.display = showTotalGift ? 'flex' : 'none';
     if(showTotalGift){
       se('total-gift-total', totalGiftTotal);
@@ -1508,17 +1511,27 @@ function downloadExcel(){
   const wb=XLSX.utils.book_new();
   const vLogs=getVisibleLogs();
   const vOps=getVisibleOpsLogs();
-  // [운영 기록 통합] "운영 메모"와 "현장 식권 수령 내역"이 중복 표시되던 문제를
-  // 해결하기 위해 하나의 [운영 기록] 섹션으로 합친다. 현장 식권 등록 시
-  // operation_logs에 자동 기록되는 메모('OO님 식권 N장 수령')는 preShares 쪽에서
-  // 이미 별도 행으로 나오므로 이 정규식으로 걸러서 제외한다
-  // (logOnsiteTicketMemo()가 만드는 content 포맷과 정확히 일치).
-  const AUTO_ONSITE_MEMO_RE = /님 식권 \d+장 수령$/;
-  const vOpsFiltered = vOps.filter(l => !AUTO_ONSITE_MEMO_RE.test(l.content||''));
   // 현장 식권 수령(preShares 중 source==='onsite')도 새 fetch 없이 이미 로드된
   // preShares에서 그대로 가져온다. getVisiblePreShares()가 이미 개별/양측 토큰에
   // 따라 side 필터링을 해주므로 그대로 재사용.
   const vOnsite=getVisiblePreShares().filter(t=>t.source==='onsite');
+  // [운영 기록 통합] "운영 메모"와 "현장 식권 수령 내역"이 중복 표시되던 문제를
+  // 해결하기 위해 하나의 [운영 기록] 섹션으로 합친다. 현장 식권 등록 시
+  // operation_logs에 자동 기록되는 메모('OO님 식권 N장 수령')는 preShares 쪽에서
+  // 이미 별도 행으로 나오므로 제외해야 하는데, person_name 자체에 괄호·부가설명이
+  // 섞여 있으면(예: "오유정님 계좌이체 (가족)") 느슨한 정규식으로는 못 걸러낸다.
+  // contribution.html의 honorificName 규칙(name.endsWith('님') ? name : name+'님')이
+  // person_name 형태에 따라 '님'을 붙이거나 안 붙이는 두 경우가 실제로 관찰되어,
+  // 두 변형을 모두 정확 매칭 후보로 만들어 둘 중 하나와 완전히 일치하는
+  // operation_log만 제외한다(일반 메모는 우연히 겹쳐도 절대 제외되지 않음).
+  const toHonorific = n => (n||'').endsWith('님') ? (n||'') : (n||'')+'님';
+  const onsiteAutoMemoSet = new Set();
+  vOnsite.forEach(t => {
+    const base = t.person_name||'', amt = t.amount||0;
+    onsiteAutoMemoSet.add(base+' 식권 '+amt+'장 수령');
+    onsiteAutoMemoSet.add(toHonorific(base)+' 식권 '+amt+'장 수령');
+  });
+  const vOpsFiltered = vOps.filter(l => !onsiteAutoMemoSet.has(l.content||''));
   const gL=vLogs.filter(l=>l.side==='신랑측');
   const bL=vLogs.filter(l=>l.side==='신부측');
   const hasChild=vLogs.some(l=>(l.child_ticket||0)>0);
@@ -1643,12 +1656,22 @@ async function downloadLivePDF(){
 
     // [운영 기록 통합] "운영 메모"와 "현장 식권 수령 내역"이 중복 표시되던 문제를
     // 해결하기 위해 하나의 "운영 기록" 표로 합친다. 현장 식권 등록 시
-    // operation_logs에 자동 기록되는 메모('OO님 식권 N장 수령')는 preShares
-    // 쪽에서 이미 별도 행으로 나오므로 이 정규식으로 걸러서 제외한다
-    // (logOnsiteTicketMemo()가 만드는 content 포맷과 정확히 일치).
-    const AUTO_ONSITE_MEMO_RE = /님 식권 \d+장 수령$/;
-    const opsFiltered = getVisibleOpsLogs().filter(l => !AUTO_ONSITE_MEMO_RE.test(l.content||''));
+    // operation_logs에 자동 기록되는 메모('OO님 식권 N장 수령')는 preShares 쪽에서
+    // 이미 별도 행으로 나오므로 제외해야 하는데, person_name 자체에 괄호·부가설명이
+    // 섞여 있으면(예: "오유정님 계좌이체 (가족)") 느슨한 정규식으로는 못 걸러낸다.
+    // contribution.html의 honorificName 규칙(name.endsWith('님') ? name : name+'님')이
+    // person_name 형태에 따라 '님'을 붙이거나 안 붙이는 두 경우가 실제로 관찰되어,
+    // 두 변형을 모두 정확 매칭 후보로 만들어 둘 중 하나와 완전히 일치하는
+    // operation_log만 제외한다(일반 메모는 우연히 겹쳐도 절대 제외되지 않음).
     const onsiteList = getVisiblePreShares().filter(t=>t.source==='onsite');
+    const toHonorific = n => (n||'').endsWith('님') ? (n||'') : (n||'')+'님';
+    const onsiteAutoMemoSet = new Set();
+    onsiteList.forEach(t => {
+      const base = t.person_name||'', amt = t.amount||0;
+      onsiteAutoMemoSet.add(base+' 식권 '+amt+'장 수령');
+      onsiteAutoMemoSet.add(toHonorific(base)+' 식권 '+amt+'장 수령');
+    });
+    const opsFiltered = getVisibleOpsLogs().filter(l => !onsiteAutoMemoSet.has(l.content||''));
 
     const opsRecords = opsFiltered.map(l => ({
       timeKey: l.time_str||'', time: l.time_str||'', side: l.side||'',
