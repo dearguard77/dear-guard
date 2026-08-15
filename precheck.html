@@ -1053,6 +1053,16 @@ function applySingleSideUI(){
   const effectiveSide = sideFilter || singleSideChoice;
   const val = getRadioVal('live-mode-group');
 
+  // STEP 4 봉투 없이 식권 수령자 — 단측 진행이면 신랑/신부 선택 자체를 없애고
+  // 실제 진행측으로 고정한다(고객이 반대측을 골라 오기록하는 것을 원천 차단).
+  // 양측 진행(effectiveSide가 없음)이면 기존처럼 드롭다운을 그대로 보여준다.
+  const psSideEl = document.getElementById('ps-side');
+  if(psSideEl){
+    if(effectiveSide === 'groom'){ psSideEl.style.display = 'none'; psSideEl.value = '신랑측'; }
+    else if(effectiveSide === 'bride'){ psSideEl.style.display = 'none'; psSideEl.value = '신부측'; }
+    else { psSideEl.style.display = ''; }
+  }
+
   const gEl = document.getElementById('groom-contact-wrap');
   const bEl = document.getElementById('bride-contact-wrap');
   const gPw = document.getElementById('groom-pw-wrap');
@@ -1124,7 +1134,13 @@ function toggleGiftDetail(show){
 
 // ── 사전 공유 식권 ──
 async function addPreSharePc(){
-  const side = document.getElementById('ps-side').value;
+  // 단측 진행이면 DOM(select)의 값을 신뢰하지 않고 sideFilter/singleSideChoice로
+  // 강제한다 — 드롭다운이 style로만 숨겨져 있어도(값이 조작되더라도) 실제 저장은
+  // 항상 진행측으로 고정되도록 하기 위함. 양측 진행일 때만 select 값을 그대로 쓴다.
+  const effectiveSide = sideFilter || singleSideChoice;
+  const side = effectiveSide === 'groom' ? '신랑측'
+             : effectiveSide === 'bride' ? '신부측'
+             : document.getElementById('ps-side').value;
   const name = document.getElementById('ps-name').value.trim();
   const kind = document.getElementById('ps-kind')?.value || 'adult';
   const amount = parseInt(document.getElementById('ps-amount').value)||0;
