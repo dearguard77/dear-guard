@@ -51,7 +51,7 @@
 
   /* BOTTOM NAV */
   #bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid var(--border2);padding:8px 0 12px;display:flex;justify-content:space-around;z-index:50}
-  .bnav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 12px;font-size:10px;color:var(--text3);font-weight:400}
+  .bnav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 20px;font-size:10px;color:var(--text3);font-weight:400}
   .bnav-btn.active{color:var(--gold);font-weight:700}
   .bnav-icon{font-size:20px}
 
@@ -986,7 +986,10 @@
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div class="sec-header" style="margin-bottom:0"><h2>🚫 불가일정</h2><span>매니저별 투입 불가 날짜</span></div>
-      <button class="btn btn-primary sm" onclick="openUnavailForm(null)">＋ 불가일정 등록</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary sm" id="unavail-avail-btn" style="display:none" onclick="switchTab('avail',null,null)">⏳ 잔여</button>
+        <button class="btn btn-primary sm" onclick="openUnavailForm(null)">＋ 불가일정 등록</button>
+      </div>
     </div>
 
     <!-- 관리자 전용 필터 -->
@@ -1265,7 +1268,6 @@
   <button class="bnav-btn" onclick="switchTab(&#39;calendar&#39;,null,this)"><span class="bnav-icon">📅</span>일정</button>
   <button class="bnav-btn" onclick="switchTab(&#39;schedules&#39;,null,this)"><span class="bnav-icon">📋</span>전체</button>
   <button class="bnav-btn" onclick="switchTab(&#39;unavail&#39;,null,this)"><span class="bnav-icon">🚫</span>불가</button>
-  <button class="bnav-btn" id="bnav-avail" style="display:none" onclick="switchTab(&#39;avail&#39;,null,this)"><span class="bnav-icon">📅</span>잔여</button>
   <button class="bnav-btn" id="bnav-result" onclick="switchTab(&#39;result&#39;,null,this)"><span class="bnav-icon">📊</span>결과</button>
 </div>
 
@@ -2787,9 +2789,9 @@ function renderNav(){
   if(navAssignReviewBtn) navAssignReviewBtn.style.display = isAdmin ? 'block' : 'none';
   const navSheetBtn = document.getElementById('nav-sheet-btn');
   if(navSheetBtn)  navSheetBtn.style.display   = isAdmin ? 'block' : 'none';
-  // 잔여 탭(모바일 하단 진입 버튼) — PC 상단의 nav-sheet-btn과 동일하게 관리자만 노출
-  const bnavAvail = document.getElementById('bnav-avail');
-  if(bnavAvail) bnavAvail.style.display = isAdmin ? 'flex' : 'none';
+  // 잔여 관리 진입 버튼 — 불가 탭 내부(모바일 포함) — PC 상단의 nav-sheet-btn과 동일하게 관리자만 노출
+  const unavailAvailBtn = document.getElementById('unavail-avail-btn');
+  if(unavailAvailBtn) unavailAvailBtn.style.display = isAdmin ? 'inline-flex' : 'none';
   // 결과 탭 — 전체 표시 (renderResultTab 예식 드롭다운 초기화)
   const navResultBtn = document.getElementById('nav-result-btn');
   if(navResultBtn) navResultBtn.style.display = 'block';
