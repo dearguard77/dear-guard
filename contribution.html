@@ -2102,15 +2102,17 @@ async function addPreShare(side){
 
   // 3) 운영메모도 함께 큐잉 (식권 ADD 바로 다음 순서 — target_id에 이 ADD의 client_entry_id를 연결키로 저장)
   //    메모 큐잉 실패는 식권 등록 자체를 막지 않는 best-effort이므로 별도로 흡수한다.
+  let memoQueueId, memoPayload;
   try{
     const memoClientEntryId = genClientEntryId();
     const honorificName = name.endsWith('님') ? name : (name+'님');
     const nowD = new Date();
     const timeStr = String(nowD.getHours()).padStart(2,'0')+':'+String(nowD.getMinutes()).padStart(2,'0');
-    await idbAddAction({
+    memoPayload = { schedule_id:currentSchedule.id, time_str:timeStr, content:honorificName+' 식권 '+amount+'장 수령', side:sideVal, created_by:currentUser.name, client_entry_id:memoClientEntryId };
+    memoQueueId = await idbAddAction({
       type:'OPS_MEMO_ADD', target_id:clientEntryId, client_entry_id:memoClientEntryId,
       schedule_id:currentSchedule.id, side:sideVal,
-      payload:{ schedule_id:currentSchedule.id, time_str:timeStr, content:honorificName+' 식권 '+amount+'장 수령', side:sideVal, created_by:currentUser.name, client_entry_id:memoClientEntryId },
+      payload:memoPayload,
       created_at:new Date().toISOString()
     });
   }catch(memoErr){ console.warn('[DG] 현장 식권 운영메모 큐잉 실패(무시):', memoErr); }
@@ -2125,6 +2127,20 @@ async function addPreShare(side){
     _refreshUi();
     showToast('🎫 현장 식권 '+amount+'장 등록됨');
     setSyncStatus('synced');
+
+    // [수정] 식권 서버 저장이 성공한 김에, 연결된 운영메모(OPS_MEMO_ADD)도 전체
+    // 동기화를 기다리지 않고 기존 postWithDedup('operation_logs', ...) 방식 그대로
+    // 즉시 서버 저장을 시도한다. 성공하면 그 큐만 삭제하고, 실패하면(네트워크 오류
+    // 등) 큐를 그대로 남겨 기존 전체 동기화(processQueue의 OPS_MEMO_ADD 분기)가
+    // 나중에 재시도하도록 둔다 — 여기서 catch해서 절대 밖으로 던지지 않는다.
+    if(memoQueueId!=null && memoPayload){
+      try{
+        await postWithDedup('operation_logs', memoPayload);
+        idbDeleteAction(memoQueueId).catch(()=>{});
+      }catch(memoNetErr){
+        console.warn('[ONSITE ADD] 운영메모 즉시 저장 실패, 큐 유지(다음 전체 동기화 때 재시도):', memoNetErr);
+      }
+    }
   } catch(netErr){
     console.warn('[ONSITE ADD] 서버 실패, pending 유지', netErr);
     showToast('📴 현장 식권이 오프라인 저장되었습니다. 인터넷 연결 시 자동 동기화됩니다.');
