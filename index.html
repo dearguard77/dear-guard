@@ -1492,6 +1492,12 @@
               </label>
             </div>
           </div>
+          <!-- 짝꿍할인 적용 가능 여부 (신규 등록 시에만 노출, 기본값 체크됨) -->
+          <div class="form-field" id="f-couple-discount-enabled-wrap" style="grid-column:1/-1">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600;color:#374151">
+              <input type="checkbox" id="f-couple-discount-enabled" checked style="accent-color:#374151"> 짝꿍할인 적용 가능
+            </label>
+          </div>
           <div class="form-field">
             <label class="form-label">예식일 <span style="color:#EF4444">*</span></label>
             <input class="form-input" id="f-date" type="date">
@@ -5849,6 +5855,12 @@ function openForm(id){
   }
   document.getElementById('f-date').value    = s?.date        || '';
 
+  // 짝꿍할인 적용 가능 여부 — 신규 등록 시에만 노출(수정 화면에서는 노출/변경하지 않음), 항상 기본 체크 상태로 시작
+  const discountWrap = document.getElementById('f-couple-discount-enabled-wrap');
+  if(discountWrap) discountWrap.style.display = s ? 'none' : '';
+  const discountCb = document.getElementById('f-couple-discount-enabled');
+  if(discountCb) discountCb.checked = true;
+
   // 예식시간 분리 세팅
   const [th='', tm=''] = (s?.time || '').split(':');
   document.getElementById('f-time-h').value = th ? th.padStart(2,'0') : '';
@@ -6976,6 +6988,12 @@ async function saveForm(){
       admin_memo:      contractMemo,
       handover_person: handoverPerson || null,
     };
+  }
+
+  // 짝꿍할인 적용 가능 여부 — 신규 등록(formId 없음)일 때만 payload에 포함.
+  // 기존 예식 수정(UPDATE) 경로에는 절대 포함하지 않아 기존 데이터가 바뀌지 않도록 한다.
+  if(!formId){
+    row.couple_discount_enabled = document.getElementById('f-couple-discount-enabled')?.checked !== false;
   }
 
   const saveBtn = document.getElementById('fm-save-btn');

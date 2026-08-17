@@ -636,6 +636,11 @@ async function init(){
       document.getElementById('submit-btn').textContent = '🔒 이미 서명 완료된 계약서입니다';
     }
 
+    // 짝꿍할인 적용 가능 여부 — false인 계약만 할인코드 영역 전체 숨김 (true 또는 null이면 기존 로직 그대로 유지)
+    if(schedule.couple_discount_enabled === false){
+      const codeBox = document.querySelector('.couple-code-box');
+      if(codeBox) codeBox.style.display = 'none';
+    } else {
     // 짝꿍코드 상태 처리 (우선순위: 이미적용 > 기한만료 > 활성)
     const inp = document.getElementById('couple-code-input');
     const btn = document.getElementById('couple-code-btn');
@@ -680,6 +685,7 @@ async function init(){
         showCoupleMsg('짝꿍코드 입력 가능 기간이 종료되었습니다.\n짝꿍 할인은 계약일로부터 1주일 이내에만 신청 가능합니다.', true);
       }
     }
+    } // ← couple_discount_enabled !== false 분기 종료
 
     // ★ 짝꿍코드 상태 확정 후 결제 정보 렌더링 (coupleDiscountApplied 반영)
     renderPayment();
@@ -847,6 +853,12 @@ function showCoupleMsg(msg, isError){
 }
 
 async function applyCoupleCode(){
+  // 짝꿍할인 적용 불가 계약 — UI(입력창 숨김)를 우회해 호출되더라도 여기서 한 번 더 차단
+  if(schedule.couple_discount_enabled === false){
+    showCoupleMsg('이 계약은 짝꿍 할인을 적용할 수 없습니다.', true);
+    return;
+  }
+
   // 현재 계약에 이미 짝꿍할인 적용 여부 (신규 + 레거시 + 수동 적용 모두) — referral_code_usages 조회 전에 먼저 확인
   const _am = schedule.admin_memo || {};
   const thisContractApplied =
