@@ -2168,6 +2168,7 @@ function rowToSchedule(row){
     coupleDiscountCode:    row.couple_discount_code    || '',
     coupleDiscountStatus:  row.couple_discount_status  || 'empty',
     coupleDiscountAmount:  row.couple_discount_amount  || 0,
+    coupleDiscountEnabled: row.couple_discount_enabled,
     contractOwner: (() => {
       const raw = row.contract_owner || '';
       if(raw === 'bride') return '신부측';
@@ -4932,7 +4933,8 @@ async function openContractModal(id){
   }
 
   // couple_referral_code 없으면 이름+전화 뒷자리로 자동 생성·저장
-  if(!s.coupleReferralCode){
+  // (단, couple_discount_enabled===false인 계약은 짝꿍제도 전체 이용 불가이므로 생성하지 않음)
+  if(!s.coupleReferralCode && s.coupleDiscountEnabled !== false){
     // 계약 대표 측 기준 이름·전화 결정
     const owner = s.contractOwner || '';
     const isBride = owner === '신부측' || owner === 'bride';
@@ -5323,7 +5325,9 @@ function copyContractGuide(contractUrl, scheduleId){
   // ── 대표 짝꿍코드 ──
   const code = s?.coupleReferralCode || '';
 
-  const codeSection = code
+  // couple_discount_enabled===false인 계약은 짝꿍제도 전체 이용 불가이므로,
+  // 코드가 어떤 이유로든 존재하더라도 안내문에는 짝꿍 관련 문구를 아예 넣지 않는다.
+  const codeSection = (code && s?.coupleDiscountEnabled !== false)
     ? `\n서명 완료 후에도\n계약일로부터 1주일 이내라면\n짝꿍코드 입력이 가능합니다.\n\n💌 짝꿍코드 (${code})\n\n추천받으실 분께 위 코드를 전달해 주세요 :)\n`
     : '';
 
