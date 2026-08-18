@@ -262,23 +262,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- ⏱️ 배정 시간 빠른 계산 (참고용 — 자동 배정 가능/불가능 판정은 하지 않음) -->
 <div style="margin:8px 16px 0;background:#F9FAFB;border-radius:8px;padding:10px 14px;border:1px solid #E5E7EB">
   <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">⏱️ 배정 시간 계산</div>
-  <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:6px;flex-wrap:wrap">
-    <span style="flex-shrink:0">이전 예식</span>
-    <select id="atc-prev-hour" class="inq-input" style="width:58px;padding:5px 4px;flex:0 0 auto" onchange="calcAssignTimeGap()">
-      <option value="">--</option>
-      <option>09</option><option>10</option><option>11</option><option>12</option><option>13</option>
-      <option>14</option><option>15</option><option>16</option><option>17</option><option>18</option>
-    </select>
-    <span class="inq-colon">:</span>
-    <select id="atc-prev-min" class="inq-input" style="width:58px;padding:5px 4px;flex:0 0 auto" onchange="calcAssignTimeGap()">
-      <option value="">--</option>
-      <option value="0">00</option><option value="10">10</option><option value="20">20</option>
-      <option value="30">30</option><option value="40">40</option><option value="50">50</option>
-    </select>
-    <span id="atc-prev-end" style="margin-left:2px;color:#6B7280">→ 시간을 입력해주세요</span>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151">
+      <span style="flex-shrink:0;font-weight:600">기존 예식</span>
+      <select id="atc-a-hour" class="inq-input" style="width:58px;padding:5px 4px;flex:0 0 auto" onchange="calcAssignTimeGap()">
+        <option value="">--</option>
+        <option>09</option><option>10</option><option>11</option><option>12</option><option>13</option>
+        <option>14</option><option>15</option><option>16</option><option>17</option><option>18</option>
+      </select>
+      <span class="inq-colon">:</span>
+      <select id="atc-a-min" class="inq-input" style="width:58px;padding:5px 4px;flex:0 0 auto" onchange="calcAssignTimeGap()">
+        <option value="">--</option>
+        <option value="0">00</option><option value="10">10</option><option value="20">20</option>
+        <option value="30">30</option><option value="40">40</option><option value="50">50</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151">
+      <span style="flex-shrink:0;font-weight:600">문의 예식</span>
+      <span id="atc-b-time" style="font-weight:700;color:#111827">--:--</span>
+    </div>
   </div>
-  <div id="atc-inq-line" style="font-size:12px;color:#6B7280;margin-bottom:6px">문의 예식 -- → -- 도착 필요</div>
-  <div id="atc-gap-line" style="font-size:13px;font-weight:800;color:#9CA3AF">↔ 이전 예식 시간을 입력하면 계산됩니다</div>
+  <div id="atc-result-box" style="background:#fff;border-radius:6px;padding:9px 11px;border:1px solid #E5E7EB">
+    <div id="atc-result-line" style="font-size:12px;color:#6B7280;line-height:1.6">기존 예식 시간을 입력하면 계산됩니다</div>
+    <div id="atc-gap-line" style="font-size:12px;color:#9CA3AF;margin-top:3px"></div>
+  </div>
 </div>
 
 <div class="inq-section">
@@ -1641,9 +1648,9 @@ async function saveManualAssignment(){
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
 // ⏱️ 배정 시간 빠른 계산 — 순수 클라이언트 계산만 수행(DB 저장/조회 없음, 참고용).
-// 이전 예식 예상 종료 = 이전 예식 시간 + 40분
-// 문의 예식 도착 필요시간 = 문의 예식 시간(inq-hour/inq-min과 실시간 연동) - 80분
-// 이동 가능 시간 = 도착 필요시간 - 이전 예식 예상 종료시간
+// 기존 예식(사용자 입력)과 문의 예식(inq-hour/inq-min과 실시간 연동)을 비교해
+// 어느 쪽이 먼저인지 자동 판단한 뒤: 먼저 끝나는 예식 종료(+40분) → 나중 예식 도착 필요(-80분)
+// 이동 가능 시간 = 도착 필요시간 - 먼저 예식 종료시간
 function _atcPad(n){ return String(n).padStart(2,'0'); }
 function _atcMinToTimeStr(totalMin){
   const h = Math.floor(totalMin/60), m = totalMin%60;
@@ -1656,55 +1663,77 @@ function _atcFormatDuration(totalMin){
   return `${m}분`;
 }
 function calcAssignTimeGap(){
-  const prevHourEl = document.getElementById('atc-prev-hour');
-  const prevMinEl  = document.getElementById('atc-prev-min');
-  const prevEndEl  = document.getElementById('atc-prev-end');
-  const inqLineEl  = document.getElementById('atc-inq-line');
+  const aHourEl = document.getElementById('atc-a-hour');
+  const aMinEl  = document.getElementById('atc-a-min');
+  const bTimeEl = document.getElementById('atc-b-time');
+  const resultBox  = document.getElementById('atc-result-box');
+  const resultLine = document.getElementById('atc-result-line');
   const gapLineEl  = document.getElementById('atc-gap-line');
-  if(!prevHourEl || !prevMinEl || !prevEndEl || !inqLineEl || !gapLineEl) return;
+  if(!aHourEl || !aMinEl || !bTimeEl || !resultBox || !resultLine || !gapLineEl) return;
 
   const inqHourEl = document.getElementById('inq-hour');
   const inqMinEl  = document.getElementById('inq-min');
-  const inqHour = inqHourEl && inqHourEl.value !== '' ? parseInt(inqHourEl.value) : NaN;
-  const inqMin  = inqMinEl  && inqMinEl.value  !== '' ? parseInt(inqMinEl.value)  : NaN;
-  const hasInq = !isNaN(inqHour) && !isNaN(inqMin);
+  const bHour = inqHourEl && inqHourEl.value !== '' ? parseInt(inqHourEl.value) : NaN;
+  const bMin  = inqMinEl  && inqMinEl.value  !== '' ? parseInt(inqMinEl.value)  : NaN;
+  const hasB = !isNaN(bHour) && !isNaN(bMin);
+  bTimeEl.textContent = hasB ? `${_atcPad(bHour)}:${_atcPad(bMin)}` : '--:--';
 
-  let arriveNeedMin = null;
-  if(hasInq){
-    const inqTotalMin = inqHour*60 + inqMin;
-    arriveNeedMin = inqTotalMin - 80;
-    inqLineEl.textContent = `문의 예식 ${_atcPad(inqHour)}:${_atcPad(inqMin)} → ${_atcMinToTimeStr(arriveNeedMin)} 도착 필요`;
+  // 결과 영역을 매번 기본(중립) 상태로 초기화 — 경고 표시는 아래에서만 적용
+  resultBox.style.background = '#fff';
+  resultBox.style.borderColor = '#E5E7EB';
+
+  const hasA = aHourEl.value !== '' && aMinEl.value !== '';
+  if(!hasA){
+    // 기존 예식 시간 미입력 — 억지로 0시간 등으로 표시하지 않고 대기 상태만 표시
+    resultLine.textContent = '기존 예식 시간을 입력하면 계산됩니다';
+    resultLine.style.color = '#6B7280';
+    gapLineEl.textContent = '';
+    return;
+  }
+  if(!hasB){
+    resultLine.textContent = '문의 예식 시간을 입력하면 계산됩니다';
+    resultLine.style.color = '#6B7280';
+    gapLineEl.textContent = '';
+    return;
+  }
+
+  const aTotalMin = parseInt(aHourEl.value)*60 + parseInt(aMinEl.value);
+  const bTotalMin = bHour*60 + bMin;
+
+  // 두 본식시간을 비교해 어느 예식이 먼저인지 자동 판단 (같은 시각이면 A를 먼저로 간주 —
+  // 이 경우 아래 gapMin이 반드시 음수가 되어 자동으로 경고 표시됨)
+  let firstLabel, secondLabel, endMin, needMin;
+  if(aTotalMin <= bTotalMin){
+    firstLabel = '기존 예식'; secondLabel = '문의 예식';
+    endMin  = aTotalMin + 40;
+    needMin = bTotalMin - 80;
   } else {
-    inqLineEl.textContent = '문의 예식 -- → -- 도착 필요';
+    firstLabel = '문의 예식'; secondLabel = '기존 예식';
+    endMin  = bTotalMin + 40;
+    needMin = aTotalMin - 80;
   }
 
-  const hasPrev = prevHourEl.value !== '' && prevMinEl.value !== '';
-  if(!hasPrev){
-    // 이전 예식 시간 미입력 — 억지로 0시간 등으로 표시하지 않고 대기 상태만 표시
-    prevEndEl.textContent = '→ 시간을 입력해주세요';
-    gapLineEl.textContent = '↔ 이전 예식 시간을 입력하면 계산됩니다';
-    gapLineEl.style.color = '#9CA3AF';
-    return;
-  }
+  const gapMin  = needMin - endMin;
+  const endStr  = _atcMinToTimeStr(endMin);
+  const needStr = _atcMinToTimeStr(needMin);
+  const timeColor = gapMin < 0 ? '#DC2626' : '#111827';
 
-  const prevTotalMin = parseInt(prevHourEl.value)*60 + parseInt(prevMinEl.value);
-  const prevEndMin = prevTotalMin + 40;
-  prevEndEl.textContent = `→ ${_atcMinToTimeStr(prevEndMin)} 종료`;
-  prevEndEl.style.color = '#374151';
+  // 종료/도착 필요 시간 숫자를 주변 설명보다 굵고 크게 강조
+  resultLine.innerHTML = `${firstLabel} 종료 <b style="font-size:16px;color:${timeColor}">${endStr}</b> → ${secondLabel} 도착 필요 <b style="font-size:16px;color:${timeColor}">${needStr}</b>`;
+  resultLine.style.color = '#374151';
 
-  if(!hasInq){
-    gapLineEl.textContent = '↔ 문의 예식 시간을 입력하면 계산됩니다';
-    gapLineEl.style.color = '#9CA3AF';
-    return;
-  }
-
-  const gapMin = arriveNeedMin - prevEndMin;
   if(gapMin < 0){
-    gapLineEl.textContent = `⚠️ 도착 필요시간보다 ${_atcFormatDuration(-gapMin)} 초과`;
+    gapLineEl.textContent = `⚠️ 도착 필요시간보다 ${_atcFormatDuration(-gapMin)} 부족`;
     gapLineEl.style.color = '#DC2626';
+    gapLineEl.style.fontWeight = '800';
+    gapLineEl.style.fontSize = '14px';
+    resultBox.style.background = '#FEF2F2';
+    resultBox.style.borderColor = '#FCA5A5';
   } else {
     gapLineEl.textContent = `↔ 이동 가능 ${_atcFormatDuration(gapMin)}`;
-    gapLineEl.style.color = '#059669';
+    gapLineEl.style.color = '#2563EB';
+    gapLineEl.style.fontWeight = '800';
+    gapLineEl.style.fontSize = '14px';
   }
 }
 
