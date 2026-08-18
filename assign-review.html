@@ -259,6 +259,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div id="bulkRegLog" style="margin:4px 16px 0;font-size:11px;color:#374151;display:none;background:#fff;border-radius:8px;padding:10px;border:1px solid #E5E7EB;max-height:160px;overflow-y:auto;line-height:1.8"></div>
 
+<!-- ⏱️ 배정 시간 빠른 계산 (참고용 — 자동 배정 가능/불가능 판정은 하지 않음) -->
+<div style="margin:8px 16px 0;background:#F9FAFB;border-radius:8px;padding:10px 14px;border:1px solid #E5E7EB">
+  <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">⏱️ 배정 시간 계산</div>
+  <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;margin-bottom:6px;flex-wrap:wrap">
+    <span style="flex-shrink:0">이전 예식</span>
+    <select id="atc-prev-hour" class="inq-input" style="width:58px;padding:5px 4px;flex:0 0 auto" onchange="calcAssignTimeGap()">
+      <option value="">--</option>
+      <option>09</option><option>10</option><option>11</option><option>12</option><option>13</option>
+      <option>14</option><option>15</option><option>16</option><option>17</option><option>18</option>
+    </select>
+    <span class="inq-colon">:</span>
+    <select id="atc-prev-min" class="inq-input" style="width:58px;padding:5px 4px;flex:0 0 auto" onchange="calcAssignTimeGap()">
+      <option value="">--</option>
+      <option value="0">00</option><option value="10">10</option><option value="20">20</option>
+      <option value="30">30</option><option value="40">40</option><option value="50">50</option>
+    </select>
+    <span id="atc-prev-end" style="margin-left:2px;color:#6B7280">→ 시간을 입력해주세요</span>
+  </div>
+  <div id="atc-inq-line" style="font-size:12px;color:#6B7280;margin-bottom:6px">문의 예식 -- → -- 도착 필요</div>
+  <div id="atc-gap-line" style="font-size:13px;font-weight:800;color:#9CA3AF">↔ 이전 예식 시간을 입력하면 계산됩니다</div>
+</div>
+
 <div class="inq-section">
   <div class="inq-header">
     <div>
@@ -275,13 +297,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="inq-field">
         <label>예식 시간</label>
         <div class="inq-time-wrap">
-          <select class="inq-input" id="inq-hour" style="flex:1">
+          <select class="inq-input" id="inq-hour" style="flex:1" onchange="calcAssignTimeGap()">
             <option>09</option><option>10</option><option>11</option>
             <option selected>12</option><option>13</option><option>14</option>
             <option>15</option><option>16</option><option>17</option><option>18</option>
           </select>
           <span class="inq-colon">:</span>
-          <select class="inq-input" id="inq-min" style="flex:1">
+          <select class="inq-input" id="inq-min" style="flex:1" onchange="calcAssignTimeGap()">
             <option value="0">00</option><option value="10">10</option>
             <option value="20">20</option><option value="30">30</option>
             <option value="40">40</option><option value="50">50</option>
@@ -1618,6 +1640,74 @@ async function saveManualAssignment(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
+// ⏱️ 배정 시간 빠른 계산 — 순수 클라이언트 계산만 수행(DB 저장/조회 없음, 참고용).
+// 이전 예식 예상 종료 = 이전 예식 시간 + 40분
+// 문의 예식 도착 필요시간 = 문의 예식 시간(inq-hour/inq-min과 실시간 연동) - 80분
+// 이동 가능 시간 = 도착 필요시간 - 이전 예식 예상 종료시간
+function _atcPad(n){ return String(n).padStart(2,'0'); }
+function _atcMinToTimeStr(totalMin){
+  const h = Math.floor(totalMin/60), m = totalMin%60;
+  return `${_atcPad(h)}:${_atcPad(m)}`;
+}
+function _atcFormatDuration(totalMin){
+  const h = Math.floor(totalMin/60), m = totalMin%60;
+  if(h>0 && m>0) return `${h}시간 ${m}분`;
+  if(h>0) return `${h}시간`;
+  return `${m}분`;
+}
+function calcAssignTimeGap(){
+  const prevHourEl = document.getElementById('atc-prev-hour');
+  const prevMinEl  = document.getElementById('atc-prev-min');
+  const prevEndEl  = document.getElementById('atc-prev-end');
+  const inqLineEl  = document.getElementById('atc-inq-line');
+  const gapLineEl  = document.getElementById('atc-gap-line');
+  if(!prevHourEl || !prevMinEl || !prevEndEl || !inqLineEl || !gapLineEl) return;
+
+  const inqHourEl = document.getElementById('inq-hour');
+  const inqMinEl  = document.getElementById('inq-min');
+  const inqHour = inqHourEl && inqHourEl.value !== '' ? parseInt(inqHourEl.value) : NaN;
+  const inqMin  = inqMinEl  && inqMinEl.value  !== '' ? parseInt(inqMinEl.value)  : NaN;
+  const hasInq = !isNaN(inqHour) && !isNaN(inqMin);
+
+  let arriveNeedMin = null;
+  if(hasInq){
+    const inqTotalMin = inqHour*60 + inqMin;
+    arriveNeedMin = inqTotalMin - 80;
+    inqLineEl.textContent = `문의 예식 ${_atcPad(inqHour)}:${_atcPad(inqMin)} → ${_atcMinToTimeStr(arriveNeedMin)} 도착 필요`;
+  } else {
+    inqLineEl.textContent = '문의 예식 -- → -- 도착 필요';
+  }
+
+  const hasPrev = prevHourEl.value !== '' && prevMinEl.value !== '';
+  if(!hasPrev){
+    // 이전 예식 시간 미입력 — 억지로 0시간 등으로 표시하지 않고 대기 상태만 표시
+    prevEndEl.textContent = '→ 시간을 입력해주세요';
+    gapLineEl.textContent = '↔ 이전 예식 시간을 입력하면 계산됩니다';
+    gapLineEl.style.color = '#9CA3AF';
+    return;
+  }
+
+  const prevTotalMin = parseInt(prevHourEl.value)*60 + parseInt(prevMinEl.value);
+  const prevEndMin = prevTotalMin + 40;
+  prevEndEl.textContent = `→ ${_atcMinToTimeStr(prevEndMin)} 종료`;
+  prevEndEl.style.color = '#374151';
+
+  if(!hasInq){
+    gapLineEl.textContent = '↔ 문의 예식 시간을 입력하면 계산됩니다';
+    gapLineEl.style.color = '#9CA3AF';
+    return;
+  }
+
+  const gapMin = arriveNeedMin - prevEndMin;
+  if(gapMin < 0){
+    gapLineEl.textContent = `⚠️ 도착 필요시간보다 ${_atcFormatDuration(-gapMin)} 초과`;
+    gapLineEl.style.color = '#DC2626';
+  } else {
+    gapLineEl.textContent = `↔ 이동 가능 ${_atcFormatDuration(gapMin)}`;
+    gapLineEl.style.color = '#059669';
+  }
+}
+
 async function init(){
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('dateInp').value=today;
@@ -1628,6 +1718,7 @@ async function init(){
   await loadVenues();
   await loadInqVenues();
   await onDateChange();
+  calcAssignTimeGap();
 }
 
 async function onDateChange(){
