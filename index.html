@@ -6152,10 +6152,36 @@ function parseWon(el){
 }
 
 // ── 임금 기준 세그먼트 버튼 ↔ 숨김 체크박스(f-use-new-rate) 동기화 ──────────
-// f-use-new-rate의 저장/적용 로직 자체는 변경하지 않고, 버튼 UI 표시만 담당
+// 버튼을 명시적으로 클릭했을 때만 호출된다(페이지 진입/예식 수정 시에는 호출되지 않음).
+// 클릭 시 현재 폼에 배정된 Front/Back 담당자 전체 + 추가 인원의 일급을 새 기준으로
+// 즉시 강제 재지정한다. resolveManagerRateInfo()의 "관리자 직접 입력(manual)" 최우선
+// 분기를 그대로 재사용하므로, 담당자 유지 시 저장값을 동결하는 기존 보호 로직 자체는
+// 전혀 건드리지 않는다 — 이 함수가 호출된 경우에만 그 분기를 의도적으로 타게 만들 뿐이다.
 function setWageBasis(isNew){
   const cb = document.getElementById('f-use-new-rate');
   if(cb) cb.checked = isNew;
+
+  const region    = document.getElementById('f-labor-region')?.value || '대전';
+  const rateTable = isNew ? LABOR_RATES_NEW : LABOR_RATES_OLD;
+  const newRate   = rateTable[region] || rateTable['대전'];
+
+  // 현재 폼에 배정돼 있는 Front/Back 담당자 전체(빈 슬롯·관리자 제외) 일급을 새 기준으로 강제 지정
+  ['front1','front2','back1','back2'].forEach(slot => {
+    const name  = (document.getElementById('f-' + slot)?.value || '').trim();
+    const rateEl = document.getElementById('f-rate-' + slot);
+    if(!rateEl || !name || ADMIN_NAMES.includes(name)) return;
+    rateEl.value = formatWon(newRate);
+    rateEl.dataset.manual = '1';
+    rateEl.dataset.manualName = name;
+  });
+
+  // 추가 인원 단가도 동일 기준으로 갱신 (인원수는 그대로, 기존 추가인원 판정 로직은 재사용만 함)
+  const extraRateEl = document.getElementById('f-rate-extra');
+  if(extraRateEl){
+    extraRateEl.value = formatWon(newRate);
+    extraRateEl.dataset.manual = '1';
+  }
+
   syncWageBasisButtons();
   renderManagerRatePanel();
   calcSettlement();
