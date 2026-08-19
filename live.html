@@ -44,7 +44,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 #error-screen h2{font-size:17px;font-weight:700}
 #error-screen p{font-size:13px;color:var(--text3);line-height:1.7}
 /* ── App Shell ── */
-#app{display:none;height:100vh;flex-direction:column;overflow:hidden}
+#app{display:none;height:100vh;height:100dvh;flex-direction:column;overflow:hidden}
 /* ── Header ── */
 #hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:0;flex-shrink:0;display:grid;grid-template-columns:1fr 1fr}
 /* ── Wedding Info Panel ── */
@@ -150,14 +150,14 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 /* ── Table ── */
 #tbl-wrap{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
 .tbl-head{display:flex;align-items:center;background:var(--bg3);border-bottom:1px solid var(--border);flex-shrink:0;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
-.tbl-body{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+.tbl-body{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch;padding-bottom:14px;scroll-padding-bottom:14px}
 #split-wrap{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;min-height:0}
 .side-col{display:flex;flex-direction:column;overflow:hidden;min-height:0;border-right:1px solid var(--border)}
 .side-col:last-child{border-right:none}
 .side-col-hdr{padding:7px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--bg2)}
 .side-col-hdr.groom{border-top:2px solid var(--blue)}
 .side-col-hdr.bride{border-top:2px solid var(--pink)}
-.side-col-body{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+.side-col-body{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch;padding-bottom:14px;scroll-padding-bottom:14px}
 .tbl-row{display:flex;align-items:flex-start;border-bottom:1px solid #EEECEA;font-size:13px;min-height:44px;background:var(--bg2);padding:2px 0}
 .tbl-row:hover{background:#FAFAF9}
 .tbl-row.new-item{animation:fadeIn .3s ease;background:#FFFDF5}
@@ -189,6 +189,11 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:2px}
+/* PC(901px 이상)에서는 스크롤 존재를 인지할 수 있도록 더 두껍게 — 모바일은 위 기본값(3px) 그대로 유지 */
+@media(min-width:901px){
+  ::-webkit-scrollbar{width:8px}
+  ::-webkit-scrollbar-thumb{border-radius:4px}
+}
 /* ── Compact handover rows ── */
 .ho-compact-row{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;margin-bottom:6px}
 .ho-compact-row.links{grid-template-columns:1fr 1fr 1fr}
