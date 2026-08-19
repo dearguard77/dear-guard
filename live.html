@@ -137,7 +137,7 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 /* ── Left Panel Tabs ── */
 #live-ho-tab-bar{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
 /* ── Center Panel ── */
-#center-panel{overflow:hidden;display:flex;flex-direction:column;background:var(--bg2)}
+#center-panel{overflow:hidden;min-height:0;display:flex;flex-direction:column;background:var(--bg2)}
 #tbl-ctrl{padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;background:var(--bg2)}
 .tbl-ctrl-title{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap}
 .ctrl-select{height:28px;border:1px solid var(--border);border-radius:var(--radius);padding:0 8px;font-size:11px;background:var(--bg2);color:var(--text);cursor:pointer;outline:none;font-family:inherit}
@@ -150,14 +150,14 @@ html,body{height:100%;background:var(--bg);font-family:'Pretendard','Apple SD Go
 /* ── Table ── */
 #tbl-wrap{overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
 .tbl-head{display:flex;align-items:center;background:var(--bg3);border-bottom:1px solid var(--border);flex-shrink:0;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
-.tbl-body{overflow-y:auto;flex:1}
+.tbl-body{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
 #split-wrap{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;min-height:0}
-.side-col{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+.side-col{display:flex;flex-direction:column;overflow:hidden;min-height:0;border-right:1px solid var(--border)}
 .side-col:last-child{border-right:none}
 .side-col-hdr{padding:7px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--bg2)}
 .side-col-hdr.groom{border-top:2px solid var(--blue)}
 .side-col-hdr.bride{border-top:2px solid var(--pink)}
-.side-col-body{overflow-y:auto;flex:1}
+.side-col-body{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
 .tbl-row{display:flex;align-items:flex-start;border-bottom:1px solid #EEECEA;font-size:13px;min-height:44px;background:var(--bg2);padding:2px 0}
 .tbl-row:hover{background:#FAFAF9}
 .tbl-row.new-item{animation:fadeIn .3s ease;background:#FFFDF5}
