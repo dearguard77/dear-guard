@@ -923,7 +923,7 @@ function lbProcessQueue(){
   se('lb-tickets',toTickets+'장');
   lbAnimateAmount(fromAmt,toAmt,function(v){
     se('lb-total-amount',fmt(Math.round(v)));
-    var pct=lbFinalTotal>0?(v/lbFinalTotal*100):0;
+    var pct=lbFinalCount>0?(toCount/lbFinalCount*100):0;
     lbSetGauge(pct,toCount,lbFinalCount);
   },function(){
     lbDisplayedAmount=toAmt; lbDisplayedCount=toCount; lbDisplayedTickets=toTickets;
@@ -945,7 +945,7 @@ function lbRecalcInstant(t){
   se('lb-total-amount',fmt(amt));
   se('lb-count',cnt+'건');
   se('lb-tickets',tkt+'장');
-  var pct=lbFinalTotal>0?(amt/lbFinalTotal*100):0;
+  var pct=lbFinalCount>0?(cnt/lbFinalCount*100):0;
   lbSetGauge(pct,cnt,lbFinalCount);
 }
 
