@@ -652,16 +652,22 @@ async function init(){
     coupleDiscountCode    = '';
     if(inp) inp.value = '';
 
-    // 현재 계약의 짝꿍할인 적용 여부 (신규: status='approved' / 레거시: code·amount·admin_memo 기준)
+    // 현재 계약의 짝꿍할인 적용 여부를 A(실제 코드 승인)/B(관리자 수동 할인)로 독립 판정한 뒤 결합한다.
+    // A: 실제 짝꿍코드 승인 상태 — couple_discount_status가 명시적으로 cancelled면 A는 꺼진 것으로 취급.
+    // B: 계약참고 탭의 "짝꿍 할인(-1만)" 체크박스(admin_memo.couple_discount) — 실제 추천관계 데이터
+    //    (couple_discount_status/code, referral_code_usages, 상대방 할인)와는 완전히 독립적이며,
+    //    A가 cancelled 상태여도 B는 별도로 켜져 있을 수 있으므로 cancelled 여부로 걸러서는 안 된다.
     const am = schedule.admin_memo || {};
-    const alreadyApplied =
-      schedule.couple_discount_status === 'approved' ||
-      (schedule.couple_discount_code && schedule.couple_discount_code.trim() !== '') ||
-      (Number(schedule.couple_discount_amount) > 0) ||
-      am.couple_discount === true; // 계약참고 프리셋에 "짝꿍할인 -1" 체크된 레거시 계약
+    const aApplied =
+      (schedule.couple_discount_status === 'approved' ||
+       (schedule.couple_discount_code && schedule.couple_discount_code.trim() !== ''))
+      && schedule.couple_discount_status !== 'cancelled';
+    const bApplied = am.couple_discount === true;
+    const alreadyApplied = aApplied || bApplied;
 
-    if(alreadyApplied && schedule.couple_discount_status !== 'cancelled'){
-      // 이미 적용됨 (신규 + 레거시 모두) — referral_code_usages 검증 없이 기존 할인으로 처리
+    if(alreadyApplied){
+      // 이미 적용됨 (A 또는 B) — referral_code_usages 검증 없이 기존 할인으로 처리
+      // couple_discount_amount가 0/미설정이어도(=B만 적용된 경우) 10,000원 폴백으로 정확히 계산됨
       coupleDiscountApplied = true;
       coupleDiscountAmount  = Number(schedule.couple_discount_amount) || 10000;
       coupleDiscountCode    = schedule.couple_discount_code || '';
@@ -670,6 +676,7 @@ async function init(){
       if(btn){ btn.textContent = '적용 완료'; }
       showCoupleMsg('🟢 짝꿍할인이 적용되었습니다. (-10,000원)', false);
     } else if(schedule.couple_discount_status === 'cancelled'){
+      // A도 B도 없을 때만 "취소된 계약" 안내 (B가 살아있으면 위 if 블록에서 이미 처리되어 여기로 오지 않음)
       showCoupleMsg('짝꿍 할인이 취소된 계약입니다. 이미지 저장 버튼으로 최신 계약서를 새로 저장해주세요.', false);
       if(schedule.contract_signed && schedule.contract_signed_at){
         const signedMs  = new Date(schedule.contract_signed_at).getTime();
@@ -859,16 +866,10 @@ async function applyCoupleCode(){
     return;
   }
 
-  // 현재 계약에 이미 짝꿍할인 적용 여부 (신규 + 레거시 + 수동 적용 모두) — referral_code_usages 조회 전에 먼저 확인
-  const _am = schedule.admin_memo || {};
-  const thisContractApplied =
-    coupleDiscountApplied ||
-    schedule.couple_discount_status === 'approved' ||
-    (schedule.couple_discount_code && schedule.couple_discount_code.trim() !== '') ||
-    (Number(schedule.couple_discount_amount) > 0) ||
-    _am.couple_discount === true; // 계약참고 프리셋 "짝꿍할인 -1" 레거시 계약
-
-  if(thisContractApplied && schedule.couple_discount_status !== 'cancelled'){
+  // 현재 계약에 이미 짝꿍할인 적용 여부 — init()에서 이미 A(실제 코드 승인)||B(관리자 수동 할인)로
+  // 정확히 계산해둔 전역값을 그대로 재사용한다(여기서 다시 계산하면 A 전용 필드로 B까지 게이팅하는
+  // 동일한 버그가 재발할 수 있어 재계산하지 않는다).
+  if(coupleDiscountApplied){
     // 현재 계약의 기존 할인 → "이미 사용된 코드" 오류 아님, "이미 적용됨"으로 표시
     showCoupleMsg('🟢 짝꿍할인이 적용되었습니다. (-10,000원)', false);
     return;

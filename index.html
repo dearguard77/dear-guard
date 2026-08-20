@@ -5700,18 +5700,34 @@ async function cancelCoupleDiscount(id){
       couple_discount: false,
       text: existingAm.text ? existingAm.text + '\n\n' + memoEntry : memoEntry,
     };
-    await sbSchedulePatch(id, {
+    const patch = {
       couple_discount_code:   null,
       couple_discount_status: 'cancelled',
       couple_discount_amount: 0,
       admin_memo:             newAdminMemo,
       contract_pdf_url:       null,
-    });
+    };
+    // applyReferralCodeAsAdmin()과 동일한 패턴 — 서명 완료된 계약만 balance_price를 즉시 재계산해
+    // 저장한다(취소로 사라진 10,000원 할인을 잔금에 다시 반영). s는 클라이언트 캐시 객체(camelCase)이므로
+    // calcSettlementForReferralAdmin()이 기대하는 snake_case로 명시적으로 변환해서 전달한다.
+    let balanceRecalculated = false;
+    if(s.contractSigned){
+      const { finalBalance } = calcSettlementForReferralAdmin({
+        admin_memo:      newAdminMemo,
+        deposit_price:   s.depositPrice,
+        total_price:     s.totalPrice,
+        couple_discount_amount: 0,
+      }, false);
+      patch.balance_price = finalBalance;
+      balanceRecalculated = true;
+    }
+    await sbSchedulePatch(id, patch);
     s.coupleDiscountCode   = '';
     s.coupleDiscountStatus = 'cancelled';
     s.coupleDiscountAmount = 0;
     s.adminMemo            = newAdminMemo;
     s.contractPdfUrl       = '';
+    if(balanceRecalculated) s.balancePrice = patch.balance_price;
     // referral_code_usages cancelled 처리
     try{
       const usageRows = await sb.get('referral_code_usages',
