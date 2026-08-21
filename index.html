@@ -3800,10 +3800,11 @@ function renderPrecheckReminder(){
   const el = document.getElementById('precheck-reminder-list');
   if(!el) return;
 
-  // D-8 ~ D-15 예식만 추출 (visible()로 권한 필터 적용)
+  // D-16 ~ D-1 예식만 추출 (visible()로 권한 필터 적용)
+  // 운영 기준: D-16 체크리스트/잔금 안내 시작 ~ D-7까지 작성 마감
   const list = visible().filter(s => {
     const diff = Math.ceil((new Date(s.date) - new Date(TODAY)) / 86400000);
-    return diff >= 8 && diff <= 15;
+    return diff >= 1 && diff <= 16;
   }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
   if(!list.length){
@@ -3811,7 +3812,8 @@ function renderPrecheckReminder(){
     return;
   }
 
-  el.innerHTML = list.map(s => {
+  // 카드 HTML — 기존 렌더링 로직과 완전히 동일(디자인/배지/정렬/클릭 동작 무변경), 그룹별 재사용을 위해 함수로만 분리
+  const renderCard = (s) => {
     const diff = Math.ceil((new Date(s.date) - new Date(TODAY)) / 86400000);
     const dday = `D-${diff}`;
     // D-8~D-10만 주황 계열로 강조, D-11~D-15는 기존 색상 그대로 (텍스트 색상만 구분, 카드/배지/정렬 등은 무변경)
@@ -3854,7 +3856,22 @@ function renderPrecheckReminder(){
           ${balanceBadge}
         </div>
       </div>`;
-  }).join('');
+  };
+
+  // D-day 업무 구간별 소제목 (요청 순서 고정: 마감임박 → 작성확인중 → 오늘안내). 0명이면 소제목 자체를 표시하지 않음.
+  const dOf = (s) => Math.ceil((new Date(s.date) - new Date(TODAY)) / 86400000);
+  const groups = [
+    { label: '🔴 마감 임박',   range: 'D-7 ~ D-1',  items: list.filter(s => dOf(s) >= 1 && dOf(s) <= 7) },
+    { label: '🟠 작성 확인 중', range: 'D-15 ~ D-8', items: list.filter(s => dOf(s) >= 8 && dOf(s) <= 15) },
+    { label: '🔵 오늘 안내',   range: 'D-16',        items: list.filter(s => dOf(s) === 16) },
+  ];
+
+  el.innerHTML = groups.filter(g => g.items.length).map(g => `
+    <div style="font-size:12px;font-weight:700;color:#374151;margin:14px 0 8px;padding-left:2px">
+      ${g.label}<span style="font-size:11px;font-weight:400;color:#9CA3AF;margin-left:6px">${g.range}</span>
+    </div>
+    ${g.items.map(renderCard).join('')}
+  `).join('');
 }
 
 function renderCalendar(){
