@@ -904,14 +904,14 @@
 
     <div class="sec-header" id="upcoming-header" style="margin-top:20px">
       <h2>다가오는 일정</h2>
-      <span>D-7 이내</span>
+      <span>D-1 ~ D-8</span>
     </div>
     <div id="upcoming-list"></div>
 
     <!-- 본식 준비 체크 & 잔금 확인 알림 카드 -->
     <div class="sec-header" id="precheck-header" style="margin-top:20px">
       <h2>본식 준비 체크 &amp; 잔금 확인</h2>
-      <span>D-8 ~ D-16</span>
+      <span>D-9 ~ D-17</span>
     </div>
     <div id="precheck-reminder-list"></div>
   </div>
@@ -3768,10 +3768,10 @@ async function renderTodayOpsSummary(){
 function renderUpcoming(){
   const list = visible().filter(s=>{
     const daysUntil=Math.ceil((new Date(s.date)-new Date(TODAY))/86400000);
-    return daysUntil>=1&&daysUntil<=7;
+    return daysUntil>=1&&daysUntil<=8;
   }).sort((a,b)=>new Date(a.date)-new Date(b.date));
   const el = document.getElementById('upcoming-list');
-  if(!list.length){ el.innerHTML='<div class="empty-state">7일 내 예정된 일정이 없습니다</div>'; return; }
+  if(!list.length){ el.innerHTML='<div class="empty-state">8일 내 예정된 일정이 없습니다</div>'; return; }
   el.innerHTML = list.map(s=>{
     const dday=getDday(s.date);
     const dbg=dday==='D-1'?'#FEF2F2':dday==='D-3'?'#FFFBEB':'#EFF6FF';
@@ -3800,11 +3800,11 @@ function renderPrecheckReminder(){
   const el = document.getElementById('precheck-reminder-list');
   if(!el) return;
 
-  // D-16 ~ D-8 예식만 추출 (visible()로 권한 필터 적용)
-  // D-day는 오늘 운영현황, D-1~D-7은 다가오는 일정이 전담하므로 여기서는 D-8~D-16만 다룬다
+  // D-17 ~ D-9 예식만 추출 (visible()로 권한 필터 적용)
+  // D-day는 오늘 운영현황, D-1~D-8은 다가오는 일정이 전담하므로 여기서는 D-9~D-17만 다룬다
   const list = visible().filter(s => {
     const diff = Math.ceil((new Date(s.date) - new Date(TODAY)) / 86400000);
-    return diff >= 8 && diff <= 16;
+    return diff >= 9 && diff <= 17;
   }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
   if(!list.length){
@@ -3859,12 +3859,14 @@ function renderPrecheckReminder(){
   };
 
   // D-day 업무 구간별 소제목 (요청 순서 고정: 작성확인중 → 안내대상). 0명이면 소제목 자체를 표시하지 않음.
-  // D-day는 '오늘 운영현황', D-1~D-7은 '다가오는 일정'이 각각 전담하므로 여기서는 D-8~D-16만 다뤄
+  // D-day는 '오늘 운영현황', D-1~D-8은 '다가오는 일정'이 각각 전담하므로 여기서는 D-9~D-17만 다뤄
   // 세 섹션 사이에 동일 예식이 중복 노출되지 않는다.
+  // 안내 대상(D-16~D-17)은 목요일쯤 그다다음 주 토·일 예식자에게 체크리스트/잔금 안내를 일괄 발송하는
+  // 운영 기준에 맞춰 이틀을 한 그룹으로 묶는다.
   const dOf = (s) => Math.ceil((new Date(s.date) - new Date(TODAY)) / 86400000);
   const groups = [
-    { label: '🟠 작성 확인 중', range: 'D-14 ~ D-8',  items: list.filter(s => dOf(s) >= 8 && dOf(s) <= 14) },
-    { label: '🔵 안내 대상',   range: 'D-16 ~ D-15', items: list.filter(s => dOf(s) >= 15 && dOf(s) <= 16) },
+    { label: '🟠 작성 확인 중', range: 'D-15 ~ D-9',  items: list.filter(s => dOf(s) >= 9 && dOf(s) <= 15) },
+    { label: '🔵 안내 대상',   range: 'D-17 ~ D-16', items: list.filter(s => dOf(s) >= 16 && dOf(s) <= 17) },
   ];
 
   el.innerHTML = groups.filter(g => g.items.length).map(g => `
