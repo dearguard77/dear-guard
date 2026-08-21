@@ -3865,7 +3865,7 @@ function renderPrecheckReminder(){
   const groups = [
     { label: '🔴 마감 임박',   range: 'D-7 ~ D-1',   items: list.filter(s => dOf(s) >= 1 && dOf(s) <= 7) },
     { label: '🟠 작성 확인 중', range: 'D-14 ~ D-8',  items: list.filter(s => dOf(s) >= 8 && dOf(s) <= 14) },
-    { label: '🔵 안내 준비',   range: 'D-16 ~ D-15', items: list.filter(s => dOf(s) >= 15 && dOf(s) <= 16) },
+    { label: '🔵 안내 대상',   range: 'D-16 ~ D-15', items: list.filter(s => dOf(s) >= 15 && dOf(s) <= 16) },
   ];
 
   el.innerHTML = groups.filter(g => g.items.length).map(g => `
