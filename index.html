@@ -8769,8 +8769,8 @@ async function rtLoadSchedule(){
   const bUsed      = bLogs.reduce((s,l)=>s+(l.adult_ticket||0),0);
   const gExtra     = tickets.filter(t=>t.type==='extra'&&t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
   const bExtra     = tickets.filter(t=>t.type==='extra'&&t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
-  const gPreShare  = tickets.filter(t=>t.type==='pre_share'&&t.side==='신랑측').reduce((s,t)=>s+(t.amount||0),0);
-  const bPreShare  = tickets.filter(t=>t.type==='pre_share'&&t.side==='신부측').reduce((s,t)=>s+(t.amount||0),0);
+  const gPreShare  = tickets.filter(t=>t.type==='pre_share'&&t.side==='신랑측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
+  const bPreShare  = tickets.filter(t=>t.type==='pre_share'&&t.side==='신부측'&&t.received).reduce((s,t)=>s+(t.amount||0),0);
 
   const gInit = rtSchedule.ticketTotalGroom || 0;
   const bInit = rtSchedule.ticketTotalBride || 0;
