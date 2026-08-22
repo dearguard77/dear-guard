@@ -433,12 +433,11 @@ input,select,textarea{font-family:inherit;outline:none}
       <span id="tks-b-remain" style="display:none"></span>
     </div>
     <div class="top-right">
-      <button id="live-start-btn" onclick="handleLiveStartClick()" class="topbtn topbtn-ghost">
-        <span id="live-start-icon">🔴</span>
-        <span class="live-start-text">
-          <span id="live-start-label">라이브 시작</span>
-          <span id="live-start-time"></span>
-        </span>
+      <button id="live-start-btn-bride" onclick="handleLiveStartClick('bride')" class="topbtn topbtn-ghost" style="display:none">
+        <span id="live-start-icon-bride">🔴</span><span id="live-start-text-bride">👰 신부 LIVE</span>
+      </button>
+      <button id="live-start-btn-groom" onclick="handleLiveStartClick('groom')" class="topbtn topbtn-ghost" style="display:none">
+        <span id="live-start-icon-groom">🔴</span><span id="live-start-text-groom">🤵 신랑 LIVE</span>
       </button>
       <button class="topbtn topbtn-ghost" onclick="openTicketModal()">🎫 식권정보</button>
       <button class="topbtn topbtn-ghost" onclick="openCashCalc()">🧮 계산기</button>
@@ -1108,7 +1107,7 @@ input,select,textarea{font-family:inherit;outline:none}
 <!-- 라이브 기준시각 관리 팝업 -->
 <div id="live-start-manage-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9500;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeLiveStartManageModal()">
   <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;max-width:340px;width:100%;padding:20px">
-    <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:14px">라이브 기준시각 관리</div>
+    <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:14px">라이브 기준시각 관리 <span id="live-start-manage-side"></span></div>
     <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px;margin-bottom:14px;text-align:center">
       <div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">현재 저장된 기준시각</div>
       <div id="live-start-manage-time" style="font-size:16px;font-weight:800;color:#111827"></div>
@@ -4420,45 +4419,69 @@ let _liveStartSaving = false;
 function formatLiveStartTime(isoStr){
   const d = new Date(isoStr);
   if(isNaN(d.getTime())) return '';
-  const hh = d.getHours(), mm = String(d.getMinutes()).padStart(2,'0'), ss = String(d.getSeconds()).padStart(2,'0');
-  return hh+'시 '+mm+'분 '+ss+'초';
+  const hh = String(d.getHours()).padStart(2,'0'), mm = String(d.getMinutes()).padStart(2,'0'), ss = String(d.getSeconds()).padStart(2,'0');
+  return hh+':'+mm+':'+ss;
 }
 
-// currentSchedule.live_started_at 값을 버튼 표시에 반영 (새로고침·실시간 갱신 시 공용으로 재사용)
+// 신랑측/신부측 LIVE 시작 버튼 — 예식 형태(단측/양측)에 따라 표시 여부 결정 후 각 측 값을 반영
+// (신랑측/신부측 시작시각은 완전히 독립된 별도 컬럼: groom_live_started_at / bride_live_started_at)
 function renderLiveStartButton(){
-  const btn = document.getElementById('live-start-btn');
+  if(!currentSchedule) return;
+  const g = (currentSchedule.groom_name||'').trim();
+  const b = (currentSchedule.bride_name||'').trim();
+  const showGroom = !!g || (!g && !b); // 이름 정보가 전혀 없으면 안전하게 둘 다 노출
+  const showBride = !!b || (!g && !b);
+
+  const brideBtn = document.getElementById('live-start-btn-bride');
+  const groomBtn = document.getElementById('live-start-btn-groom');
+  if(brideBtn) brideBtn.style.display = showBride ? '' : 'none';
+  if(groomBtn) groomBtn.style.display = showGroom ? '' : 'none';
+
+  renderLiveStartButtonForSide('bride');
+  renderLiveStartButtonForSide('groom');
+}
+
+function _liveStartField(side){ return side==='bride' ? 'bride_live_started_at' : 'groom_live_started_at'; }
+
+function renderLiveStartButtonForSide(side){
+  const btn = document.getElementById('live-start-btn-'+side);
+  const iconEl = document.getElementById('live-start-icon-'+side);
+  const textEl = document.getElementById('live-start-text-'+side);
   if(!btn || !currentSchedule) return;
-  const iconEl = document.getElementById('live-start-icon');
-  const labelEl = document.getElementById('live-start-label');
-  const timeEl = document.getElementById('live-start-time');
-  if(currentSchedule.live_started_at){
+  const startedAt = currentSchedule[_liveStartField(side)];
+  const sideLabel = side==='bride' ? '신부' : '신랑';
+  if(startedAt){
     btn.classList.add('saved');
     if(iconEl) iconEl.textContent = '●';
-    if(labelEl) labelEl.textContent = '라이브 시작 완료';
-    if(timeEl) timeEl.textContent = formatLiveStartTime(currentSchedule.live_started_at);
+    if(textEl) textEl.textContent = sideLabel+' '+formatLiveStartTime(startedAt);
   } else {
     btn.classList.remove('saved');
     if(iconEl) iconEl.textContent = '🔴';
-    if(labelEl) labelEl.textContent = '라이브 시작';
-    if(timeEl) timeEl.textContent = '';
+    if(textEl) textEl.textContent = (side==='bride' ? '👰 ' : '🤵 ')+sideLabel+' LIVE';
   }
 }
 
+// 현재 관리 팝업이 다루고 있는 측 ('bride' | 'groom') — 팝업을 여는 시점에만 설정
+let _liveStartManageSide = null;
+
 // 버튼 클릭 — 최초 클릭은 바로 저장, 이미 저장된 상태면 관리 팝업(삭제/다시 기록)을 띄우고 이 클릭 자체는 시간에 반영하지 않음
-function handleLiveStartClick(){
+function handleLiveStartClick(side){
   if(_liveStartSaving || !currentSchedule) return;
-  if(currentSchedule.live_started_at){
-    openLiveStartManageModal();
+  if(currentSchedule[_liveStartField(side)]){
+    openLiveStartManageModal(side);
   } else {
-    saveLiveStartedAt();
+    saveLiveStartedAt(side);
   }
 }
 
 // 1단계: 관리 팝업 (현재 저장된 기준시각 표시 + 취소/삭제/다시 기록)
-function openLiveStartManageModal(){
-  if(!currentSchedule || !currentSchedule.live_started_at) return;
+function openLiveStartManageModal(side){
+  if(!currentSchedule || !currentSchedule[_liveStartField(side)]) return;
+  _liveStartManageSide = side;
   const timeEl = document.getElementById('live-start-manage-time');
-  if(timeEl) timeEl.textContent = formatLiveStartTime(currentSchedule.live_started_at);
+  if(timeEl) timeEl.textContent = formatLiveStartTime(currentSchedule[_liveStartField(side)]);
+  const sideEl = document.getElementById('live-start-manage-side');
+  if(sideEl) sideEl.textContent = side==='bride' ? '(신부측)' : '(신랑측)';
   const m = document.getElementById('live-start-manage-modal');
   if(m) m.style.display = 'flex';
 }
@@ -4479,8 +4502,9 @@ function closeLiveStartDeleteConfirm(){
 }
 // 삭제 팝업의 "삭제" 클릭 시점에만 실제 삭제 수행
 function confirmLiveStartDelete(){
+  const side = _liveStartManageSide;
   closeLiveStartDeleteConfirm();
-  deleteLiveStartedAt();
+  deleteLiveStartedAt(side);
 }
 
 // 2단계-B: 다시 기록 최종 확인
@@ -4495,52 +4519,55 @@ function closeLiveStartResetConfirm(){
 }
 // 팝업의 "다시 기록" 클릭 시점 기준으로만 새 시각을 저장 (팝업을 연 시각은 저장하지 않음)
 function confirmLiveStartReset(){
+  const side = _liveStartManageSide;
   closeLiveStartResetConfirm();
-  saveLiveStartedAt();
+  saveLiveStartedAt(side);
 }
 
-async function saveLiveStartedAt(){
+async function saveLiveStartedAt(side){
   if(!currentSchedule || _liveStartSaving) return;
   _liveStartSaving = true;
-  const btn = document.getElementById('live-start-btn');
+  const btn = document.getElementById('live-start-btn-'+side);
   if(btn) btn.classList.add('saving');
   const scheduleId = currentSchedule.id; // 저장 완료 시 현재 열려있는 예식이 바뀌어 있어도 섞이지 않도록 고정
+  const field = _liveStartField(side);
   try{
     const nowIso = new Date().toISOString();
-    await sb.patch('schedules', scheduleId, { live_started_at: nowIso });
+    await sb.patch('schedules', scheduleId, { [field]: nowIso });
     if(currentSchedule && currentSchedule.id === scheduleId){
-      currentSchedule.live_started_at = nowIso;
-      renderLiveStartButton();
+      currentSchedule[field] = nowIso;
+      renderLiveStartButtonForSide(side);
     }
-    showToast('✅ 라이브 기준시각이 저장되었습니다');
+    showToast('✅ '+(side==='bride'?'신부':'신랑')+'측 라이브 기준시각이 저장되었습니다');
   }catch(e){
     console.error('[DG] 라이브 기준시각 저장 실패:', e);
     showToast('⚠️ 저장 실패: 잠시 후 다시 시도해주세요');
-    // 저장 실패 시 기존 기준시각 유지 (currentSchedule.live_started_at 변경 없음)
+    // 저장 실패 시 기존 기준시각 유지 (currentSchedule[field] 변경 없음)
   } finally {
     _liveStartSaving = false;
     if(btn) btn.classList.remove('saving');
   }
 }
 
-// 라이브 기준시각 삭제 → live_started_at = null 저장, 버튼을 최초(🔴) 상태로 복원
-async function deleteLiveStartedAt(){
+// 라이브 기준시각 삭제 → 해당 측 필드만 null 저장, 그 측 버튼만 최초(🔴) 상태로 복원
+async function deleteLiveStartedAt(side){
   if(!currentSchedule || _liveStartSaving) return;
   _liveStartSaving = true;
-  const btn = document.getElementById('live-start-btn');
+  const btn = document.getElementById('live-start-btn-'+side);
   if(btn) btn.classList.add('saving');
   const scheduleId = currentSchedule.id; // 삭제 완료 시 현재 열려있는 예식이 바뀌어 있어도 섞이지 않도록 고정
+  const field = _liveStartField(side);
   try{
-    await sb.patch('schedules', scheduleId, { live_started_at: null });
+    await sb.patch('schedules', scheduleId, { [field]: null });
     if(currentSchedule && currentSchedule.id === scheduleId){
-      currentSchedule.live_started_at = null;
-      renderLiveStartButton();
+      currentSchedule[field] = null;
+      renderLiveStartButtonForSide(side);
     }
-    showToast('✅ 라이브 기준시각이 삭제되었습니다');
+    showToast('✅ '+(side==='bride'?'신부':'신랑')+'측 라이브 기준시각이 삭제되었습니다');
   }catch(e){
     console.error('[DG] 라이브 기준시각 삭제 실패:', e);
     showToast('⚠️ 삭제 실패: 잠시 후 다시 시도해주세요');
-    // 삭제 실패 시 기존 기준시각 유지 (currentSchedule.live_started_at 변경 없음)
+    // 삭제 실패 시 기존 기준시각 유지 (currentSchedule[field] 변경 없음)
   } finally {
     _liveStartSaving = false;
     if(btn) btn.classList.remove('saving');
